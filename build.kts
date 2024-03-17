@@ -203,6 +203,8 @@ fun buildVm() {
         software.cmake,
         "-B",
         artifactBuildCacheVmDir.absolutePath,
+        "-G",
+        "Unix Makefiles",
         "-DCMAKE_BUILD_TYPE=Release"
     ).directory(vmDir)
         .redirectOutput(ProcessBuilder.Redirect.INHERIT)
