@@ -10,7 +10,7 @@
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/value.h"
-#include "morphine/core/alloc.h"
+#include "morphine/core/allocator.h"
 
 #define FORMAT_TAG      "morphine-bout"
 #define FORMAT_TAG_SIZE (sizeof(FORMAT_TAG) - 1)
@@ -21,7 +21,6 @@
 struct loader_state {
     morphine_state_t S;
     struct crc32_buf crc;
-    size_t protos_count;
     struct proto **created_protos;
     jmp_buf jump;
     void *data;
@@ -41,7 +40,6 @@ struct proto *loaderI_load(
     struct loader_state loader = (struct loader_state) {
         .S = S,
         .read = read,
-        .protos_count = 0,
         .created_protos = NULL,
     };
 
@@ -56,7 +54,7 @@ struct proto *loaderI_load(
     struct proto *result;
 
     if (setjmp(loader.jump) != 0) {
-        allocI_uni(S->I, loader.created_protos, loader.protos_count * sizeof(struct proto *), 0);
+        allocI_free(S->I, loader.created_protos);
 
         if (finish != NULL) {
             finish(S, loader.data);
@@ -66,7 +64,7 @@ struct proto *loaderI_load(
     } else {
         result = loader_read(&loader);
 
-        allocI_uni(S->I, loader.created_protos, loader.protos_count * sizeof(struct proto *), 0);
+        allocI_free(S->I, loader.created_protos);
 
         stackI_pop(S, stackI_space_size(S) - stack_size);
 
@@ -98,39 +96,6 @@ static uint8_t next_byte(default_args) {
 
 static uint8_t get_u8(default_args) {
     return next_byte(default_params);
-}
-
-static uint32_t next_u32(default_args) {
-    union {
-        uint8_t raw[4];
-        uint32_t result;
-    } buffer;
-
-    for (int i = 0; i < 4; i++) {
-        buffer.raw[3 - i] = get_u8(default_params);
-    }
-
-    return buffer.result;
-}
-
-static uint64_t get_u64(default_args) {
-    uint64_t o32 = ((uint64_t) next_u32(default_params)) & 0xffffffff;
-    uint64_t o0 = ((uint64_t) next_u32(default_params)) & 0xffffffff;
-
-    uint64_t result = (o32 << 32) | (o0 << 0);
-
-    return result;
-}
-
-static double get_double(default_args) {
-    union {
-        uint64_t raw;
-        double result;
-    } buffer;
-
-    buffer.raw = get_u64(default_params);
-
-    return buffer.result;
 }
 
 static uint32_t get_u32(default_args) {
@@ -167,6 +132,30 @@ static uint32_t get_u32(default_args) {
     for (int i = init; i < 4; i++) {
         buffer.raw[3 - i] = get_u8(default_params);
     }
+
+    return buffer.result;
+}
+
+static uint64_t get_u64(default_args) {
+    union {
+        uint8_t raw[8];
+        uint64_t result;
+    } buffer;
+
+    for (int i = 0; i < 8; i++) {
+        buffer.raw[7 - i] = get_u8(default_params);
+    }
+
+    return buffer.result;
+}
+
+static double get_double(default_args) {
+    union {
+        uint64_t raw;
+        double result;
+    } buffer;
+
+    buffer.raw = get_u64(default_params);
 
     return buffer.result;
 }
@@ -298,7 +287,11 @@ static struct proto *loader_function(default_args) {
     size_t instructions_count = get_u32(default_params);
 
     struct proto *proto = protoI_create(
-        loader->S->I, uuid, name_chars_count, constants_count, instructions_count,
+        loader->S->I,
+        uuid,
+        name_chars_count,
+        constants_count,
+        instructions_count,
         statics_count
     );
     stackI_push(loader->S, valueI_object(proto));
@@ -419,8 +412,7 @@ static struct proto *loader_read(default_args) {
     struct uuid main_function_id = get_uuid(default_params);
     size_t functions_count = get_u32(default_params);
 
-    loader->protos_count = functions_count;
-    loader->created_protos = allocI_uni(loader->S->I, NULL, 0, functions_count * sizeof(struct proto *));
+    loader->created_protos = allocI_uni(loader->S->I, NULL, functions_count * sizeof(struct proto *));
 
     for (size_t i = 0; i < functions_count; i++) {
         loader->created_protos[i] = loader_function(default_params);

@@ -5,12 +5,12 @@
 #include <string.h>
 #include "morphine/object/state.h"
 #include "morphine/object/string.h"
-#include "morphine/core/alloc.h"
+#include "morphine/core/allocator.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
 
 morphine_state_t stateI_custom_create(morphine_instance_t I, size_t stack_limit, size_t stack_grow) {
-    morphine_state_t result = allocI_uni(I, NULL, 0, sizeof(struct state));
+    morphine_state_t result = allocI_uni(I, NULL, sizeof(struct state));
 
     (*result) = (struct state) {
         .status = STATE_STATUS_DETACHED,
@@ -44,15 +44,13 @@ void stateI_free(morphine_instance_t I, morphine_state_t state) {
     struct callinfo *callinfo = state->stack.callstack;
     while (callinfo != NULL) {
         struct callinfo *prev = callinfo->prev;
-        allocI_uni(I, callinfo, sizeof(struct callinfo), 0);
+        stackI_callinfo_free(I, callinfo);
         callinfo = prev;
     }
     state->stack.callstack = NULL;
 
-    allocI_uni(I, state->stack.allocated, sizeof(struct value) * state->stack.size, 0);
-    state->stack.allocated = NULL;
-
-    allocI_uni(I, state, sizeof(struct state), 0);
+    allocI_free(I, state->stack.allocated);
+    allocI_free(I, state);
 }
 
 size_t stateI_allocated_size(morphine_state_t S) {

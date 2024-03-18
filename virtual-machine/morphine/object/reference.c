@@ -3,14 +3,14 @@
 //
 
 #include "morphine/object/reference.h"
-#include "morphine/core/alloc.h"
+#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/utils/unused.h"
 
 struct reference *referenceI_create(morphine_instance_t I, struct value value) {
     size_t alloc_size = sizeof(struct reference);
 
-    struct reference *result = allocI_uni(I, NULL, 0, alloc_size);
+    struct reference *result = allocI_uni(I, NULL, alloc_size);
 
     (*result) = (struct reference) {
         .value = value,
@@ -22,12 +22,7 @@ struct reference *referenceI_create(morphine_instance_t I, struct value value) {
 }
 
 void referenceI_free(morphine_instance_t I, struct reference *reference) {
-    allocI_uni(
-        I,
-        reference,
-        sizeof(struct reference),
-        0
-    );
+    allocI_free(I, reference);
 }
 
 size_t referenceI_allocated_size(struct reference *reference) {

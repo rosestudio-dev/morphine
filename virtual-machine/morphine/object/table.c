@@ -6,7 +6,7 @@
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
 #include "morphine/object/state.h"
-#include "morphine/core/alloc.h"
+#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/gc.h"
 #include "morphine/config/hashmap.h"
@@ -29,7 +29,7 @@ struct hashmap {
 
 // region hashmap
 
-static inline uint64_t hashcode(struct value value) {
+static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         uint64_t h = 0;
@@ -42,15 +42,15 @@ static inline uint64_t hashcode(struct value value) {
 
     switch (value.type) {
         case VALUE_TYPE_NIL:
-            return (uint64_t) valueI_as_nil(value);
+            return (uint64_t)valueI_as_nil(value);
         case VALUE_TYPE_INTEGER:
-            return (uint64_t) valueI_as_integer(value);
+            return (uint64_t)valueI_as_integer(value);
         case VALUE_TYPE_DECIMAL:
-            return (uint64_t) valueI_as_decimal(value);
+            return (uint64_t)valueI_as_decimal(value);
         case VALUE_TYPE_BOOLEAN:
-            return (uint64_t) valueI_as_boolean(value);
+            return (uint64_t)valueI_as_boolean(value);
         case VALUE_TYPE_RAW:
-            return (uint64_t) valueI_as_raw(value);
+            return (uint64_t)valueI_as_raw(value);
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_STRING:
         case VALUE_TYPE_TABLE:
@@ -59,8 +59,10 @@ static inline uint64_t hashcode(struct value value) {
         case VALUE_TYPE_PROTO:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
-            return (uint64_t) valueI_as_object(value);
+            return (uint64_t)valueI_as_object(value);
     }
+
+    throwI_message_panic(I, NULL, "Unknown value type");
 }
 
 static inline struct hashmap *hashmap_new(morphine_instance_t I, size_t cap) {
@@ -69,7 +71,7 @@ static inline struct hashmap *hashmap_new(morphine_instance_t I, size_t cap) {
         cap = ncap;
     }
 
-    struct hashmap *map = allocI_uni(I, NULL, 0, sizeof(struct hashmap));
+    struct hashmap *map = allocI_uni(I, NULL, sizeof(struct hashmap));
 
     map->count = 0;
 
@@ -79,7 +81,7 @@ static inline struct hashmap *hashmap_new(morphine_instance_t I, size_t cap) {
     map->growat = map->size * HASHMAP_GROW_FACTOR_PERCENT / 100;
     map->shrinkat = map->size * HASHMAP_SHRINK_FACTOR_PERCENT / 100;
 
-    map->buckets = allocI_uni(I, NULL, 0, sizeof(struct bucket) * map->size);
+    map->buckets = allocI_uni(I, NULL, sizeof(struct bucket) * map->size);
     memset(map->buckets, 0, sizeof(struct bucket) * map->size);
 
     return map;
@@ -91,9 +93,9 @@ static inline void hashmap_clear(morphine_instance_t I, struct hashmap *map, boo
     if (update_cap) {
         map->cap = map->size;
     } else if (map->size != map->cap) {
-        void *new_buckets = allocI_uni(I, NULL, 0, sizeof(struct bucket) * map->cap);
+        void *new_buckets = allocI_uni(I, NULL, sizeof(struct bucket) * map->cap);
 
-        allocI_uni(I, map->buckets, sizeof(struct bucket) * map->size, 0);
+        allocI_free(I, map->buckets);
 
         map->buckets = new_buckets;
         map->size = map->cap;
@@ -118,7 +120,7 @@ static inline void resize(morphine_instance_t I, struct hashmap *map, size_t new
         entry->dib = 1;
         size_t j = entry->hash % newmap->size;
 
-        for(;;) {
+        for (;;) {
             struct bucket *bucket = newmap->buckets + j;
 
             if (bucket->dib == 0) {
@@ -134,18 +136,18 @@ static inline void resize(morphine_instance_t I, struct hashmap *map, size_t new
 
             j = (j + 1) % newmap->size;
 
-            entry->dib ++;
+            entry->dib++;
         }
     }
 
-    allocI_uni(I, map->buckets, sizeof(struct bucket) * map->size, 0);
+    allocI_free(I, map->buckets);
 
     map->buckets = newmap->buckets;
     map->size = newmap->size;
     map->growat = newmap->growat;
     map->shrinkat = newmap->shrinkat;
 
-    allocI_uni(I, newmap, sizeof(struct hashmap), 0);
+    allocI_free(I, newmap);
 }
 
 static inline bool hashmap_set(morphine_instance_t I, struct hashmap *map, struct pair item) {
@@ -154,13 +156,13 @@ static inline bool hashmap_set(morphine_instance_t I, struct hashmap *map, struc
     }
 
     struct bucket entry = {
-        .hash = hashcode(item.key),
+        .hash = hashcode(I, item.key),
         .dib = 1,
         .pair = item
     };
 
     size_t i = entry.hash % map->size;
-    for(;;) {
+    for (;;) {
         struct bucket *bucket = map->buckets + i;
 
         if (morphinem_unlikely(bucket->dib == 0)) {
@@ -187,10 +189,10 @@ static inline bool hashmap_set(morphine_instance_t I, struct hashmap *map, struc
 }
 
 static inline struct value hashmap_get(morphine_instance_t I, struct hashmap *map, struct value key, bool *has) {
-    uint64_t hash = hashcode(key);
+    uint64_t hash = hashcode(I, key);
 
     size_t i = hash % map->size;
-    for(;;) {
+    for (;;) {
         struct bucket *bucket = map->buckets + i;
 
         if (morphinem_unlikely(!bucket->dib)) {
@@ -214,10 +216,10 @@ static inline struct value hashmap_get(morphine_instance_t I, struct hashmap *ma
 }
 
 static inline bool hashmap_delete(morphine_instance_t I, struct hashmap *map, struct value key) {
-    uint64_t hash = hashcode(key);
+    uint64_t hash = hashcode(I, key);
 
     size_t i = hash % map->size;
-    for(;;) {
+    for (;;) {
         struct bucket *bucket = map->buckets + i;
 
         if (!bucket->dib) {
@@ -227,7 +229,7 @@ static inline bool hashmap_delete(morphine_instance_t I, struct hashmap *map, st
         if (bucket->hash == hash && valueI_equal(I, key, bucket->pair.key)) {
             bucket->dib = 0;
 
-            for(;;) {
+            for (;;) {
                 struct bucket *prev = bucket;
 
                 i = (i + 1) % map->size;
@@ -265,8 +267,8 @@ static inline size_t hashmap_allocated_size(struct hashmap *map) {
 }
 
 static inline void hashmap_free(morphine_instance_t I, struct hashmap *map) {
-    allocI_uni(I, map->buckets, sizeof(struct bucket) * map->size, 0);
-    allocI_uni(I, map, sizeof(struct hashmap), 0);
+    allocI_free(I, map->buckets);
+    allocI_free(I, map);
 }
 
 static inline bool hashmap_iter(struct hashmap *map, size_t *i, struct pair *item) {
@@ -278,7 +280,7 @@ static inline bool hashmap_iter(struct hashmap *map, size_t *i, struct pair *ite
         }
 
         bucket = map->buckets + (*i);
-        (*i) ++;
+        (*i)++;
     } while (!bucket->dib);
 
     *item = bucket->pair;
@@ -289,9 +291,7 @@ static inline bool hashmap_iter(struct hashmap *map, size_t *i, struct pair *ite
 // endregion
 
 struct table *tableI_create(morphine_instance_t I, size_t size) {
-    size_t alloc_size = sizeof(struct table);
-
-    struct table *result = allocI_uni(I, NULL, 0, alloc_size);
+    struct table *result = allocI_uni(I, NULL, sizeof(struct table));
 
     (*result) = (struct table) {
         .metatable = NULL,
@@ -305,13 +305,7 @@ struct table *tableI_create(morphine_instance_t I, size_t size) {
 
 void tableI_free(morphine_instance_t I, struct table *table) {
     hashmap_free(I, table->hashmap);
-
-    allocI_uni(
-        I,
-        table,
-        sizeof(struct table),
-        0
-    );
+    allocI_free(I, table);
 }
 
 size_t tableI_allocated_size(struct table *table) {

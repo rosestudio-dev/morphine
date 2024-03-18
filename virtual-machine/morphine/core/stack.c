@@ -4,7 +4,7 @@
 
 #include "morphine/core/stack.h"
 #include "morphine/core/throw.h"
-#include "morphine/core/alloc.h"
+#include "morphine/core/allocator.h"
 #include "morphine/object/state.h"
 #include "morphine/object/closure.h"
 #include "morphine/object/proto.h"
@@ -30,12 +30,7 @@ struct stack stackI_initial(morphine_instance_t I, size_t grow) {
         throwI_message_panic(I, NULL, "Grow size is zero");
     }
 
-    struct value *allocated = allocI_uni(
-        I,
-        NULL,
-        0,
-        grow * sizeof(struct value)
-    );
+    struct value *allocated = allocI_uni(I, NULL, grow * sizeof(struct value));
 
     return (struct stack) {
         .allocated = allocated,
@@ -97,8 +92,7 @@ static inline stackI_ptr raise(morphine_state_t S, struct value first, size_t si
     if (stack->top >= stack->size) {
         size_t grow = get_grow_size(S);
 
-        size_t osize = stack->size;
-        size_t nsize = osize + (((size / grow) + 1) * grow);
+        size_t nsize = stack->size + (((size / grow) + 1) * grow);
 
         if (nsize >= S->settings.stack_limit) {
             throwI_message_error(S, "Stack overflow");
@@ -107,12 +101,7 @@ static inline stackI_ptr raise(morphine_state_t S, struct value first, size_t si
         stack_save(stack);
         stack_ptr_save(stack->allocated, result);
 
-        stack->allocated = allocI_uni(
-            S->I,
-            stack->allocated,
-            osize * sizeof(struct value),
-            nsize * sizeof(struct value)
-        );
+        stack->allocated = allocI_uni(S->I, stack->allocated, nsize * sizeof(struct value));
 
         stack_ptr_recover(stack->allocated, result);
         stack_recover(stack);
@@ -148,12 +137,7 @@ void stackI_shrink(morphine_state_t S) {
 
     stack_save(&S->stack);
 
-    S->stack.allocated = allocI_uni(
-        S->I,
-        S->stack.allocated,
-        S->stack.size * sizeof(struct value),
-        size * sizeof(struct value)
-    );
+    S->stack.allocated = allocI_uni(S->I, S->stack.allocated, size * sizeof(struct value));
 
     stack_recover(&S->stack);
 
@@ -254,7 +238,7 @@ void stackI_call(
 
     struct callinfo *callinfo = gcI_get_hot_callinfo(S->I);
     if (callinfo == NULL) {
-        callinfo = allocI_uni(S->I, NULL, 0, sizeof(struct callinfo));
+        callinfo = allocI_uni(S->I, NULL, sizeof(struct callinfo));
     }
 
     (*callinfo) = temp;
@@ -290,7 +274,7 @@ void stackI_call_pop(morphine_state_t S) {
 }
 
 void stackI_callinfo_free(morphine_instance_t I, struct callinfo *callinfo) {
-    allocI_uni(I, callinfo, sizeof(struct callinfo), 0);
+    allocI_free(I, callinfo);
 }
 
 size_t stackI_space_size(morphine_state_t S) {

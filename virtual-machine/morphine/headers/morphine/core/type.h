@@ -10,7 +10,7 @@
 #define OBJ_TYPES_START (OBJ_TYPE_USERDATA)
 #define OBJ_TYPES_COUNT (OBJ_TYPE_REFERENCE + 1)
 
-#define typeI_value_is_obj(x) ({ enum value_type _vt = (x); (OBJ_TYPES_START <= _vt && _vt < OBJ_TYPES_COUNT); })
+#define typeI_value_is_obj(x) ({ enum obj_type _vt = (enum obj_type) (x); (OBJ_TYPES_START <= _vt && _vt < OBJ_TYPES_COUNT); })
 
 enum obj_type {
     OBJ_TYPE_USERDATA = 0,

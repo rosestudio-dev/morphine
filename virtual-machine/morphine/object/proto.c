@@ -4,7 +4,7 @@
 
 #include "morphine/object/proto.h"
 #include "morphine/object/state.h"
-#include "morphine/core/alloc.h"
+#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/gc.h"
 #include <string.h>
@@ -22,23 +22,16 @@ struct proto *protoI_create(
     size_t instructions_count,
     size_t statics_count
 ) {
-    size_t proto_size = sizeof(struct proto);
+    struct proto *result = allocI_uni(I, NULL, sizeof(struct proto));
+
     size_t name_size = sizeof(char) * (name_chars_count + 1);
     size_t constants_size = sizeof(struct value) * constants_count;
     size_t instructions_size = sizeof(instruction_t) * instructions_count;
     size_t statics_size = sizeof(struct value) * statics_count;
 
-    size_t alloc_size = proto_size + name_size + instructions_size + constants_size + statics_size;
-    struct proto *result = allocI_uni(I, NULL, 0, alloc_size);
-
-    char *name_p = ((void *) result) + proto_size;
-    struct value *constants = ((void *) name_p) + name_size;
-    instruction_t *instructions = ((void *) constants) + constants_size;
-    struct value *statics = ((void *) instructions) + instructions_size;
-
     (*result) = (struct proto) {
         .uuid = uuid,
-        .name = name_p,
+        .name = allocI_uni(I, NULL, name_size),
         .name_chars_count = name_chars_count,
         .constants_count = constants_count,
         .instructions_count = instructions_count,
@@ -46,21 +39,21 @@ struct proto *protoI_create(
         .arguments_count = 0,
         .slots_count = 0,
         .params_count = 0,
-        .constants = constants,
-        .instructions = instructions,
-        .statics = statics,
+        .constants = allocI_uni(I, NULL, constants_size),
+        .instructions = allocI_uni(I, NULL, instructions_size),
+        .statics = allocI_uni(I, NULL, statics_size),
         .registry_key = valueI_nil
     };
 
     for (size_t i = 0; i < constants_count; i++) {
-        constants[i] = valueI_nil;
+        result->constants[i] = valueI_nil;
     }
 
     for (size_t i = 0; i < statics_count; i++) {
-        statics[i] = valueI_nil;
+        result->statics[i] = valueI_nil;
     }
 
-    name_p[name_chars_count] = '\0';
+    result->name[name_chars_count] = '\0';
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_PROTO);
 
@@ -68,19 +61,11 @@ struct proto *protoI_create(
 }
 
 void protoI_free(morphine_instance_t I, struct proto *proto) {
-    size_t proto_size = sizeof(struct proto);
-    size_t name_size = sizeof(char) * (proto->name_chars_count + 1);
-    size_t constants_size = sizeof(struct value) * proto->constants_count;
-    size_t instructions_size = sizeof(instruction_t) * proto->instructions_count;
-    size_t statics_size = sizeof(struct value) * proto->statics_count;
-
-    size_t alloc_size = proto_size + name_size + instructions_size + constants_size + statics_size;
-    allocI_uni(
-        I,
-        proto,
-        alloc_size,
-        0
-    );
+    allocI_free(I, proto->name);
+    allocI_free(I, proto->constants);
+    allocI_free(I, proto->instructions);
+    allocI_free(I, proto->statics);
+    allocI_free(I, proto);
 }
 
 size_t protoI_allocated_size(struct proto *proto) {

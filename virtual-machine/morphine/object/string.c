@@ -3,7 +3,7 @@
 //
 
 #include "morphine/object/string.h"
-#include "morphine/core/alloc.h"
+#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include <stdio.h>
 #include <string.h>
@@ -11,7 +11,7 @@
 static struct string *create(morphine_instance_t I, size_t size, char **buffer) {
     size_t alloc_size = sizeof(struct string) + sizeof(char) * (size + 1);
 
-    struct string *result = allocI_uni(I, NULL, 0, alloc_size);
+    struct string *result = allocI_uni(I, NULL, alloc_size);
 
     char *str_p = ((void *) result) + sizeof(struct string);
 
@@ -77,12 +77,7 @@ struct string *stringI_createf(morphine_instance_t I, const char *str, ...) {
 }
 
 void stringI_free(morphine_instance_t I, struct string *string) {
-    allocI_uni(
-        I,
-        string,
-        sizeof(struct string) + sizeof(char) * (string->size + 1),
-        0
-    );
+    allocI_free(I, string);
 }
 
 size_t stringI_allocated_size(struct string *string) {

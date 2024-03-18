@@ -102,6 +102,9 @@ MORPHINE_API bool mapi_state_isalive(morphine_state_t);
 
 MORPHINE_API bool mapi_op(morphine_state_t, const char *op);
 
+MORPHINE_API void *mapi_allocator_uni(morphine_instance_t, void *, size_t size);
+MORPHINE_API void mapi_allocator_free(morphine_instance_t, void *);
+
 MORPHINE_API void mapi_gc_full(morphine_instance_t);
 MORPHINE_API void mapi_gc_work(morphine_instance_t);
 MORPHINE_API void mapi_gc_force(morphine_instance_t);

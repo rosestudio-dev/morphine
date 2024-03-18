@@ -5,13 +5,13 @@
 #include "morphine/object/closure.h"
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
-#include "morphine/core/alloc.h"
+#include "morphine/core/allocator.h"
 #include "morphine/core/gc.h"
 
 struct closure *closureI_create(morphine_instance_t I, struct value callable, size_t size) {
     size_t alloc_size = sizeof(struct closure) + size * sizeof(struct value);
 
-    struct closure *result = allocI_uni(I, NULL, 0, alloc_size);
+    struct closure *result = allocI_uni(I, NULL, alloc_size);
 
     (*result) = (struct closure) {
         .size = size,
@@ -29,12 +29,7 @@ struct closure *closureI_create(morphine_instance_t I, struct value callable, si
 }
 
 void closureI_free(morphine_instance_t I, struct closure *closure) {
-    allocI_uni(
-        I,
-        closure,
-        sizeof(struct closure) + closure->size * sizeof(struct value),
-        0
-    );
+    allocI_free(I, closure);
 }
 
 size_t closureI_allocated_size(struct closure *closure) {
