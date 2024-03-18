@@ -12,7 +12,6 @@
 #include "morphine/object/string.h"
 #include "morphine/object/native.h"
 #include "morphine/core/throw.h"
-#include "morphine/core/hashmap.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/call.h"
 #include "morphine/core/hook.h"
@@ -193,7 +192,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             size_t it = 0;
             struct pair pair;
 
-            while (hashmap_iter(table->hashmap, &it, &pair)) {
+            while (tableI_iter(I, table, &it, &pair)) {
                 mark_value(pair.key);
                 mark_value(pair.value);
             }

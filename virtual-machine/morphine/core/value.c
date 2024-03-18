@@ -34,7 +34,7 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
         case VALUE_TYPE_RAW:
-            return a.raw == b.raw;
+            return a.object.header == b.object.header;
     }
 
     throwI_message_panic(I, NULL, "Unsupported type");
@@ -53,19 +53,19 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_STRING:
             return value;
         case VALUE_TYPE_USERDATA:
-            return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object));
+            return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object.userdata));
         case VALUE_TYPE_TABLE:
-            return valueI_object(stringI_createf(I, "[object:table:%p]", value.object));
+            return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
         case VALUE_TYPE_CLOSURE:
-            return valueI_object(stringI_createf(I, "[object:closure:%p]", value.object));
+            return valueI_object(stringI_createf(I, "[object:closure:%p]", value.object.closure));
         case VALUE_TYPE_STATE:
-            return valueI_object(stringI_createf(I, "[object:state:%p]", value.object));
+            return valueI_object(stringI_createf(I, "[object:state:%p]", value.object.state));
         case VALUE_TYPE_REFERENCE:
-            return valueI_object(stringI_createf(I, "[object:reference:%p]", value.object));
+            return valueI_object(stringI_createf(I, "[object:reference:%p]", value.object.reference));
         case VALUE_TYPE_PROTO:
-            return valueI_object(stringI_createf(I, "[object:proto:%p|%s]", value.object, valueI_as_proto(value)->name));
+            return valueI_object(stringI_createf(I, "[object:proto:%p|%s]", value.object.proto, valueI_as_proto(value)->name));
         case VALUE_TYPE_NATIVE:
-            return valueI_object(stringI_createf(I, "[object:native:%p|%s]", value.object, valueI_as_native(value)->name));
+            return valueI_object(stringI_createf(I, "[object:native:%p|%s]", value.object.native, valueI_as_native(value)->name));
         case VALUE_TYPE_RAW:
             return valueI_object(stringI_createf(I, "[raw:%p]", value.raw));
     }

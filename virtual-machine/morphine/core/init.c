@@ -8,7 +8,6 @@
 #include "morphine/object/string.h"
 #include "morphine/object/native.h"
 #include "morphine/core/instance.h"
-#include "morphine/core/hashmap.h"
 #include "morphine/api.h"
 #include "morphine/auxiliary.h"
 
@@ -46,7 +45,7 @@ static struct table *init_default_env(morphine_instance_t I) {
     struct value key = valueI_object(stringI_create(I, "require"));
     struct value value = valueI_object(nativeI_create(I, "require", require));
 
-    hashmap_set(I, env->hashmap, (struct pair) { .key = key, .value = value });
+    tableI_set(I, env, key, value);
 
     return env;
 }
