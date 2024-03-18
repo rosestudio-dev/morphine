@@ -96,27 +96,27 @@ static void resume(morphine_state_t S) {
 
 static void create_instance(morphine_state_t S) {
     mapi_push_string(S, "kill");
-    mapi_push_native(S, "fiber.instance.kill", kill);
+    mapi_push_native(S, "coroutine.instance.kill", kill);
     mapi_table_set(S);
 
     mapi_push_string(S, "status");
-    mapi_push_native(S, "fiber.instance.status", status);
+    mapi_push_native(S, "coroutine.instance.status", status);
     mapi_table_set(S);
 
     mapi_push_string(S, "priority");
-    mapi_push_native(S, "fiber.instance.priority", priority);
+    mapi_push_native(S, "coroutine.instance.priority", priority);
     mapi_table_set(S);
 
     mapi_push_string(S, "wait");
-    mapi_push_native(S, "fiber.instance.wait", wait);
+    mapi_push_native(S, "coroutine.instance.wait", wait);
     mapi_table_set(S);
 
     mapi_push_string(S, "suspend");
-    mapi_push_native(S, "fiber.instance.suspend", suspend);
+    mapi_push_native(S, "coroutine.instance.suspend", suspend);
     mapi_table_set(S);
 
     mapi_push_string(S, "resume");
-    mapi_push_native(S, "fiber.instance.resume", resume);
+    mapi_push_native(S, "coroutine.instance.resume", resume);
     mapi_table_set(S);
 
     maux_table_lock(S);
@@ -165,7 +165,7 @@ static void create(morphine_state_t S) {
             mapi_table_set(S);
 
             mapi_push_string(S, "start");
-            mapi_push_native(S, "fiber.start", start);
+            mapi_push_native(S, "coroutine.start", start);
             mapi_table_set(S);
 
             maux_table_lock(S);
@@ -196,10 +196,10 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_fiber_loader(morphine_state_t S) {
+void mlib_coroutine_loader(morphine_state_t S) {
     maux_construct(S, table);
 }
 
-MORPHINE_LIB void mlib_fiber_call(morphine_state_t S, const char *name, size_t argc) {
+MORPHINE_LIB void mlib_coroutine_call(morphine_state_t S, const char *name, size_t argc) {
     maux_construct_call(S, table, name, argc);
 }

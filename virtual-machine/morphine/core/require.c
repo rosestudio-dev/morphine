@@ -12,14 +12,14 @@
 #include "morphine/object/state.h"
 
 static struct require_loader table[] = {
-    { "base",     mlib_base_loader },
-    { "gc",       mlib_gc_loader },
-    { "fiber",    mlib_fiber_loader },
-    { "math",     mlib_math_loader },
-    { "string",   mlib_string_loader },
-    { "table",    mlib_table_loader },
-    { "value",    mlib_value_loader },
-    { "registry", mlib_registry_loader },
+    { "base",      mlib_base_loader },
+    { "gc",        mlib_gc_loader },
+    { "coroutine", mlib_coroutine_loader },
+    { "math",      mlib_math_loader },
+    { "string",    mlib_string_loader },
+    { "table",     mlib_table_loader },
+    { "value",     mlib_value_loader },
+    { "registry",  mlib_registry_loader },
     { NULL, NULL }
 };
 
