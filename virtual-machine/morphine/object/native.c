@@ -8,6 +8,14 @@
 #include "morphine/utils/unused.h"
 
 struct native *nativeI_create(morphine_instance_t I, const char *name, morphine_native_t function) {
+    if (name == NULL) {
+        throwI_message_panic(I, NULL, "Native name is null");
+    }
+
+    if (function == NULL) {
+        throwI_message_panic(I, NULL, "Native function is null");
+    }
+
     struct native *result = allocI_uni(I, NULL, sizeof(struct native));
 
     (*result) = (struct native) {
