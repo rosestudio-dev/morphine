@@ -5,6 +5,7 @@ rootProject.name = "compiler"
 include("cli:compiler")
 include("compiler")
 include("bytecode")
+include("clibrary")
 include("optimizer")
 include("bytecode-processor")
 include("bytecode-annotation")
