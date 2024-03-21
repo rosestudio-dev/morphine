@@ -469,16 +469,18 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
     }
 
     private fun CallSelfExpression.eval() = codegenExpression {
+        val self = self.evalWithResult()
         val callable = callable.evalWithResult()
-        val access = access.evalWithResult()
 
-        instruction(
-            Instruction.Get(
-                container = callable,
-                keySource = access,
-                destination = access
+        if (extractCallable) {
+            instruction(
+                Instruction.Get(
+                    container = self,
+                    keySource = callable,
+                    destination = callable
+                )
             )
-        )
+        }
 
         val slots = arguments.map { argument ->
             argument.evalWithResult()
@@ -495,8 +497,8 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
 
         instruction(
             Instruction.SCall(
-                source = access,
-                selfSource = callable,
+                source = callable,
+                selfSource = self,
                 count = Argument.Count(arguments.size)
             )
         )

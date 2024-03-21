@@ -15,40 +15,25 @@ class MorphineAssemble(
     private val debug: Boolean = false,
 ) {
 
-    fun assemble(): Bytecode {
-        val tokens = runCatching {
-            Lexer(text).tokenize()
-        }.getOrElse { throwable ->
-            throw if (throwable is LexerException && !debug) {
-                println("Lexer: ${throwable.message}")
-                Exception()
-            } else {
-                throwable
-            }
+    fun assemble() = runCatching {
+        Result.Success(unsafeAssemble())
+    }.getOrElse { throwable ->
+        if (debug) {
+            throw throwable
         }
 
-        val ast = runCatching {
-            Parser(tokens = tokens, debug = debug).parse()
-        }.getOrElse { throwable ->
-            throw if (throwable is ParseException && !debug) {
-                println(throwable.message)
-                Exception()
-            } else {
-                throwable
-            }
+        when (throwable) {
+            is LexerException -> Result.Error("Lexer: " + (throwable.message ?: "No message"))
+            is ParseException -> Result.Error("Parser: " + (throwable.message ?: "No message"))
+            is CompilerException -> Result.Error("Compiler: ${throwable.messageWithLineData}")
+            else -> Result.Error("Internal undefined exception")
         }
+    }
 
-        val bytecode = runCatching {
-            ast.compile(optimize)
-        }.getOrElse { throwable ->
-            throw if (throwable is CompilerException && !debug) {
-                println("${throwable.lineData?.toString()?.plus(" ") ?: ""}${throwable.message}")
-                Exception()
-            } else {
-                throwable
-            }
-        }
-
+    private fun unsafeAssemble(): Bytecode {
+        val tokens = Lexer(text).tokenize()
+        val ast = Parser(tokens = tokens, debug = debug).parse()
+        val bytecode = ast.compile(optimize)
         val optimized = Optimizer(debug).optimize(bytecode)
 
         if (debug) {
@@ -62,5 +47,11 @@ class MorphineAssemble(
         }
 
         return optimized
+    }
+
+    sealed interface Result {
+
+        data class Success(val bytecode: Bytecode) : Result
+        data class Error(val message: String) : Result
     }
 }

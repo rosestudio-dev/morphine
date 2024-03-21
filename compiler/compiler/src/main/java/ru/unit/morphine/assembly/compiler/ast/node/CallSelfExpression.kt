@@ -1,8 +1,9 @@
 package ru.unit.morphine.assembly.compiler.ast.node
 
 data class CallSelfExpression(
+    val self: Expression,
     val callable: Expression,
-    val access: Expression,
     val arguments: List<Expression>,
+    val extractCallable: Boolean,
     override val data: Node.Data
 ) : Expression

@@ -82,7 +82,8 @@ sealed interface Token {
         STAREQ("*="),
         SLASHEQ("/="),
         PERCENTEQ("%="),
-        DOTDOTEQ("..=");
+        DOTDOTEQ("..="),
+        RARROW("->");
 
         companion object {
 

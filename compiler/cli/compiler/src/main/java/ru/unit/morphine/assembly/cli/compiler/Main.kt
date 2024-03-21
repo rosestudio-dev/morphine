@@ -75,22 +75,30 @@ fun compile(
     runCatching {
         val text = Files.readString(Path.of(file))
 
-        val bytecode = MorphineAssemble(
+        val result = MorphineAssemble(
             text = text,
             optimize = optimizer,
             print = disassembly,
             debug = debug
         ).assemble()
 
-        val out = BytecodeConverter().convert(bytecode).toByteArray()
+        when (result) {
+            is MorphineAssemble.Result.Error -> {
+                println(result.message)
+            }
 
-        if (output.isNotBlank()) {
-            Files.write(Path.of(output), out)
-        }
+            is MorphineAssemble.Result.Success -> {
+                val out = BytecodeConverter().convert(result.bytecode).toByteArray()
 
-        when {
-            output.isBlank() && !bytes -> System.out.write(out)
-            bytes -> printCompiled(out)
+                if (output.isNotBlank()) {
+                    Files.write(Path.of(output), out)
+                }
+
+                when {
+                    output.isBlank() && !bytes -> System.out.write(out)
+                    bytes -> printCompiled(out)
+                }
+            }
         }
     }.onFailure { throwable ->
         if (debug) {

@@ -5,4 +5,7 @@ import ru.unit.morphine.assembly.bytecode.LineData
 data class CompilerException(
     override val message: String,
     val lineData: LineData? = null
-) : Exception()
+) : Exception() {
+
+    val messageWithLineData get() = "${lineData?.toString()?.plus(" ") ?: ""}${message}"
+}

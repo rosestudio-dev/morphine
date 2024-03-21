@@ -44,8 +44,8 @@ abstract class SimpleVisitor : AbstractVisitor() {
     }
 
     override fun visit(node: CallSelfExpression) {
+        node.self.accept()
         node.callable.accept()
-        node.access.accept()
         node.arguments.accept()
     }
 

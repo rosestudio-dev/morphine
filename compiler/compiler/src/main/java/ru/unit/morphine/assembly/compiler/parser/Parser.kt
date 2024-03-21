@@ -34,7 +34,6 @@ class Parser(
 
         if (errors.isNotEmpty()) {
             val message = buildString {
-                append("Errors during parse:\n")
                 errors.forEach { pair ->
                     append("Line ${pair.first}: ")
 
@@ -709,6 +708,7 @@ class Parser(
 
                 match(Token.Operator.COLON) -> {
                     val saved = position - 1
+
                     val callable = when {
                         match(Token.Operator.LBRACKET) -> {
                             expression().also {
@@ -737,8 +737,48 @@ class Parser(
                     }
 
                     result = CallSelfExpression(
-                        callable = result,
-                        access = callable,
+                        self = result,
+                        callable = callable,
+                        arguments = arguments,
+                        extractCallable = true,
+                        data = data(saved)
+                    )
+                }
+
+                match(Token.Operator.RARROW) -> {
+                    val saved = position - 1
+
+                    val callable = when {
+                        match(Token.Operator.LBRACKET) -> {
+                            expression().also {
+                                consume(Token.Operator.RBRACKET)
+                            }
+                        }
+
+                        else -> {
+                            val text = consumeWord().text
+
+                            VariableAccessible(
+                                name = text,
+                                data = data(saved + 1)
+                            )
+                        }
+                    }
+
+                    val arguments = if (look(Token.Operator.LBRACE)) {
+                        listOf(expressionTable())
+                    } else {
+                        arguments(
+                            determinator = Token.Operator.COMMA,
+                            open = Token.Operator.LPAREN,
+                            close = Token.Operator.RPAREN
+                        ) { expression() }
+                    }
+
+                    result = CallSelfExpression(
+                        self = result,
+                        callable = callable,
+                        extractCallable = false,
                         arguments = arguments,
                         data = data(saved)
                     )
