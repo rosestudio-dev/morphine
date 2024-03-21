@@ -55,7 +55,8 @@ static void getmetatable(morphine_state_t S) {
         nb_init
             maux_checkargs_fixed(S, 1);
             mapi_push_arg(S, 0);
-            nb_return(mapi_get_metatable(S));
+            mapi_get_metatable(S);
+            nb_return();
     nb_end
 }
 
@@ -79,7 +80,8 @@ static void getdefaultmetatable(morphine_state_t S) {
             mapi_push_arg(S, 0);
             const char *type = mapi_get_string(S);
             mapi_pop(S, 1);
-            nb_return(mapi_get_default_metatable(S, type));
+            mapi_get_default_metatable(S, type);
+            nb_return();
     nb_end
 }
 
@@ -96,7 +98,8 @@ static void scall(morphine_state_t S) {
 
             mapi_callself(S, count - 2);
         nb_state(1)
-            nb_return(mapi_push_result(S));
+            mapi_push_result(S);
+            nb_return();
     nb_end
 }
 
@@ -115,11 +118,11 @@ static void pcall(morphine_state_t S) {
         nb_state(1)
             mapi_push_table(S, 2);
 
-            mapi_push_string(S, "result");
+            mapi_push_stringf(S, "result");
             mapi_push_result(S);
             mapi_table_set(S);
 
-            mapi_push_string(S, "thrown");
+            mapi_push_stringf(S, "thrown");
             mapi_push_nil(S);
             mapi_table_set(S);
 
@@ -127,11 +130,11 @@ static void pcall(morphine_state_t S) {
         nb_state(2)
             mapi_push_table(S, 2);
 
-            mapi_push_string(S, "result");
+            mapi_push_stringf(S, "result");
             mapi_push_nil(S);
             mapi_table_set(S);
 
-            mapi_push_string(S, "thrown");
+            mapi_push_stringf(S, "thrown");
             mapi_push_thrown(S);
             mapi_table_set(S);
 
@@ -155,11 +158,11 @@ static void pscall(morphine_state_t S) {
         nb_state(1)
             mapi_push_table(S, 2);
 
-            mapi_push_string(S, "returned");
+            mapi_push_stringf(S, "returned");
             mapi_push_result(S);
             mapi_table_set(S);
 
-            mapi_push_string(S, "thrown");
+            mapi_push_stringf(S, "thrown");
             mapi_push_nil(S);
             mapi_table_set(S);
 
@@ -167,11 +170,11 @@ static void pscall(morphine_state_t S) {
         nb_state(2)
             mapi_push_table(S, 2);
 
-            mapi_push_string(S, "returned");
+            mapi_push_stringf(S, "returned");
             mapi_push_nil(S);
             mapi_table_set(S);
 
-            mapi_push_string(S, "thrown");
+            mapi_push_stringf(S, "thrown");
             mapi_push_thrown(S);
             mapi_table_set(S);
 

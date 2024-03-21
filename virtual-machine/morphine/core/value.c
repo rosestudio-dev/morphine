@@ -9,6 +9,7 @@
 #include "morphine/object/proto.h"
 #include "morphine/object/native.h"
 #include "morphine/object/state.h"
+#include "morphine/object/userdata.h"
 
 bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
     if (morphinem_likely(a.type != b.type)) {
@@ -53,7 +54,9 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_STRING:
             return value;
         case VALUE_TYPE_USERDATA:
-            return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object.userdata));
+            return valueI_object(
+                stringI_createf(I, "[object:userdata:%s:%p]", value.object.userdata->type, value.object.userdata)
+            );
         case VALUE_TYPE_TABLE:
             return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
         case VALUE_TYPE_CLOSURE:

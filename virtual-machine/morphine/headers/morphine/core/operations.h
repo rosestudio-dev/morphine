@@ -439,7 +439,7 @@ static inline op_result_t interpreter_fun_concat(
     if (morphinem_likely(valueI_is_string(a) && valueI_is_string(b))) {
         struct string *a_str = valueI_as_string(a);
         struct string *b_str = valueI_as_string(b);
-        (*result) = valueI_object(stringI_createf(S->I, "%s%s", a_str->chars, b_str->chars));
+        (*result) = valueI_object(stringI_concat(S->I, a_str, b_str));
 
         return NORMAL;
     }

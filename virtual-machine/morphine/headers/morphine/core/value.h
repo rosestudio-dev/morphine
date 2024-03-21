@@ -114,7 +114,8 @@
 
 // endregion
 
-#define valueI_size2integer(S, x) ({size_t _s = (x); if(morphinem_unlikely(_s > MORPHINE_INTEGER_MAX)) throwI_message_error((S), "Cannot convert size to integer"); valueI_integer((morphine_integer_t) _s);})
+#define valueI_size2integer(S, x) ({size_t _s = (x); if(morphinem_unlikely(_s > MORPHINE_INTEGER_MAX)) throwI_errorf((S), "Cannot convert %zu to integer", _s); valueI_integer((morphine_integer_t) _s);})
+#define valueI_integer2size(S, x) ({morphine_integer_t _i = (x); if(morphinem_unlikely(_i < 0 || ((size_t) _i) > SIZE_MAX)) throwI_errorf((S), "Cannot convert %"MORPHINE_INTEGER_PRINT" to size", _i); ((size_t) _i);})
 
 struct value {
     enum value_type type;

@@ -22,3 +22,5 @@ struct string *stringI_create(morphine_instance_t, const char *);
 void stringI_free(morphine_instance_t, struct string *);
 
 size_t stringI_allocated_size(struct string *);
+
+struct string *stringI_concat(morphine_instance_t, struct string *, struct string *);

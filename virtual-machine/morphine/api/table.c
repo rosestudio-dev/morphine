@@ -45,3 +45,7 @@ MORPHINE_API void mapi_table_getoe(morphine_state_t S) {
         throwI_errorf(S, "Cannot get value from table by %s", valueI_value2string(S->I, *value));
     }
 }
+
+MORPHINE_API size_t mapi_table_len(morphine_state_t S) {
+    return tableI_size(S->I, valueI_as_table_or_error(S, stackI_peek(S, 0)));
+}

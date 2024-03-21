@@ -18,11 +18,13 @@ static void require(morphine_state_t S) {
 
             if (count == 1) {
                 mapi_push_arg(S, 0);
-                nb_return(mapi_require(S));
+                mapi_require(S);
+                nb_return();
             } else {
                 mapi_push_arg(S, 0);
                 mapi_push_arg(S, 1);
-                nb_return(mapi_require_get(S));
+                mapi_require_get(S);
+                nb_return();
             }
     nb_end
 }

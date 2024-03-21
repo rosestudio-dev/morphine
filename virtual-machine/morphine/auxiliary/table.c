@@ -12,11 +12,11 @@ static void setprotection(morphine_state_t S) {
 MORPHINE_AUX void maux_table_lock(morphine_state_t S) {
     mapi_push_table(S, 2);
 
-    mapi_push_string(S, "_mf_mask");
+    mapi_push_stringf(S, "_mf_mask");
     maux_push_empty_callable(S);
     mapi_table_set(S);
 
-    mapi_push_string(S, "_mf_set");
+    mapi_push_stringf(S, "_mf_set");
     mapi_push_native(S, "aux.setprotection", setprotection);
     mapi_table_set(S);
 

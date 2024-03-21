@@ -14,10 +14,12 @@ static void tostr(morphine_state_t S) {
             if (mapi_metatable_test(S, "_mf_to_string")) {
                 mapi_callself(S, 0);
             } else {
-                nb_return(mapi_to_string(S));
+                mapi_to_string(S);
+                nb_return();
             }
         nb_state(1)
-            nb_return(mapi_push_result(S));
+            mapi_push_result(S);
+            nb_return();
     nb_end
 }
 

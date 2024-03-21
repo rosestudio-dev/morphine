@@ -20,9 +20,7 @@ static struct string *create(morphine_instance_t I, size_t size, char **buffer) 
         .chars = str_p
     };
 
-    for (size_t i = 0; i < (size + 1); i++) {
-        str_p[i] = '\0';
-    }
+    memset(str_p, '\0', size + 1);
 
     if (buffer != NULL) {
         (*buffer) = str_p;
@@ -82,4 +80,17 @@ void stringI_free(morphine_instance_t I, struct string *string) {
 
 size_t stringI_allocated_size(struct string *string) {
     return sizeof(struct string) + sizeof(char) * (string->size + 1);
+}
+
+struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
+    if (a == NULL || b == NULL) {
+        throwI_message_panic(I, NULL, "Reference is null");
+    }
+
+    char *buffer;
+    struct string *result = create(I, a->size + b->size, &buffer);
+    memcpy(buffer, a->chars, a->size);
+    memcpy(buffer + a->size, b->chars, b->size);
+
+    return result;
 }

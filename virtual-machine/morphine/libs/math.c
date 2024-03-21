@@ -15,7 +15,8 @@ static void math_##name(morphine_state_t S) { \
             mapi_to_decimal(S); \
             morphine_decimal_t a = mapi_get_decimal(S); \
             mapi_pop(S, 1); \
-            nb_return(mapi_push_decimal(S, name(a))); \
+            mapi_push_decimal(S, name(a)); \
+            nb_return(); \
     nb_end \
 }
 
@@ -31,7 +32,8 @@ static void math_##name(morphine_state_t S) { \
             mapi_to_decimal(S); \
             morphine_decimal_t b = mapi_get_decimal(S); \
             mapi_pop(S, 2); \
-            nb_return(mapi_push_decimal(S, name(a, b))); \
+            mapi_push_decimal(S, name(a, b)); \
+            nb_return(); \
     nb_end \
 }
 
@@ -165,11 +167,11 @@ static void math_modf(morphine_state_t S) {
 
             mapi_push_table(S, 2);
 
-            mapi_push_string(S, "integral");
+            mapi_push_stringf(S, "integral");
             mapi_push_decimal(S, integral);
             mapi_table_set(S);
 
-            mapi_push_string(S, "fraction");
+            mapi_push_stringf(S, "fraction");
             mapi_push_decimal(S, fraction);
             mapi_table_set(S);
 
@@ -378,19 +380,19 @@ static struct maux_construct_field table[] = {
 void mlib_math_loader(morphine_state_t S) {
     maux_construct(S, table);
 
-    mapi_push_string(S, "pi");
+    mapi_push_stringf(S, "pi");
     mapi_push_decimal(S, M_PI);
     mapi_table_set(S);
 
-    mapi_push_string(S, "e");
+    mapi_push_stringf(S, "e");
     mapi_push_decimal(S, M_E);
     mapi_table_set(S);
 
-    mapi_push_string(S, "nan");
+    mapi_push_stringf(S, "nan");
     mapi_push_decimal(S, (morphine_decimal_t) NAN);
     mapi_table_set(S);
 
-    mapi_push_string(S, "infinity");
+    mapi_push_stringf(S, "infinity");
     mapi_push_decimal(S, (morphine_decimal_t) INFINITY);
     mapi_table_set(S);
 }

@@ -4,6 +4,7 @@
 
 #include "morphine/core/call.h"
 #include "morphine/object/table.h"
+#include "morphine/object/string.h"
 #include "morphine/core/metatable.h"
 #include "morphine/core/instance.h"
 

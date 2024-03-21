@@ -16,6 +16,10 @@ MORPHINE_API void mapi_push_integer(morphine_state_t S, morphine_integer_t value
     stackI_push(S, valueI_integer(value));
 }
 
+MORPHINE_API void mapi_push_size(morphine_state_t S, size_t value) {
+    stackI_push(S, valueI_size2integer(S, value));
+}
+
 MORPHINE_API void mapi_push_decimal(morphine_state_t S, morphine_decimal_t value) {
     stackI_push(S, valueI_decimal(value));
 }
@@ -30,6 +34,11 @@ MORPHINE_API void mapi_push_raw(morphine_state_t S, void *value) {
 
 MORPHINE_API morphine_integer_t mapi_get_integer(morphine_state_t S) {
     return valueI_as_integer_or_error(S, stackI_peek(S, 0));
+}
+
+MORPHINE_API size_t mapi_get_size(morphine_state_t S) {
+    morphine_integer_t integer = valueI_as_integer_or_error(S, stackI_peek(S, 0));
+    return valueI_integer2size(S, integer);
 }
 
 MORPHINE_API morphine_decimal_t mapi_get_decimal(morphine_state_t S) {

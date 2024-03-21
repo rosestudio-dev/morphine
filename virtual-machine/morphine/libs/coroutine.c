@@ -10,7 +10,7 @@ static void kill(morphine_state_t S) {
         nb_init
             maux_checkargs_fixed(S, 0);
             mapi_push_self(S);
-            mapi_push_string(S, "__state");
+            mapi_push_stringf(S, "__state");
             mapi_table_getoe(S);
             morphine_state_t state = mapi_get_state(S);
 
@@ -24,11 +24,11 @@ static void status(morphine_state_t S) {
         nb_init
             maux_checkargs_fixed(S, 0);
             mapi_push_self(S);
-            mapi_push_string(S, "__state");
+            mapi_push_stringf(S, "__state");
             mapi_table_getoe(S);
             morphine_state_t state = mapi_get_state(S);
 
-            mapi_push_string(S, mapi_state_status(state));
+            mapi_push_stringf(S, mapi_state_status(state));
             nb_return();
     nb_end
 }
@@ -38,7 +38,7 @@ static void priority(morphine_state_t S) {
         nb_init
             maux_checkargs_fixed(S, 1);
             mapi_push_self(S);
-            mapi_push_string(S, "__state");
+            mapi_push_stringf(S, "__state");
             mapi_table_getoe(S);
             morphine_state_t state = mapi_get_state(S);
 
@@ -54,7 +54,7 @@ static void wait(morphine_state_t S) {
         nb_init
             maux_checkargs_fixed(S, 0);
             mapi_push_self(S);
-            mapi_push_string(S, "__state");
+            mapi_push_stringf(S, "__state");
             mapi_table_getoe(S);
             morphine_state_t state = mapi_get_state(S);
 
@@ -71,7 +71,7 @@ static void suspend(morphine_state_t S) {
         nb_init
             maux_checkargs_fixed(S, 0);
             mapi_push_self(S);
-            mapi_push_string(S, "__state");
+            mapi_push_stringf(S, "__state");
             mapi_table_getoe(S);
             morphine_state_t state = mapi_get_state(S);
 
@@ -85,7 +85,7 @@ static void resume(morphine_state_t S) {
         nb_init
             maux_checkargs_fixed(S, 0);
             mapi_push_self(S);
-            mapi_push_string(S, "__state");
+            mapi_push_stringf(S, "__state");
             mapi_table_getoe(S);
             morphine_state_t state = mapi_get_state(S);
 
@@ -95,27 +95,27 @@ static void resume(morphine_state_t S) {
 }
 
 static void create_instance(morphine_state_t S) {
-    mapi_push_string(S, "kill");
+    mapi_push_stringf(S, "kill");
     mapi_push_native(S, "coroutine.instance.kill", kill);
     mapi_table_set(S);
 
-    mapi_push_string(S, "status");
+    mapi_push_stringf(S, "status");
     mapi_push_native(S, "coroutine.instance.status", status);
     mapi_table_set(S);
 
-    mapi_push_string(S, "priority");
+    mapi_push_stringf(S, "priority");
     mapi_push_native(S, "coroutine.instance.priority", priority);
     mapi_table_set(S);
 
-    mapi_push_string(S, "wait");
+    mapi_push_stringf(S, "wait");
     mapi_push_native(S, "coroutine.instance.wait", wait);
     mapi_table_set(S);
 
-    mapi_push_string(S, "suspend");
+    mapi_push_stringf(S, "suspend");
     mapi_push_native(S, "coroutine.instance.suspend", suspend);
     mapi_table_set(S);
 
-    mapi_push_string(S, "resume");
+    mapi_push_stringf(S, "resume");
     mapi_push_native(S, "coroutine.instance.resume", resume);
     mapi_table_set(S);
 
@@ -128,14 +128,14 @@ static void start(morphine_state_t S) {
             maux_checkargs_fixed(S, 0);
             mapi_push_table(S, 8);
 
-            mapi_push_string(S, "__state");
+            mapi_push_stringf(S, "__state");
             morphine_state_t state = mapi_push_state(S);
             mapi_table_set(S);
 
             mapi_copy(S, state, 0);
 
             mapi_push_self(S);
-            mapi_push_string(S, "__callable");
+            mapi_push_stringf(S, "__callable");
             mapi_table_getoe(S);
             mapi_move(S, state);
             mapi_pop(S, 1);
@@ -160,11 +160,11 @@ static void create(morphine_state_t S) {
             maux_checkargs_pattern(S, 1, "callable");
             mapi_push_table(S, 2);
 
-            mapi_push_string(S, "__callable");
+            mapi_push_stringf(S, "__callable");
             mapi_push_arg(S, 0);
             mapi_table_set(S);
 
-            mapi_push_string(S, "start");
+            mapi_push_stringf(S, "start");
             mapi_push_native(S, "coroutine.start", start);
             mapi_table_set(S);
 
@@ -180,7 +180,7 @@ static void current(morphine_state_t S) {
             maux_checkargs_fixed(S, 0);
             mapi_push_table(S, 8);
 
-            mapi_push_string(S, "__state");
+            mapi_push_stringf(S, "__state");
             mapi_push_current_state(S);
             mapi_table_set(S);
 
