@@ -499,8 +499,8 @@ static inline void execute(morphine_instance_t I) {
     morphine_state_t current = I->states;
 
     for (;;) {
-        if (morphinem_unlikely(I->G.finalizer.work && I->state_finalizer != NULL)) {
-            step(I->state_finalizer);
+        if (morphinem_unlikely(I->G.finalizer.work && I->G.finalizer.state != NULL)) {
+            step(I->G.finalizer.state);
 
             if (current == NULL) {
                 attach_candidates(I);

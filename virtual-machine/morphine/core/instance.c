@@ -36,7 +36,6 @@ morphine_instance_t instanceI_open(struct platform platform, struct params param
         .userdata = userdata,
         .env = NULL,
         .registry = NULL,
-        .state_finalizer = NULL,
         .states = NULL,
         .candidates = NULL,
         .interpreter_circle = 0,

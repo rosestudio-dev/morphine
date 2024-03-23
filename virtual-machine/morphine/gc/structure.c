@@ -26,6 +26,7 @@ struct garbage_collector gcI_init(struct params params, size_t inited_size) {
         .pools.finalize = NULL,
 
         .finalizer.candidate = NULL,
+        .finalizer.state = NULL,
         .finalizer.work = false,
 
         .callinfo_trash = NULL,

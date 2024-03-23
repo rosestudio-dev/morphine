@@ -27,7 +27,6 @@ struct instance {
     void *userdata;
 
     struct garbage_collector G;
-    morphine_state_t state_finalizer;
     morphine_state_t states;
     morphine_state_t candidates;
 

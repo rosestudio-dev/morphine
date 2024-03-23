@@ -69,5 +69,5 @@ void gcI_init_finalizer(morphine_instance_t I) {
     struct native *native = nativeI_create(I, "gc_finalizer", finalizer);
     callI_do(state, valueI_object(native), valueI_nil, 0, NULL, 0);
 
-    I->state_finalizer = state;
+    I->G.finalizer.state = state;
 }

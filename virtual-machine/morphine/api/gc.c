@@ -61,14 +61,14 @@ MORPHINE_API void mapi_gc_change_deal(morphine_instance_t I, size_t value) {
 }
 
 MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value) {
-    if (I->state_finalizer != NULL) {
-        I->state_finalizer->settings.stack_limit = value;
+    if (I->G.finalizer.state != NULL) {
+        I->G.finalizer.state->settings.stack_limit = value;
     }
 }
 
 MORPHINE_API void mapi_gc_change_finalizer_stack_grow(morphine_instance_t I, size_t value) {
-    if (I->state_finalizer != NULL) {
-        I->state_finalizer->settings.stack_grow = value;
+    if (I->G.finalizer.state != NULL) {
+        I->G.finalizer.state->settings.stack_grow = value;
     }
 }
 

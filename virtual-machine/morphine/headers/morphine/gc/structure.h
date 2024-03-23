@@ -46,6 +46,7 @@ struct garbage_collector {
     struct {
         bool work;
         struct object *candidate;
+        morphine_state_t state;
     } finalizer;
 
     struct callinfo *callinfo_trash;

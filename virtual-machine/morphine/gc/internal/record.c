@@ -14,9 +14,9 @@ void gcf_internal_record(morphine_instance_t I) {
             current_state = current_state->prev;
         }
 
-        if (I->state_finalizer != NULL) {
-            mark_object(objectI_cast(I->state_finalizer));
-            mark_internal(I, objectI_cast(I->state_finalizer));
+        if (I->G.finalizer.state != NULL) {
+            mark_object(objectI_cast(I->G.finalizer.state));
+            mark_internal(I, objectI_cast(I->G.finalizer.state));
         }
     }
 
