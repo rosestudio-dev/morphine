@@ -2,8 +2,7 @@ cmake_minimum_required(VERSION 3.25)
 
 project(morphine-app C)
 
-set(SANITIZE "-fsanitize=address -fsanitize=undefined")
-set(CMAKE_C_FLAGS_DEBUG "-g ${SANITIZE}")
+set(CMAKE_C_FLAGS_DEBUG "-g ${SANITIZERS}")
 
 add_executable(morphine-app
     main.c
@@ -18,3 +17,5 @@ target_link_libraries(
     morphine-app
     PRIVATE morphine
 )
+
+
