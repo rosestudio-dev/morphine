@@ -10,6 +10,6 @@
 #define nb_state_custom_direction(s, n) goto _nb_end_leave; } case (s): { morphine_continue(_nb_state, (n));
 #define nb_end }} mapi_errorf(_nb_state, "Undefined state"); _nb_end_leave: return;
 
-#define nb_continue(s) { mapi_continue(_nb_state, (s)); goto _nb_end_leave; } while(0)
-#define nb_leave() { mapi_leave(_nb_state); goto _nb_end_leave; } while(0)
-#define nb_return(s) { { s; } mapi_return(_nb_state); goto _nb_end_leave; } while(0)
+#define nb_continue(s) do { mapi_continue(_nb_state, (s)); goto _nb_end_leave; } while(0)
+#define nb_leave() do { mapi_leave(_nb_state); goto _nb_end_leave; } while(0)
+#define nb_return(s) do { { s; } mapi_return(_nb_state); goto _nb_end_leave; } while(0)
