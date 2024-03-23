@@ -6,8 +6,8 @@
 
 #include <setjmp.h>
 #include "morphine/platform.h"
+#include "morphine/gc/structure.h"
 #include "metatable.h"
-#include "gc.h"
 
 struct throw {
     bool inited;

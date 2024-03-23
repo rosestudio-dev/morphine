@@ -17,8 +17,9 @@
 void objectI_init(morphine_instance_t I, struct object *object, enum obj_type type) {
     *object = (struct object) {
         .type = type,
-        .mark = false,
-        .prev = I->G.pools.allocated
+        .flags.mark = false,
+        .flags.finalized = false,
+        .prev = I->G.pools.allocated,
     };
 
     I->G.pools.allocated = object;

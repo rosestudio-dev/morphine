@@ -6,7 +6,7 @@
 #include "morphine/object/state.h"
 #include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
-#include "morphine/core/gc.h"
+#include "morphine/gc/barrier.h"
 #include <string.h>
 
 bool protoI_uuid_equal(struct uuid a, struct uuid b) {

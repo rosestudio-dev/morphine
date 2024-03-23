@@ -5,6 +5,8 @@
 #include "morphine/core/instance.h"
 #include "morphine/core/init.h"
 #include "morphine/core/stack.h"
+#include "morphine/gc/finalizer.h"
+#include "morphine/gc/control.h"
 
 static struct throw throw_prototype(void) {
     return (struct throw) {
@@ -43,8 +45,7 @@ morphine_instance_t instanceI_open(struct platform platform, struct params param
 
     initI_vm(I);
 
-    gcI_finalizer_state(I);
-    gcI_recognize_start(I);
+    gcI_init_finalizer(I);
     gcI_enable(I);
 
     return I;
@@ -64,10 +65,10 @@ void instanceI_close(morphine_instance_t I) {
     free_objects(I, I->G.pools.allocated);
     free_objects(I, I->G.pools.gray);
     free_objects(I, I->G.pools.white);
-    free_objects(I, I->G.pools.finalize_candidates);
+    free_objects(I, I->G.pools.finalize);
 
-    if (I->G.finalize_candidate != NULL) {
-        objectI_free(I, I->G.finalize_candidate);
+    if (I->G.finalizer.candidate != NULL) {
+        objectI_free(I, I->G.finalizer.candidate);
     }
 
     {

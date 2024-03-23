@@ -6,11 +6,12 @@
 #include "morphine/core/instance.h"
 #include "morphine/core/call.h"
 #include "morphine/core/operations.h"
+#include "morphine/core/hook.h"
 #include "morphine/object/proto.h"
 #include "morphine/object/native.h"
 #include "morphine/object/table.h"
 #include "morphine/object/closure.h"
-#include "morphine/core/hook.h"
+#include "morphine/gc/control.h"
 
 // loop
 
@@ -497,14 +498,14 @@ static inline void execute(morphine_instance_t I) {
     morphine_state_t last = NULL;
     morphine_state_t current = I->states;
 
-    for(;;) {
-        if (morphinem_unlikely(I->G.finalize && I->state_finalizer != NULL)) {
+    for (;;) {
+        if (morphinem_unlikely(I->G.finalizer.work && I->state_finalizer != NULL)) {
             step(I->state_finalizer);
 
             if (current == NULL) {
                 attach_candidates(I);
 
-                if (morphinem_likely(I->states == NULL)) {
+                if (I->states == NULL) {
                     continue;
                 }
 

@@ -12,8 +12,11 @@
 
 struct object {
     struct object *prev;
-    bool mark;
     enum obj_type type;
+    struct {
+        bool mark;
+        bool finalized;
+    } flags;
 };
 
 void objectI_init(morphine_instance_t, struct object *, enum obj_type);

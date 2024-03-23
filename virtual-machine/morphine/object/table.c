@@ -8,7 +8,7 @@
 #include "morphine/object/state.h"
 #include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
-#include "morphine/core/gc.h"
+#include "morphine/gc/barrier.h"
 #include "morphine/config/hashmap.h"
 
 struct bucket {

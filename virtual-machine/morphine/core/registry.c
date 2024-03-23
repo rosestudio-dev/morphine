@@ -3,13 +3,14 @@
 //
 
 #include "morphine/core/registry.h"
+#include "morphine/core/instance.h"
+#include "morphine/core/throw.h"
 #include "morphine/core/stack.h"
 #include "morphine/object/proto.h"
 #include "morphine/object/native.h"
 #include "morphine/object/table.h"
 #include "morphine/object/state.h"
-#include "morphine/core/instance.h"
-#include "morphine/core/throw.h"
+#include "morphine/gc/barrier.h"
 
 
 void registryI_set_key(morphine_state_t S, struct value callable, struct value key) {

@@ -5,17 +5,19 @@ set(CMAKE_C_STANDARD 99)
 
 set(COMMON_FLAGS "-fno-common -fwrapv")
 set(WARNINGS "-Wall -Wextra -Werror -Wno-error=conversion -Wdouble-promotion -Wshadow -Wformat -Wstrict-prototypes -Wunused-parameter -Wconversion -Wredundant-decls -Wmissing-declarations -Wvla -Wmissing-prototypes -Wcast-qual -Wcast-align")
+set(SANITIZE "-fsanitize=address -fsanitize=undefined")
 
-set(CMAKE_C_FLAGS_DEBUG "-g ${WARNINGS} ${COMMON_FLAGS} -fsanitize=address -fsanitize=undefined")
+set(CMAKE_C_FLAGS_DEBUG "-g ${WARNINGS} ${COMMON_FLAGS} ${SANITIZE}")
 set(CMAKE_C_FLAGS_RELEASE "-O2 -march=native ${COMMON_FLAGS} ")
 
 file(GLOB_RECURSE morphine_source
-    "core/*.h" "core/*.c"
-    "api/*.h" "api/*.c"
-    "auxiliary/*.h" "auxiliary/*.c"
-    "libs/*.h" "libs/*.c"
-    "platform/*.h" "platform/*.c"
-    "object/*.h" "object/*.c"
+    "core/*.c"
+    "api/*.c"
+    "auxiliary/*.c"
+    "libs/*.c"
+    "platform/*.c"
+    "object/*.c"
+    "gc/*.c"
 )
 
 include_directories("headers" "include")

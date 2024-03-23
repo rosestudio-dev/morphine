@@ -5,6 +5,7 @@
 #include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
+#include "morphine/gc/control.h"
 
 struct pointer {
     size_t size;

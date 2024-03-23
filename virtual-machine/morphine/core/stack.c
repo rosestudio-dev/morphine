@@ -5,11 +5,12 @@
 #include "morphine/core/stack.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/allocator.h"
+#include "morphine/core/instance.h"
 #include "morphine/object/state.h"
 #include "morphine/object/closure.h"
 #include "morphine/object/proto.h"
 #include "morphine/object/string.h"
-#include "morphine/core/instance.h"
+#include "morphine/gc/hot.h"
 
 #define stack_ptr(ptr) ((stackI_ptr) { .p = (ptr) })
 #define stack_ptr_save(a, ptr) (ptr) = (stackI_ptr) { .diff = (size_t) ((ptr).p - (a)) }
@@ -236,7 +237,7 @@ void stackI_call(
         .prev = stackI_callinfo(S)
     };
 
-    struct callinfo *callinfo = gcI_get_hot_callinfo(S->I);
+    struct callinfo *callinfo = gcI_hot_callinfo(S->I);
     if (callinfo == NULL) {
         callinfo = allocI_uni(S->I, NULL, sizeof(struct callinfo));
     }

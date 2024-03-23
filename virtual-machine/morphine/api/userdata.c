@@ -24,5 +24,5 @@ MORPHINE_API const char *mapi_userdata_type(morphine_state_t S) {
 }
 
 MORPHINE_API void *mapi_userdata_pointer(morphine_state_t S) {
-    return valueI_as_userdata_or_error(S, stackI_peek(S, 0))->userdata;
+    return valueI_as_userdata_or_error(S, stackI_peek(S, 0))->data;
 }

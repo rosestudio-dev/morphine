@@ -6,7 +6,7 @@
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/allocator.h"
-#include "morphine/core/gc.h"
+#include "morphine/gc/barrier.h"
 
 struct closure *closureI_create(morphine_instance_t I, struct value callable, size_t size) {
     size_t alloc_size = sizeof(struct closure) + size * sizeof(struct value);

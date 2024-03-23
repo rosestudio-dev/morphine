@@ -4,12 +4,13 @@
 
 #include "morphine/core/metatable.h"
 #include "morphine/core/object.h"
+#include "morphine/core/throw.h"
+#include "morphine/core/instance.h"
 #include "morphine/object/string.h"
 #include "morphine/object/table.h"
 #include "morphine/object/userdata.h"
 #include "morphine/object/state.h"
-#include "morphine/core/throw.h"
-#include "morphine/core/instance.h"
+#include "morphine/gc/barrier.h"
 #include <string.h>
 
 void metatableI_set(morphine_state_t S, struct value value, struct table *metatable) {
