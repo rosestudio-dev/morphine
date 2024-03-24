@@ -9,6 +9,10 @@ println("Welcome to Morphine builder!")
 println("Version: $version")
 println()
 
+// constants
+
+val morphineCompilerCLibName = "libmorphinecompiler"
+
 // file structure
 
 val vmDir = File("virtual-machine")
@@ -16,7 +20,6 @@ val compilerDir = File("compiler")
 val buildDir = File("build")
 
 val buildCacheDir = File(buildDir, ".cache")
-val buildIncludeDir = File(buildDir, "include")
 val buildBinDir = File(buildDir, "bin")
 val buildLibDir = File(buildDir, "lib")
 val buildStaticLibDir = File(buildLibDir, "static")
@@ -28,10 +31,17 @@ val buildJarDir = File(buildDir, "jar")
 val artifactBuildCacheCompilerDir = File(buildCacheDir, "compiler")
 val artifactBuildMorphineCompiler = File(
     artifactBuildCacheCompilerDir,
-    "compiler_cli_compiler/libs/morphine-compiler-${version}.jar"
+    "compiler_cli_compiler/libs/cli-${version}.jar"
+)
+val artifactBuildMorphineCompilerCLib = File(
+    artifactBuildCacheCompilerDir,
+    "compiler_clibrary/libs/clib-${version}.jar"
 )
 val artifactLibMorphineCompiler = File(buildJarDir, "morphine-compiler.jar")
+val artifactLibMorphineCompilerCLib = File(buildJarDir, "morphine-compiler-clib.jar")
 val artifactBinMorphineCompiler = File(buildBinDir, "morphine-compiler")
+val artifactLibDynamicMorphineCompilerCLib = File(buildDynamicLibDir, "morphine-compiler-clib")
+val artifactLibDynamicMorphineCompilerCLibCMake = File(artifactLibDynamicMorphineCompilerCLib, "$morphineCompilerCLibName.cmake")
 
 val artifactBuildCacheVmDir = File(buildCacheDir, "vm")
 val artifactBuildMorphineVmApp = File(
@@ -100,7 +110,7 @@ fun run() {
             else -> Target.ALL
         }
 
-        when(command) {
+        when (command) {
             Command.BUILD -> build(target)
             Command.CLEAN -> clean(target)
         }
@@ -148,7 +158,6 @@ fun software(): Software {
 fun prepare() {
     buildDir.mkdir()
     buildCacheDir.mkdir()
-    buildIncludeDir.mkdir()
     buildBinDir.mkdir()
     buildLibDir.mkdir()
     buildStaticLibDir.mkdir()
@@ -163,6 +172,9 @@ fun clean(target: Target) {
 
             artifactLibMorphineCompiler.delete()
             artifactBinMorphineCompiler.delete()
+
+            artifactLibMorphineCompilerCLib.delete()
+            artifactLibDynamicMorphineCompilerCLib.deleteRecursively()
         }
 
         Target.VIRTUAL_MACHINE -> {
@@ -246,6 +258,9 @@ fun buildCompiler() {
     artifactLibMorphineCompiler.delete()
     artifactBinMorphineCompiler.delete()
 
+    artifactLibMorphineCompilerCLib.delete()
+    artifactLibDynamicMorphineCompilerCLib.deleteRecursively()
+
     ProcessBuilder(
         software.gradle,
         "jar",
@@ -262,6 +277,11 @@ fun buildCompiler() {
         overwrite = true
     )
 
+    artifactBuildMorphineCompilerCLib.copyTo(
+        target = artifactLibMorphineCompilerCLib,
+        overwrite = true
+    )
+
     ProcessBuilder(
         software.nativeimage,
         "--no-server",
@@ -269,14 +289,46 @@ fun buildCompiler() {
         "-jar",
         artifactLibMorphineCompiler.absolutePath,
         artifactBinMorphineCompiler.absolutePath
-    ).directory(compilerDir)
+    ).redirectOutput(ProcessBuilder.Redirect.INHERIT)
+        .redirectError(ProcessBuilder.Redirect.INHERIT)
+        .start()
+        .waitFor()
+        .checkExitCode("build compiler")
+
+    artifactLibDynamicMorphineCompilerCLib.mkdir()
+
+    ProcessBuilder(
+        software.nativeimage,
+        "--shared",
+        "-H:Name=$morphineCompilerCLibName",
+        "--no-server",
+        "--no-fallback",
+        "-jar",
+        artifactLibMorphineCompilerCLib.absolutePath,
+        "-o",
+        morphineCompilerCLibName
+    ).directory(artifactLibDynamicMorphineCompilerCLib)
         .redirectOutput(ProcessBuilder.Redirect.INHERIT)
         .redirectError(ProcessBuilder.Redirect.INHERIT)
         .start()
         .waitFor()
         .checkExitCode("build compiler")
 
+    genMorphineCompilerCLibCMake()
+
     println()
+}
+
+fun genMorphineCompilerCLibCMake() {
+    val lines = listOf(
+        "add_library($morphineCompilerCLibName INTERFACE IMPORTED)",
+        "target_include_directories($morphineCompilerCLibName INTERFACE ${artifactLibDynamicMorphineCompilerCLib.absolutePath})",
+    )
+
+    Files.write(
+        artifactLibDynamicMorphineCompilerCLibCMake.toPath(),
+        lines
+    )
 }
 
 fun Int.checkExitCode(message: String) {

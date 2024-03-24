@@ -24,7 +24,17 @@ class MorphineAssemble(
 
         when (throwable) {
             is LexerException -> Result.Error("Lexer: " + (throwable.message ?: "No message"))
-            is ParseException -> Result.Error("Parser: " + (throwable.message ?: "No message"))
+            is ParseException -> {
+                val message = throwable.message ?: "No message"
+                val newline = if (message.contains('\n')) {
+                    "\n"
+                } else {
+                    " "
+                }
+
+                Result.Error("Parser:$newline$message")
+            }
+
             is CompilerException -> Result.Error("Compiler: ${throwable.messageWithLineData}")
             else -> Result.Error("Internal undefined exception")
         }

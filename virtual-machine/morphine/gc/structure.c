@@ -1,5 +1,5 @@
 //
-// Created by why on 3/23/24.
+// Created by whyiskra on 3/23/24.
 //
 
 #include "morphine/gc/structure.h"

@@ -3,10 +3,10 @@
 //
 
 #include <stdio.h>
-#include "parseargs.h"
-#include "execute.h"
-#include "millis.h"
-#include "human.h"
+#include <parseargs.h>
+#include <execute.h>
+#include <millis.h>
+#include <human.h>
 
 int main(int argc, char **argv) {
     struct args args = parseargs(argc, argv);
@@ -23,6 +23,7 @@ int main(int argc, char **argv) {
     execute(
         pallocator,
         args.program_path,
+        args.binary,
         args.alloc_limit
     );
 
@@ -32,7 +33,7 @@ int main(int argc, char **argv) {
         char buffer[32];
 
         uint64_t time = end_ms - start_ms;
-        if (args.human_readable) {
+        if (args.measure_time_pretty) {
             human_time(time, buffer, 32);
             printf("\nExecuted in %s\n", buffer);
         } else {
@@ -45,7 +46,7 @@ int main(int argc, char **argv) {
         printf("Allocator:\n");
 
         if (allocator.allocated_bytes > 0) {
-            if (args.human_readable) {
+            if (args.custom_alloc_pretty) {
                 human_size(allocator.allocated_bytes, buffer, 32);
                 printf("  lost:       \x1b[31m%s\x1b[0m\n", buffer);
             } else {
@@ -53,7 +54,7 @@ int main(int argc, char **argv) {
             }
         }
 
-        if (args.human_readable) {
+        if (args.custom_alloc_pretty) {
             human_size(allocator.peak_allocated_bytes, buffer, 32);
             printf("  peak:       %s\n", buffer);
         } else {

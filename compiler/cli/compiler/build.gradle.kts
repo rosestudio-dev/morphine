@@ -15,6 +15,7 @@ application {
 
 tasks.jar {
     manifest.attributes["Main-Class"] = application.mainClass
+    manifest.attributes["Implementation-Version"] = version
 
     val dependencies = configurations
         .runtimeClasspath
@@ -24,7 +25,7 @@ tasks.jar {
     from(dependencies)
     duplicatesStrategy = DuplicatesStrategy.EXCLUDE
 
-    archiveBaseName.set("morphine-compiler")
+    archiveBaseName.set("cli")
 }
 
 dependencies {

@@ -10,8 +10,10 @@
 struct args {
     size_t alloc_limit;
     bool measure_time;
+    bool measure_time_pretty;
     bool custom_alloc;
-    bool human_readable;
+    bool custom_alloc_pretty;
+    bool binary;
     const char *program_path;
     size_t argc;
     char **args;

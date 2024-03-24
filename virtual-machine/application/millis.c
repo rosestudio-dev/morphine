@@ -4,7 +4,7 @@
 
 #include <sys/time.h>
 #include <stddef.h>
-#include "millis.h"
+#include <millis.h>
 
 uint64_t millis(void) {
     struct timeval tv;

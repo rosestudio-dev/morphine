@@ -9,5 +9,7 @@ else ()
     set(SANITIZERS "")
 endif ()
 
+include(../build/lib/dynamic/morphine-compiler-clib/libmorphinecompiler.cmake)
+
 add_subdirectory(morphine)
 add_subdirectory(application)

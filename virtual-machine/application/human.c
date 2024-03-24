@@ -3,7 +3,7 @@
 //
 
 #include <stdio.h>
-#include "human.h"
+#include <human.h>
 
 char *human_size(size_t bytes, char *buf, size_t buf_size) {
     char *suffix[] = {"B", "KB", "MB", "GB", "TB"};

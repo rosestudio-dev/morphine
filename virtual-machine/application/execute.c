@@ -2,8 +2,8 @@
 // Created by whyiskra on 3/16/24.
 //
 
-#include "execute.h"
-#include <morphine.h>
+#include <execute.h>
+#include <loaders.h>
 #include <stdlib.h>
 #include <setjmp.h>
 
@@ -21,42 +21,6 @@ morphine_noret static void signal(morphine_instance_t I) {
     cabort();
 }
 
-static uint8_t loader_read(morphine_state_t S, void *data, const char **error) {
-    (void) (S);
-
-    FILE *file = (FILE *) data;
-
-    if (feof(file)) {
-        *error = "Binary corrupted";
-        return 0;
-    }
-
-    uint8_t c = fgetc(file);
-
-    if (ferror(file)) {
-        *error = "Error while reading";
-        return 0;
-    }
-
-    return c;
-}
-
-static void load_program(morphine_state_t S, void *path) {
-    if(path == NULL) {
-        mapi_load(S, NULL, loader_read, NULL, stdin);
-    } else {
-        FILE *file = fopen((const char *) path, "r");
-
-        if (file == NULL) {
-            mapi_errorf(S, "Cannot open file %s", path);
-        }
-
-        mapi_load(S, NULL, loader_read, NULL, file);
-
-        fclose(file);
-    }
-}
-
 static void *dalloc(size_t size) {
     return allocator_alloc(pallocator, size);
 }
@@ -69,9 +33,20 @@ static void dfree(void *ptr) {
     allocator_free(pallocator, ptr);
 }
 
+static void load_program(morphine_state_t S, const char *path, bool binary) {
+    if (path == NULL) {
+        mapi_errorf(S, "Empty file path");
+    } else if (binary) {
+        loader_binary_file(S, path);
+    } else {
+        loader_source_file(S, path);
+    }
+}
+
 void execute(
     struct allocator *allocator,
     const char *path,
+    bool binary,
     size_t alloc_limit
 ) {
     if (setjmp(abort_jmp) != 0) {
@@ -109,7 +84,7 @@ void execute(
     morphine_instance_t I = mapi_open(instance_platform, instance_params, NULL);
     morphine_state_t S = mapi_state(I);
 
-    load_program(S, (void *) path);
+    load_program(S, path, binary);
     mapi_call(S, 0);
 
     mapi_interpreter(I);

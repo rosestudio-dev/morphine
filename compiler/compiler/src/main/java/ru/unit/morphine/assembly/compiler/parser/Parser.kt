@@ -34,7 +34,11 @@ class Parser(
 
         if (errors.isNotEmpty()) {
             val message = buildString {
-                errors.forEach { pair ->
+                errors.forEachIndexed { index, pair ->
+                    if (errors.size > 1) {
+                        append("${index + 1}. ")
+                    }
+
                     append("Line ${pair.first}: ")
 
                     if (pair.second !is ParseException) {
@@ -43,7 +47,9 @@ class Parser(
 
                     append(pair.second.message)
 
-                    append("\n")
+                    if (errors.size > 1) {
+                        append("\n")
+                    }
                 }
             }
 

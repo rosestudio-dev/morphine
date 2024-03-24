@@ -47,6 +47,13 @@ fun main(args: Array<String>) {
         description = "Output human format bytes"
     ).default(false)
 
+    val version by parser.option(
+        ArgType.Boolean,
+        shortName = "v",
+        fullName = "version",
+        description = "Print version"
+    ).default(false)
+
     val debug by parser.option(
         ArgType.Boolean,
         fullName = "debug",
@@ -54,14 +61,18 @@ fun main(args: Array<String>) {
 
     parser.parse(args)
 
-    compile(
-        file = path,
-        output = output,
-        bytes = bytes,
-        optimizer = !disableOptimizer,
-        disassembly = disassembly,
-        debug = debug
-    )
+    if (version) {
+        println("Version: ${MorphineAssemble::class.java.`package`.implementationVersion}")
+    } else {
+        compile(
+            file = path,
+            output = output,
+            bytes = bytes,
+            optimizer = !disableOptimizer,
+            disassembly = disassembly,
+            debug = debug
+        )
+    }
 }
 
 fun compile(

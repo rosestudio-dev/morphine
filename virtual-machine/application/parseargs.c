@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <inttypes.h>
 #include <string.h>
-#include "parseargs.h"
+#include <parseargs.h>
 
 static void help(const char *program, const char *message, bool disable_usage) {
     printf("Morphine virtual-machine\n");
@@ -21,12 +21,11 @@ static void help(const char *program, const char *message, bool disable_usage) {
         printf("    args          program arguments\n");
         printf("Optional arguments:\n");
         printf("    -l bytes [8M] Limit of allocation in bytes (suffixes: K, M, G, T)\n");
-        printf("    -a            Use custom debug allocator\n");
-        printf("    -m            Enable executing time measure\n");
-        printf("    -H            Human-readable output\n");
+        printf("    -b            Binary program\n");
+        printf("    -a, -A        Use custom debug allocator (Use uppercase for pretty printing)\n");
+        printf("    -m, -M        Enable executing time measure (Use uppercase for pretty printing)\n");
         printf("    -h            Usage info\n");
         printf("    --            Stop handling options\n");
-        printf("    -             Stop handling options and execute from stdin\n");
     }
 
     exit(1);
@@ -61,13 +60,16 @@ struct args parseargs(int argc, char **argv) {
     struct args args = {
         .alloc_limit = 1024 * 1024 * 8,
         .measure_time = false,
+        .measure_time_pretty = false,
         .custom_alloc = false,
+        .custom_alloc_pretty = false,
+        .binary = false,
         .program_path = NULL,
         .argc = 0,
         .args = NULL
     };
 
-    const char *program = 0;
+    const char *program;
     if (argc >= 1) {
         program = argv[0];
     } else {
@@ -82,16 +84,12 @@ struct args parseargs(int argc, char **argv) {
     for (; parsed < argc; parsed++) {
         const char *arg = argv[parsed];
         size_t arg_size = strlen(arg);
-        if (arg_size == 0) {
+        if (arg_size < 1) {
             help(program, "empty argument", true);
         }
 
         if (arg[0] != '-') {
             break;
-        }
-
-        if (arg_size == 1) {
-            return args;
         }
 
         int offset = 0;
@@ -114,12 +112,22 @@ struct args parseargs(int argc, char **argv) {
                     break;
                 case 'a':
                     args.custom_alloc = true;
+                    args.custom_alloc_pretty = false;
+                    break;
+                case 'A':
+                    args.custom_alloc = true;
+                    args.custom_alloc_pretty = true;
                     break;
                 case 'm':
                     args.measure_time = true;
+                    args.measure_time_pretty = false;
                     break;
-                case 'H':
-                    args.human_readable = true;
+                case 'M':
+                    args.measure_time = true;
+                    args.measure_time_pretty = true;
+                    break;
+                case 'b':
+                    args.binary = true;
                     break;
                 case 'h':
                     help(program, NULL, false);
