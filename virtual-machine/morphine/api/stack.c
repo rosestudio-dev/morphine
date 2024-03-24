@@ -4,6 +4,7 @@
 
 #include "morphine/api.h"
 #include "morphine/object/state.h"
+#include "morphine/stack/access.h"
 
 MORPHINE_API void mapi_rotate(morphine_state_t S) {
     struct value *values = stackI_vector(S, 0, 2);

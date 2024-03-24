@@ -5,16 +5,17 @@
 #include "morphine/core/registry.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
-#include "morphine/core/stack.h"
 #include "morphine/object/proto.h"
 #include "morphine/object/native.h"
 #include "morphine/object/table.h"
 #include "morphine/object/state.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/stack/call.h"
+#include "morphine/stack/access.h"
 
 
 void registryI_set_key(morphine_state_t S, struct value callable, struct value key) {
-    struct value source = stackI_extract_callable(S->I, callable);
+    struct value source = callstackI_extract_callable(S->I, callable);
 
     if (valueI_is_proto(source)) {
         struct proto *proto = valueI_as_proto(source);
@@ -30,7 +31,7 @@ void registryI_set_key(morphine_state_t S, struct value callable, struct value k
 }
 
 void registryI_set(morphine_state_t S, struct value key, struct value value) {
-    struct value source = *stackI_callinfo_or_error(S)->s.source.p;
+    struct value source = *callstackI_info_or_error(S)->s.source.p;
 
     stackI_push(S, key);
     stackI_push(S, value);
@@ -62,7 +63,7 @@ void registryI_set(morphine_state_t S, struct value key, struct value value) {
 }
 
 struct value registryI_get(morphine_state_t S, struct value key, bool *has) {
-    struct value source = *stackI_callinfo_or_error(S)->s.source.p;
+    struct value source = *callstackI_info_or_error(S)->s.source.p;
 
     struct value registry_key;
     if (valueI_is_proto(source)) {
@@ -88,7 +89,7 @@ struct value registryI_get(morphine_state_t S, struct value key, bool *has) {
 }
 
 void registryI_clear(morphine_state_t S) {
-    struct value source = *stackI_callinfo_or_error(S)->s.source.p;
+    struct value source = *callstackI_info_or_error(S)->s.source.p;
 
     struct value registry_key;
     if (valueI_is_proto(source)) {

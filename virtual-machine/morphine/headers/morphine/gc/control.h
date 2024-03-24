@@ -6,6 +6,8 @@
 
 #include "morphine/platform.h"
 
+void gcI_recognize(morphine_instance_t);
+
 void gcI_enable(morphine_instance_t);
 void gcI_disable(morphine_instance_t);
 void gcI_force(morphine_instance_t);

@@ -53,3 +53,4 @@ struct garbage_collector {
 };
 
 struct garbage_collector gcI_init(struct params, size_t inited_size);
+void gcI_destruct(morphine_instance_t, struct garbage_collector);

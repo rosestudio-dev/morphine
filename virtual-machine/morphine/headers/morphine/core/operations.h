@@ -9,7 +9,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/reference.h"
 #include "morphine/utils/unused.h"
-#include "call.h"
+#include "morphine/stack/call.h"
 
 typedef enum {
     NORMAL,
@@ -26,8 +26,8 @@ static inline op_result_t interpreter_fun_get(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -38,16 +38,16 @@ static inline op_result_t interpreter_fun_get(
 
         if (!has && metatableI_test(S->I, table, MF_GET, &mt_field)) {
             struct value new_args[] = {key};
-            callI_continue(S, callstate);
-            callI_do(S, mt_field, table, 1, new_args, pop_size);
+            callstackI_continue(S, callstate);
+            callstackI_unsafe(S, mt_field, table, new_args, 1, pop_size);
             return CALLED;
         }
 
         return NORMAL;
     } else if (metatableI_test(S->I, table, MF_GET, &mt_field)) {
         struct value new_args[] = {key};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, table, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, table, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -65,15 +65,15 @@ static inline op_result_t interpreter_fun_set(
 ) {
     morphinem_unused(need_return);
 
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
         return CALLED_COMPLETE;
     }
 
     struct value mt_field;
     if (metatableI_test(S->I, table, MF_SET, &mt_field)) {
         struct value new_args[] = {key, value};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, table, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, table, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -90,8 +90,8 @@ static inline op_result_t interpreter_fun_add(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -108,8 +108,8 @@ static inline op_result_t interpreter_fun_add(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_ADD, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -125,8 +125,8 @@ static inline op_result_t interpreter_fun_sub(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -143,8 +143,8 @@ static inline op_result_t interpreter_fun_sub(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_SUB, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -160,8 +160,8 @@ static inline op_result_t interpreter_fun_mul(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -178,8 +178,8 @@ static inline op_result_t interpreter_fun_mul(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_MUL, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -195,8 +195,8 @@ static inline op_result_t interpreter_fun_div(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -223,8 +223,8 @@ static inline op_result_t interpreter_fun_div(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_DIV, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -240,8 +240,8 @@ static inline op_result_t interpreter_fun_mod(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -258,8 +258,8 @@ static inline op_result_t interpreter_fun_mod(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_MOD, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -275,16 +275,16 @@ static inline op_result_t interpreter_fun_equal(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_EQUAL, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -301,8 +301,8 @@ static inline op_result_t interpreter_fun_less(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -319,8 +319,8 @@ static inline op_result_t interpreter_fun_less(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_LESS, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -336,8 +336,8 @@ static inline op_result_t interpreter_fun_less_equal(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -354,8 +354,8 @@ static inline op_result_t interpreter_fun_less_equal(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_LESS_EQUAL, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -371,8 +371,8 @@ static inline op_result_t interpreter_fun_and(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -384,8 +384,8 @@ static inline op_result_t interpreter_fun_and(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_AND, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -401,8 +401,8 @@ static inline op_result_t interpreter_fun_or(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -414,8 +414,8 @@ static inline op_result_t interpreter_fun_or(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_OR, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -431,8 +431,8 @@ static inline op_result_t interpreter_fun_concat(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -447,8 +447,8 @@ static inline op_result_t interpreter_fun_concat(
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_CONCAT, &mt_field)) {
         struct value new_args[] = {b};
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 1, new_args, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -463,15 +463,15 @@ static inline op_result_t interpreter_fun_type(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_TYPE, &mt_field)) {
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 0, NULL, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -487,8 +487,8 @@ static inline op_result_t interpreter_fun_negative(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -504,8 +504,8 @@ static inline op_result_t interpreter_fun_negative(
 
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_NEGATE, &mt_field)) {
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 0, NULL, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -520,8 +520,8 @@ static inline op_result_t interpreter_fun_not(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -532,8 +532,8 @@ static inline op_result_t interpreter_fun_not(
 
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_NOT, &mt_field)) {
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 0, NULL, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -548,15 +548,15 @@ static inline op_result_t interpreter_fun_ref(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_REF, &mt_field)) {
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 0, NULL, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -572,8 +572,8 @@ static inline op_result_t interpreter_fun_deref(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -584,8 +584,8 @@ static inline op_result_t interpreter_fun_deref(
 
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_DEREF, &mt_field)) {
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 0, NULL, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -600,8 +600,8 @@ static inline op_result_t interpreter_fun_length(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callI_callstate(S) == callstate))) {
-        (*result) = callI_result(S);
+    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+        (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
@@ -617,8 +617,8 @@ static inline op_result_t interpreter_fun_length(
 
     struct value mt_field;
     if (metatableI_test(S->I, a, MF_LENGTH, &mt_field)) {
-        callI_continue(S, callstate);
-        callI_do(S, mt_field, a, 0, NULL, pop_size);
+        callstackI_continue(S, callstate);
+        callstackI_unsafe(S, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 

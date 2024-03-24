@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/core/stack.h"
+#include "morphine/stack/call.h"
 
 void gcI_dispose_callinfo(morphine_instance_t, struct callinfo *callinfo);
 struct callinfo *gcI_hot_callinfo(morphine_instance_t);

@@ -17,6 +17,7 @@ file(GLOB_RECURSE morphine_source
     "platform/*.c"
     "object/*.c"
     "gc/*.c"
+    "stack/*.c"
 )
 
 include_directories("headers" "include")

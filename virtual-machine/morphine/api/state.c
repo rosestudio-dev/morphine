@@ -5,6 +5,7 @@
 #include "morphine/api.h"
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
+#include "morphine/stack/access.h"
 
 MORPHINE_API morphine_state_t mapi_push_state(morphine_state_t S) {
     morphine_state_t state = stateI_create(S->I);

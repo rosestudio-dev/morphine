@@ -3,11 +3,11 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/core/stack.h"
 #include "morphine/core/registry.h"
 #include "morphine/object/string.h"
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
+#include "morphine/stack/access.h"
 
 MORPHINE_API void mapi_registry_set_key(morphine_state_t S) {
     struct value callable = stackI_peek(S, 1);

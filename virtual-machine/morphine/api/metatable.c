@@ -5,6 +5,7 @@
 #include "morphine/api.h"
 #include "morphine/object/state.h"
 #include "morphine/core/metatable.h"
+#include "morphine/stack/access.h"
 
 MORPHINE_API bool mapi_metatable_test(morphine_state_t S, const char *field) {
     struct value source = stackI_peek(S, 0);

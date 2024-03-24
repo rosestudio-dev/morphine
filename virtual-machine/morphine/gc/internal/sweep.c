@@ -4,6 +4,8 @@
 
 #include "functions.h"
 #include "morphine/core/instance.h"
+#include "morphine/stack/control.h"
+#include "morphine/stack/call.h"
 
 static inline void invalidate_ref(struct reference *reference) {
     struct object *object = valueI_safe_as_object(reference->value, NULL);
@@ -41,7 +43,7 @@ static inline void shrink(morphine_instance_t I) {
         struct callinfo *current = I->G.callinfo_trash;
         while (current != NULL) {
             struct callinfo *prev = current->prev;
-            stackI_callinfo_free(I, current);
+            callstackI_info_free(I, current);
 
             current = prev;
         }

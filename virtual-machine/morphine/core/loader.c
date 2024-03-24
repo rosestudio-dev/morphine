@@ -11,6 +11,7 @@
 #include "morphine/core/throw.h"
 #include "morphine/core/value.h"
 #include "morphine/core/allocator.h"
+#include "morphine/stack/access.h"
 
 #define FORMAT_TAG      "morphine-bout"
 #define FORMAT_TAG_SIZE (sizeof(FORMAT_TAG) - 1)

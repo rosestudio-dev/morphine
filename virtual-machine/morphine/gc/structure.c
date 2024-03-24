@@ -3,6 +3,18 @@
 //
 
 #include "morphine/gc/structure.h"
+#include "morphine/core/object.h"
+#include "morphine/stack/call.h"
+
+static void free_objects(morphine_instance_t I, struct object *pool) {
+    struct object *current = pool;
+
+    while (current != NULL) {
+        struct object *prev = current->prev;
+        objectI_free(I, current);
+        current = prev;
+    }
+}
 
 struct garbage_collector gcI_init(struct params params, size_t inited_size) {
     return (struct garbage_collector) {
@@ -31,4 +43,23 @@ struct garbage_collector gcI_init(struct params params, size_t inited_size) {
 
         .callinfo_trash = NULL,
     };
+}
+
+void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {
+    free_objects(I, G.pools.allocated);
+    free_objects(I, G.pools.gray);
+    free_objects(I, G.pools.white);
+    free_objects(I, G.pools.finalize);
+
+    if (G.finalizer.candidate != NULL) {
+        objectI_free(I, G.finalizer.candidate);
+    }
+
+    struct callinfo *current = G.callinfo_trash;
+    while (current != NULL) {
+        struct callinfo *prev = current->prev;
+        callstackI_info_free(I, current);
+
+        current = prev;
+    }
 }

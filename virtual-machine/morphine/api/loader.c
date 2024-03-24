@@ -6,6 +6,7 @@
 #include "morphine/core/loader.h"
 #include "morphine/utils/unused.h"
 #include "morphine/core/throw.h"
+#include "morphine/stack/access.h"
 #include <stddef.h>
 
 struct loader_array {

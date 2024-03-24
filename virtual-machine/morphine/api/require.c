@@ -7,6 +7,7 @@
 #include "morphine/object/state.h"
 #include "morphine/object/table.h"
 #include "morphine/core/throw.h"
+#include "morphine/stack/access.h"
 
 MORPHINE_API void mapi_require(morphine_state_t S) {
     struct value *value = stackI_vector(S, 0, 1);

@@ -7,6 +7,8 @@
 #include "morphine/object/state.h"
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
+#include "morphine/stack/access.h"
+#include "morphine/stack/call.h"
 
 MORPHINE_API void mapi_push_nil(morphine_state_t S) {
     stackI_push(S, valueI_nil);
@@ -90,7 +92,7 @@ MORPHINE_API void mapi_to_boolean(morphine_state_t S) {
 
 MORPHINE_API bool mapi_is_callable(morphine_state_t S) {
     struct value value = stackI_peek(S, 0);
-    return !valueI_is_nil(stackI_extract_callable(S->I, value));
+    return !valueI_is_nil(callstackI_extract_callable(S->I, value));
 }
 
 MORPHINE_API void mapi_to_string(morphine_state_t S) {

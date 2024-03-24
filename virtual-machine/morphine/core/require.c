@@ -10,6 +10,8 @@
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
 #include "morphine/object/state.h"
+#include "morphine/stack/call.h"
+#include "morphine/stack/access.h"
 
 static struct require_loader table[] = {
     { "base",      mlib_base_loader },
@@ -44,7 +46,7 @@ struct value requireI_load(morphine_state_t S, struct value id) {
     stackI_push(S, id);
 
     struct value key = valueI_object(stringI_create(S->I, "_LOADED"));
-    struct value env = *stackI_callinfo_or_error(S)->s.env.p;
+    struct value env = *callstackI_info_or_error(S)->s.env.p;
 
     stackI_push(S, key);
 

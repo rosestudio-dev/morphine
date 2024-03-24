@@ -4,8 +4,9 @@
 
 #include <string.h>
 #include "morphine/api.h"
-#include "morphine/core/call.h"
 #include "morphine/core/operations.h"
+#include "morphine/stack/access.h"
+#include "morphine/stack/call.h"
 
 struct op_func {
     const char *name;
@@ -16,7 +17,7 @@ static bool opget(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_get(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args + 1,
         0, false
     ) == CALLED;
@@ -28,7 +29,7 @@ static bool opset(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 3);
 
     bool result = interpreter_fun_set(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args[2],
         2, false
     ) == CALLED;
@@ -44,7 +45,7 @@ static bool opadd(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_add(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -60,7 +61,7 @@ static bool opsub(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_sub(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -76,7 +77,7 @@ static bool opmul(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_mul(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -92,7 +93,7 @@ static bool opdiv(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_div(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -108,7 +109,7 @@ static bool opmod(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_mod(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -124,7 +125,7 @@ static bool opequal(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_equal(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -140,7 +141,7 @@ static bool opless(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_less(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -156,7 +157,7 @@ static bool oplesseq(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_less_equal(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -172,7 +173,7 @@ static bool opand(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_and(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -188,7 +189,7 @@ static bool opor(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_or(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -204,7 +205,7 @@ static bool opconcat(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
     bool result = interpreter_fun_concat(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args[1], args,
         1, false
     ) == CALLED;
@@ -220,7 +221,7 @@ static bool optype(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 1);
 
     bool result = interpreter_fun_type(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args,
         0, false
     ) == CALLED;
@@ -232,7 +233,7 @@ static bool opneg(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 1);
 
     bool result = interpreter_fun_negative(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args,
         0, false
     ) == CALLED;
@@ -244,7 +245,7 @@ static bool opnot(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 1);
 
     bool result = interpreter_fun_not(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args,
         0, false
     ) == CALLED;
@@ -256,7 +257,7 @@ static bool oplen(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 1);
 
     bool result = interpreter_fun_length(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args,
         0, false
     ) == CALLED;
@@ -268,7 +269,7 @@ static bool opref(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 1);
 
     bool result = interpreter_fun_ref(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args,
         0, false
     ) == CALLED;
@@ -280,7 +281,7 @@ static bool opderef(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 1);
 
     bool result = interpreter_fun_deref(
-        S, callI_callstate(S),
+        S, callstackI_state(S),
         args[0], args,
         0, false
     ) == CALLED;

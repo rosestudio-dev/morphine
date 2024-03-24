@@ -6,6 +6,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
+#include "morphine/stack/access.h"
 #include <stdarg.h>
 #include <string.h>
 

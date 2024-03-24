@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/core/stack.h"
+#include "morphine/stack/structure.h"
 #include "morphine/core/object.h"
 
 typedef enum {
@@ -21,14 +21,9 @@ struct state {
     struct object header;
 
     state_status_t status;
+    priority_t priority;
 
     struct stack stack;
-
-    struct {
-        size_t stack_limit;
-        size_t stack_grow;
-        priority_t priority;
-    } settings;
 
     morphine_state_t prev;
     morphine_instance_t I;

@@ -3,10 +3,10 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/core/stack.h"
 #include "morphine/core/throw.h"
 #include "morphine/object/state.h"
 #include "morphine/object/userdata.h"
+#include "morphine/stack/access.h"
 
 MORPHINE_API void mapi_push_userdata(
     morphine_state_t S,

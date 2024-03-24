@@ -14,16 +14,12 @@ morphine_state_t stateI_custom_create(morphine_instance_t I, size_t stack_limit,
 
     (*result) = (struct state) {
         .status = STATE_STATUS_DETACHED,
-
-        .settings.priority = 1,
-        .settings.stack_grow = stack_grow,
-        .settings.stack_limit = stack_limit,
-
+        .priority = 1,
         .prev = NULL,
         .I = I
     };
 
-    result->stack = stackI_initial(I, stack_grow);
+    result->stack = stackI_initial(I, stack_limit, stack_grow);
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_STATE);
 
@@ -41,36 +37,19 @@ morphine_state_t stateI_create(morphine_instance_t I) {
 }
 
 void stateI_free(morphine_instance_t I, morphine_state_t state) {
-    struct callinfo *callinfo = state->stack.callstack;
-    while (callinfo != NULL) {
-        struct callinfo *prev = callinfo->prev;
-        stackI_callinfo_free(I, callinfo);
-        callinfo = prev;
-    }
-    state->stack.callstack = NULL;
-
-    allocI_free(I, state->stack.allocated);
+    stackI_destruct(I, state->stack);
     allocI_free(I, state);
 }
 
 size_t stateI_allocated_size(morphine_state_t S) {
-    size_t size = sizeof(struct state) + sizeof(struct value) * S->stack.size;
-
-    struct callinfo *callinfo = stackI_callinfo(S);
-    while (callinfo != NULL) {
-        size += sizeof(struct callinfo);
-
-        callinfo = callinfo->prev;
-    }
-
-    return size;
+    return sizeof(struct state) + stackI_allocated_size(S->stack);
 }
 
 void stateI_priority(morphine_state_t S, priority_t priority) {
     if (priority <= 0) {
-        S->settings.priority = 1;
+        S->priority = 1;
     } else {
-        S->settings.priority = priority;
+        S->priority = priority;
     }
 }
 

@@ -87,6 +87,10 @@ exit:
     pdbg_hook_gc_step_exit(I);
 }
 
+void gcI_recognize(morphine_instance_t I) {
+    I->G.bytes.started = I->G.bytes.allocated;
+}
+
 void gcI_enable(morphine_instance_t I) {
     I->G.enabled = true;
 }

@@ -4,7 +4,6 @@
 
 #include "morphine/core/interpreter.h"
 #include "morphine/core/instance.h"
-#include "morphine/core/call.h"
 #include "morphine/core/operations.h"
 #include "morphine/core/hook.h"
 #include "morphine/object/proto.h"
@@ -12,13 +11,14 @@
 #include "morphine/object/table.h"
 #include "morphine/object/closure.h"
 #include "morphine/gc/control.h"
+#include "morphine/stack/call.h"
 
 // loop
 
 #define sp_fetch() \
     morphinem_blk_start \
     if (morphinem_unlikely(*position >= instructions_count)) { \
-        callI_return(S, valueI_nil); \
+        callstackI_return(S, valueI_nil); \
         sp_yield(); \
     } \
     instruction = P->instructions[*position]; \
@@ -42,13 +42,13 @@
             if (operation_result == CALLED) { \
                 sp_yield(); \
             } else if(operation_result == CALLED_COMPLETE) { \
-                callI_continue(S, 0); \
+                callstackI_continue(S, 0); \
             } \
         } \
     morphinem_blk_end
 
-#define slot(C, a) ((C)->s.values.p[(a).value])
-#define param(C, P, a) ((C)->s.values.p[(a) + (P)->slots_count])
+#define slot(C, a) ((C)->s.slots.p[(a).value])
+#define param(C, a) ((C)->s.params.p[(a)])
 
 #define arg1 instruction.argument1
 #define arg2 instruction.argument2
@@ -56,9 +56,9 @@
 
 // other
 
-static inline void clear_params(struct callinfo *C, struct proto *P, size_t count) {
+static inline void clear_params(struct callinfo *C, size_t count) {
     for (size_t i = 0; i < count; i++) {
-        param(C, P, i) = valueI_nil;
+        param(C, i) = valueI_nil;
     }
 }
 
@@ -71,7 +71,7 @@ static void step_proto(morphine_state_t S, struct proto *P) {
 
 #endif
 
-    struct callinfo *C = stackI_callinfo(S);
+    struct callinfo *C = callstackI_info(S);
     size_t *position = &C->pc.position;
     size_t instructions_count = P->instructions_count;
 
@@ -99,7 +99,7 @@ sp_case(OPCODE_MOVE)
             }
 sp_case(OPCODE_PARAM)
             {
-                param(C, P, arg2.value) = slot(C, arg1);
+                param(C, arg2.value) = slot(C, arg1);
                 sp_end();
             }
 sp_case(OPCODE_ARG)
@@ -191,7 +191,7 @@ sp_case(OPCODE_CLOSURE)
 
                 struct closure *closure = closureI_create(S->I, callable, count);
 
-                struct value *params = &param(C, P, 0);
+                struct value *params = &param(C, 0);
                 struct value result = valueI_object(closure);
 
                 for (size_t i = 0; i < count; i++) {
@@ -200,39 +200,36 @@ sp_case(OPCODE_CLOSURE)
 
                 slot(C, arg3) = result;
 
-                clear_params(C, P, count);
+                clear_params(C, count);
                 sp_end();
             }
 sp_case(OPCODE_CALL)
             {
-                if (callI_callstate(S) == 1) {
-                    callI_continue(S, 0);
+                if (callstackI_state(S) == 1) {
+                    callstackI_continue(S, 0);
                     sp_end();
                 }
 
                 struct value callable = slot(C, arg1);
                 size_t count = arg2.value;
 
-                struct value *params = &param(C, P, 0);
+                callstackI_continue(S, 1);
 
-                callI_continue(S, 1);
-
-                callI_do(
+                callstackI_params(
                     S,
                     callable,
                     valueI_nil,
                     count,
-                    params,
                     0
                 );
 
-                clear_params(C, P, 0);
+                clear_params(C, 0);
                 sp_yield();
             }
 sp_case(OPCODE_SCALL)
             {
-                if (callI_callstate(S) == 1) {
-                    callI_continue(S, 0);
+                if (callstackI_state(S) == 1) {
+                    callstackI_continue(S, 0);
                     sp_end();
                 }
 
@@ -240,31 +237,28 @@ sp_case(OPCODE_SCALL)
                 struct value self = slot(C, arg3);
                 size_t count = arg2.value;
 
-                struct value *params = &param(C, P, 0);
+                callstackI_continue(S, 1);
 
-                callI_continue(S, 1);
-
-                callI_do(
+                callstackI_params(
                     S,
                     callable,
                     self,
                     count,
-                    params,
                     0
                 );
 
-                clear_params(C, P, 0);
+                clear_params(C, 0);
                 sp_yield();
             }
 sp_case(OPCODE_LEAVE)
             {
-                callI_return(S, slot(C, arg1));
+                callstackI_return(S, slot(C, arg1));
                 (*position)++;
                 sp_yield();
             }
 sp_case(OPCODE_RESULT)
             {
-                slot(C, arg1) = callI_result(S);
+                slot(C, arg1) = callstackI_result(S);
                 sp_end();
             }
 sp_case(OPCODE_ADD)
@@ -453,7 +447,7 @@ sp_case(OPCODE_LENGTH)
 }
 
 static inline void step(morphine_state_t S) {
-    struct callinfo *callinfo = stackI_callinfo(S);
+    struct callinfo *callinfo = callstackI_info(S);
 
     if (morphinem_unlikely(callinfo == NULL)) {
         S->status = STATE_STATUS_DEAD;
@@ -474,7 +468,7 @@ static inline void step(morphine_state_t S) {
     }
 
     if (morphinem_unlikely(callinfo->exit)) {
-        stackI_call_pop(S);
+        callstackI_pop(S);
     }
 }
 
@@ -515,7 +509,7 @@ static inline void execute(morphine_instance_t I) {
             break;
         }
 
-        bool is_current_circle = (I->interpreter_circle % current->settings.priority) == 0;
+        bool is_current_circle = (I->interpreter_circle % current->priority) == 0;
 
         if (morphinem_likely(is_current_circle && (current->status == STATE_STATUS_RUNNING))) {
             step(current);
