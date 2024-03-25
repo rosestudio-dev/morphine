@@ -6,6 +6,7 @@ nativeimage = find_program('native-image')
 nativeimage_options = [
     '--no-server',
     '--no-fallback',
+    '--parallelism=18',
 ]
 
 custom_target(

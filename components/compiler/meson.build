@@ -14,10 +14,10 @@ gradle_options = [
 if get_option('localgradle').enabled()
     gradle_options += [
         '-g',
-        meson.build_root() + '/gradle/.gradle',
+        meson.build_root() / 'gradle' / '.gradle',
         '--project-cache-dir',
-        meson.build_root() + '/gradle/cache/compiler',
-        '-DmonoBuildDir=' + meson.build_root() + '/gradle/build/compiler',
+        meson.build_root() / 'gradle' / 'cache' / 'compiler',
+        '-DmonoBuildDir=' + meson.build_root() / 'gradle' / 'build' / 'compiler',
     ]
 endif
 

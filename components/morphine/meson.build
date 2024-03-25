@@ -7,7 +7,7 @@ version = get_option('version')
 
 sources = run_command(
     'python',
-    '../../source.py',
+    '..' / '..' / 'source.py',
     check : true
 ).stdout().strip().split('\n')
 

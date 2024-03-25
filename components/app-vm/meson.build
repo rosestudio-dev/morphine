@@ -10,11 +10,11 @@ libmorphine = subproject(
     ]
 ).get_variable('libmorphine_dep')
 
-dlib_compiler = subproject('dlib-compiler').get_variable('dlib_compiler_dep')
+dlib_compiler_headers = subproject('dlib-compiler').get_variable('dlib_compiler_headers_dep')
 
 sources = run_command(
     'python',
-    '../../source.py',
+    '..'/'..'/'source.py',
     'src',
     check : true
 ).stdout().strip().split('\n')
@@ -63,6 +63,6 @@ message('Sources: ', sources)
 executable(
     'morphine', sources,
     include_directories : include,
-    dependencies : [libmorphine, dlib_compiler],
+    dependencies : [libmorphine, dlib_compiler_headers],
     c_args : comiler_args
 )
