@@ -1,4 +1,4 @@
-build/
+buildDir/
 .idea
 
 *.mco

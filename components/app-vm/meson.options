@@ -1,0 +1,2 @@
+option('sanitize', type : 'feature', value : 'disabled')
+option('version', type : 'string', yield: true)
