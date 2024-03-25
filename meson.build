@@ -3,6 +3,7 @@ project(
     default_options : [
         'morphine:sanitize=disabled',
         'morphine:debugger=disabled',
+        'compiler:localgradle=disabled',
         'app-vm:sanitize=disabled',
         'version=0.0.1'
     ],

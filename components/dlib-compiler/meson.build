@@ -33,5 +33,5 @@ dlib_compiler = custom_target(
 
 dlib_compiler_dep = declare_dependency(
     sources : dlib_compiler,
-    version: get_option('version')
+    version : get_option('version')
 )

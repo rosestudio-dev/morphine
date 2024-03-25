@@ -1,1 +1,2 @@
-option('version', type : 'string', yield: true)
+option('localgradle', type : 'feature', value : 'disabled')
+option('version', type : 'string', yield : true)
