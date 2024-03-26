@@ -5,15 +5,8 @@ project(
 
 installdir = get_option('installdir')
 
-libmorphine = subproject(
-    'morphine',
-    default_options : ['installdir=' + installdir]
-).get_variable('libmorphine_dep')
-
-dlibcompiler_headers = subproject(
-    'dlib-compiler',
-    default_options : ['installdir=' + installdir]
-).get_variable('dlibcompiler_headers_dep')
+morphine = subproject('morphine').get_variable('morphine_dep')
+dlibcompiler_headers = subproject('dlib-compiler').get_variable('dlibcompiler_headers_dep')
 
 sources = run_command(
     'python',
@@ -63,7 +56,7 @@ endif
 executable(
     'morphine', sources,
     include_directories : include,
-    dependencies : [libmorphine, dlibcompiler_headers],
+    dependencies : [morphine, dlibcompiler_headers],
     c_args : comiler_args,
 
     install : installdir != 'undefined',

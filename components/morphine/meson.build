@@ -54,10 +54,9 @@ if get_option('sanitize').enabled()
     comiler_args += sanitize_flags
 endif
 
-libmorphine = both_libraries(
-    'libmorphine', sources,
+morphine = both_libraries(
+    'morphine', sources,
     include_directories : [private_include, public_include],
-    name_prefix : '',
     c_args : comiler_args,
     dependencies : m_dep,
 
@@ -65,9 +64,9 @@ libmorphine = both_libraries(
     install_dir : installdir / 'libs'
 )
 
-libmorphine_dep = declare_dependency(
+morphine_dep = declare_dependency(
     include_directories : [public_include],
-    link_with : libmorphine.get_static_lib(),
+    link_with : morphine.get_static_lib(),
     version : version,
     dependencies : m_dep
 )
