@@ -73,7 +73,7 @@ fun main(args: Array<String>) {
             file = path.value!!,
             output = output.value ?: "",
             bytes = bytes.value ?: false,
-            optimizer = (disableOptimizer.value ?: true),
+            optimizer = !(disableOptimizer.value ?: false),
             disassembly = disassembly.value ?: false,
             debug = debug.value ?: false
         )
