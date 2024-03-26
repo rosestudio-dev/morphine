@@ -8,6 +8,8 @@
 #include "config/modifiers.h"
 #include "platform.h"
 
+MORPHINE_API const char *mapi_version(void);
+
 MORPHINE_API morphine_instance_t mapi_open(struct platform, struct params, void *userdata);
 MORPHINE_API void *mapi_userdata(morphine_instance_t);
 MORPHINE_API void mapi_interpreter(morphine_instance_t);

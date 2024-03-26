@@ -17,6 +17,8 @@ struct args {
     const char *program_path;
     size_t argc;
     char **args;
+
+    bool version;
 };
 
 struct args parseargs(int argc, char **argv);

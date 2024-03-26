@@ -25,6 +25,7 @@ static void help(const char *program, const char *message, bool disable_usage) {
         printf("    -a, -A        Use custom debug allocator (Use uppercase for pretty printing)\n");
         printf("    -m, -M        Enable executing time measure (Use uppercase for pretty printing)\n");
         printf("    -h            Usage info\n");
+        printf("    -v            Print version\n");
         printf("    --            Stop handling options\n");
     }
 
@@ -66,7 +67,8 @@ struct args parseargs(int argc, char **argv) {
         .binary = false,
         .program_path = NULL,
         .argc = 0,
-        .args = NULL
+        .args = NULL,
+        .version = false
     };
 
     const char *program;
@@ -128,6 +130,9 @@ struct args parseargs(int argc, char **argv) {
                     break;
                 case 'b':
                     args.binary = true;
+                    break;
+                case 'v':
+                    args.version = true;
                     break;
                 case 'h':
                     help(program, NULL, false);

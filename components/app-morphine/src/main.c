@@ -7,9 +7,15 @@
 #include <execute.h>
 #include <millis.h>
 #include <human.h>
+#include "morphine/api.h"
 
 int main(int argc, char **argv) {
     struct args args = parseargs(argc, argv);
+
+    if(args.version) {
+        printf("Morphine version: %s\n", mapi_version());
+        return 0;
+    }
 
     struct allocator allocator;
     struct allocator *pallocator = NULL;

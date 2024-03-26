@@ -38,5 +38,5 @@ dependencies {
     implementation(project(":bytecode"))
     implementation(project(":compiler"))
     implementation(kotlin("stdlib"))
-    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.4")
+    implementation("org.jetbrains.kotlinx:kotlinx-cli:0.3.6")
 }

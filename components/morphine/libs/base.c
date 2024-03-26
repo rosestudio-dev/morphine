@@ -6,6 +6,15 @@
 #include <stdio.h>
 #include "morphine/core/libloaders.h"
 
+static void version(morphine_state_t S) {
+    nb_function(S)
+        nb_init
+            maux_checkargs_fixed(S, 0);
+            mapi_push_string(S, mapi_version());
+            nb_return();
+    nb_end
+}
+
 static void print(morphine_state_t S) {
     nb_function(S)
         nb_init
@@ -209,17 +218,18 @@ static void changeenv(morphine_state_t S) {
 }
 
 static struct maux_construct_field table[] = {
-    { "print",        print },
-    { "println",      println },
-    { "setmetatable", setmetatable },
-    { "getmetatable", getmetatable },
+    { "version",             version },
+    { "print",               print },
+    { "println",             println },
+    { "setmetatable",        setmetatable },
+    { "getmetatable",        getmetatable },
     { "setdefaultmetatable", setdefaultmetatable },
     { "getdefaultmetatable", getdefaultmetatable },
-    { "scall",        scall },
-    { "pcall",        pcall },
-    { "pscall",       pscall },
-    { "error",        error },
-    { "changeenv",    changeenv },
+    { "scall",               scall },
+    { "pcall",               pcall },
+    { "pscall",              pscall },
+    { "error",               error },
+    { "changeenv",           changeenv },
     { NULL, NULL }
 };
 

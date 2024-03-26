@@ -40,7 +40,7 @@ warning_flags = [
 common_flags = [
     '-fno-common',
     '-fwrapv',
-    '-flto'
+    '-DMORPHINE_VERSION="' + version + '"'
 ]
 
 sanitize_flags = [

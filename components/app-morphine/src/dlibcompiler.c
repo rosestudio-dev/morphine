@@ -3,6 +3,7 @@
 //
 
 #include <dlfcn.h>
+#include <string.h>
 #include "dlibcompiler.h"
 
 struct compiler_instance {
@@ -87,6 +88,15 @@ static void check_graal_inited(morphine_state_t S, struct compiler_instance *ins
     }
 }
 
+static void check_version(morphine_state_t S, struct compiler_instance *instance) {
+    check_graal_inited(S, instance);
+
+    const char *version = instance->methods.version(instance->vars.thread);
+    if (version == NULL || strcmp(mapi_version(), version) != 0) {
+        mapi_errorf(S, "Unsupported compiler version");
+    }
+}
+
 struct compiler_instance *dlibcompiler_userdata(morphine_state_t S, const char *path) {
     struct compiler_instance *instance = mapi_allocator_uni(mapi_instance(S), NULL, sizeof(struct compiler_instance));
     (*instance) = (struct compiler_instance) {
@@ -98,6 +108,7 @@ struct compiler_instance *dlibcompiler_userdata(morphine_state_t S, const char *
 
     dlib_open(S, instance, path);
     graal_init(S, instance);
+    check_version(S, instance);
 
     return instance;
 }
