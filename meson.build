@@ -1,16 +1,24 @@
 project(
     'morphine',
     default_options : [
+        'version=0.0.1',
+        'installdir=' + meson.source_root() / 'install',
         'morphine:sanitize=disabled',
-        'morphine:debugger=disabled',
+        'app-morphine:sanitize=disabled',
         'compiler:localgradle=disabled',
-        'app-vm:sanitize=disabled',
-        'version=0.0.1'
     ],
     subproject_dir : 'components',
 )
 
-components_version = meson.project_version()
+installdir = get_option('installdir')
+message('Install dir:', installdir)
 
-subproject('app-compiler', default_options : ['version=' + components_version])
-subproject('app-vm', default_options : ['version=' + components_version])
+subproject('app-morphine', default_options : ['installdir=' + installdir])
+subproject('app-compiler', default_options : ['installdir=' + installdir])
+
+install_data(
+    files('extra' / 'templates' / 'gitignore'),
+    follow_symlinks : false,
+    install_dir : installdir,
+    rename : ['.gitignore'],
+)

@@ -1,5 +1,7 @@
 project('dlib-compiler')
 
+installdir = get_option('installdir')
+
 compiler_clib_jar = subproject('compiler').get_variable('compiler_clib_jar')
 
 nativeimage = find_program('native-image')
@@ -9,13 +11,13 @@ nativeimage_options = [
     '--parallelism=18',
 ]
 
-dlib_compiler = custom_target(
+dlibcompiler = custom_target(
     'dlib-compiler',
     input : [compiler_clib_jar],
     output : [
-        'libmorphinecompiler.so',
-        'libmorphinecompiler.h',
-        'libmorphinecompiler_dynamic.h',
+        'libcompiler.so',
+        'libcompiler.h',
+        'libcompiler_dynamic.h',
         'graal_isolate.h',
         'graal_isolate_dynamic.h'
     ],
@@ -24,31 +26,40 @@ dlib_compiler = custom_target(
         nativeimage,
         nativeimage_options,
         '--shared',
-        '-H:Name=libmorphinecompiler',
+        '-H:Name=libcompiler',
         '-jar',
         '@INPUT@',
         '-o',
-        '@OUTDIR@' / 'libmorphinecompiler'
+        '@OUTDIR@' / 'libcompiler'
+    ],
+
+    install : installdir != 'undefined',
+    install_dir : [
+        installdir/'libs',
+        installdir/'include'/'compiler',
+        installdir/'include'/'compiler',
+        installdir/'include'/'compiler',
+        installdir/'include'/'compiler',
     ]
 )
 
-dlib_compiler_headers = []
-dlib_compiler_shared = []
+dlibcompiler_headers = []
+dlibcompiler_shared = []
 
-foreach s : dlib_compiler.to_list()
+foreach s : dlibcompiler.to_list()
     if s.full_path().endswith('.h')
-        dlib_compiler_headers += s
+        dlibcompiler_headers += s
     else
-        dlib_compiler_shared += s
+        dlibcompiler_shared += s
     endif
 endforeach
 
-dlib_compiler_headers_dep = declare_dependency(
-    sources : dlib_compiler_headers,
+dlibcompiler_headers_dep = declare_dependency(
+    sources : dlibcompiler_headers,
     version : get_option('version')
 )
 
-dlib_compiler_shared_dep = declare_dependency(
-    sources : dlib_compiler_shared,
+dlibcompiler_shared_dep = declare_dependency(
+    sources : dlibcompiler_shared,
     version : get_option('version')
 )

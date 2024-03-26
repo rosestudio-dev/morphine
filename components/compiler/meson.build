@@ -29,7 +29,9 @@ compiler_cli_jar = custom_target(
         gradle,
         gradle_options,
         ':cli:compiler:jar'
-    ]
+    ],
+
+    install : false
 )
 
 compiler_clib_jar = custom_target(
@@ -40,5 +42,7 @@ compiler_clib_jar = custom_target(
         gradle,
         gradle_options,
         ':clibrary:jar'
-    ]
+    ],
+
+    install : false
 )

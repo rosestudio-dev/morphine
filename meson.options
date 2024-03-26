@@ -1,1 +1,2 @@
-option('version', type : 'string')
+option('version', type : 'string', value : 'undefined')
+option('installdir', type : 'string', value : 'undefined')

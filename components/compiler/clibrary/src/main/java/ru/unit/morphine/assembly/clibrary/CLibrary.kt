@@ -13,7 +13,7 @@ object CLibrary {
     private var assembleResult: Result? = null
 
     @JvmStatic
-    @CEntryPoint(name = "morphinecompiler_assemble")
+    @CEntryPoint(name = "libcompiler_assemble")
     private fun compile(
         thread: IsolateThread,
         text: CCharPointer,
@@ -38,23 +38,23 @@ object CLibrary {
     }
 
     @JvmStatic
-    @CEntryPoint(name = "morphinecompiler_geterror")
+    @CEntryPoint(name = "libcompiler_geterror")
     private fun getError(thread: IsolateThread) = CTypeConversion.toCString(
         (assembleResult as? Result.Error)?.message
     ).get()
 
     @JvmStatic
-    @CEntryPoint(name = "morphinecompiler_getbytecodesize")
+    @CEntryPoint(name = "libcompiler_getbytecodesize")
     private fun getBytecodeSize(thread: IsolateThread) = (assembleResult as? Result.Success)?.binary?.size ?: 0
 
     @JvmStatic
-    @CEntryPoint(name = "morphinecompiler_getbytecodevector")
+    @CEntryPoint(name = "libcompiler_getbytecodevector")
     private fun getBytecodeVector(thread: IsolateThread) = CTypeConversion.toCBytes(
         (assembleResult as? Result.Success)?.binary?.toByteArray()
     ).get()
 
     @JvmStatic
-    @CEntryPoint(name = "morphinecompiler_version")
+    @CEntryPoint(name = "libcompiler_version")
     private fun version(thread: IsolateThread) = CTypeConversion.toCString(
         this::class.java.`package`.implementationVersion
     ).get()

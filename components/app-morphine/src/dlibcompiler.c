@@ -22,11 +22,11 @@ struct compiler_instance {
         graal_create_isolate_fn_t graal_create_isolate;
         graal_tear_down_isolate_fn_t graal_tear_down_isolate;
 
-        morphinecompiler_assemble_fn_t assemble;
-        morphinecompiler_geterror_fn_t geterror;
-        morphinecompiler_getbytecodesize_fn_t getbytecodesize;
-        morphinecompiler_getbytecodevector_fn_t getbytecodevector;
-        morphinecompiler_version_fn_t version;
+        libcompiler_assemble_fn_t assemble;
+        libcompiler_geterror_fn_t geterror;
+        libcompiler_getbytecodesize_fn_t getbytecodesize;
+        libcompiler_getbytecodevector_fn_t getbytecodevector;
+        libcompiler_version_fn_t version;
     } methods;
 };
 
@@ -68,11 +68,11 @@ static void graal_init(morphine_state_t S, struct compiler_instance *instance) {
     graal_create_isolate_fn_t graal_create_isolate = safedlsym(S, instance->dlib, "graal_create_isolate");
     instance->methods.graal_tear_down_isolate = safedlsym(S, instance->dlib, "graal_tear_down_isolate");
 
-    instance->methods.assemble = safedlsym(S, instance->dlib, "morphinecompiler_assemble");
-    instance->methods.geterror = safedlsym(S, instance->dlib, "morphinecompiler_geterror");
-    instance->methods.getbytecodesize = safedlsym(S, instance->dlib, "morphinecompiler_getbytecodesize");
-    instance->methods.getbytecodevector = safedlsym(S, instance->dlib, "morphinecompiler_getbytecodevector");
-    instance->methods.version = safedlsym(S, instance->dlib, "morphinecompiler_version");
+    instance->methods.assemble = safedlsym(S, instance->dlib, "libcompiler_assemble");
+    instance->methods.geterror = safedlsym(S, instance->dlib, "libcompiler_geterror");
+    instance->methods.getbytecodesize = safedlsym(S, instance->dlib, "libcompiler_getbytecodesize");
+    instance->methods.getbytecodevector = safedlsym(S, instance->dlib, "libcompiler_getbytecodevector");
+    instance->methods.version = safedlsym(S, instance->dlib, "libcompiler_version");
 
     if (graal_create_isolate(NULL, &instance->vars.isolate, &instance->vars.thread) != 0) {
         mapi_errorf(S, "Cannot initialize compiler");

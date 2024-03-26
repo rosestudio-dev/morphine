@@ -1,1 +1,2 @@
+option('installdir', type : 'string', value : 'undefined')
 option('version', type : 'string', yield : true)

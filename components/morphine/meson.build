@@ -3,11 +3,15 @@ project(
     default_options : ['c_std=c17']
 )
 
+installdir = get_option('installdir')
 version = get_option('version')
+
+cc = meson.get_compiler('c')
+m_dep = cc.find_library('m', required : true)
 
 sources = run_command(
     'python',
-    '..' / '..' / 'source.py',
+    meson.source_root() / 'extra' / 'scripts' / 'source.py',
     check : true
 ).stdout().strip().split('\n')
 
@@ -50,33 +54,29 @@ if get_option('sanitize').enabled()
     comiler_args += sanitize_flags
 endif
 
-if get_option('debugger').enabled()
-    comiler_args += ['-DMORPHINE_ENABLE_DEBUGGER']
-endif
-
-message('Compiler flags: ', comiler_args)
-message('Sources: ', sources)
-
-libmorphine = library(
+libmorphine = both_libraries(
     'libmorphine', sources,
     include_directories : [private_include, public_include],
     name_prefix : '',
     c_args : comiler_args,
-    link_args : '-lm'
+    dependencies : m_dep,
+
+    install : installdir != 'undefined',
+    install_dir : installdir / 'libs'
 )
 
-if get_option('debugger').enabled()
-    libmorphine_dep = declare_dependency(
-        include_directories : [private_include, public_include],
-        link_with : libmorphine,
-        link_args : '-lm',
-        version : version
-    )
-else
-    libmorphine_dep = declare_dependency(
-        include_directories : [public_include],
-        link_with : libmorphine,
-        link_args : '-lm',
-        version : version
+libmorphine_dep = declare_dependency(
+    include_directories : [public_include],
+    link_with : libmorphine.get_static_lib(),
+    version : version,
+    dependencies : m_dep
+)
+
+if installdir != 'undefined'
+    install_subdir(
+        'include',
+        follow_symlinks : false,
+        install_dir : installdir / 'include',
+        strip_directory : true,
     )
 endif

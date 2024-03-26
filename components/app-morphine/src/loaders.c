@@ -29,7 +29,7 @@ static uint8_t file_read(morphine_state_t S, void *data, const char **error) {
 }
 
 void loader_source_file(morphine_state_t S, const char *path) {
-    struct compiler_instance *dlibcompiler = dlibcompiler_userdata(S, "libs/libmorphinecompiler.so");
+    struct compiler_instance *dlibcompiler = dlibcompiler_userdata(S, "libs/libcompiler.so");
     char *source = userdata_readfile(S, path);
 
     bool iserror = dlibcompiler_assemble(S, dlibcompiler, source, true);

@@ -1,20 +1,23 @@
 project(
-    'app-vm', 'c',
+    'app-morphine', 'c',
     default_options : ['c_std=c17']
 )
 
+installdir = get_option('installdir')
+
 libmorphine = subproject(
     'morphine',
-    default_options : [
-        'default_library=static'
-    ]
+    default_options : ['installdir=' + installdir]
 ).get_variable('libmorphine_dep')
 
-dlib_compiler_headers = subproject('dlib-compiler').get_variable('dlib_compiler_headers_dep')
+dlibcompiler_headers = subproject(
+    'dlib-compiler',
+    default_options : ['installdir=' + installdir]
+).get_variable('dlibcompiler_headers_dep')
 
 sources = run_command(
     'python',
-    '..'/'..'/'source.py',
+    meson.source_root() / 'extra' / 'scripts' / 'source.py',
     'src',
     check : true
 ).stdout().strip().split('\n')
@@ -57,12 +60,12 @@ if get_option('sanitize').enabled()
     comiler_args += sanitize_flags
 endif
 
-message('Compiler flags: ', comiler_args)
-message('Sources: ', sources)
-
 executable(
     'morphine', sources,
     include_directories : include,
-    dependencies : [libmorphine, dlib_compiler_headers],
-    c_args : comiler_args
+    dependencies : [libmorphine, dlibcompiler_headers],
+    c_args : comiler_args,
+
+    install : installdir != 'undefined',
+    install_dir : installdir
 )

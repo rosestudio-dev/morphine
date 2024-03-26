@@ -1,5 +1,7 @@
 project('app-compiler')
 
+installdir = get_option('installdir')
+
 compiler_cli_jar = subproject('compiler').get_variable('compiler_cli_jar')
 
 nativeimage = find_program('native-image')
@@ -10,9 +12,9 @@ nativeimage_options = [
 ]
 
 custom_target(
-    'morphie-compiler',
+    'compiler',
     input : [compiler_cli_jar],
-    output : ['morphie-compiler'],
+    output : ['compiler'],
     console : true,
     command : [
         nativeimage,
@@ -21,5 +23,8 @@ custom_target(
         '@INPUT@',
         '-o',
         '@OUTPUT@'
-    ]
+    ],
+
+    install : installdir != 'undefined',
+    install_dir : installdir
 )

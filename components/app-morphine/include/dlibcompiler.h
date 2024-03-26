@@ -5,7 +5,7 @@
 #pragma once
 
 #include "morphine.h"
-#include <libmorphinecompiler_dynamic.h>
+#include <libcompiler_dynamic.h>
 
 struct compiler_instance;
 
