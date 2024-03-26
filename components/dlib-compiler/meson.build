@@ -57,7 +57,6 @@ endforeach
 
 dlibcompiler_headers_dep = declare_dependency(
     sources : dlibcompiler_headers,
-    depends : [compiler_clib_jar],
     version : get_option('version')
 )
 
