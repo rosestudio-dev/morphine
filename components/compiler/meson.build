@@ -2,6 +2,22 @@ project('compiler')
 
 version = get_option('version')
 
+sources_kts = run_command(
+    'python',
+    meson.source_root() / 'extra' / 'scripts' / 'walker.py',
+    '-p',
+    '**/*.kt',
+    check : true
+).stdout().strip().split('\n')
+
+sources_kt = run_command(
+    'python',
+    meson.source_root() / 'extra' / 'scripts' / 'walker.py',
+    '-p',
+    '**/*.kts',
+    check : true
+).stdout().strip().split('\n')
+
 gradle = find_program('gradle')
 gradle_options = [
     '--no-daemon',
@@ -30,6 +46,7 @@ compiler_cli_jar = custom_target(
         gradle_options,
         ':cli:compiler:jar'
     ],
+    depend_files : [sources_kts, sources_kt],
 
     install : false
 )
@@ -43,6 +60,7 @@ compiler_clib_jar = custom_target(
         gradle_options,
         ':clibrary:jar'
     ],
+    depend_files : [sources_kts, sources_kt],
 
     install : false
 )

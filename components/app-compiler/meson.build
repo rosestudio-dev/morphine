@@ -16,6 +16,7 @@ custom_target(
     input : [compiler_cli_jar],
     output : ['compiler'],
     console : true,
+    depends : [compiler_cli_jar],
     command : [
         nativeimage,
         nativeimage_options,

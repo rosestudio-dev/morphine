@@ -21,6 +21,7 @@ dlibcompiler = custom_target(
         'graal_isolate.h',
         'graal_isolate_dynamic.h'
     ],
+    depends : [compiler_clib_jar],
     console : true,
     command : [
         nativeimage,
@@ -56,6 +57,7 @@ endforeach
 
 dlibcompiler_headers_dep = declare_dependency(
     sources : dlibcompiler_headers,
+    depends : [compiler_clib_jar],
     version : get_option('version')
 )
 

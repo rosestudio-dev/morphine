@@ -11,7 +11,9 @@ m_dep = cc.find_library('m', required : true)
 
 sources = run_command(
     'python',
-    meson.source_root() / 'extra' / 'scripts' / 'source.py',
+    meson.source_root() / 'extra' / 'scripts' / 'walker.py',
+    '-p',
+    '**/*.c',
     check : true
 ).stdout().strip().split('\n')
 
@@ -48,16 +50,16 @@ sanitize_flags = [
     '-fsanitize=undefined'
 ]
 
-comiler_args = warning_flags + common_flags
+compiler_args = warning_flags + common_flags
 
 if get_option('sanitize').enabled()
-    comiler_args += sanitize_flags
+    compiler_args += sanitize_flags
 endif
 
 morphine = both_libraries(
     'morphine', sources,
     include_directories : [private_include, public_include],
-    c_args : comiler_args,
+    c_args : compiler_args,
     dependencies : m_dep,
 
     install : installdir != 'undefined',
@@ -79,3 +81,15 @@ if installdir != 'undefined'
         strip_directory : true,
     )
 endif
+
+summary(
+    {
+        'version' : version,
+        'install' : installdir != 'undefined',
+        'install-dir' : installdir,
+        'flags' : compiler_args,
+        'sources' : sources
+    },
+    section : 'Configuration',
+    bool_yn : true
+)
