@@ -8,7 +8,7 @@ Morphine is an open-source, embedded programming language developed by [why-iskr
 
 ## Contents
 - [Features](#features)
-- [How to build](#how-to-build)
+- [Software requirements](#software-requirements)
 - [License](#license)
 
 ## Features
@@ -17,20 +17,12 @@ Morphine has the following main features that build the language's ideology:
 - Lightweight
 - Coroutine based
 
-## How to build
-
-### Software requirements
-- make
-- cmake
+## Software requirements
+- ninja
+- meson
 - cc
 - gradle
 - java (graalvm with native-image utility)
-- kotlin
-
-### Build
-Run `kotlin build.kts build` for automatic build.
-
-Run `kotlin build.kts clean` for clean build directory.
 
 ## License
 > [!NOTE]
