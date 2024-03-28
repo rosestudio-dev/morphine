@@ -156,28 +156,32 @@ class BytecodeConverter {
                 put('i'.convert().toByteArray())
                 put(bytes.toByteArray())
             }
+
             1 -> bytesBuilder(4) {
                 put('h'.convert().toByteArray())
                 put(bytes[1])
                 put(bytes[2])
                 put(bytes[3])
             }
+
             2 -> bytesBuilder(3) {
                 put('s'.convert().toByteArray())
                 put(bytes[2])
                 put(bytes[3])
             }
+
             3 -> 'b'.convert() + bytes[3]
             4 -> 'z'.convert()
             else -> throw ConvertException()
         }
     }
 
-    private fun String.convert() = bytesBuilder(length.convert().size + length) {
-        put(this@convert.length.convert().toByteArray())
+    private fun String.convert() = this@convert.toByteArray().let { bytes ->
+        val len = bytes.size.convert().toByteArray()
 
-        this@convert.forEach { char ->
-            put(char.convert().toByteArray())
+        bytesBuilder(len.size + bytes.size) {
+            put(len)
+            put(bytes)
         }
     }
 
