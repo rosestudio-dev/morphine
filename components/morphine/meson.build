@@ -5,6 +5,7 @@ project(
 
 installdir = get_option('installdir')
 version = get_option('version')
+sanitize = get_option('sanitize')
 
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required : true)
@@ -52,7 +53,7 @@ sanitize_flags = [
 
 compiler_args = warning_flags + common_flags
 
-if get_option('sanitize').enabled()
+if sanitize.enabled()
     compiler_args += sanitize_flags
 endif
 
@@ -87,9 +88,11 @@ summary(
         'version' : version,
         'install' : installdir != 'undefined',
         'install-dir' : installdir,
+        'sanitize' : sanitize,
         'flags' : compiler_args,
         'sources' : sources
     },
     section : 'Configuration',
-    bool_yn : true
+    bool_yn : true,
+    list_sep : ', '
 )
