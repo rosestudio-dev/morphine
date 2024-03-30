@@ -84,7 +84,7 @@ MORPHINE_API const char *mapi_get_string(morphine_state_t);
 MORPHINE_API size_t mapi_string_len(morphine_state_t);
 MORPHINE_API void mapi_string_concat(morphine_state_t);
 
-MORPHINE_API void mapi_push_table(morphine_state_t, size_t caps);
+MORPHINE_API void mapi_push_table(morphine_state_t);
 MORPHINE_API void mapi_table_set(morphine_state_t);
 MORPHINE_API bool mapi_table_get(morphine_state_t);
 MORPHINE_API void mapi_table_getoe(morphine_state_t);
@@ -107,6 +107,8 @@ MORPHINE_API void mapi_push_userdata(
 );
 MORPHINE_API const char *mapi_userdata_type(morphine_state_t);
 MORPHINE_API void *mapi_userdata_pointer(morphine_state_t);
+MORPHINE_API void mapi_userdata_link(morphine_state_t, bool soft);
+MORPHINE_API bool mapi_userdata_unlink(morphine_state_t, void *pointer);
 
 MORPHINE_API morphine_state_t mapi_push_state(morphine_state_t);
 MORPHINE_API void mapi_push_current_state(morphine_state_t);
@@ -151,6 +153,7 @@ MORPHINE_API void mapi_get_default_metatable(morphine_state_t, const char *type)
 
 MORPHINE_API void mapi_rotate(morphine_state_t);
 MORPHINE_API void mapi_pop(morphine_state_t, size_t size);
+MORPHINE_API void mapi_peek(morphine_state_t, size_t offset);
 MORPHINE_API void mapi_move(morphine_state_t, morphine_state_t to);
 MORPHINE_API void mapi_copy(morphine_state_t, morphine_state_t to, size_t offset);
 MORPHINE_API size_t mapi_stack_size(morphine_state_t);

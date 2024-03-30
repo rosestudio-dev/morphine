@@ -124,7 +124,7 @@ sp_case(OPCODE_RECURSION)
             }
 sp_case(OPCODE_TABLE)
             {
-                slot(C, arg1) = valueI_object(tableI_create(S->I, 0));
+                slot(C, arg1) = valueI_object(tableI_create(S->I));
                 sp_end();
             }
 sp_case(OPCODE_GET)

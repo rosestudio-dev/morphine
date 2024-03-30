@@ -43,7 +43,7 @@ static void init_metatable_defaults(morphine_instance_t I) {
 }
 
 static struct table *init_default_env(morphine_instance_t I) {
-    struct table *env = tableI_create(I, 1);
+    struct table *env = tableI_create(I);
     struct value key = valueI_object(stringI_create(I, "require"));
     struct value value = valueI_object(nativeI_create(I, "require", require));
 
@@ -57,7 +57,7 @@ static void init_env(morphine_instance_t I) {
 }
 
 static void init_registry(morphine_instance_t I) {
-    I->registry = tableI_create(I, 1);
+    I->registry = tableI_create(I);
 }
 
 void initI_vm(morphine_instance_t I) {

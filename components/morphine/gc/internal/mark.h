@@ -42,12 +42,12 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_object(objectI_cast(table->metatable));
             }
 
-            size_t it = 0;
-            struct pair pair;
+            struct bucket *current = table->hashmap.buckets.ll;
+            while (current != NULL) {
+                mark_value(current->pair.key);
+                mark_value(current->pair.value);
 
-            while (tableI_iter(I, table, &it, &pair)) {
-                mark_value(pair.key);
-                mark_value(pair.value);
+                current = current->ll.prev;
             }
 
             return tableI_allocated_size(table);

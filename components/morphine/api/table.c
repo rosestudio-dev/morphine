@@ -9,8 +9,8 @@
 #include "morphine/core/throw.h"
 #include "morphine/stack/access.h"
 
-MORPHINE_API void mapi_push_table(morphine_state_t S, size_t caps) {
-    stackI_push(S, valueI_object(tableI_create(S->I, caps)));
+MORPHINE_API void mapi_push_table(morphine_state_t S) {
+    stackI_push(S, valueI_object(tableI_create(S->I)));
 }
 
 MORPHINE_API void mapi_table_set(morphine_state_t S) {

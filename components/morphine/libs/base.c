@@ -125,7 +125,7 @@ static void pcall(morphine_state_t S) {
             mapi_catchable(S, 2);
             mapi_call(S, count - 1);
         nb_state(1)
-            mapi_push_table(S, 2);
+            mapi_push_table(S);
 
             mapi_push_stringf(S, "result");
             mapi_push_result(S);
@@ -137,7 +137,7 @@ static void pcall(morphine_state_t S) {
 
             nb_return();
         nb_state(2)
-            mapi_push_table(S, 2);
+            mapi_push_table(S);
 
             mapi_push_stringf(S, "result");
             mapi_push_nil(S);
@@ -165,7 +165,7 @@ static void pscall(morphine_state_t S) {
             mapi_catchable(S, 2);
             mapi_callself(S, count - 2);
         nb_state(1)
-            mapi_push_table(S, 2);
+            mapi_push_table(S);
 
             mapi_push_stringf(S, "returned");
             mapi_push_result(S);
@@ -177,7 +177,7 @@ static void pscall(morphine_state_t S) {
 
             nb_return();
         nb_state(2)
-            mapi_push_table(S, 2);
+            mapi_push_table(S);
 
             mapi_push_stringf(S, "returned");
             mapi_push_nil(S);

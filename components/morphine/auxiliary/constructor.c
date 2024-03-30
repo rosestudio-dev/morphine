@@ -9,7 +9,7 @@
 MORPHINE_AUX void maux_construct(morphine_state_t S, struct maux_construct_field *table) {
     void *registry_key = table;
 
-    mapi_push_table(S, 1);
+    mapi_push_table(S);
 
     while (table->name != NULL) {
         mapi_push_stringf(S, table->name);
