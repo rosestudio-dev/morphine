@@ -8,7 +8,7 @@
 #include "morphine/core/throw.h"
 #include "morphine/core/allocator.h"
 
-stackI_ptr stack_raise(morphine_state_t S, struct value first, size_t size) {
+stackI_ptr stack_raise(morphine_state_t S, size_t size) {
     if (size == 0) {
         throwI_message_panic(S->I, S, "Raise size is zero");
     }
@@ -16,7 +16,6 @@ stackI_ptr stack_raise(morphine_state_t S, struct value first, size_t size) {
     struct stack *stack = &S->stack;
 
     stackI_ptr result = stack_ptr(stack->allocated + stack->top);
-    *result.p = first;
 
     if (stack->top + size >= stack->size) {
         size_t grow = S->stack.settings.grow;
@@ -39,7 +38,7 @@ stackI_ptr stack_raise(morphine_state_t S, struct value first, size_t size) {
 
     stack->top += size;
 
-    for (size_t i = stack->top - size + 1; i < stack->top; i++) {
+    for (size_t i = stack->top - size; i < stack->top; i++) {
         stack->allocated[i] = valueI_nil;
     }
 

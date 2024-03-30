@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/platform.h"
+#include "morphine/core/value.h"
 
 typedef enum {
     GC_STATUS_IDLE,
@@ -48,6 +48,10 @@ struct garbage_collector {
         struct object *candidate;
         morphine_state_t state;
     } finalizer;
+
+    struct {
+        struct value value;
+    } safe;
 
     struct callinfo *callinfo_trash;
 };

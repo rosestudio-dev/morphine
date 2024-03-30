@@ -57,7 +57,7 @@ static inline void stackI_call(morphine_state_t S, struct value callable, struct
         callinfo = allocI_uni(S->I, NULL, sizeof(struct callinfo));
     }
 
-    stackI_ptr base = stack_raise(S, callable, values_size + slots_count + params_count);
+    stackI_ptr base = stack_raise(S, values_size + slots_count + params_count);
 
     (*callinfo) = (struct callinfo) {
         .s.base = base,
@@ -85,6 +85,7 @@ static inline void stackI_call(morphine_state_t S, struct value callable, struct
 
     // init callinfo stack region
 
+    *callinfo->s.callable.p = callable;
     *callinfo->s.source.p = source;
     *callinfo->s.env.p = env;
     *callinfo->s.self.p = self;

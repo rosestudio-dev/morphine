@@ -15,11 +15,9 @@ struct stack stackI_initial(morphine_instance_t I, size_t limit, size_t grow) {
         throwI_message_panic(I, NULL, "Stack limit is zero");
     }
 
-    struct value *allocated = allocI_uni(I, NULL, grow * sizeof(struct value));
-
     return (struct stack) {
-        .allocated = allocated,
-        .size = grow,
+        .allocated = NULL,
+        .size = 0,
         .top = 0,
         .settings.grow = grow,
         .settings.limit = limit,

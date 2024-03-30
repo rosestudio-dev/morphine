@@ -14,7 +14,7 @@
 void stack_save(struct stack *);
 void stack_recover(struct stack *);
 
-stackI_ptr stack_raise(morphine_state_t, struct value first, size_t size);
+stackI_ptr stack_raise(morphine_state_t, size_t size);
 stackI_ptr stack_reduce(morphine_state_t, size_t size);
 
 struct value stack_peek(morphine_state_t, struct callinfo *, size_t offset);
