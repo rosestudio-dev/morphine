@@ -2,7 +2,7 @@
 // Created by whyiskra on 3/23/24.
 //
 
-#include "stages.h"
+#include "../stages.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
 

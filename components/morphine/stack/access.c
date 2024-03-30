@@ -7,8 +7,8 @@
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
-#include "internal/functions.h"
 #include "morphine/gc/safe.h"
+#include "functions.h"
 
 size_t stackI_space_size(morphine_state_t S) {
     return stack_space_size(S, callstackI_info(S));

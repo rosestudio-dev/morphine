@@ -2,7 +2,7 @@
 // Created by whyiskra on 3/24/24.
 //
 
-#include "functions.h"
+#include "../functions.h"
 
 void stack_recover(struct stack *stack) {
     struct callinfo *current = stack->callstack;

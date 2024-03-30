@@ -10,8 +10,8 @@
 #include "morphine/object/closure.h"
 #include "morphine/gc/hot.h"
 #include "morphine/stack/access.h"
-#include "internal/functions.h"
 #include "morphine/object/table.h"
+#include "functions.h"
 
 static inline void stackI_call(morphine_state_t S, struct value callable, struct value self, size_t argc, size_t pop_size) {
     // get source and calc values size

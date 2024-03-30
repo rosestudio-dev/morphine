@@ -7,7 +7,7 @@
 #include "morphine/core/instance.h"
 #include "morphine/core/hook.h"
 #include "morphine/core/throw.h"
-#include "internal/stages.h"
+#include "stages.h"
 
 static inline bool gc_need(morphine_instance_t I) {
     size_t alloc_bytes = I->G.bytes.allocated;
