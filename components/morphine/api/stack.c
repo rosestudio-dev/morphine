@@ -18,6 +18,10 @@ MORPHINE_API void mapi_pop(morphine_state_t S, size_t size) {
     stackI_pop(S, size);
 }
 
+MORPHINE_API void mapi_peek(morphine_state_t S, size_t offset) {
+    stackI_push(S, stackI_peek(S, offset));
+}
+
 MORPHINE_API void mapi_move(morphine_state_t S, morphine_state_t to) {
     stackI_push(to, stackI_peek(S, 0));
     stackI_pop(S, 1);
