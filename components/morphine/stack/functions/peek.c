@@ -2,7 +2,7 @@
 // Created by whyiskra on 3/24/24.
 //
 
-#include "functions.h"
+#include "../functions.h"
 #include "morphine/stack/access.h"
 
 struct value stack_peek(morphine_state_t S, struct callinfo *callinfo, size_t offset) {

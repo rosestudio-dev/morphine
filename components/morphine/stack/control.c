@@ -5,7 +5,7 @@
 #include "morphine/stack/control.h"
 #include "morphine/object/state.h"
 #include "morphine/core/allocator.h"
-#include "internal/functions.h"
+#include "functions.h"
 
 void stackI_shrink(morphine_state_t S) {
     size_t grow = S->stack.settings.grow;
