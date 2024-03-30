@@ -6,9 +6,9 @@
 
 #include "morphine/platform.h"
 #include "morphine/utils/cast.h"
-#include "type.h"
+#include "morphine/type.h"
 
-#define objectI_cast(x) morphinem_cast(struct object *, (x))
+#define objectI_cast(x) cast(struct object *, (x))
 
 struct object {
     struct object *prev;

@@ -3,7 +3,7 @@
 //
 
 #include <morphine.h>
-#include "morphine/core/libloaders.h"
+#include "morphine/libs/loader.h"
 
 static void kill(morphine_state_t S) {
     nb_function(S)

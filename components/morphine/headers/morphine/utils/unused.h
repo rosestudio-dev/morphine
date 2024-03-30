@@ -4,4 +4,4 @@
 
 #pragma once
 
-#define morphinem_unused(x) ((void)(x))
+#define unused(...) ((void)(__VA_ARGS__))

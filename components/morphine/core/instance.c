@@ -3,7 +3,7 @@
 //
 
 #include "morphine/core/instance.h"
-#include "morphine/core/init.h"
+#include "morphine/init/instance.h"
 #include "morphine/gc/finalizer.h"
 #include "morphine/gc/control.h"
 
@@ -41,7 +41,7 @@ morphine_instance_t instanceI_open(struct platform platform, struct params param
         .throw = throw_prototype()
     };
 
-    initI_vm(I);
+    initI_instance(I);
 
     gcI_init_finalizer(I);
     gcI_recognize(I);

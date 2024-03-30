@@ -3,7 +3,7 @@
 //
 
 #include <string.h>
-#include "morphine/auxiliary.h"
+#include "morphine/auxiliary/constructor.h"
 #include "morphine/api.h"
 
 MORPHINE_AUX void maux_construct(morphine_state_t S, struct maux_construct_field *table) {

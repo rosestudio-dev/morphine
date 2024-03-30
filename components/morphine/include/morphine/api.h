@@ -5,7 +5,7 @@
 #pragma once
 
 #include <stdarg.h>
-#include "config/modifiers.h"
+#include "config.h"
 #include "platform.h"
 
 MORPHINE_API const char *mapi_version(void);
@@ -158,9 +158,6 @@ MORPHINE_API void mapi_move(morphine_state_t, morphine_state_t to);
 MORPHINE_API void mapi_copy(morphine_state_t, morphine_state_t to, size_t offset);
 MORPHINE_API size_t mapi_stack_size(morphine_state_t);
 MORPHINE_API void mapi_stack_reset(morphine_state_t);
-
-MORPHINE_API void mapi_require(morphine_state_t);
-MORPHINE_API void mapi_require_get(morphine_state_t);
 
 MORPHINE_API void mapi_registry_set_key(morphine_state_t);
 MORPHINE_API bool mapi_registry_get(morphine_state_t);

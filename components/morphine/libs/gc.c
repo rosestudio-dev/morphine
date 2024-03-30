@@ -4,7 +4,7 @@
 
 #include <morphine.h>
 #include <string.h>
-#include "morphine/core/libloaders.h"
+#include "morphine/libs/loader.h"
 
 static void controller(morphine_state_t S) {
     nb_function(S)

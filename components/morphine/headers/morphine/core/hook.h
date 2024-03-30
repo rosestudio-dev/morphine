@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/config/components.h"
+#include "morphine/config.h"
 
 #ifdef MORPHINE_ENABLE_DEBUGGER
 

@@ -36,7 +36,7 @@ static inline void mark_value(struct value value) {
 static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
     switch (obj->type) {
         case OBJ_TYPE_TABLE: {
-            struct table *table = morphinem_cast(struct table *, obj);
+            struct table *table = cast(struct table *, obj);
 
             if (table->metatable != NULL) {
                 mark_object(objectI_cast(table->metatable));
@@ -53,7 +53,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             return tableI_allocated_size(table);
         }
         case OBJ_TYPE_CLOSURE: {
-            struct closure *closure = morphinem_cast(struct closure *, obj);
+            struct closure *closure = cast(struct closure *, obj);
 
             mark_value(closure->callable);
             for (size_t i = 0; i < closure->size; i++) {
@@ -63,7 +63,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             return closureI_allocated_size(closure);
         }
         case OBJ_TYPE_PROTO: {
-            struct proto *proto = morphinem_cast(struct proto *, obj);
+            struct proto *proto = cast(struct proto *, obj);
 
             for (size_t i = 0; i < proto->constants_count; i++) {
                 mark_value(proto->constants[i]);
@@ -78,7 +78,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             return protoI_allocated_size(proto);
         }
         case OBJ_TYPE_USERDATA: {
-            struct userdata *userdata = morphinem_cast(struct userdata *, obj);
+            struct userdata *userdata = cast(struct userdata *, obj);
 
             if (userdata->metatable != NULL) {
                 mark_object(objectI_cast(userdata->metatable));
@@ -97,7 +97,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             return userdataI_allocated_size(userdata);
         }
         case OBJ_TYPE_STATE: {
-            morphine_state_t state = morphinem_cast(morphine_state_t, obj);
+            morphine_state_t state = cast(morphine_state_t, obj);
 
             for (size_t i = 0; i < state->stack.top; i++) {
                 mark_value(state->stack.allocated[i]);
@@ -106,18 +106,17 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             return stateI_allocated_size(state);
         }
         case OBJ_TYPE_NATIVE: {
-            struct native *native = morphinem_cast(struct native *, obj);
+            struct native *native = cast(struct native *, obj);
             mark_value(native->registry_key);
 
-            return nativeI_allocated_size(native);
+            return nativeI_allocated_size();
         }
         case OBJ_TYPE_STRING: {
-            struct string *string = morphinem_cast(struct string *, obj);
+            struct string *string = cast(struct string *, obj);
             return stringI_allocated_size(string);
         }
         case OBJ_TYPE_REFERENCE: {
-            struct reference *reference = morphinem_cast(struct reference *, obj);
-            return referenceI_allocated_size(reference);
+            return referenceI_allocated_size();
         }
     }
 

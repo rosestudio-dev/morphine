@@ -13,7 +13,7 @@ static inline bool gc_need(morphine_instance_t I) {
     size_t alloc_bytes = I->G.bytes.allocated;
     size_t prev = I->G.bytes.prev_allocated;
 
-    if (morphinem_unlikely(prev == 0)) {
+    if (unlikely(prev == 0)) {
         prev = 1;
     }
 

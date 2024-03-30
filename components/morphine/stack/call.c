@@ -146,7 +146,7 @@ void callstackI_unsafe(
     size_t pop_size
 ) {
     struct value mt_field;
-    if (morphinem_unlikely(metatableI_test(S->I, callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_test(S->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(S->I);
         struct value args_table = valueI_object(table);
         stackI_push(S, args_table);
@@ -177,7 +177,7 @@ void callstackI_stack(
     size_t pop_size
 ) {
     struct value mt_field;
-    if (morphinem_unlikely(metatableI_test(S->I, callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_test(S->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(S->I);
         struct value args_table = valueI_object(table);
         stackI_push(S, args_table);
@@ -219,7 +219,7 @@ void callstackI_params(
     }
 
     struct value mt_field;
-    if (morphinem_unlikely(metatableI_test(S->I, callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_test(S->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(S->I);
         struct value args_table = valueI_object(table);
         stackI_push(S, args_table);

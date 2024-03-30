@@ -4,7 +4,7 @@
 
 #include <morphine.h>
 #include <math.h>
-#include "morphine/core/libloaders.h"
+#include "morphine/libs/loader.h"
 
 #define PI_CONST 3.14159265358979323846
 #define E_CONST  2.7182818284590452354

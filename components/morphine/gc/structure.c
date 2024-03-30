@@ -3,7 +3,7 @@
 //
 
 #include "morphine/gc/structure.h"
-#include "morphine/core/object.h"
+#include "morphine/object.h"
 #include "morphine/stack/call.h"
 
 static void free_objects(morphine_instance_t I, struct object *pool) {

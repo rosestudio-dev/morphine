@@ -2,7 +2,7 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include "morphine/core/object.h"
+#include "morphine/object.h"
 #include "morphine/object/state.h"
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
@@ -28,28 +28,28 @@ void objectI_init(morphine_instance_t I, struct object *object, enum obj_type ty
 void objectI_free(morphine_instance_t I, struct object *object) {
     switch (object->type) {
         case OBJ_TYPE_USERDATA:
-            userdataI_free(I, morphinem_cast(struct userdata *, object));
+            userdataI_free(I, cast(struct userdata *, object));
             return;
         case OBJ_TYPE_STRING:
-            stringI_free(I, morphinem_cast(struct string *, object));
+            stringI_free(I, cast(struct string *, object));
             return;
         case OBJ_TYPE_TABLE:
-            tableI_free(I, morphinem_cast(struct table *, object));
+            tableI_free(I, cast(struct table *, object));
             return;
         case OBJ_TYPE_CLOSURE:
-            closureI_free(I, morphinem_cast(struct closure *, object));
+            closureI_free(I, cast(struct closure *, object));
             return;
         case OBJ_TYPE_PROTO:
-            protoI_free(I, morphinem_cast(struct proto *, object));
+            protoI_free(I, cast(struct proto *, object));
             return;
         case OBJ_TYPE_NATIVE:
-            nativeI_free(I, morphinem_cast(struct native *, object));
+            nativeI_free(I, cast(struct native *, object));
             return;
         case OBJ_TYPE_STATE:
-            stateI_free(I, morphinem_cast(morphine_state_t, object));
+            stateI_free(I, cast(morphine_state_t, object));
             return;
         case OBJ_TYPE_REFERENCE:
-            referenceI_free(I, morphinem_cast(struct reference *, object));
+            referenceI_free(I, cast(struct reference *, object));
             return;
     }
 

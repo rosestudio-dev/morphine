@@ -17,7 +17,7 @@
 
 #define sp_fetch() \
     morphinem_blk_start \
-    if (morphinem_unlikely(*position >= instructions_count)) { \
+    if (unlikely(*position >= instructions_count)) { \
         callstackI_return(S, valueI_nil); \
         sp_yield(); \
     } \
@@ -38,7 +38,7 @@
 #define complex_fun(name, s, ...) \
     morphinem_blk_start \
         op_result_t operation_result = name(S, s, __VA_ARGS__, 0, true); \
-        if(morphinem_unlikely(operation_result != NORMAL)) { \
+        if(unlikely(operation_result != NORMAL)) { \
             if (operation_result == CALLED) { \
                 sp_yield(); \
             } else if(operation_result == CALLED_COMPLETE) { \
@@ -449,14 +449,14 @@ sp_case(OPCODE_LENGTH)
 static inline void step(morphine_state_t S) {
     struct callinfo *callinfo = callstackI_info(S);
 
-    if (morphinem_unlikely(callinfo == NULL)) {
+    if (unlikely(callinfo == NULL)) {
         S->status = STATE_STATUS_DEAD;
         throwI_message_error(S, "Require callinfo");
     }
 
     struct value source = *callinfo->s.source.p;
 
-    if (morphinem_likely(valueI_is_proto(source))) {
+    if (likely(valueI_is_proto(source))) {
         callinfo->exit = false;
         step_proto(S, valueI_as_proto(source));
     } else if (valueI_is_native(source)) {
@@ -467,13 +467,13 @@ static inline void step(morphine_state_t S) {
         throwI_message_error(S, "Attempt to execute unsupported callable");
     }
 
-    if (morphinem_unlikely(callinfo->exit)) {
+    if (unlikely(callinfo->exit)) {
         callstackI_pop(S);
     }
 }
 
 static inline void attach_candidates(morphine_instance_t I) {
-    if (morphinem_unlikely(I->candidates != NULL)) {
+    if (unlikely(I->candidates != NULL)) {
         morphine_state_t state = I->candidates;
         I->candidates = state->prev;
 
@@ -493,7 +493,7 @@ static inline void execute(morphine_instance_t I) {
     morphine_state_t current = I->states;
 
     for (;;) {
-        if (morphinem_unlikely(I->G.finalizer.work && I->G.finalizer.state != NULL)) {
+        if (unlikely(I->G.finalizer.work && I->G.finalizer.state != NULL)) {
             step(I->G.finalizer.state);
 
             if (current == NULL) {
@@ -505,17 +505,17 @@ static inline void execute(morphine_instance_t I) {
 
                 current = I->states;
             }
-        } else if (morphinem_unlikely(current == NULL)) {
+        } else if (unlikely(current == NULL)) {
             break;
         }
 
         bool is_current_circle = (I->interpreter_circle % current->priority) == 0;
 
-        if (morphinem_likely(is_current_circle && (current->status == STATE_STATUS_RUNNING))) {
+        if (likely(is_current_circle && (current->status == STATE_STATUS_RUNNING))) {
             step(current);
         }
 
-        if (morphinem_unlikely((current->status == STATE_STATUS_DEAD) || (current->status == STATE_STATUS_DETACHED))) {
+        if (unlikely((current->status == STATE_STATUS_DEAD) || (current->status == STATE_STATUS_DETACHED))) {
             if (last == NULL) {
                 I->states = current->prev;
             } else {
@@ -528,13 +528,13 @@ static inline void execute(morphine_instance_t I) {
 
         current = current->prev;
 
-        if (morphinem_likely(current == NULL)) {
+        if (likely(current == NULL)) {
             attach_candidates(I);
 
             last = NULL;
             current = I->states;
 
-            if (morphinem_unlikely(current == NULL)) {
+            if (unlikely(current == NULL)) {
                 gcI_full(I);
             }
 

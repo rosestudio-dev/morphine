@@ -12,7 +12,7 @@
 #include "morphine/object/userdata.h"
 
 bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
-    if (morphinem_likely(a.type != b.type)) {
+    if (likely(a.type != b.type)) {
         return false;
     }
 

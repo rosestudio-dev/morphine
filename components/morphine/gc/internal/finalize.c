@@ -14,7 +14,7 @@ bool gcstageI_finalize(morphine_instance_t I) {
     while (current != NULL) {
         struct object *prev = current->prev;
 
-        if (morphinem_unlikely(!current->flags.finalized && metatableI_test(I, valueI_object(current), MF_GC, NULL))) {
+        if (unlikely(!current->flags.finalized && metatableI_test(I, valueI_object(current), MF_GC, NULL))) {
             current->prev = I->G.pools.finalize;
             I->G.pools.finalize = current;
 

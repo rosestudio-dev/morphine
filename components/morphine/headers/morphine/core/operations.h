@@ -8,7 +8,6 @@
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
 #include "morphine/object/reference.h"
-#include "morphine/utils/unused.h"
 #include "morphine/stack/call.h"
 
 typedef enum {
@@ -26,13 +25,13 @@ static inline op_result_t interpreter_fun_get(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
     struct value mt_field;
-    if (morphinem_likely(valueI_is_table(table))) {
+    if (likely(valueI_is_table(table))) {
         bool has = false;
         (*result) = tableI_get(S->I, valueI_as_table(table), key, &has);
 
@@ -63,9 +62,7 @@ static inline op_result_t interpreter_fun_set(
     size_t pop_size,
     bool need_return
 ) {
-    morphinem_unused(need_return);
-
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         return CALLED_COMPLETE;
     }
 
@@ -90,12 +87,12 @@ static inline op_result_t interpreter_fun_add(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_integer(a) && valueI_is_integer(b))) {
+    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
         (*result) = valueI_integer(valueI_as_integer(a) + valueI_as_integer(b));
         return NORMAL;
     }
@@ -125,12 +122,12 @@ static inline op_result_t interpreter_fun_sub(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_integer(a) && valueI_is_integer(b))) {
+    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
         (*result) = valueI_integer(valueI_as_integer(a) - valueI_as_integer(b));
         return NORMAL;
     }
@@ -160,12 +157,12 @@ static inline op_result_t interpreter_fun_mul(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_integer(a) && valueI_is_integer(b))) {
+    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
         (*result) = valueI_integer(valueI_as_integer(a) * valueI_as_integer(b));
         return NORMAL;
     }
@@ -195,13 +192,13 @@ static inline op_result_t interpreter_fun_div(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        if (morphinem_unlikely(valueI_as_integer(b) == 0)) {
+    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
+        if (unlikely(valueI_as_integer(b) == 0)) {
             throwI_message_error(S, "Attempt to divide by zero");
         }
 
@@ -211,7 +208,7 @@ static inline op_result_t interpreter_fun_div(
     }
 
     if (valueI_is_decimal(a) && valueI_is_decimal(b)) {
-        if (morphinem_unlikely(valueI_as_decimal(b) == 0)) {
+        if (unlikely(valueI_as_decimal(b) == 0)) {
             throwI_message_error(S, "Attempt to divide by zero");
         }
 
@@ -240,13 +237,13 @@ static inline op_result_t interpreter_fun_mod(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        if (morphinem_unlikely(valueI_as_integer(b) == 0)) {
+    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
+        if (unlikely(valueI_as_integer(b) == 0)) {
             throwI_message_error(S, "Attempt to divide by zero");
         }
 
@@ -275,7 +272,7 @@ static inline op_result_t interpreter_fun_equal(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
@@ -301,12 +298,12 @@ static inline op_result_t interpreter_fun_less(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_integer(a) && valueI_is_integer(b))) {
+    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
         (*result) = valueI_boolean(valueI_as_integer(a) < valueI_as_integer(b));
         return NORMAL;
     }
@@ -336,12 +333,12 @@ static inline op_result_t interpreter_fun_less_equal(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_integer(a) && valueI_is_integer(b))) {
+    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
         (*result) = valueI_boolean(valueI_as_integer(a) <= valueI_as_integer(b));
         return NORMAL;
     }
@@ -371,12 +368,12 @@ static inline op_result_t interpreter_fun_and(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_boolean(a) && valueI_is_boolean(b))) {
+    if (likely(valueI_is_boolean(a) && valueI_is_boolean(b))) {
         (*result) = valueI_boolean(valueI_as_boolean(a) && valueI_as_boolean(b));
         return NORMAL;
     }
@@ -401,12 +398,12 @@ static inline op_result_t interpreter_fun_or(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_boolean(a) && valueI_is_boolean(b))) {
+    if (likely(valueI_is_boolean(a) && valueI_is_boolean(b))) {
         (*result) = valueI_boolean(valueI_as_boolean(a) || valueI_as_boolean(b));
         return NORMAL;
     }
@@ -431,12 +428,12 @@ static inline op_result_t interpreter_fun_concat(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_string(a) && valueI_is_string(b))) {
+    if (likely(valueI_is_string(a) && valueI_is_string(b))) {
         struct string *a_str = valueI_as_string(a);
         struct string *b_str = valueI_as_string(b);
         (*result) = valueI_object(stringI_concat(S->I, a_str, b_str));
@@ -463,7 +460,7 @@ static inline op_result_t interpreter_fun_type(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
@@ -487,12 +484,12 @@ static inline op_result_t interpreter_fun_negative(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_integer(a))) {
+    if (likely(valueI_is_integer(a))) {
         (*result) = valueI_integer(-valueI_as_integer(a));
         return NORMAL;
     }
@@ -520,12 +517,12 @@ static inline op_result_t interpreter_fun_not(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_boolean(a))) {
+    if (likely(valueI_is_boolean(a))) {
         (*result) = valueI_boolean(!valueI_as_boolean(a));
         return NORMAL;
     }
@@ -548,7 +545,7 @@ static inline op_result_t interpreter_fun_ref(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
@@ -572,12 +569,12 @@ static inline op_result_t interpreter_fun_deref(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }
 
-    if (morphinem_likely(valueI_is_reference(a))) {
+    if (likely(valueI_is_reference(a))) {
         (*result) = *referenceI_get(S->I, valueI_as_reference_or_error(S, a));
         return NORMAL;
     }
@@ -600,7 +597,7 @@ static inline op_result_t interpreter_fun_length(
     size_t pop_size,
     bool need_return
 ) {
-    if (morphinem_unlikely(need_return && (callstackI_state(S) == callstate))) {
+    if (unlikely(need_return && (callstackI_state(S) == callstate))) {
         (*result) = callstackI_result(S);
         return CALLED_COMPLETE;
     }

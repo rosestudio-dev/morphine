@@ -8,11 +8,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdio.h>
-#include "config/components.h"
-
-// attrs
-
-#define morphine_noret __attribute__((noreturn))
+#include "config.h"
 
 // numbers
 

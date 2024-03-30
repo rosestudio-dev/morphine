@@ -14,8 +14,8 @@
 #include "morphine/stack/access.h"
 
 
-void registryI_set_key(morphine_state_t S, struct value callable, struct value key) {
-    struct value source = callstackI_extract_callable(S->I, callable);
+void registryI_set_key(morphine_instance_t I, morphine_state_t S, struct value callable, struct value key) {
+    struct value source = callstackI_extract_callable(I, callable);
 
     if (valueI_is_proto(source)) {
         struct proto *proto = valueI_as_proto(source);
@@ -25,8 +25,10 @@ void registryI_set_key(morphine_state_t S, struct value callable, struct value k
         struct native *native = valueI_as_native(source);
         native->registry_key = key;
         gcI_barrier(native, key);
-    } else {
+    } else if(S != NULL) {
         throwI_message_error(S, "Attempt to change registry key for unsupported callable");
+    } else {
+        throwI_message_panic(I, NULL, "Attempt to change registry key for unsupported callable");
     }
 }
 
