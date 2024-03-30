@@ -74,13 +74,13 @@ static inline void remove_bucket(struct table *table, struct bucket *bucket) {
 }
 
 static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
-    if (hashmap->hashing.used < hashmap->hashing.size) {
+    if (hashmap->hashing.used < hashmap->hashing.size || hashmap->hashing.size >= (SIZE_MAX / 2) ) {
         return;
     }
 
     size_t new_size = 16;
     if (hashmap->hashing.size > 0) {
-        new_size = hashmap->hashing.size * 2;
+        new_size = hashmap->hashing.size + hashmap->hashing.size / 2;
     }
 
     hashmap->hashing.trees = allocI_uni(I, hashmap->hashing.trees, new_size * sizeof(struct bucket *));
