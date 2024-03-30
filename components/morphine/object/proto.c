@@ -22,16 +22,24 @@ struct proto *protoI_create(
     size_t instructions_count,
     size_t statics_count
 ) {
-    struct proto *result = allocI_uni(I, NULL, sizeof(struct proto));
-
+    size_t proto_size = sizeof(struct proto);
     size_t name_size = sizeof(char) * (name_chars_count + 1);
     size_t constants_size = sizeof(struct value) * constants_count;
     size_t instructions_size = sizeof(instruction_t) * instructions_count;
     size_t statics_size = sizeof(struct value) * statics_count;
 
+    size_t size = proto_size + name_size + constants_size + instructions_size + statics_size;
+
+    struct proto *result = allocI_uni(I, NULL, size);
+
+    void *ptr_name = ((void *) result) + proto_size;
+    void *ptr_constants = ((void *) ptr_name) + name_size;
+    void *ptr_instructions = ((void *) ptr_constants) + constants_size;
+    void *ptr_statics = ((void *) ptr_instructions) + instructions_size;
+
     (*result) = (struct proto) {
         .uuid = uuid,
-        .name = allocI_uni(I, NULL, name_size),
+        .name = ptr_name,
         .name_chars_count = name_chars_count,
         .constants_count = constants_count,
         .instructions_count = instructions_count,
@@ -39,9 +47,9 @@ struct proto *protoI_create(
         .arguments_count = 0,
         .slots_count = 0,
         .params_count = 0,
-        .constants = allocI_uni(I, NULL, constants_size),
-        .instructions = allocI_uni(I, NULL, instructions_size),
-        .statics = allocI_uni(I, NULL, statics_size),
+        .constants = ptr_constants,
+        .instructions = ptr_instructions,
+        .statics = ptr_statics,
         .registry_key = valueI_nil
     };
 
@@ -61,10 +69,6 @@ struct proto *protoI_create(
 }
 
 void protoI_free(morphine_instance_t I, struct proto *proto) {
-    allocI_free(I, proto->name);
-    allocI_free(I, proto->constants);
-    allocI_free(I, proto->instructions);
-    allocI_free(I, proto->statics);
     allocI_free(I, proto);
 }
 
