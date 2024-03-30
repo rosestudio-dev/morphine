@@ -3,7 +3,6 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/core/init.h"
 #include "morphine/stack/access.h"
 #include "morphine/stack/call.h"
 

@@ -4,4 +4,4 @@
 
 #pragma once
 
-#define morphinem_cast(t, a) ((t) (a))
+#define cast(t, a) ((t) (a))

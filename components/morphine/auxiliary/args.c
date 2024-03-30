@@ -4,7 +4,7 @@
 
 #include <stdarg.h>
 #include <string.h>
-#include "morphine/auxiliary.h"
+#include "morphine/auxiliary/args.h"
 #include "morphine/api.h"
 
 static bool check_type(

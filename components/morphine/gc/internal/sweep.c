@@ -25,7 +25,7 @@ static inline void resolve_refs(morphine_instance_t I) {
     struct object *current = I->G.pools.white;
     while (current != NULL) {
         if (current->type == OBJ_TYPE_REFERENCE) {
-            invalidate_ref(morphinem_cast(struct reference *, current));
+            invalidate_ref(cast(struct reference *, current));
         }
 
         current = current->prev;

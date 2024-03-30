@@ -3,7 +3,7 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/core/loader.h"
+#include "morphine/binary/loader.h"
 #include "morphine/utils/unused.h"
 #include "morphine/core/throw.h"
 #include "morphine/stack/access.h"
@@ -16,7 +16,7 @@ struct loader_array {
 };
 
 static void *loader_array_open(morphine_state_t S, void *data) {
-    struct loader_array *array = morphinem_cast(struct loader_array *, data);
+    struct loader_array *array = cast(struct loader_array *, data);
 
     if (array->size == 0 || array->vector == NULL) {
         throwI_message_error(S, "Binary vector is empty");
@@ -28,9 +28,9 @@ static void *loader_array_open(morphine_state_t S, void *data) {
 }
 
 static uint8_t loader_array_read(morphine_state_t S, void *data, const char **error) {
-    morphinem_unused(S);
+    unused(S);
 
-    struct loader_array *loader = morphinem_cast(struct loader_array *, data);
+    struct loader_array *loader = cast(struct loader_array *, data);
 
     if (loader->pointer >= loader->size) {
         *error = "Binary corrupted";
@@ -46,7 +46,7 @@ MORPHINE_API void mapi_rload(morphine_state_t S, size_t size, const uint8_t *vec
         .size = size
     };
 
-    struct proto *result = loaderI_load(S, loader_array_open, loader_array_read, NULL, morphinem_cast(void *, &array));
+    struct proto *result = loaderI_load(S, loader_array_open, loader_array_read, NULL, cast(void *, &array));
     stackI_push(S, valueI_object(result));
 }
 

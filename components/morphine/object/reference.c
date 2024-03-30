@@ -25,9 +25,7 @@ void referenceI_free(morphine_instance_t I, struct reference *reference) {
     allocI_free(I, reference);
 }
 
-size_t referenceI_allocated_size(struct reference *reference) {
-    morphinem_unused(reference);
-
+size_t referenceI_allocated_size(void) {
     return sizeof(struct reference);
 }
 

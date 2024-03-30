@@ -33,8 +33,6 @@ void nativeI_free(morphine_instance_t I, struct native *native) {
     allocI_free(I, native);
 }
 
-size_t nativeI_allocated_size(struct native *native) {
-    morphinem_unused(native);
-
+size_t nativeI_allocated_size(void) {
     return sizeof(struct native);
 }

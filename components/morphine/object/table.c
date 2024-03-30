@@ -9,7 +9,6 @@
 #include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/barrier.h"
-#include "morphine/config/hashmap.h"
 
 static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);

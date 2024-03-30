@@ -5,7 +5,7 @@
 #pragma once
 
 #include "morphine/stack/structure.h"
-#include "morphine/core/object.h"
+#include "morphine/object.h"
 
 typedef enum {
     STATE_STATUS_ATTACHED,

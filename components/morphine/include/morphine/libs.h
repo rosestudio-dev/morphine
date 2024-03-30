@@ -5,7 +5,7 @@
 #pragma once
 
 #include "platform.h"
-#include "config/modifiers.h"
+#include "config.h"
 
 MORPHINE_LIB void mlib_base_call(morphine_state_t, const char *name, size_t argc);
 MORPHINE_LIB void mlib_value_call(morphine_state_t, const char *name, size_t argc);

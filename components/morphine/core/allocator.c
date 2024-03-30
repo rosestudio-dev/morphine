@@ -35,7 +35,7 @@ static inline void calculate_max_alloc_size(morphine_instance_t I) {
 }
 
 void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
-    if (morphinem_likely(nsize == 0)) {
+    if (likely(nsize == 0)) {
         allocI_free(I, p);
         return NULL;
     }
@@ -43,7 +43,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
     nsize += sizeof(struct pointer);
 
     struct pointer *result;
-    if (morphinem_likely(p == NULL)) {
+    if (likely(p == NULL)) {
         change_allocated_size(I, nsize, true);
         gcI_work(I);
 
@@ -61,7 +61,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
         result = I->platform.functions.realloc(pointer, nsize);
     }
 
-    if (morphinem_unlikely(result == NULL)) {
+    if (unlikely(result == NULL)) {
         throwI_message_panic(I, NULL, "Allocation fault");
     }
 
@@ -73,7 +73,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
 }
 
 void allocI_free(morphine_instance_t I, void *p) {
-    if (morphinem_likely(p != NULL)) {
+    if (likely(p != NULL)) {
         struct pointer *pointer = p - sizeof(struct pointer);
         change_allocated_size(I, pointer->size, false);
         I->platform.functions.free(pointer);

@@ -13,7 +13,7 @@ MORPHINE_API void mapi_registry_set_key(morphine_state_t S) {
     struct value callable = stackI_peek(S, 1);
     struct value key = stackI_peek(S, 0);
 
-    registryI_set_key(S, callable, key);
+    registryI_set_key(S->I, S, callable, key);
 
     stackI_pop(S, 1);
 }

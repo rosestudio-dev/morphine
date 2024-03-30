@@ -9,7 +9,7 @@
 #include "morphine/object/state.h"
 
 #define callstackI_info(S) (S)->stack.callstack
-#define callstackI_info_or_error(S) ({ morphine_state_t s = (S); struct callinfo *c = callstackI_info(s); if(morphinem_unlikely(c == NULL)) throwI_message_error(s, "Require callable"); c; })
+#define callstackI_info_or_error(S) ({ morphine_state_t s = (S); struct callinfo *c = callstackI_info(s); if(unlikely(c == NULL)) throwI_message_error(s, "Require callable"); c; })
 
 typedef union {
     struct value *p;

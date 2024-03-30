@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/core/object.h"
+#include "morphine/object.h"
 
 struct link {
     struct userdata *userdata;
