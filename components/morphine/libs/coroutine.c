@@ -126,7 +126,7 @@ static void start(morphine_state_t S) {
     nb_function(S)
         nb_init
             maux_checkargs_fixed(S, 0);
-            mapi_push_table(S, 8);
+            mapi_push_table(S);
 
             mapi_push_stringf(S, "__state");
             morphine_state_t state = mapi_push_state(S);
@@ -158,7 +158,7 @@ static void create(morphine_state_t S) {
     nb_function(S)
         nb_init
             maux_checkargs_pattern(S, 1, "callable");
-            mapi_push_table(S, 2);
+            mapi_push_table(S);
 
             mapi_push_stringf(S, "__callable");
             mapi_push_arg(S, 0);
@@ -178,7 +178,7 @@ static void current(morphine_state_t S) {
     nb_function(S)
         nb_init
             maux_checkargs_fixed(S, 0);
-            mapi_push_table(S, 8);
+            mapi_push_table(S);
 
             mapi_push_stringf(S, "__state");
             mapi_push_current_state(S);

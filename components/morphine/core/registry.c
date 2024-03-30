@@ -49,7 +49,7 @@ void registryI_set(morphine_state_t S, struct value key, struct value value) {
     struct value table = tableI_get(S->I, S->I->registry, registry_key, &has);
 
     if (!has) {
-        table = valueI_object(tableI_create(S->I, 1));
+        table = valueI_object(tableI_create(S->I));
         stackI_push(S, table);
 
         tableI_set(S->I, S->I->registry, registry_key, table);

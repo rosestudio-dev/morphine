@@ -53,7 +53,7 @@ struct value requireI_load(morphine_state_t S, struct value id) {
     struct value cache_section = tableI_get(S->I, valueI_as_table_or_error(S, env), key, &has);
 
     if (!has) {
-        cache_section = valueI_object(tableI_create(S->I, 1));
+        cache_section = valueI_object(tableI_create(S->I));
         stackI_push(S, cache_section);
         tableI_set(S->I, valueI_as_table_or_error(S, env), key, cache_section);
         stackI_pop(S, 1);

@@ -6,27 +6,52 @@
 
 #include "morphine/core/value.h"
 
-struct hashmap;
-
 struct pair {
     struct value key;
     struct value value;
+};
+
+struct bucket {
+    struct {
+        struct bucket *prev;
+        struct bucket *next;
+    } ll;
+
+    struct {
+        struct bucket *prev;
+    } tree;
+
+    struct pair pair;
+};
+
+struct hashmap {
+    struct {
+        struct bucket *ll;
+        size_t count;
+    } buckets;
+
+    struct {
+        struct bucket **trees;
+        size_t used;
+        size_t size;
+    } hashing;
 };
 
 struct table {
     struct object header;
 
     struct table *metatable;
-    struct hashmap *hashmap;
+
+    struct hashmap hashmap;
 };
 
-struct table *tableI_create(morphine_instance_t, size_t size);
+struct table *tableI_create(morphine_instance_t);
 void tableI_free(morphine_instance_t, struct table *);
 
 size_t tableI_size(morphine_instance_t, struct table *);
 void tableI_set(morphine_instance_t, struct table *, struct value key, struct value value);
 struct value tableI_get(morphine_instance_t, struct table *, struct value key, bool *has);
 bool tableI_remove(morphine_instance_t, struct table *, struct value key);
-bool tableI_iter(morphine_instance_t I, struct table *table, size_t *i, struct pair *item);
+void tableI_clear(morphine_instance_t, struct table *);
 
 size_t tableI_allocated_size(struct table *);

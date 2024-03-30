@@ -168,7 +168,7 @@ static void math_modf(morphine_state_t S) {
             morphine_decimal_t integral = 0;
             morphine_decimal_t fraction = modf(a, &integral);
 
-            mapi_push_table(S, 2);
+            mapi_push_table(S);
 
             mapi_push_stringf(S, "integral");
             mapi_push_decimal(S, integral);

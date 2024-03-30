@@ -11,24 +11,6 @@
 #include "morphine/gc/barrier.h"
 #include "morphine/config/hashmap.h"
 
-struct bucket {
-    uint64_t hash;
-    uint16_t dib;
-
-    struct pair pair;
-};
-
-struct hashmap {
-    size_t cap;
-    size_t size;
-    size_t count;
-    size_t growat;
-    size_t shrinkat;
-    struct bucket *buckets;
-};
-
-// region hashmap
-
 static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
@@ -42,15 +24,15 @@ static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
 
     switch (value.type) {
         case VALUE_TYPE_NIL:
-            return (uint64_t)valueI_as_nil(value);
+            return (uint64_t) valueI_as_nil(value);
         case VALUE_TYPE_INTEGER:
-            return (uint64_t)valueI_as_integer(value);
+            return (uint64_t) valueI_as_integer(value);
         case VALUE_TYPE_DECIMAL:
-            return (uint64_t)valueI_as_decimal(value);
+            return (uint64_t) valueI_as_decimal(value);
         case VALUE_TYPE_BOOLEAN:
-            return (uint64_t)valueI_as_boolean(value);
+            return (uint64_t) valueI_as_boolean(value);
         case VALUE_TYPE_RAW:
-            return (uint64_t)valueI_as_raw(value);
+            return (uint64_t) valueI_as_raw(value);
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_STRING:
         case VALUE_TYPE_TABLE:
@@ -59,243 +41,80 @@ static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_PROTO:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
-            return (uint64_t)valueI_as_object(value);
+            return (uint64_t) valueI_as_object(value);
     }
 
     throwI_message_panic(I, NULL, "Unknown value type");
 }
 
-static inline struct hashmap *hashmap_new(morphine_instance_t I, size_t cap) {
-    const size_t ncap = 16;
-    if (cap < ncap) {
-        cap = ncap;
+static inline void insert_bucket(struct table *table, struct bucket *bucket) {
+    struct bucket **buckets = &table->hashmap.buckets.ll;
+
+    if ((*buckets) == NULL) {
+        bucket->ll.prev = NULL;
+        bucket->ll.next = NULL;
+    } else {
+        (*buckets)->ll.next = bucket;
+        bucket->ll.prev = (*buckets);
+        bucket->ll.next = NULL;
     }
 
-    struct hashmap *map = allocI_uni(I, NULL, sizeof(struct hashmap));
-
-    map->count = 0;
-
-    map->cap = cap;
-    map->size = cap;
-
-    map->growat = map->size * HASHMAP_GROW_FACTOR_PERCENT / 100;
-    map->shrinkat = map->size * HASHMAP_SHRINK_FACTOR_PERCENT / 100;
-
-    map->buckets = allocI_uni(I, NULL, sizeof(struct bucket) * map->size);
-    memset(map->buckets, 0, sizeof(struct bucket) * map->size);
-
-    return map;
+    (*buckets) = bucket;
 }
 
-static inline void hashmap_clear(morphine_instance_t I, struct hashmap *map, bool update_cap) {
-    map->count = 0;
-
-    if (update_cap) {
-        map->cap = map->size;
-    } else if (map->size != map->cap) {
-        void *new_buckets = allocI_uni(I, NULL, sizeof(struct bucket) * map->cap);
-
-        allocI_free(I, map->buckets);
-
-        map->buckets = new_buckets;
-        map->size = map->cap;
+static inline void remove_bucket(struct table *table, struct bucket *bucket) {
+    if (bucket->ll.next != NULL) {
+        bucket->ll.next->ll.prev = bucket->ll.prev;
+    } else {
+        table->hashmap.buckets.ll = bucket->ll.prev;
     }
 
-    memset(map->buckets, 0, sizeof(struct bucket) * map->size);
-
-    map->growat = map->size * HASHMAP_GROW_FACTOR_PERCENT / 100;
-    map->shrinkat = map->size * HASHMAP_SHRINK_FACTOR_PERCENT / 100;
-}
-
-static inline void resize(morphine_instance_t I, struct hashmap *map, size_t new_cap) {
-    struct hashmap *newmap = hashmap_new(I, new_cap);
-
-    for (size_t i = 0; i < map->size; i++) {
-        struct bucket *entry = map->buckets + i;
-
-        if (!entry->dib) {
-            continue;
-        }
-
-        entry->dib = 1;
-        size_t j = entry->hash % newmap->size;
-
-        for (;;) {
-            struct bucket *bucket = newmap->buckets + j;
-
-            if (bucket->dib == 0) {
-                *bucket = *entry;
-                break;
-            }
-
-            if (bucket->dib < entry->dib) {
-                struct bucket temp = *bucket;
-                *bucket = *entry;
-                *entry = temp;
-            }
-
-            j = (j + 1) % newmap->size;
-
-            entry->dib++;
-        }
-    }
-
-    allocI_free(I, map->buckets);
-
-    map->buckets = newmap->buckets;
-    map->size = newmap->size;
-    map->growat = newmap->growat;
-    map->shrinkat = newmap->shrinkat;
-
-    allocI_free(I, newmap);
-}
-
-static inline bool hashmap_set(morphine_instance_t I, struct hashmap *map, struct pair item) {
-    if (morphinem_unlikely(map->count >= map->growat)) {
-        resize(I, map, map->size * (1 << HASHMAP_GROWPOWER));
-    }
-
-    struct bucket entry = {
-        .hash = hashcode(I, item.key),
-        .dib = 1,
-        .pair = item
-    };
-
-    size_t i = entry.hash % map->size;
-    for (;;) {
-        struct bucket *bucket = map->buckets + i;
-
-        if (morphinem_unlikely(bucket->dib == 0)) {
-            *bucket = entry;
-            map->count++;
-            return false;
-        }
-
-        if (morphinem_likely(entry.hash == bucket->hash && valueI_equal(I, entry.pair.key, bucket->pair.key))) {
-            bucket->pair = entry.pair;
-            return true;
-        }
-
-        if (bucket->dib < entry.dib) {
-            struct bucket temp = *bucket;
-            *bucket = entry;
-            entry = temp;
-        }
-
-        i = (i + 1) % map->size;
-
-        entry.dib++;
+    if (bucket->ll.prev != NULL) {
+        bucket->ll.prev->ll.next = bucket->ll.next;
     }
 }
 
-static inline struct value hashmap_get(morphine_instance_t I, struct hashmap *map, struct value key, bool *has) {
-    uint64_t hash = hashcode(I, key);
+static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
+    if (hashmap->hashing.used < hashmap->hashing.size) {
+        return;
+    }
 
-    size_t i = hash % map->size;
-    for (;;) {
-        struct bucket *bucket = map->buckets + i;
+    size_t new_size = 16;
+    if (hashmap->hashing.size > 0) {
+        new_size = hashmap->hashing.size * 2;
+    }
 
-        if (morphinem_unlikely(!bucket->dib)) {
-            if (has != NULL) {
-                *has = false;
-            }
+    hashmap->hashing.trees = allocI_uni(I, hashmap->hashing.trees, new_size * sizeof(struct bucket *));
+    hashmap->hashing.size = new_size;
 
-            return valueI_nil;
-        }
+    for (size_t i = 0; i < new_size; i++) {
+        hashmap->hashing.trees[i] = NULL;
+    }
 
-        if (morphinem_likely(bucket->hash == hash && valueI_equal(I, key, bucket->pair.key))) {
-            if (has != NULL) {
-                *has = true;
-            }
+    struct bucket *current = hashmap->buckets.ll;
+    while (current != NULL) {
+        uint64_t hash = hashcode(I, current->pair.key);
+        size_t index = hash % new_size;
 
-            return bucket->pair.value;
-        }
+        current->tree.prev = hashmap->hashing.trees[index];
+        hashmap->hashing.trees[index] = current;
 
-        i = (i + 1) % map->size;
+        current = current->ll.prev;
     }
 }
 
-static inline bool hashmap_delete(morphine_instance_t I, struct hashmap *map, struct value key) {
-    uint64_t hash = hashcode(I, key);
-
-    size_t i = hash % map->size;
-    for (;;) {
-        struct bucket *bucket = map->buckets + i;
-
-        if (!bucket->dib) {
-            return false;
-        }
-
-        if (bucket->hash == hash && valueI_equal(I, key, bucket->pair.key)) {
-            bucket->dib = 0;
-
-            for (;;) {
-                struct bucket *prev = bucket;
-
-                i = (i + 1) % map->size;
-                bucket = map->buckets + i;
-
-                if (bucket->dib <= 1) {
-                    prev->dib = 0;
-                    break;
-                }
-
-                *prev = *bucket;
-
-                prev->dib--;
-            }
-
-            map->count--;
-
-            if (map->size > map->cap && map->count <= map->shrinkat) {
-                resize(I, map, map->size / 2);
-            }
-
-            return true;
-        }
-
-        i = (i + 1) % map->size;
-    }
-}
-
-static inline size_t hashmap_count(struct hashmap *map) {
-    return map->count;
-}
-
-static inline size_t hashmap_allocated_size(struct hashmap *map) {
-    return map->size * sizeof(struct bucket) + sizeof(struct hashmap);
-}
-
-static inline void hashmap_free(morphine_instance_t I, struct hashmap *map) {
-    allocI_free(I, map->buckets);
-    allocI_free(I, map);
-}
-
-static inline bool hashmap_iter(struct hashmap *map, size_t *i, struct pair *item) {
-    struct bucket *bucket;
-
-    do {
-        if (*i >= map->size) {
-            return false;
-        }
-
-        bucket = map->buckets + (*i);
-        (*i)++;
-    } while (!bucket->dib);
-
-    *item = bucket->pair;
-
-    return true;
-}
-
-// endregion
-
-struct table *tableI_create(morphine_instance_t I, size_t size) {
+struct table *tableI_create(morphine_instance_t I) {
     struct table *result = allocI_uni(I, NULL, sizeof(struct table));
 
     (*result) = (struct table) {
         .metatable = NULL,
-        .hashmap = hashmap_new(I, size)
+
+        .hashmap.buckets.ll = NULL,
+        .hashmap.buckets.count = 0,
+
+        .hashmap.hashing.trees = NULL,
+        .hashmap.hashing.used = 0,
+        .hashmap.hashing.size = 0,
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_TABLE);
@@ -304,12 +123,21 @@ struct table *tableI_create(morphine_instance_t I, size_t size) {
 }
 
 void tableI_free(morphine_instance_t I, struct table *table) {
-    hashmap_free(I, table->hashmap);
+    struct bucket *current = table->hashmap.buckets.ll;
+    while (current != NULL) {
+        struct bucket *prev = current->ll.prev;
+        allocI_free(I, current);
+        current = prev;
+    }
+
+    allocI_free(I, table->hashmap.hashing.trees);
     allocI_free(I, table);
 }
 
 size_t tableI_allocated_size(struct table *table) {
-    return sizeof(struct table) + hashmap_allocated_size(table->hashmap);
+    return (sizeof(struct bucket *) * table->hashmap.hashing.size) +
+           (sizeof(struct bucket) * table->hashmap.buckets.count) +
+           sizeof(struct table);
 }
 
 size_t tableI_size(morphine_instance_t I, struct table *table) {
@@ -317,7 +145,7 @@ size_t tableI_size(morphine_instance_t I, struct table *table) {
         throwI_message_panic(I, NULL, "Table is null");
     }
 
-    return hashmap_count(table->hashmap);
+    return table->hashmap.buckets.count;
 }
 
 void tableI_set(morphine_instance_t I, struct table *table, struct value key, struct value value) {
@@ -328,7 +156,39 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     gcI_barrier(table, key);
     gcI_barrier(table, value);
 
-    hashmap_set(I, table->hashmap, (struct pair) { .key = key, .value = value });
+    struct hashmap *hashmap = &table->hashmap;
+
+    resize(I, hashmap);
+
+    uint64_t hash = hashcode(I, key);
+    size_t index = hash % hashmap->hashing.size;
+
+    struct bucket *buckets = hashmap->hashing.trees[index];
+    if (buckets != NULL) {
+        struct bucket *current = buckets;
+        while (current != NULL) {
+            if (valueI_equal(I, current->pair.key, key)) {
+                current->pair.value = value;
+                return;
+            }
+
+            current = current->tree.prev;
+        }
+    }
+
+    struct bucket *bucket = allocI_uni(I, NULL, sizeof(struct bucket));
+
+    (*bucket) = (struct bucket) {
+        .pair.key = key,
+        .pair.value = value,
+        .tree.prev = buckets
+    };
+
+    insert_bucket(table, bucket);
+    hashmap->buckets.count++;
+
+    hashmap->hashing.trees[index] = bucket;
+    hashmap->hashing.used++;
 }
 
 struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
@@ -336,7 +196,37 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
         throwI_message_panic(I, NULL, "Table is null");
     }
 
-    return hashmap_get(I, table->hashmap, key, has);
+    struct hashmap *hashmap = &table->hashmap;
+
+    if (hashmap->hashing.size == 0) {
+        goto nofound;
+    }
+
+    uint64_t hash = hashcode(I, key);
+    size_t index = hash % hashmap->hashing.size;
+
+    struct bucket *buckets = hashmap->hashing.trees[index];
+    if (buckets != NULL) {
+        struct bucket *current = buckets;
+        while (current != NULL) {
+            if (valueI_equal(I, current->pair.key, key)) {
+                if (has != NULL) {
+                    (*has) = true;
+                }
+
+                return current->pair.value;
+            }
+
+            current = current->tree.prev;
+        }
+    }
+
+nofound:
+    if (has != NULL) {
+        (*has) = false;
+    }
+
+    return valueI_nil;
 }
 
 bool tableI_remove(morphine_instance_t I, struct table *table, struct value key) {
@@ -344,13 +234,62 @@ bool tableI_remove(morphine_instance_t I, struct table *table, struct value key)
         throwI_message_panic(I, NULL, "Table is null");
     }
 
-    return hashmap_delete(I, table->hashmap, key);
+    struct hashmap *hashmap = &table->hashmap;
+
+    if (hashmap->hashing.size == 0) {
+        return false;
+    }
+
+    uint64_t hash = hashcode(I, key);
+    size_t index = hash % hashmap->hashing.size;
+
+    struct bucket *buckets = hashmap->hashing.trees[index];
+    if (buckets != NULL) {
+        struct bucket *last = NULL;
+        struct bucket *current = buckets;
+        while (current != NULL) {
+            if (valueI_equal(I, current->pair.key, key)) {
+                if (last == NULL) {
+                    hashmap->hashing.trees[index] = current->tree.prev;
+                } else {
+                    last->tree.prev = current->tree.prev;
+                }
+
+                remove_bucket(table, current);
+                allocI_free(I, current);
+                hashmap->buckets.count--;
+
+                return true;
+            }
+
+            last = current;
+            current = current->tree.prev;
+        }
+    }
+
+    return false;
 }
 
-bool tableI_iter(morphine_instance_t I, struct table *table, size_t *i, struct pair *item) {
+void tableI_clear(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_message_panic(I, NULL, "Table is null");
     }
 
-    return hashmap_iter(table->hashmap, i, item);
+    struct bucket *current = table->hashmap.buckets.ll;
+    while (current != NULL) {
+        struct bucket *prev = current->ll.prev;
+        allocI_free(I, current);
+        current = prev;
+    }
+
+    allocI_free(I, table->hashmap.hashing.trees);
+
+    table->hashmap = (struct hashmap) {
+        .hashing.trees = NULL,
+        .hashing.used = 0,
+        .hashing.size = 0,
+
+        .buckets.ll = NULL,
+        .buckets.count = 0
+    };
 }
