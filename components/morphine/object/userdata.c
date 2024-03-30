@@ -19,12 +19,12 @@ struct userdata *userdataI_create(
         throwI_message_panic(I, NULL, "Userdata type is null");
     }
 
-    struct userdata *result = allocI_uni(I, NULL, sizeof(struct userdata));
-
     size_t type_len = strlen(type) + 1;
 
+    struct userdata *result = allocI_uni(I, NULL, sizeof(struct userdata) + type_len);
+
     (*result) = (struct userdata) {
-        .type = allocI_uni(I, NULL, type_len),
+        .type = ((void *) result) + sizeof(struct userdata),
         .data = p,
         .free = free,
         .mark = mark,
@@ -55,7 +55,6 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
         current = prev;
     }
 
-    allocI_free(I, userdata->type);
     allocI_free(I, userdata);
 }
 
