@@ -3,7 +3,7 @@
 //
 
 #include <morphine.h>
-#include "morphine/core/libloaders.h"
+#include "morphine/libs/loader.h"
 
 static struct maux_construct_field table[] = {
     { "format",       NULL },
