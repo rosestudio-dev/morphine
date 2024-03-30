@@ -38,7 +38,7 @@ morphine_instance_t instanceI_open(struct platform platform, struct params param
         .states = NULL,
         .candidates = NULL,
         .interpreter_circle = 0,
-        .throw = throw_prototype(),
+        .throw = throw_prototype()
     };
 
     initI_vm(I);

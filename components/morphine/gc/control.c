@@ -3,6 +3,7 @@
 //
 
 #include "morphine/gc/control.h"
+#include "morphine/gc/safe.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/hook.h"
 #include "morphine/core/throw.h"
@@ -40,6 +41,10 @@ static inline void step(morphine_instance_t I) {
 
     while (true) {
         switch (I->G.status) {
+            case GC_STATUS_IDLE: {
+                I->G.status = GC_STATUS_PREPARE;
+                break;
+            }
             case GC_STATUS_PREPARE: {
                 gcstageI_prepare(I);
                 I->G.status = GC_STATUS_INCREMENT;
@@ -75,15 +80,13 @@ static inline void step(morphine_instance_t I) {
                 I->G.status = GC_STATUS_IDLE;
                 goto exit;
             }
-            case GC_STATUS_IDLE: {
-                goto exit;
-            }
         }
 
         pdbg_hook_gc_step_middle(I);
     }
 
 exit:
+    gcI_reset_safe(I);
     pdbg_hook_gc_step_exit(I);
 }
 
@@ -117,7 +120,6 @@ void gcI_work(morphine_instance_t I) {
     }
 
     if (gc_need(I)) {
-        I->G.status = GC_STATUS_PREPARE;
         step(I);
     }
 }
@@ -146,6 +148,8 @@ void gcI_full(morphine_instance_t I) {
     ofm_check(I);
 
     I->G.status = GC_STATUS_IDLE;
+
+    gcI_reset_safe(I);
 
     pdbg_hook_gc_full_exit(I);
 }

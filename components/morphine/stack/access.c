@@ -6,19 +6,26 @@
 #include "morphine/stack/call.h"
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
+#include "morphine/core/instance.h"
 #include "internal/functions.h"
+#include "morphine/gc/safe.h"
 
 size_t stackI_space_size(morphine_state_t S) {
     return stack_space_size(S, callstackI_info(S));
 }
 
 void stackI_push(morphine_state_t S, struct value value) {
+    gcI_safe(S->I, value);
     if (callstackI_info(S) == NULL) {
-        stack_raise(S, value, 1);
+        stack_raise(S, 1);
     } else {
-        stack_raise(S, value, 1);
+        stack_raise(S, 1);
         callstackI_info(S)->s.top.p++;
     }
+
+    struct value *stack_value = S->stack.allocated + S->stack.top - 1;
+    (*stack_value) = value;
+    gcI_reset_safe(S->I);
 }
 
 struct value stackI_peek(morphine_state_t S, size_t offset) {

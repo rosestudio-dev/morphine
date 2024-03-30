@@ -41,6 +41,8 @@ struct garbage_collector gcI_init(struct params params, size_t inited_size) {
         .finalizer.state = NULL,
         .finalizer.work = false,
 
+        .safe.value = valueI_nil,
+
         .callinfo_trash = NULL,
     };
 }

@@ -64,4 +64,6 @@ void gcstageI_record(morphine_instance_t I) {
     if (I->registry != NULL) {
         mark_object(objectI_cast(I->registry));
     }
+
+    mark_value(I->G.safe.value);
 }
