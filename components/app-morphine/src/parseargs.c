@@ -9,7 +9,7 @@
 #include <parseargs.h>
 
 static void help(const char *program, const char *message, bool disable_usage) {
-    printf("Morphine virtual-machine\n");
+    printf("Morphine Language\n");
     if (message != NULL) {
         printf("Message: %s\n\n", message);
     }
@@ -24,8 +24,8 @@ static void help(const char *program, const char *message, bool disable_usage) {
         printf("    -b            Binary program\n");
         printf("    -a, -A        Use custom debug allocator (Use uppercase for pretty printing)\n");
         printf("    -m, -M        Enable executing time measure (Use uppercase for pretty printing)\n");
-        printf("    -h            Usage info\n");
         printf("    -v            Print version\n");
+        printf("    -h            Usage info\n");
         printf("    --            Stop handling options\n");
     }
 
