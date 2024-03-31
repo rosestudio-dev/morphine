@@ -5,7 +5,6 @@
 #include "morphine/object/native.h"
 #include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
-#include "morphine/utils/unused.h"
 
 struct native *nativeI_create(morphine_instance_t I, const char *name, morphine_native_t function) {
     if (name == NULL) {

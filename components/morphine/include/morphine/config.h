@@ -11,19 +11,19 @@
 
 // tags
 
-#ifdef MORPHINE_LIBRARY_VERSION
+#ifdef MORPHINE_LIBRARY
 #define MORPHINE_API extern
 #else
 #define MORPHINE_API
 #endif
 
-#ifdef MORPHINE_LIBRARY_VERSION
+#ifdef MORPHINE_LIBRARY
 #define MORPHINE_AUX extern
 #else
 #define MORPHINE_AUX
 #endif
 
-#ifdef MORPHINE_LIBRARY_VERSION
+#ifdef MORPHINE_LIBRARY
 #define MORPHINE_LIB extern
 #else
 #define MORPHINE_LIB

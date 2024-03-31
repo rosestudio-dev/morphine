@@ -11,7 +11,6 @@
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
-#include "morphine/core/hook.h"
 #include "morphine/stack/call.h"
 #include "morphine/stack/access.h"
 
@@ -99,8 +98,6 @@ void throwI_handler(morphine_instance_t I) {
             callstack = callstack->prev;
         }
     }
-
-    pdbg_hook_error(I, caused_S);
 
     if (catchable) {
         struct value *thrown = caused_S->stack.callstack->s.thrown.p;

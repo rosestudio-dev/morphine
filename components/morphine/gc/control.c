@@ -5,7 +5,6 @@
 #include "morphine/gc/control.h"
 #include "morphine/gc/safe.h"
 #include "morphine/core/instance.h"
-#include "morphine/core/hook.h"
 #include "morphine/core/throw.h"
 #include "stages.h"
 
@@ -31,10 +30,7 @@ static inline void ofm_check(morphine_instance_t I) {
 }
 
 static inline void step(morphine_instance_t I) {
-    pdbg_hook_gc_step_enter(I);
-
     if (I->G.bytes.allocated >= I->G.settings.limit_bytes) {
-        pdbg_hook_gc_step_exit(I);
         gcI_full(I);
         return;
     }
@@ -81,13 +77,10 @@ static inline void step(morphine_instance_t I) {
                 goto exit;
             }
         }
-
-        pdbg_hook_gc_step_middle(I);
     }
 
 exit:
     gcI_reset_safe(I);
-    pdbg_hook_gc_step_exit(I);
 }
 
 void gcI_recognize(morphine_instance_t I) {
@@ -125,8 +118,6 @@ void gcI_work(morphine_instance_t I) {
 }
 
 void gcI_full(morphine_instance_t I) {
-    pdbg_hook_gc_full_enter(I);
-
     if (I->G.pools.white != NULL) {
         I->G.pools.white->prev = I->G.pools.allocated;
         I->G.pools.allocated = I->G.pools.white;
@@ -150,6 +141,4 @@ void gcI_full(morphine_instance_t I) {
     I->G.status = GC_STATUS_IDLE;
 
     gcI_reset_safe(I);
-
-    pdbg_hook_gc_full_exit(I);
 }

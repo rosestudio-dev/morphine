@@ -5,7 +5,6 @@
 #include "morphine/core/interpreter.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/operations.h"
-#include "morphine/core/hook.h"
 #include "morphine/object/proto.h"
 #include "morphine/object/native.h"
 #include "morphine/object/table.h"
@@ -22,7 +21,6 @@
         sp_yield(); \
     } \
     instruction = P->instructions[*position]; \
-    pdbg_hook_interpreter_step(S->I, S); \
     morphinem_blk_end
 
 #define sp_yield() morphinem_blk_start return; morphinem_blk_end
