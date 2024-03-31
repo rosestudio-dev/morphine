@@ -57,6 +57,9 @@ void require(morphine_state_t S) {
                 }
 
                 result->loader(S);
+                mapi_push_arg(S, 0);
+                mapi_peek(S, 1);
+                mapi_registry_set(S);
             }
 
             if (variant == 0) {
