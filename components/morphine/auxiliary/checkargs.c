@@ -4,7 +4,7 @@
 
 #include <stdarg.h>
 #include <string.h>
-#include "morphine/auxiliary/args.h"
+#include "morphine/auxiliary/checkargs.h"
 #include "morphine/api.h"
 
 static bool check_type(
@@ -31,6 +31,13 @@ static bool check_type(
         return is_callable;
     }
 
+    if (expected_type_len == 4 && memcmp(expected_type, "meta", 4) == 0) {
+        bool is_callable = mapi_is_metatype(S);
+        mapi_pop(S, 1);
+
+        return is_callable;
+    }
+
     const char *type = mapi_type(S);
     size_t typelen = strlen(type);
 
@@ -47,6 +54,12 @@ static bool check_pattern(
     morphine_state_t S,
     const char *pattern
 ) {
+    size_t argc = mapi_args(S);
+
+    if (strcmp(pattern, "empty") == 0) {
+        return argc == 0;
+    }
+
     size_t len = strlen(pattern);
 
     size_t parts = 1;
@@ -55,8 +68,6 @@ static bool check_pattern(
             parts++;
         }
     }
-
-    size_t argc = mapi_args(S);
     size_t reqargs = 0;
 
     size_t start = 0;
@@ -128,7 +139,7 @@ static bool check_pattern(
     return true;
 }
 
-MORPHINE_AUX size_t maux_checkargs_pattern(morphine_state_t S, size_t count, ...) {
+MORPHINE_AUX size_t maux_checkargs(morphine_state_t S, size_t count, ...) {
     if (count == 0) {
         if (mapi_args(S) == 0) {
             return 0;
@@ -160,49 +171,4 @@ MORPHINE_AUX size_t maux_checkargs_pattern(morphine_state_t S, size_t count, ...
     }
 
     return result;
-}
-
-MORPHINE_AUX void maux_checkargs_fixed(morphine_state_t S, size_t count) {
-    size_t cargs = mapi_args(S);
-
-    if (cargs != count) {
-        mapi_push_stringf(S, "Expected %d, but got %d", count, cargs);
-        mapi_error(S);
-    }
-}
-
-MORPHINE_AUX void maux_checkargs_self(morphine_state_t S, size_t count) {
-    if (count == 0) {
-        mapi_errorf(S, "Self checkargs variant requires count more than zero");
-    }
-
-    size_t cargs = maux_checkargs_or(S, count - 1, count);
-
-    if (cargs == count) {
-        mapi_push_arg(S, 0);
-    } else {
-        mapi_push_self(S);
-    }
-}
-
-MORPHINE_AUX size_t maux_checkargs_or(morphine_state_t S, size_t count1, size_t count2) {
-    size_t cargs = mapi_args(S);
-
-    if (cargs != count1 && cargs != count2) {
-        mapi_push_stringf(S, "Expected %d or %d, but got %d", count1, count2, cargs);
-        mapi_error(S);
-    }
-
-    return cargs;
-}
-
-MORPHINE_AUX size_t maux_checkargs_minimum(morphine_state_t S, size_t minimum) {
-    size_t cargs = mapi_args(S);
-
-    if (minimum > cargs) {
-        mapi_push_stringf(S, "Expected minimum %d, but got %d", minimum, cargs);
-        mapi_error(S);
-    }
-
-    return cargs;
 }

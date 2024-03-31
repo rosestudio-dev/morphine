@@ -9,7 +9,7 @@
 static void get(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 1);
+            maux_checkargs(S, 1, "any");
             mapi_push_arg(S, 0);
             mapi_registry_get(S);
             nb_return();
@@ -19,7 +19,7 @@ static void get(morphine_state_t S) {
 static void has(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 1);
+            maux_checkargs(S, 1, "any");
             mapi_push_arg(S, 0);
             bool has = mapi_registry_get(S);
             mapi_pop(S, 1);
@@ -31,7 +31,7 @@ static void has(morphine_state_t S) {
 static void set(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 2);
+            maux_checkargs(S, 1, "any,any");
             mapi_push_arg(S, 0);
             mapi_push_arg(S, 1);
             mapi_registry_set(S);
@@ -42,7 +42,7 @@ static void set(morphine_state_t S) {
 static void clear(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 0);
+            maux_checkargs(S, 1, "empty");
             mapi_registry_clear(S);
             nb_leave();
     nb_end

@@ -73,5 +73,4 @@ MORPHINE_API void mapi_push_self(morphine_state_t S) {
 MORPHINE_API void mapi_changeenv(morphine_state_t S) {
     struct value env = stackI_peek(S, 0);
     *callstackI_info_or_error(S)->s.env.p = env;
-    stackI_pop(S, 0);
 }

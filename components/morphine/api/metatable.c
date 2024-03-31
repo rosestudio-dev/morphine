@@ -40,3 +40,9 @@ MORPHINE_API void mapi_get_metatable(morphine_state_t S) {
 MORPHINE_API void mapi_get_default_metatable(morphine_state_t S, const char *type) {
     stackI_push(S, metatableI_get_default(S->I, valueI_string2type(S, type)));
 }
+
+MORPHINE_API bool mapi_is_metatype(morphine_state_t S) {
+    struct value value = stackI_peek(S, 0);
+
+    return valueI_is_table(value) || valueI_is_userdata(value);
+}

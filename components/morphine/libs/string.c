@@ -14,7 +14,7 @@ static inline bool checkblank(char c) {
 static void substring(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(
+            size_t variant = maux_checkargs(
                 S,
                 2,
                 "self:string,integer,integer",
@@ -68,7 +68,7 @@ static void substring(morphine_state_t S) {
 static void tochararray(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(S, 2, "self:string", "string");
 
             if (variant == 0) {
                 mapi_push_self(S);
@@ -96,7 +96,7 @@ static void tochararray(morphine_state_t S) {
 static void codeat(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,integer", "string,integer");
+            size_t variant = maux_checkargs(S, 2, "self:string,integer", "string,integer");
 
             const char *string;
             size_t len;
@@ -132,7 +132,7 @@ static void codeat(morphine_state_t S) {
 static void charat(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,integer", "string,integer");
+            size_t variant = maux_checkargs(S, 2, "self:string,integer", "string,integer");
 
             const char *string;
             size_t len;
@@ -168,7 +168,7 @@ static void charat(morphine_state_t S) {
 static void isempty(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(S, 2, "self:string", "string");
 
             size_t len;
 
@@ -190,7 +190,7 @@ static void isempty(morphine_state_t S) {
 static void isblankstr(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(S, 2, "self:string", "string");
 
             const char *string;
             size_t len;
@@ -223,7 +223,7 @@ static void isblankstr(morphine_state_t S) {
 static void repeat(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,integer", "string,integer");
+            size_t variant = maux_checkargs(S, 2, "self:string,integer", "string,integer");
 
             size_t count;
 
@@ -255,7 +255,7 @@ static void repeat(morphine_state_t S) {
 static void startswith(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -293,7 +293,7 @@ static void startswith(morphine_state_t S) {
 static void endswith(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -331,7 +331,7 @@ static void endswith(morphine_state_t S) {
 static void tolowercase(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(S, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
@@ -368,7 +368,7 @@ static void tolowercase(morphine_state_t S) {
 static void touppercase(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(S, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
@@ -405,7 +405,7 @@ static void touppercase(morphine_state_t S) {
 static void split(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -485,7 +485,7 @@ static void split(morphine_state_t S) {
 static void contains(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -531,7 +531,7 @@ static void contains(morphine_state_t S) {
 static void indexof(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -583,7 +583,7 @@ static void indexof(morphine_state_t S) {
 static void lastindexof(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -635,7 +635,7 @@ static void lastindexof(morphine_state_t S) {
 static void trim(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(S, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
@@ -686,7 +686,7 @@ static void trim(morphine_state_t S) {
 static void trimstart(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(S, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
@@ -727,7 +727,7 @@ static void trimstart(morphine_state_t S) {
 static void trimend(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(S, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
@@ -768,7 +768,7 @@ static void trimend(morphine_state_t S) {
 static void replace(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(
+            size_t variant = maux_checkargs(
                 S, 2, "self:string,string,string", "string,string,string"
             );
 
@@ -854,7 +854,7 @@ static void replace(morphine_state_t S) {
 static void replacelast(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(
+            size_t variant = maux_checkargs(
                 S, 2, "self:string,string,string", "string,string,string"
             );
 
@@ -946,7 +946,7 @@ static void replacelast(morphine_state_t S) {
 static void replaceall(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(
+            size_t variant = maux_checkargs(
                 S, 2, "self:string,string,string", "string,string,string"
             );
 
@@ -1043,7 +1043,7 @@ static void replaceall(morphine_state_t S) {
 static void format(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(
+            size_t variant = maux_checkargs(
                 S, 2, "self:string,table", "string,table"
             );
 

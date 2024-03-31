@@ -37,7 +37,7 @@ static inline struct require_loader *search(struct require_loader *loader, const
 void require(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs_pattern(S, 2, "string", "string,string");
+            size_t variant = maux_checkargs(S, 2, "string", "string,string");
 
             mapi_push_arg(S, 0);
             const char *id = mapi_get_string(S);

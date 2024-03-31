@@ -13,7 +13,7 @@
 static void math_##name(morphine_state_t S) { \
     nb_function(S) \
         nb_init \
-            maux_checkargs_fixed(S, 1); \
+            maux_checkargs(S, 1, "any"); \
             mapi_push_arg(S, 0); \
             mapi_to_decimal(S); \
             morphine_decimal_t a = mapi_get_decimal(S); \
@@ -27,7 +27,7 @@ static void math_##name(morphine_state_t S) { \
 static void math_##name(morphine_state_t S) { \
     nb_function(S) \
         nb_init \
-            maux_checkargs_fixed(S, 2); \
+            maux_checkargs(S, 1, "any,any"); \
             mapi_push_arg(S, 0); \
             mapi_to_decimal(S); \
             morphine_decimal_t a = mapi_get_decimal(S); \
@@ -158,7 +158,7 @@ math_func_1(fabs)
 static void math_modf(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 1);
+            maux_checkargs(S, 1, "any");
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
@@ -185,7 +185,7 @@ static void math_modf(morphine_state_t S) {
 static void math_rad(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 1);
+            maux_checkargs(S, 1, "any");
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
@@ -200,7 +200,7 @@ static void math_rad(morphine_state_t S) {
 static void math_deg(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 1);
+            maux_checkargs(S, 1, "any");
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
@@ -215,7 +215,7 @@ static void math_deg(morphine_state_t S) {
 static void math_imax(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 2);
+            maux_checkargs(S, 1, "any,any");
 
             mapi_push_arg(S, 0);
             mapi_to_integer(S);
@@ -235,7 +235,7 @@ static void math_imax(morphine_state_t S) {
 static void math_imin(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 2);
+            maux_checkargs(S, 1, "any,any");
 
             mapi_push_arg(S, 0);
             mapi_to_integer(S);
@@ -252,10 +252,10 @@ static void math_imin(morphine_state_t S) {
     nb_end
 }
 
-static void math_rmax(morphine_state_t S) {
+static void math_dmax(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 2);
+            maux_checkargs(S, 1, "any,any");
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
@@ -272,10 +272,10 @@ static void math_rmax(morphine_state_t S) {
     nb_end
 }
 
-static void math_rmin(morphine_state_t S) {
+static void math_dmin(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 2);
+            maux_checkargs(S, 1, "any,any");
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
@@ -295,7 +295,7 @@ static void math_rmin(morphine_state_t S) {
 static void math_isnan(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 1);
+            maux_checkargs(S, 1, "any");
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
@@ -311,7 +311,7 @@ static void math_isnan(morphine_state_t S) {
 static void math_isinf(morphine_state_t S) {
     nb_function(S)
         nb_init
-            maux_checkargs_fixed(S, 1);
+            maux_checkargs(S, 1, "any");
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
@@ -371,8 +371,8 @@ static struct maux_construct_field table[] = {
 
     { "max",    math_imax },
     { "min",    math_imin },
-    { "rmax",   math_rmax },
-    { "rmin",   math_rmin },
+    { "dmax",   math_dmax },
+    { "dmin",   math_dmin },
 
     { "isnan",   math_isnan },
     { "isinf",   math_isinf },
@@ -395,7 +395,7 @@ void mlib_math_loader(morphine_state_t S) {
     mapi_push_decimal(S, (morphine_decimal_t) NAN);
     mapi_table_set(S);
 
-    mapi_push_stringf(S, "infinity");
+    mapi_push_stringf(S, "inf");
     mapi_push_decimal(S, (morphine_decimal_t) INFINITY);
     mapi_table_set(S);
 }
