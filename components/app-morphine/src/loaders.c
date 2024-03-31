@@ -48,15 +48,13 @@ void loader_source_file(morphine_state_t S, const char *path) {
 
     mapi_rload(S, (size_t) size, native);
 
-    mapi_rotate(S);
-    mapi_pop(S, 1);
-    mapi_rotate(S);
-    mapi_pop(S, 1);
+    mapi_rotate(S, 3);
+    mapi_pop(S, 2);
 }
 
 void loader_binary_file(morphine_state_t S, const char *path) {
     FILE *file = userdata_tbc_file(S, path, "r");
     mapi_load(S, NULL, file_read, NULL, file);
-    mapi_rotate(S);
+    mapi_rotate(S, 2);
     mapi_pop(S, 1);
 }

@@ -151,7 +151,7 @@ MORPHINE_API void mapi_get_metatable(morphine_state_t);
 MORPHINE_API void mapi_set_default_metatable(morphine_state_t, const char *type);
 MORPHINE_API void mapi_get_default_metatable(morphine_state_t, const char *type);
 
-MORPHINE_API void mapi_rotate(morphine_state_t);
+MORPHINE_API void mapi_rotate(morphine_state_t, size_t count);
 MORPHINE_API void mapi_pop(morphine_state_t, size_t size);
 MORPHINE_API void mapi_peek(morphine_state_t, size_t offset);
 MORPHINE_API void mapi_move(morphine_state_t, morphine_state_t to);

@@ -6,12 +6,18 @@
 #include "morphine/object/state.h"
 #include "morphine/stack/access.h"
 
-MORPHINE_API void mapi_rotate(morphine_state_t S) {
-    struct value *values = stackI_vector(S, 0, 2);
+MORPHINE_API void mapi_rotate(morphine_state_t S, size_t count) {
+    if (count == 0) {
+        return;
+    }
 
-    struct value temp = values[0];
-    values[0] = values[1];
-    values[1] = temp;
+    struct value *values = stackI_vector(S, 0, count);
+
+    struct value temp = values[count - 1];
+    for (size_t i = 0; i < count - 1; i++) {
+        values[count - i - 1] = values[count - i - 2];
+    }
+    values[0] = temp;
 }
 
 MORPHINE_API void mapi_pop(morphine_state_t S, size_t size) {

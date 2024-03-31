@@ -1009,7 +1009,7 @@ static void replaceall(morphine_state_t S) {
                     } else {
                         mapi_peek(S, 0);
                         mapi_push_stringn(S, string, i);
-                        mapi_rotate(S);
+                        mapi_rotate(S, 2);
                         mapi_string_concat(S);
                     }
 
@@ -1028,7 +1028,7 @@ static void replaceall(morphine_state_t S) {
 
             if (found && strlen > 0 && findlen == 0) {
                 mapi_peek(S, 1);
-                mapi_rotate(S);
+                mapi_rotate(S, 2);
                 mapi_string_concat(S);
             }
 
@@ -1077,7 +1077,7 @@ static void format(morphine_state_t S) {
                 size_t offset = 0;
                 if (i + 1 < strlen && string[i + 1] == '$') {
                     if (index > 0) {
-                        mapi_rotate(S);
+                        mapi_rotate(S, 2);
                     }
 
                     mapi_push_string(S, "$");
@@ -1098,7 +1098,7 @@ static void format(morphine_state_t S) {
                     }
 
                     if (index > 0) {
-                        mapi_rotate(S);
+                        mapi_rotate(S, 2);
                         mapi_push_stringn(S, string + i + 2, c - i - 2);
                         mapi_table_get(S);
                         mapi_to_string(S);
@@ -1111,7 +1111,7 @@ static void format(morphine_state_t S) {
                     offset = c - i;
                 } else {
                     if (index > 0) {
-                        mapi_rotate(S);
+                        mapi_rotate(S, 2);
                         mapi_push_integer(S, parsed);
                         mapi_table_get(S);
                         mapi_to_string(S);
@@ -1128,11 +1128,11 @@ static void format(morphine_state_t S) {
                     mapi_peek(S, 2);
                     mapi_push_stringn(S, string + index, i - index);
                     mapi_string_concat(S);
-                    mapi_rotate(S);
+                    mapi_rotate(S, 2);
                     mapi_string_concat(S);
                 } else {
                     mapi_push_stringn(S, string, i);
-                    mapi_rotate(S);
+                    mapi_rotate(S, 2);
                     mapi_string_concat(S);
                 }
 
