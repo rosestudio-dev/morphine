@@ -51,6 +51,10 @@ sanitize_flags = [
     '-fsanitize=undefined'
 ]
 
+shared_flags = [
+    '-DMORPHINE_LIBRARY'
+]
+
 compiler_args = warning_flags + common_flags
 
 if sanitize.enabled()
@@ -62,6 +66,7 @@ morphine = both_libraries(
     include_directories : [private_include, public_include],
     c_args : compiler_args,
     dependencies : m_dep,
+    c_shared_args : shared_flags,
 
     install : installdir != 'undefined',
     install_dir : installdir / 'libs'
