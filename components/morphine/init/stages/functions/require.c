@@ -37,14 +37,30 @@ static inline struct require_loader *search(struct require_loader *loader, const
 void require(morphine_state_t S) {
     nb_function(S)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "string", "string,string");
+            size_t variant = maux_checkargs(
+                S, 4,
+                "string",
+                "string,string",
+                "string,boolean",
+                "string,string,boolean"
+            );
 
             mapi_push_arg(S, 0);
             const char *id = mapi_get_string(S);
 
             bool has = mapi_registry_get(S);
+            bool force_load = false;
+            if (variant == 2) {
+                mapi_push_arg(S, 1);
+                force_load = mapi_get_boolean(S);
+                mapi_pop(S, 1);
+            } else if (variant == 3) {
+                mapi_push_arg(S, 2);
+                force_load = mapi_get_boolean(S);
+                mapi_pop(S, 1);
+            }
 
-            if (!has) {
+            if (!has || force_load) {
                 mapi_pop(S, 1);
 
                 struct require_loader *result = search(table, id);
@@ -62,7 +78,7 @@ void require(morphine_state_t S) {
                 mapi_registry_set(S);
             }
 
-            if (variant == 0) {
+            if (variant == 0 || variant == 2) {
                 nb_return();
             }
 
