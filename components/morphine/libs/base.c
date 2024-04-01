@@ -237,6 +237,18 @@ static void changeenv(morphine_state_t S) {
     nb_end
 }
 
+static void load(morphine_state_t S) {
+    nb_function(S)
+        nb_init
+            maux_checkargs(S, 1, "string");
+            mapi_push_arg(S, 0);
+            size_t len = mapi_string_len(S);
+            const uint8_t *vector = (const uint8_t *) mapi_get_string(S);
+            mapi_rload(S, len, vector);
+            nb_leave();
+    nb_end
+}
+
 static struct maux_construct_field table[] = {
     { "version",             version },
     { "print",               print },
@@ -250,6 +262,7 @@ static struct maux_construct_field table[] = {
     { "pscall",              pscall },
     { "error",               error },
     { "changeenv",           changeenv },
+    { "load",                load },
     { NULL, NULL }
 };
 
