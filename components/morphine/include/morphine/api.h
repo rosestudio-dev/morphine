@@ -165,3 +165,8 @@ MORPHINE_API bool mapi_registry_get(morphine_state_t);
 MORPHINE_API void mapi_registry_getoe(morphine_state_t);
 MORPHINE_API void mapi_registry_set(morphine_state_t);
 MORPHINE_API void mapi_registry_clear(morphine_state_t);
+
+MORPHINE_API void mapi_iterator(morphine_state_t);
+MORPHINE_API void mapi_iterator_init(morphine_state_t);
+MORPHINE_API bool mapi_iterator_has(morphine_state_t);
+MORPHINE_API void mapi_iterator_next(morphine_state_t);

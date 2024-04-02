@@ -13,6 +13,54 @@ struct op_func {
     bool (*function)(morphine_state_t S);
 };
 
+static bool opiterator(morphine_state_t S) {
+    struct value *args = stackI_vector(S, 0, 2);
+
+    bool result = interpreter_fun_iterator(
+        S, callstackI_state(S),
+        args[0], args + 1,
+        0, false
+    ) == CALLED;
+
+    return result;
+}
+
+static bool opiteratorinit(morphine_state_t S) {
+    struct value *args = stackI_vector(S, 0, 1);
+
+    bool result = interpreter_fun_iterator_init(
+        S, callstackI_state(S),
+        args[0],
+        0, false
+    ) == CALLED;
+
+    return result;
+}
+
+static bool opiteratorhas(morphine_state_t S) {
+    struct value *args = stackI_vector(S, 0, 2);
+
+    bool result = interpreter_fun_iterator_has(
+        S, callstackI_state(S),
+        args[0], args + 1,
+        0, false
+    ) == CALLED;
+
+    return result;
+}
+
+static bool opiteratornext(morphine_state_t S) {
+    struct value *args = stackI_vector(S, 0, 2);
+
+    bool result = interpreter_fun_iterator_next(
+        S, callstackI_state(S),
+        args[0], args + 1,
+        0, false
+    ) == CALLED;
+
+    return result;
+}
+
 static bool opget(morphine_state_t S) {
     struct value *args = stackI_vector(S, 0, 2);
 
@@ -291,6 +339,10 @@ static bool opderef(morphine_state_t S) {
 
 MORPHINE_API bool mapi_op(morphine_state_t S, const char *op) {
     struct op_func ops[] = {
+        (struct op_func) { .name = "iterator", .function = opiterator },
+        (struct op_func) { .name = "iteratorinit", .function = opiteratorinit },
+        (struct op_func) { .name = "iteratorhas", .function = opiteratorhas },
+        (struct op_func) { .name = "iteratornext", .function = opiteratornext },
         (struct op_func) { .name = "get", .function = opget },
         (struct op_func) { .name = "set", .function = opset },
         (struct op_func) { .name = "add", .function = opadd },
