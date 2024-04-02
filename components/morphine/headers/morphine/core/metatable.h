@@ -19,6 +19,11 @@ enum metatable_field {
     MF_NEGATE, MF_NOT, MF_LENGTH,
     MF_REF, MF_DEREF,
 
+    MF_ITERATOR,
+    MF_ITERATOR_INIT,
+    MF_ITERATOR_HAS,
+    MF_ITERATOR_NEXT,
+
     // control
     MF_MASK, MF_GC
 };

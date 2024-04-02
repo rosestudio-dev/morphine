@@ -43,6 +43,7 @@
 #define valueI_is_proto(x)     valueI_is(PROTO, x)
 #define valueI_is_native(x)    valueI_is(NATIVE, x)
 #define valueI_is_reference(x) valueI_is(REFERENCE, x)
+#define valueI_is_iterator(x)  valueI_is(ITERATOR, x)
 
 #define valueI_is_object(x)  typeI_value_is_obj((x).type)
 
@@ -65,6 +66,7 @@
 #define valueI_as_proto(x)     valueI_as(object.proto, x)
 #define valueI_as_native(x)    valueI_as(object.native, x)
 #define valueI_as_reference(x) valueI_as(object.reference, x)
+#define valueI_as_iterator(x)  valueI_as(object.iterator, x)
 
 #define valueI_as_object(x) valueI_as(object.header, x)
 
@@ -87,6 +89,7 @@
 #define valueI_safe_as_proto(x, o)     valueI_safe_as(proto, x, o)
 #define valueI_safe_as_native(x, o)    valueI_safe_as(native, x, o)
 #define valueI_safe_as_reference(x, o) valueI_safe_as(reference, x, o)
+#define valueI_safe_as_iterator(x, o)  valueI_safe_as(iterator, x, o)
 
 #define valueI_safe_as_object(x, o) ({struct value _a = (x); (likely(valueI_is_object(_a)) ? valueI_as_object(_a) : (o));})
 
@@ -109,6 +112,7 @@
 #define valueI_as_proto_or_error(S, x)     valueI_as_or_error(S, proto, x)
 #define valueI_as_native_or_error(S, x)    valueI_as_or_error(S, native, x)
 #define valueI_as_reference_or_error(S, x) valueI_as_or_error(S, reference, x)
+#define valueI_as_iterator_or_error(S, x)  valueI_as_or_error(S, iterator, x)
 
 #define valueI_as_object_or_error(S, x) ({struct value _a = (x); if(unlikely(!valueI_is_object(_a))) throwI_message_error((S), "Expected object"); valueI_as_object(_a);})
 
@@ -116,6 +120,8 @@
 
 #define valueI_size2integer(S, x) ({size_t _s = (x); if(unlikely(_s > MORPHINE_INTEGER_MAX)) throwI_errorf((S), "Cannot convert %zu to integer", _s); valueI_integer((morphine_integer_t) _s);})
 #define valueI_integer2size(S, x) ({morphine_integer_t _i = (x); if(unlikely(_i < 0 || ((size_t) _i) > SIZE_MAX)) throwI_errorf((S), "Cannot convert %"MORPHINE_INTEGER_PRINT" to size", _i); ((size_t) _i);})
+
+#define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
 
 struct value {
     enum value_type type;
@@ -136,8 +142,14 @@ struct value {
             struct string *string;
             struct table *table;
             struct userdata *userdata;
+            struct iterator *iterator;
         } object;
     };
+};
+
+struct pair {
+    struct value key;
+    struct value value;
 };
 
 const char *valueI_type2string(morphine_instance_t, enum value_type type);

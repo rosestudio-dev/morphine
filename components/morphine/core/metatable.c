@@ -152,6 +152,14 @@ const char *metatableI_field2string(morphine_instance_t I, enum metatable_field 
             return "_mf_deref";
         case MF_GC:
             return "_mf_gc";
+        case MF_ITERATOR:
+            return "_mf_iterator";
+        case MF_ITERATOR_INIT:
+            return "_mf_iterator_init";
+        case MF_ITERATOR_HAS:
+            return "_mf_iterator_has";
+        case MF_ITERATOR_NEXT:
+            return "_mf_iterator_next";
     }
 
     throwI_message_panic(I, NULL, "Unsupported meta field");

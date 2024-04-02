@@ -11,6 +11,7 @@
 #include "morphine/object/proto.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/native.h"
+#include "morphine/object/iterator.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 
@@ -50,6 +51,9 @@ void objectI_free(morphine_instance_t I, struct object *object) {
             return;
         case OBJ_TYPE_REFERENCE:
             referenceI_free(I, cast(struct reference *, object));
+            return;
+        case OBJ_TYPE_ITERATOR:
+            iteratorI_free(I, cast(struct iterator *, object));
             return;
     }
 

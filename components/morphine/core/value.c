@@ -34,6 +34,7 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_PROTO:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
+        case VALUE_TYPE_ITERATOR:
         case VALUE_TYPE_RAW:
             return a.object.header == b.object.header;
     }
@@ -59,6 +60,8 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
             );
         case VALUE_TYPE_TABLE:
             return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
+        case VALUE_TYPE_ITERATOR:
+            return valueI_object(stringI_createf(I, "[object:iterator:%p]", value.object.iterator));
         case VALUE_TYPE_CLOSURE:
             return valueI_object(stringI_createf(I, "[object:closure:%p]", value.object.closure));
         case VALUE_TYPE_STATE:
@@ -177,6 +180,8 @@ const char *valueI_type2string(morphine_instance_t I, enum value_type type) {
             return "proto";
         case VALUE_TYPE_REFERENCE:
             return "reference";
+        case VALUE_TYPE_ITERATOR:
+            return "iterator";
         case VALUE_TYPE_RAW:
             return "raw";
     }

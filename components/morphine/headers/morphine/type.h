@@ -8,7 +8,7 @@
 #define VALUE_TYPES_COUNT (VALUE_TYPE_RAW + 1)
 
 #define OBJ_TYPES_START (OBJ_TYPE_USERDATA)
-#define OBJ_TYPES_COUNT (OBJ_TYPE_REFERENCE + 1)
+#define OBJ_TYPES_COUNT (OBJ_TYPE_ITERATOR + 1)
 
 #define typeI_value_is_obj(x) ({ enum obj_type _vt = (enum obj_type) (x); (OBJ_TYPES_START <= _vt && _vt < OBJ_TYPES_COUNT); })
 
@@ -21,6 +21,7 @@ enum obj_type {
     OBJ_TYPE_PROTO = 5,
     OBJ_TYPE_NATIVE = 6,
     OBJ_TYPE_REFERENCE = 7,
+    OBJ_TYPE_ITERATOR = 8,
 };
 
 enum value_type {
@@ -32,10 +33,11 @@ enum value_type {
     VALUE_TYPE_PROTO = 5,
     VALUE_TYPE_NATIVE = 6,
     VALUE_TYPE_REFERENCE = 7,
+    VALUE_TYPE_ITERATOR = 8,
 
-    VALUE_TYPE_NIL = 8,
-    VALUE_TYPE_INTEGER = 9,
-    VALUE_TYPE_DECIMAL = 10,
-    VALUE_TYPE_BOOLEAN = 11,
-    VALUE_TYPE_RAW = 12,
+    VALUE_TYPE_NIL = 9,
+    VALUE_TYPE_INTEGER = 10,
+    VALUE_TYPE_DECIMAL = 11,
+    VALUE_TYPE_BOOLEAN = 12,
+    VALUE_TYPE_RAW = 13,
 };

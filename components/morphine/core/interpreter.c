@@ -127,22 +127,58 @@ sp_case(OPCODE_TABLE)
             }
 sp_case(OPCODE_GET)
             {
-                struct value table = slot(C, arg1);
+                struct value container = slot(C, arg1);
                 struct value key = slot(C, arg2);
                 struct value result = valueI_nil;
 
-                complex_fun(interpreter_fun_get, 1, table, key, &result);
+                complex_fun(interpreter_fun_get, 1, container, key, &result);
 
                 slot(C, arg3) = result;
                 sp_end();
             }
 sp_case(OPCODE_SET)
             {
-                struct value table = slot(C, arg1);
+                struct value container = slot(C, arg1);
                 struct value key = slot(C, arg2);
                 struct value value = slot(C, arg3);
 
-                complex_fun(interpreter_fun_set, 1, table, key, value);
+                complex_fun(interpreter_fun_set, 1, container, key, value);
+                sp_end();
+            }
+sp_case(OPCODE_ITERATOR)
+            {
+                struct value container = slot(C, arg1);
+                struct value result = valueI_nil;
+
+                complex_fun(interpreter_fun_iterator, 1, container, &result);
+
+                slot(C, arg2) = result;
+                sp_end();
+            }
+sp_case(OPCODE_ITERATOR_INIT)
+            {
+                struct value iterator = slot(C, arg1);
+                complex_fun(interpreter_fun_iterator_init, 1, iterator);
+                sp_end();
+            }
+sp_case(OPCODE_ITERATOR_HAS)
+            {
+                struct value iterator = slot(C, arg1);
+                struct value result = valueI_nil;
+
+                complex_fun(interpreter_fun_iterator_has, 1, iterator, &result);
+
+                slot(C, arg2) = result;
+                sp_end();
+            }
+sp_case(OPCODE_ITERATOR_NEXT)
+            {
+                struct value iterator = slot(C, arg1);
+                struct value result = valueI_nil;
+
+                complex_fun(interpreter_fun_iterator_next, 1, iterator, &result);
+
+                slot(C, arg2) = result;
                 sp_end();
             }
 sp_case(OPCODE_JUMP)

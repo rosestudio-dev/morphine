@@ -26,6 +26,11 @@ typedef enum {
     OPCODE_GET,             // [container (slot), key (slot), dest (slot)]                   get from (container) by (key) to (dest)
     OPCODE_SET,             // [container (slot), key (slot), src (slot)]                    set (src) to (container) by (key)
 
+    OPCODE_ITERATOR,        // [container (slot), dest (slot)]                               create iterator from (container) to (dest)
+    OPCODE_ITERATOR_INIT,   // [iterator (slot)]                                             init (iterator)
+    OPCODE_ITERATOR_HAS,    // [iterator (slot), dest (slot)]                                check next value of (iterator) to (dest)
+    OPCODE_ITERATOR_NEXT,   // [iterator (slot), dest (slot)]                                get next value of (iterator) to (dest)
+
     OPCODE_JUMP,            // [position (pos)]                                              jump to (position)
     OPCODE_JUMP_IF,         // [condition (slot), if_position (pos), else_position (pos)]    if (condition) is true jump to (if_position) else jump to (else_position)
 

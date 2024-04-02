@@ -13,6 +13,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/native.h"
 #include "morphine/core/throw.h"
+#include "morphine/object/iterator.h"
 
 static inline bool mark_unmarked_object(struct object *object) {
     if (object->flags.mark) {
@@ -42,7 +43,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_object(objectI_cast(table->metatable));
             }
 
-            struct bucket *current = table->hashmap.buckets.ll;
+            struct bucket *current = table->hashmap.buckets.head;
             while (current != NULL) {
                 mark_value(current->pair.key);
                 mark_value(current->pair.value);
@@ -117,6 +118,14 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         }
         case OBJ_TYPE_REFERENCE: {
             return referenceI_allocated_size();
+        }
+        case OBJ_TYPE_ITERATOR: {
+            struct iterator *iterator = cast(struct iterator *, obj);
+
+            mark_object(objectI_cast(iterator->iterable));
+            mark_value(iterator->next.key);
+
+            return iteratorI_allocated_size();
         }
     }
 

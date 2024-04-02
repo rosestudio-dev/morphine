@@ -91,6 +91,7 @@ bool instructionI_validate(
             arg_undefined(argument3)
             break;
         }
+        case OPCODE_ITERATOR_INIT:
         case OPCODE_RECURSION:
         case OPCODE_ENV:
         case OPCODE_SELF:
@@ -120,6 +121,9 @@ bool instructionI_validate(
             arg_slot(argument3)
             break;
         }
+        case OPCODE_ITERATOR:
+        case OPCODE_ITERATOR_HAS:
+        case OPCODE_ITERATOR_NEXT:
         case OPCODE_MOVE:
         case OPCODE_TYPE:
         case OPCODE_NEGATIVE:
