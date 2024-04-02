@@ -17,6 +17,7 @@ import ru.unit.morphine.assembly.compiler.ast.node.ForStatement
 import ru.unit.morphine.assembly.compiler.ast.node.FunctionExpression
 import ru.unit.morphine.assembly.compiler.ast.node.IfStatement
 import ru.unit.morphine.assembly.compiler.ast.node.IncDecExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IteratorStatement
 import ru.unit.morphine.assembly.compiler.ast.node.Node
 import ru.unit.morphine.assembly.compiler.ast.node.ReturnStatement
 import ru.unit.morphine.assembly.compiler.ast.node.SelfExpression
@@ -54,6 +55,7 @@ abstract class AbstractVisitor : Visitor {
         is ReturnStatement -> visit(node)
         is WhileStatement -> visit(node)
         is YieldStatement -> visit(node)
+        is IteratorStatement -> visit(node)
         is AccessAccessible -> visit(node)
         is VariableAccessible -> visit(node)
     }
@@ -81,6 +83,7 @@ abstract class AbstractVisitor : Visitor {
     abstract fun visit(node: ReturnStatement)
     abstract fun visit(node: WhileStatement)
     abstract fun visit(node: YieldStatement)
+    abstract fun visit(node: IteratorStatement)
     abstract fun visit(node: AccessAccessible)
     abstract fun visit(node: VariableAccessible)
 }

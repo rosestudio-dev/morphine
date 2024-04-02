@@ -43,11 +43,13 @@ sealed interface Token {
         LEN,
         TO,
         YIELD,
-        ASM,
-        CLOSURES,
         REF,
         END,
-        PASS
+        PASS,
+        ITERATOR,
+        DECOMPOSE,
+        AS,
+        IN,
     }
 
     enum class Operator(val text: String) : Token {

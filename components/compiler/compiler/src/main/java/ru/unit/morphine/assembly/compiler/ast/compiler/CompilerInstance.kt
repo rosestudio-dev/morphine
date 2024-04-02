@@ -1,11 +1,40 @@
 package ru.unit.morphine.assembly.compiler.ast.compiler
 
+import java.util.UUID
 import ru.unit.morphine.assembly.bytecode.Argument
 import ru.unit.morphine.assembly.bytecode.Instruction
 import ru.unit.morphine.assembly.bytecode.Value
 import ru.unit.morphine.assembly.compiler.ast.compiler.exception.CompilerException
-import ru.unit.morphine.assembly.compiler.ast.node.*
-import java.util.*
+import ru.unit.morphine.assembly.compiler.ast.node.AccessAccessible
+import ru.unit.morphine.assembly.compiler.ast.node.Accessible
+import ru.unit.morphine.assembly.compiler.ast.node.AssigmentStatement
+import ru.unit.morphine.assembly.compiler.ast.node.AssignMethod
+import ru.unit.morphine.assembly.compiler.ast.node.BinaryExpression
+import ru.unit.morphine.assembly.compiler.ast.node.BlockStatement
+import ru.unit.morphine.assembly.compiler.ast.node.BreakStatement
+import ru.unit.morphine.assembly.compiler.ast.node.CallExpression
+import ru.unit.morphine.assembly.compiler.ast.node.CallSelfExpression
+import ru.unit.morphine.assembly.compiler.ast.node.ContinueStatement
+import ru.unit.morphine.assembly.compiler.ast.node.DeclarationStatement
+import ru.unit.morphine.assembly.compiler.ast.node.DoWhileStatement
+import ru.unit.morphine.assembly.compiler.ast.node.EmptyStatement
+import ru.unit.morphine.assembly.compiler.ast.node.EnvExpression
+import ru.unit.morphine.assembly.compiler.ast.node.EvalStatement
+import ru.unit.morphine.assembly.compiler.ast.node.Expression
+import ru.unit.morphine.assembly.compiler.ast.node.ForStatement
+import ru.unit.morphine.assembly.compiler.ast.node.FunctionExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IfStatement
+import ru.unit.morphine.assembly.compiler.ast.node.IncDecExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IteratorStatement
+import ru.unit.morphine.assembly.compiler.ast.node.ReturnStatement
+import ru.unit.morphine.assembly.compiler.ast.node.SelfExpression
+import ru.unit.morphine.assembly.compiler.ast.node.Statement
+import ru.unit.morphine.assembly.compiler.ast.node.TableExpression
+import ru.unit.morphine.assembly.compiler.ast.node.UnaryExpression
+import ru.unit.morphine.assembly.compiler.ast.node.ValueExpression
+import ru.unit.morphine.assembly.compiler.ast.node.VariableAccessible
+import ru.unit.morphine.assembly.compiler.ast.node.WhileStatement
+import ru.unit.morphine.assembly.compiler.ast.node.YieldStatement
 
 class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
 
@@ -44,6 +73,7 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         is IfStatement -> statement.exec()
         is ReturnStatement -> statement.exec()
         is WhileStatement -> statement.exec()
+        is IteratorStatement -> statement.exec()
         is YieldStatement -> statement.exec()
     }
 
@@ -103,6 +133,76 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
 
         anchor(blockAnchorUUID)
         statement.exec()
+
+        instruction(
+            Instruction.Jump(
+                position = positionByAnchor(function.continueAnchor)
+            )
+        )
+
+        function.variables.exit()
+
+        anchor(function.breakAnchor)
+
+        exitBreakContinue()
+    }
+
+    private fun IteratorStatement.exec() = codegenStatement {
+        enterBreakContinue()
+
+        function.variables.enter()
+
+        val iterator = iterable.evalWithResult()
+
+        instruction(
+            Instruction.Iterator(
+                container = iterator,
+                destination = iterator
+            ),
+            Instruction.IteratorInit(
+                iterator = iterator
+            )
+        )
+
+        anchor(function.continueAnchor)
+        val condition = slot()
+        instruction(
+            Instruction.IteratorHas(
+                iterator = iterator,
+                destination = condition
+            )
+        )
+
+        val blockAnchorUUID = UUID.randomUUID()
+
+        instruction(
+            Instruction.JumpIf(
+                source = condition,
+                ifPosition = positionByAnchor(blockAnchorUUID),
+                elsePosition = positionByAnchor(function.breakAnchor)
+            )
+        )
+
+        anchor(blockAnchorUUID)
+
+        val next = slot()
+
+        instruction(
+            Instruction.IteratorNext(
+                iterator = iterator,
+                destination = next
+            )
+        )
+
+        declaration(
+            method = method,
+            isMutable = false,
+            source = next
+        )
+
+        function.variables.enter()
+        statement.exec()
+        function.variables.exit()
 
         instruction(
             Instruction.Jump(
@@ -285,44 +385,19 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
     }
 
     private fun AssigmentStatement.exec() = codegenStatement {
-        when {
-            accessibles.isEmpty() || expressions.isEmpty() -> {
-                throw CompilerException("Empty assigment")
-            }
-
-            accessibles.size == expressions.size -> {
-                accessibles.forEachIndexed { index, accessible ->
-                    val expression = expressions[index]
-
-                    val source = if (binaryType != null) {
-                        BinaryExpression(
-                            type = binaryType,
-                            expressionA = accessible,
-                            expressionB = expression,
-                            data = data
-                        )
-                    } else {
-                        expression
-                    }.evalWithResult()
-
-                    accessible.set(source)
-                }
-            }
-
-            expressions.size == 1 -> {
-                if (binaryType != null) {
-                    throw CompilerException("Decomposable assigment doesn't support binary operations")
+        when (method) {
+            is AssignMethod.Decompose -> {
+                val entries = method.entries.ifEmpty {
+                    throw CompilerException("Empty assigment")
                 }
 
-                val source = expressions.single().evalWithResult()
+                val source = expression.evalWithResult()
                 val slot = slot()
 
-                accessibles.forEachIndexed { index, accessible ->
+                entries.forEach { entry ->
+                    entry.key.evalWithResult(slot)
+
                     instruction(
-                        Instruction.Load(
-                            constant = constant(Value.Integer(index)),
-                            destination = slot
-                        ),
                         Instruction.Get(
                             container = source,
                             keySource = slot,
@@ -330,77 +405,33 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                         )
                     )
 
-                    accessible.set(slot)
+                    entry.value.set(slot)
                 }
             }
 
-            else -> {
-                throw CompilerException("Incorrect assigment")
+            is AssignMethod.Single -> {
+                val source = if (binaryType != null) {
+                    BinaryExpression(
+                        type = binaryType,
+                        expressionA = method.entry,
+                        expressionB = expression,
+                        data = data
+                    )
+                } else {
+                    expression
+                }.evalWithResult()
+
+                method.entry.set(source)
             }
         }
     }
 
     private fun DeclarationStatement.exec() = codegenStatement {
-        when {
-            names.isEmpty() || expressions.isEmpty() -> {
-                throw CompilerException("Empty declaration")
-            }
-
-            names.size == expressions.size -> {
-                names.forEachIndexed { index, name ->
-                    val slot = expressions[index].evalWithResult()
-
-                    val variable = defineVariable(
-                        name = name,
-                        isConst = !isMutable
-                    )
-
-                    instruction(
-                        variableSet(
-                            name = name,
-                            variable = variable,
-                            slot = slot
-                        )
-                    )
-                }
-            }
-
-            expressions.size == 1 -> {
-                val source = expressions.single().evalWithResult()
-                val slot = slot()
-
-                names.forEachIndexed { index, name ->
-                    instruction(
-                        Instruction.Load(
-                            constant = constant(Value.Integer(index)),
-                            destination = slot
-                        ),
-                        Instruction.Get(
-                            container = source,
-                            keySource = slot,
-                            destination = slot
-                        )
-                    )
-
-                    val variable = defineVariable(
-                        name = name,
-                        isConst = !isMutable,
-                    )
-
-                    instruction(
-                        variableSet(
-                            name = name,
-                            variable = variable,
-                            slot = slot
-                        )
-                    )
-                }
-            }
-
-            else -> {
-                throw CompilerException("Incorrect declaration")
-            }
-        }
+        declaration(
+            method = method,
+            isMutable = isMutable,
+            source = expression.evalWithResult()
+        )
     }
 
     private fun AccessAccessible.eval() = codegenExpression {
@@ -888,5 +919,61 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         is Access.Argument -> throw CompilerException("Argument '$name' cannot be modified")
 
         is Access.Recursion -> throw CompilerException("Recursion '$name' cannot be modified")
+    }
+
+    private fun AbstractCompiler.StatementCodegen.declaration(
+        method: AssignMethod<String>,
+        isMutable: Boolean,
+        source: Argument.Slot
+    ) {
+        when (method) {
+            is AssignMethod.Decompose -> {
+                val entries = method.entries.ifEmpty {
+                    throw CompilerException("Empty declaration")
+                }
+
+                val slot = slot()
+
+                entries.forEach { entry ->
+                    entry.key.evalWithResult(slot)
+
+                    instruction(
+                        Instruction.Get(
+                            container = source,
+                            keySource = slot,
+                            destination = slot
+                        )
+                    )
+
+                    val variable = defineVariable(
+                        name = entry.value,
+                        isConst = !isMutable,
+                    )
+
+                    instruction(
+                        variableSet(
+                            name = entry.value,
+                            variable = variable,
+                            slot = slot
+                        )
+                    )
+                }
+            }
+
+            is AssignMethod.Single -> {
+                val variable = defineVariable(
+                    name = method.entry,
+                    isConst = !isMutable
+                )
+
+                instruction(
+                    variableSet(
+                        name = method.entry,
+                        variable = variable,
+                        slot = source
+                    )
+                )
+            }
+        }
     }
 }

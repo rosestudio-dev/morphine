@@ -3,7 +3,37 @@ package ru.unit.morphine.assembly.compiler.parser
 import ru.unit.morphine.assembly.bytecode.LineData
 import ru.unit.morphine.assembly.bytecode.Value
 import ru.unit.morphine.assembly.compiler.ast.Ast
-import ru.unit.morphine.assembly.compiler.ast.node.*
+import ru.unit.morphine.assembly.compiler.ast.node.AccessAccessible
+import ru.unit.morphine.assembly.compiler.ast.node.Accessible
+import ru.unit.morphine.assembly.compiler.ast.node.AssigmentStatement
+import ru.unit.morphine.assembly.compiler.ast.node.AssignMethod
+import ru.unit.morphine.assembly.compiler.ast.node.BinaryExpression
+import ru.unit.morphine.assembly.compiler.ast.node.BlockStatement
+import ru.unit.morphine.assembly.compiler.ast.node.BreakStatement
+import ru.unit.morphine.assembly.compiler.ast.node.CallExpression
+import ru.unit.morphine.assembly.compiler.ast.node.CallSelfExpression
+import ru.unit.morphine.assembly.compiler.ast.node.ContinueStatement
+import ru.unit.morphine.assembly.compiler.ast.node.DeclarationStatement
+import ru.unit.morphine.assembly.compiler.ast.node.DoWhileStatement
+import ru.unit.morphine.assembly.compiler.ast.node.EmptyStatement
+import ru.unit.morphine.assembly.compiler.ast.node.EnvExpression
+import ru.unit.morphine.assembly.compiler.ast.node.EvalStatement
+import ru.unit.morphine.assembly.compiler.ast.node.Expression
+import ru.unit.morphine.assembly.compiler.ast.node.ForStatement
+import ru.unit.morphine.assembly.compiler.ast.node.FunctionExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IfStatement
+import ru.unit.morphine.assembly.compiler.ast.node.IncDecExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IteratorStatement
+import ru.unit.morphine.assembly.compiler.ast.node.Node
+import ru.unit.morphine.assembly.compiler.ast.node.ReturnStatement
+import ru.unit.morphine.assembly.compiler.ast.node.SelfExpression
+import ru.unit.morphine.assembly.compiler.ast.node.Statement
+import ru.unit.morphine.assembly.compiler.ast.node.TableExpression
+import ru.unit.morphine.assembly.compiler.ast.node.UnaryExpression
+import ru.unit.morphine.assembly.compiler.ast.node.ValueExpression
+import ru.unit.morphine.assembly.compiler.ast.node.VariableAccessible
+import ru.unit.morphine.assembly.compiler.ast.node.WhileStatement
+import ru.unit.morphine.assembly.compiler.ast.node.YieldStatement
 import ru.unit.morphine.assembly.compiler.lexer.Token
 import ru.unit.morphine.assembly.compiler.parser.exception.ParseException
 
@@ -18,7 +48,7 @@ class Parser(
         val list = mutableListOf<Statement>()
 
         while (!match(Token.Eof)) {
-            val currentLine = data(0).lineData.line
+            val currentLine = data(position).lineData.line
 
             runCatching {
                 list.add(statement())
@@ -83,6 +113,7 @@ class Parser(
     private fun statement(allowSemicolon: Boolean = true) = when {
         look(Token.SystemWord.YIELD) -> statementYield()
         look(Token.SystemWord.IF) -> statementIf()
+        look(Token.SystemWord.ITERATOR) -> statementIterator()
         look(Token.SystemWord.WHILE) -> statementWhile()
         look(Token.SystemWord.DO) -> statementDoWhile()
         look(Token.SystemWord.FOR) -> statementFor()
@@ -107,9 +138,9 @@ class Parser(
         val function = expressionFunction(requireName = true)
 
         return DeclarationStatement(
-            names = listOf(function.name!!),
+            method = AssignMethod.Single(function.name!!),
             isMutable = false,
-            expressions = listOf(function),
+            expression = function,
             data = data(saved)
         )
     }
@@ -212,7 +243,7 @@ class Parser(
 
         consume(Token.SystemWord.FOR)
 
-        match(Token.Operator.LPAREN)
+        consume(Token.Operator.LPAREN)
 
         val initial = statement(allowSemicolon = false)
         consume(Token.Operator.SEMICOLON)
@@ -238,7 +269,7 @@ class Parser(
 
         consume(Token.SystemWord.WHILE)
 
-        match(Token.Operator.LPAREN)
+        consume(Token.Operator.LPAREN)
         val condition = expression()
         consume(Token.Operator.RPAREN)
 
@@ -246,6 +277,32 @@ class Parser(
 
         return WhileStatement(
             condition = condition,
+            statement = statement,
+            data = data(saved)
+        )
+    }
+
+    private fun statementIterator(): Statement {
+        val saved = position
+
+        consume(Token.SystemWord.ITERATOR)
+
+        consume(Token.Operator.LPAREN)
+        val method = assignMethod {
+            consumeWord().text
+        }
+
+        consume(Token.SystemWord.IN)
+
+        val expression = expression()
+
+        consume(Token.Operator.RPAREN)
+
+        val statement = statementBlock()
+
+        return IteratorStatement(
+            method = method,
+            iterable = expression,
             statement = statement,
             data = data(saved)
         )
@@ -259,7 +316,7 @@ class Parser(
         val statement = statementBlock()
 
         if (match(Token.SystemWord.WHILE)) {
-            match(Token.Operator.LPAREN)
+            consume(Token.Operator.LPAREN)
             val condition = expression()
             consume(Token.Operator.RPAREN)
 
@@ -282,68 +339,70 @@ class Parser(
             else -> throw ParseException("Expected ${Token.SystemWord.VAL} or ${Token.SystemWord.VAR}, but got ${get()}")
         }
 
-        val names = arguments(Token.Operator.COMMA) {
-            consumeWord().text
-        }.ifEmpty {
-            throw ParseException("Empty declaration")
-        }
+        val method = assignMethod { consumeWord().text }
 
         consume(Token.Operator.EQ)
 
-        val expressions = arguments(Token.Operator.COMMA) {
-            expression()
-        }
+        val expression = expression()
 
         return DeclarationStatement(
-            names = names,
+            method = method,
             isMutable = isMutable,
-            expressions = expressions,
+            expression = expression,
             data = data(saved)
         )
     }
 
     private fun statementAssigment(): Statement {
-        val accessibles = arguments(Token.Operator.COMMA) {
-            expression()
-        }.ifEmpty {
-            throw ParseException("Empty expression")
-        }
+        val saved = position
 
-        val isAssign = look(*ASSIGN_OPERATORS.keys.toTypedArray())
+        val method = assignMethod { expression() }
 
-        return if (isAssign) {
-            val saved = position
-            val type = get()
+        return when (method) {
+            is AssignMethod.Decompose -> {
+                consume(Token.Operator.EQ)
+                val expression = expression()
 
-            skip()
+                val entries = method.entries.map { entry ->
+                    val accessible = entry.key as? Accessible
+                        ?: throw ParseException("Expression isn't accessible")
 
-            val expressions = arguments(Token.Operator.COMMA) {
-                expression()
-            }
-
-            val binaryType = ASSIGN_OPERATORS[type]
-
-            val containers = accessibles.map { accessible ->
-                if (accessible is Accessible) {
-                    accessible
-                } else {
-                    throw ParseException("Assigment expression requires only accessible expressions")
+                    AssignMethod.Decompose.Entry(
+                        value = accessible,
+                        key = entry.key
+                    )
                 }
+
+                AssigmentStatement(
+                    method = AssignMethod.Decompose(entries),
+                    expression = expression,
+                    binaryType = null,
+                    data = data(saved)
+                )
             }
 
-            return AssigmentStatement(
-                accessibles = containers,
-                expressions = expressions,
-                binaryType = binaryType,
-                data = data(saved)
-            )
-        } else {
-            val expression = accessibles.singleOrNull() ?: throw ParseException("Expected single expression")
+            is AssignMethod.Single -> if (look(*ASSIGN_OPERATORS.keys.toTypedArray())) {
+                val type = get()
+                skip()
 
-            EvalStatement(
-                expression = expression,
-                data = expression.data
-            )
+                val expression = expression()
+
+                val entry = method.entry as? Accessible ?: throw ParseException("Expression isn't accessible")
+
+                AssigmentStatement(
+                    method = AssignMethod.Single(entry),
+                    expression = expression,
+                    binaryType = ASSIGN_OPERATORS[type],
+                    data = data(saved)
+                )
+            } else {
+                val expression = method.entry
+
+                EvalStatement(
+                    expression = expression,
+                    data = data(saved)
+                )
+            }
         }
     }
 
@@ -938,7 +997,10 @@ class Parser(
         }
 
         val statement = if (match(Token.Operator.EQ)) {
-            templateReturn(position - 1)
+            templateReturn(
+                saved = position - 1,
+                allowMultiple = false
+            )
         } else {
             statementBlock()
         }
@@ -956,10 +1018,16 @@ class Parser(
         determinator: Token,
         open: Token? = null,
         close: Token? = null,
+        consumeOpen: Boolean = true,
+        consumeClose: Boolean = true,
         parse: () -> T
     ): List<T> {
-        if (open != null) {
-            consume(open)
+        open?.let {
+            if (consumeOpen) {
+                consume(open)
+            } else {
+                match(open)
+            }
         }
 
         if (close != null && match(close)) {
@@ -976,16 +1044,74 @@ class Parser(
             result.add(parse())
         }
 
-        if (close != null) {
-            consume(close)
+        close?.let {
+            if (consumeClose) {
+                consume(close)
+            } else {
+                match(close)
+            }
         }
 
         return result
     }
 
-    private fun templateReturn(saved: Int): ReturnStatement {
+    private fun <T> assignMethod(
+        parse: () -> T
+    ): AssignMethod<T> = if (match(Token.SystemWord.DECOMPOSE)) {
+        val values = arguments(
+            determinator = Token.Operator.COMMA,
+            open = Token.Operator.LPAREN,
+            close = Token.Operator.RPAREN,
+            consumeOpen = false,
+            consumeClose = false,
+            parse = parse
+        ).ifEmpty {
+            throw ParseException("Empty decompose")
+        }
+
+        val saved = position
+
+        val keys = if (match(Token.SystemWord.AS)) {
+            arguments(
+                determinator = Token.Operator.COMMA,
+                open = Token.Operator.LPAREN,
+                close = Token.Operator.RPAREN,
+                consumeOpen = false,
+                consumeClose = false,
+            ) { expression() }
+        } else {
+            List(values.size) { index ->
+                ValueExpression(
+                    value = Value.Integer(index),
+                    data = data(saved)
+                )
+            }
+        }
+
+        val entries = values.mapIndexed { index, value ->
+            val key = keys.getOrNull(index) ?: throw ParseException(
+                "Key for ${index + 1} decompose entry wasn't defined"
+            )
+
+            AssignMethod.Decompose.Entry(
+                value = value,
+                key = key
+            )
+        }
+
+        AssignMethod.Decompose(entries)
+    } else {
+        AssignMethod.Single(
+            entry = parse()
+        )
+    }
+
+    private fun templateReturn(
+        saved: Int,
+        allowMultiple: Boolean = true
+    ): ReturnStatement {
         val expressions = mutableListOf(expression())
-        while (match(Token.Operator.COMMA)) {
+        while (allowMultiple && match(Token.Operator.COMMA)) {
             expressions.add(expression())
         }
 

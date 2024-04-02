@@ -1,8 +1,8 @@
 package ru.unit.morphine.assembly.compiler.ast.node
 
-data class DeclarationStatement(
-    val isMutable: Boolean,
+data class IteratorStatement(
     val method: AssignMethod<String>,
-    val expression: Expression,
+    val iterable: Expression,
+    val statement: Statement,
     override val data: Node.Data
 ) : Statement

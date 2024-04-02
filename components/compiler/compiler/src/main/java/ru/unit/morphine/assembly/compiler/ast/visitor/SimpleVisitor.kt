@@ -2,6 +2,7 @@ package ru.unit.morphine.assembly.compiler.ast.visitor
 
 import ru.unit.morphine.assembly.compiler.ast.node.AccessAccessible
 import ru.unit.morphine.assembly.compiler.ast.node.AssigmentStatement
+import ru.unit.morphine.assembly.compiler.ast.node.AssignMethod
 import ru.unit.morphine.assembly.compiler.ast.node.BinaryExpression
 import ru.unit.morphine.assembly.compiler.ast.node.BlockStatement
 import ru.unit.morphine.assembly.compiler.ast.node.BreakStatement
@@ -17,6 +18,7 @@ import ru.unit.morphine.assembly.compiler.ast.node.ForStatement
 import ru.unit.morphine.assembly.compiler.ast.node.FunctionExpression
 import ru.unit.morphine.assembly.compiler.ast.node.IfStatement
 import ru.unit.morphine.assembly.compiler.ast.node.IncDecExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IteratorStatement
 import ru.unit.morphine.assembly.compiler.ast.node.Node
 import ru.unit.morphine.assembly.compiler.ast.node.ReturnStatement
 import ru.unit.morphine.assembly.compiler.ast.node.SelfExpression
@@ -79,8 +81,18 @@ abstract class SimpleVisitor : AbstractVisitor() {
     override fun visit(node: ValueExpression) = Unit
 
     override fun visit(node: AssigmentStatement) {
-        node.accessibles.accept()
-        node.expressions.accept()
+        when (node.method) {
+            is AssignMethod.Decompose -> {
+                node.method.entries.map { entry -> entry.value }.accept()
+                node.method.entries.map { entry -> entry.key }.accept()
+            }
+
+            is AssignMethod.Single -> {
+                node.method.entry.accept()
+            }
+        }
+
+        node.expression.accept()
     }
 
     override fun visit(node: BreakStatement) = Unit
@@ -88,7 +100,15 @@ abstract class SimpleVisitor : AbstractVisitor() {
     override fun visit(node: ContinueStatement) = Unit
 
     override fun visit(node: DeclarationStatement) {
-        node.expressions.accept()
+        when (node.method) {
+            is AssignMethod.Decompose -> {
+                node.method.entries.map { entry -> entry.key }.accept()
+            }
+
+            is AssignMethod.Single -> Unit
+        }
+
+        node.expression.accept()
     }
 
     override fun visit(node: DoWhileStatement) {
@@ -115,6 +135,19 @@ abstract class SimpleVisitor : AbstractVisitor() {
 
     override fun visit(node: WhileStatement) {
         node.condition.accept()
+        node.statement.accept()
+    }
+
+    override fun visit(node: IteratorStatement) {
+        when (node.method) {
+            is AssignMethod.Decompose -> {
+                node.method.entries.map { entry -> entry.key }.accept()
+            }
+
+            is AssignMethod.Single -> Unit
+        }
+
+        node.iterable.accept()
         node.statement.accept()
     }
 

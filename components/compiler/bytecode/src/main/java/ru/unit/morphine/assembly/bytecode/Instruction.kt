@@ -151,6 +151,57 @@ sealed interface Instruction {
         override val description = "set $source to $container by $keySource"
     }
 
+    @Processing
+    data class Iterator(
+        val container: Argument.Slot,
+        val destination: Argument.Slot,
+        override var lineData: LineData? = null
+    ) : Instruction {
+        override val opcode = Opcode.ITERATOR
+
+        override val orderedArguments = listOf(container, destination)
+
+        override val description = "create iterator from $container to $destination"
+    }
+
+    @Consumer
+    data class IteratorInit(
+        val iterator: Argument.Slot,
+        override var lineData: LineData? = null
+    ) : Instruction {
+        override val opcode = Opcode.ITERATOR_INIT
+
+        override val orderedArguments = listOf(iterator)
+
+        override val description = "init iterator $iterator"
+    }
+
+    @Processing
+    data class IteratorHas(
+        val iterator: Argument.Slot,
+        val destination: Argument.Slot,
+        override var lineData: LineData? = null
+    ) : Instruction {
+        override val opcode = Opcode.ITERATOR_HAS
+
+        override val orderedArguments = listOf(iterator, destination)
+
+        override val description = "check next value of iterator $iterator to $destination"
+    }
+
+    @Processing
+    data class IteratorNext(
+        val iterator: Argument.Slot,
+        val destination: Argument.Slot,
+        override var lineData: LineData? = null
+    ) : Instruction {
+        override val opcode = Opcode.ITERATOR_NEXT
+
+        override val orderedArguments = listOf(iterator, destination)
+
+        override val description = "get next value of iterator $iterator to $destination"
+    }
+
     @Control
     data class Jump(
         val position: Argument.Position,
