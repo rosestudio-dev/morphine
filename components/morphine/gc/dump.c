@@ -108,14 +108,14 @@ void gcI_dump(morphine_instance_t I) {
 
     fprintf(out, "Garbage collector dump\n");
     fprintf(out, "Status:                 %s\n", status);
+    fprintf(out, "Stats:\n");
+    fprintf(out, "  - Debt:               %zu\n", I->G.stats.debt);
     fprintf(out, "Bytes:\n");
     fprintf(out, "  - Allocated:          %zu\n", I->G.bytes.allocated);
     fprintf(out, "  - Previous allocated: %zu\n", I->G.bytes.prev_allocated);
     fprintf(out, "  - Max allocated:      %zu\n", I->G.bytes.max_allocated);
-    fprintf(out, "  - Started:            %zu\n", I->G.bytes.started);
     fprintf(out, "Settings:\n");
     fprintf(out, "  - Limit:              %zu\n", I->G.settings.limit_bytes);
-    fprintf(out, "  - Start:              %zu\n", I->G.settings.start);
     fprintf(out, "  - Grow:               %zu\n", I->G.settings.grow);
     fprintf(out, "  - Deal:               %zu\n", I->G.settings.deal);
     fprintf(out, "Finalizer:\n");

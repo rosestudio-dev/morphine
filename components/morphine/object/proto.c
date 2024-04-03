@@ -17,13 +17,13 @@ bool protoI_uuid_equal(struct uuid a, struct uuid b) {
 struct proto *protoI_create(
     morphine_instance_t I,
     struct uuid uuid,
-    size_t name_chars_count,
+    size_t name_len,
     size_t constants_count,
     size_t instructions_count,
     size_t statics_count
 ) {
     size_t proto_size = sizeof(struct proto);
-    size_t name_size = sizeof(char) * (name_chars_count + 1);
+    size_t name_size = sizeof(char) * (name_len + 1);
     size_t constants_size = sizeof(struct value) * constants_count;
     size_t instructions_size = sizeof(instruction_t) * instructions_count;
     size_t statics_size = sizeof(struct value) * statics_count;
@@ -40,7 +40,7 @@ struct proto *protoI_create(
     (*result) = (struct proto) {
         .uuid = uuid,
         .name = ptr_name,
-        .name_chars_count = name_chars_count,
+        .name_len = name_len,
         .constants_count = constants_count,
         .instructions_count = instructions_count,
         .statics_count = statics_count,
@@ -61,7 +61,7 @@ struct proto *protoI_create(
         result->statics[i] = valueI_nil;
     }
 
-    result->name[name_chars_count] = '\0';
+    result->name[name_len] = '\0';
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_PROTO);
 
@@ -70,16 +70,6 @@ struct proto *protoI_create(
 
 void protoI_free(morphine_instance_t I, struct proto *proto) {
     allocI_free(I, proto);
-}
-
-size_t protoI_allocated_size(struct proto *proto) {
-    size_t proto_size = sizeof(struct proto);
-    size_t name_size = sizeof(char) * (proto->name_chars_count + 1);
-    size_t constants_size = sizeof(struct value) * proto->constants_count;
-    size_t instructions_size = sizeof(instruction_t) * proto->instructions_count;
-    size_t statics_size = sizeof(struct value) * proto->statics_count;
-
-    return proto_size + name_size + instructions_size + constants_size + statics_size;
 }
 
 struct value protoI_static_get(morphine_state_t S, struct proto *proto, size_t index) {

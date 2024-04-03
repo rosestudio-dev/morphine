@@ -1065,7 +1065,7 @@ static void format(morphine_state_t S) {
             }
 
             bool found = false;
-            morphine_integer_t parsed = 0;
+            ml_integer parsed = 0;
             size_t index = 0;
             for (size_t i = 0; i < strlen; i++) {
                 if (string[i] != '$') {

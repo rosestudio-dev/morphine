@@ -12,14 +12,13 @@ static inline bool gc_need(morphine_instance_t I) {
     size_t alloc_bytes = I->G.bytes.allocated;
     size_t prev = I->G.bytes.prev_allocated;
 
-    if (unlikely(prev == 0)) {
-        prev = 1;
+    size_t prevdiv = (prev / 100);
+    if(unlikely(prevdiv == 0)) {
+        prevdiv = 1;
     }
 
-    size_t percent = (100 * alloc_bytes + prev / 2) / prev;
-
+    size_t percent = alloc_bytes / prevdiv;
     bool start = percent >= I->G.settings.grow;
-
     return start || (alloc_bytes >= I->G.settings.limit_bytes);
 }
 
@@ -81,10 +80,6 @@ static inline void step(morphine_instance_t I) {
 
 exit:
     gcI_reset_safe(I);
-}
-
-void gcI_recognize(morphine_instance_t I) {
-    I->G.bytes.started = I->G.bytes.allocated;
 }
 
 void gcI_enable(morphine_instance_t I) {

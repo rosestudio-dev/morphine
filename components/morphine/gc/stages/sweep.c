@@ -73,13 +73,9 @@ void gcstageI_sweep(morphine_instance_t I) {
 
     shrink(I);
 
-    size_t start = G->bytes.started * G->settings.start / 100;
-
-    if (G->bytes.allocated < start) {
-        G->bytes.prev_allocated = start;
-    } else {
+    if (G->bytes.allocated > G->settings.threshold) {
         G->bytes.prev_allocated = G->bytes.allocated;
+    } else {
+        G->bytes.prev_allocated = G->settings.threshold;
     }
-
-    G->cycle++;
 }

@@ -34,7 +34,7 @@ static inline void mark_value(struct value value) {
     }
 }
 
-static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
+static inline void mark_internal(morphine_instance_t I, struct object *obj) {
     switch (obj->type) {
         case OBJ_TYPE_TABLE: {
             struct table *table = cast(struct table *, obj);
@@ -51,7 +51,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 current = current->ll.prev;
             }
 
-            return tableI_allocated_size(table);
+            return;
         }
         case OBJ_TYPE_CLOSURE: {
             struct closure *closure = cast(struct closure *, obj);
@@ -61,7 +61,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_value(closure->values[i]);
             }
 
-            return closureI_allocated_size(closure);
+            return;
         }
         case OBJ_TYPE_PROTO: {
             struct proto *proto = cast(struct proto *, obj);
@@ -76,7 +76,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             mark_value(proto->registry_key);
 
-            return protoI_allocated_size(proto);
+            return;
         }
         case OBJ_TYPE_USERDATA: {
             struct userdata *userdata = cast(struct userdata *, obj);
@@ -95,7 +95,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 userdata->mark(I, userdata->data);
             }
 
-            return userdataI_allocated_size(userdata);
+            return;
         }
         case OBJ_TYPE_STATE: {
             morphine_state_t state = cast(morphine_state_t, obj);
@@ -104,20 +104,13 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_value(state->stack.allocated[i]);
             }
 
-            return stateI_allocated_size(state);
+            return;
         }
         case OBJ_TYPE_NATIVE: {
             struct native *native = cast(struct native *, obj);
             mark_value(native->registry_key);
 
-            return nativeI_allocated_size();
-        }
-        case OBJ_TYPE_STRING: {
-            struct string *string = cast(struct string *, obj);
-            return stringI_allocated_size(string);
-        }
-        case OBJ_TYPE_REFERENCE: {
-            return referenceI_allocated_size();
+            return;
         }
         case OBJ_TYPE_ITERATOR: {
             struct iterator *iterator = cast(struct iterator *, obj);
@@ -125,7 +118,11 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             mark_object(objectI_cast(iterator->iterable));
             mark_value(iterator->next.key);
 
-            return iteratorI_allocated_size();
+            return;
+        }
+        case OBJ_TYPE_STRING:
+        case OBJ_TYPE_REFERENCE: {
+            return;
         }
     }
 

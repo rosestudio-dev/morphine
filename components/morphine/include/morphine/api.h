@@ -10,7 +10,7 @@
 
 MORPHINE_API const char *mapi_version(void);
 
-MORPHINE_API morphine_instance_t mapi_open(struct platform, struct params, void *userdata);
+MORPHINE_API morphine_instance_t mapi_open(struct platform, struct settings, void *userdata);
 MORPHINE_API void *mapi_userdata(morphine_instance_t);
 MORPHINE_API void mapi_interpreter(morphine_instance_t);
 MORPHINE_API void mapi_close(morphine_instance_t);
@@ -54,20 +54,19 @@ MORPHINE_API void mapi_load(
 );
 
 MORPHINE_API void mapi_push_nil(morphine_state_t);
-MORPHINE_API void mapi_push_integer(morphine_state_t, morphine_integer_t value);
+MORPHINE_API void mapi_push_integer(morphine_state_t, ml_integer value);
 MORPHINE_API void mapi_push_size(morphine_state_t, size_t value);
-MORPHINE_API void mapi_push_decimal(morphine_state_t, morphine_decimal_t value);
+MORPHINE_API void mapi_push_decimal(morphine_state_t, ml_decimal value);
 MORPHINE_API void mapi_push_boolean(morphine_state_t, bool value);
 MORPHINE_API void mapi_push_raw(morphine_state_t, void *value);
 
-MORPHINE_API morphine_integer_t mapi_get_integer(morphine_state_t);
+MORPHINE_API ml_integer mapi_get_integer(morphine_state_t);
 MORPHINE_API size_t mapi_get_size(morphine_state_t);
-MORPHINE_API morphine_decimal_t mapi_get_decimal(morphine_state_t);
+MORPHINE_API ml_decimal mapi_get_decimal(morphine_state_t);
 MORPHINE_API bool mapi_get_boolean(morphine_state_t);
 MORPHINE_API void *mapi_get_raw(morphine_state_t);
 
 MORPHINE_API void mapi_to_integer(morphine_state_t);
-MORPHINE_API void mapi_to_based_integer(morphine_state_t, uint8_t base);
 MORPHINE_API void mapi_to_decimal(morphine_state_t);
 MORPHINE_API void mapi_to_boolean(morphine_state_t);
 MORPHINE_API void mapi_to_string(morphine_state_t);
@@ -137,7 +136,7 @@ MORPHINE_API bool mapi_gc_isenabled(morphine_instance_t);
 MORPHINE_API const char *mapi_gc_status(morphine_instance_t);
 MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t);
 MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t);
-MORPHINE_API void mapi_gc_change_start(morphine_instance_t, size_t value);
+MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_grow(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_deal(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value);

@@ -16,7 +16,7 @@ static void math_##name(morphine_state_t S) { \
             maux_checkargs(S, 1, "any"); \
             mapi_push_arg(S, 0); \
             mapi_to_decimal(S); \
-            morphine_decimal_t a = mapi_get_decimal(S); \
+            ml_decimal a = mapi_get_decimal(S); \
             mapi_pop(S, 1); \
             mapi_push_decimal(S, name(a)); \
             nb_return(); \
@@ -30,10 +30,10 @@ static void math_##name(morphine_state_t S) { \
             maux_checkargs(S, 1, "any,any"); \
             mapi_push_arg(S, 0); \
             mapi_to_decimal(S); \
-            morphine_decimal_t a = mapi_get_decimal(S); \
+            ml_decimal a = mapi_get_decimal(S); \
             mapi_push_arg(S, 1); \
             mapi_to_decimal(S); \
-            morphine_decimal_t b = mapi_get_decimal(S); \
+            ml_decimal b = mapi_get_decimal(S); \
             mapi_pop(S, 2); \
             mapi_push_decimal(S, name(a, b)); \
             nb_return(); \
@@ -162,11 +162,11 @@ static void math_modf(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
-            morphine_decimal_t a = mapi_get_decimal(S);
+            ml_decimal a = mapi_get_decimal(S);
             mapi_pop(S, 1);
 
-            morphine_decimal_t integral = 0;
-            morphine_decimal_t fraction = modf(a, &integral);
+            ml_decimal integral = 0;
+            ml_decimal fraction = modf(a, &integral);
 
             mapi_push_table(S);
 
@@ -189,7 +189,7 @@ static void math_rad(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
-            morphine_decimal_t a = mapi_get_decimal(S);
+            ml_decimal a = mapi_get_decimal(S);
             mapi_pop(S, 1);
 
             mapi_push_decimal(S, a * PI_CONST / 180);
@@ -204,7 +204,7 @@ static void math_deg(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
-            morphine_decimal_t a = mapi_get_decimal(S);
+            ml_decimal a = mapi_get_decimal(S);
             mapi_pop(S, 1);
 
             mapi_push_decimal(S, a * 180 / PI_CONST);
@@ -219,11 +219,11 @@ static void math_imax(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_integer(S);
-            morphine_integer_t a = mapi_get_integer(S);
+            ml_integer a = mapi_get_integer(S);
 
             mapi_push_arg(S, 1);
             mapi_to_integer(S);
-            morphine_integer_t b = mapi_get_integer(S);
+            ml_integer b = mapi_get_integer(S);
 
             mapi_pop(S, 2);
 
@@ -239,11 +239,11 @@ static void math_imin(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_integer(S);
-            morphine_integer_t a = mapi_get_integer(S);
+            ml_integer a = mapi_get_integer(S);
 
             mapi_push_arg(S, 1);
             mapi_to_integer(S);
-            morphine_integer_t b = mapi_get_integer(S);
+            ml_integer b = mapi_get_integer(S);
 
             mapi_pop(S, 2);
 
@@ -259,11 +259,11 @@ static void math_dmax(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
-            morphine_decimal_t a = mapi_get_decimal(S);
+            ml_decimal a = mapi_get_decimal(S);
 
             mapi_push_arg(S, 1);
             mapi_to_decimal(S);
-            morphine_decimal_t b = mapi_get_decimal(S);
+            ml_decimal b = mapi_get_decimal(S);
 
             mapi_pop(S, 2);
 
@@ -279,11 +279,11 @@ static void math_dmin(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
-            morphine_decimal_t a = mapi_get_decimal(S);
+            ml_decimal a = mapi_get_decimal(S);
 
             mapi_push_arg(S, 1);
             mapi_to_decimal(S);
-            morphine_decimal_t b = mapi_get_decimal(S);
+            ml_decimal b = mapi_get_decimal(S);
 
             mapi_pop(S, 2);
 
@@ -299,7 +299,7 @@ static void math_isnan(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
-            morphine_decimal_t a = mapi_get_decimal(S);
+            ml_decimal a = mapi_get_decimal(S);
 
             mapi_pop(S, 1);
 
@@ -315,7 +315,7 @@ static void math_isinf(morphine_state_t S) {
 
             mapi_push_arg(S, 0);
             mapi_to_decimal(S);
-            morphine_decimal_t a = mapi_get_decimal(S);
+            ml_decimal a = mapi_get_decimal(S);
 
             mapi_pop(S, 1);
 
@@ -392,11 +392,11 @@ void mlib_math_loader(morphine_state_t S) {
     mapi_table_set(S);
 
     mapi_push_stringf(S, "nan");
-    mapi_push_decimal(S, (morphine_decimal_t) NAN);
+    mapi_push_decimal(S, (ml_decimal) NAN);
     mapi_table_set(S);
 
     mapi_push_stringf(S, "inf");
-    mapi_push_decimal(S, (morphine_decimal_t) INFINITY);
+    mapi_push_decimal(S, (ml_decimal) INFINITY);
     mapi_table_set(S);
 }
 

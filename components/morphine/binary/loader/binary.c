@@ -263,7 +263,7 @@ static struct value get_constant(struct data *data) {
             return valueI_boolean(get_u8(data));
         }
         case 'i': {
-            return valueI_integer((morphine_integer_t) get_u32(data));
+            return valueI_integer((ml_integer) get_u32(data));
         }
         case 'f': {
             struct uuid uuid = get_uuid(data);
@@ -283,7 +283,7 @@ static struct value get_constant(struct data *data) {
             return valueI_object(found);
         }
         case 'd': {
-            return valueI_decimal((morphine_decimal_t) get_double(data));
+            return valueI_decimal((ml_decimal) get_double(data));
         }
         case 's': {
             return get_string(data);
@@ -310,7 +310,7 @@ static void load_constants(struct data *data, struct proto *proto) {
 }
 
 static void load_name(struct data *data, struct proto *proto) {
-    for (size_t i = 0; i < proto->name_chars_count; i++) {
+    for (size_t i = 0; i < proto->name_len; i++) {
         proto->name[i] = (char) get_u8(data);
     }
 }

@@ -49,8 +49,8 @@ MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
     return I->G.bytes.allocated;
 }
 
-MORPHINE_API void mapi_gc_change_start(morphine_instance_t I, size_t value) {
-    I->G.settings.start = value;
+MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t I, size_t value) {
+    I->G.settings.threshold = value;
 }
 
 MORPHINE_API void mapi_gc_change_grow(morphine_instance_t I, size_t value) {

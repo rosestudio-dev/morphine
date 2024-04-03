@@ -43,7 +43,7 @@ static void priority(morphine_state_t S) {
             morphine_state_t state = mapi_get_state(S);
 
             mapi_push_arg(S, 0);
-            morphine_integer_t priority = mapi_get_integer(S);
+            ml_integer priority = mapi_get_integer(S);
             mapi_state_priority(state, (priority_t) priority);
             nb_leave();
     nb_end

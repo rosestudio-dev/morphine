@@ -25,11 +25,6 @@ void referenceI_free(morphine_instance_t I, struct reference *reference) {
     allocI_free(I, reference);
 }
 
-size_t referenceI_allocated_size(void) {
-    return sizeof(struct reference);
-}
-
-
 struct value *referenceI_get(morphine_instance_t I, struct reference *reference) {
     if (reference == NULL) {
         throwI_message_panic(I, NULL, "Reference is null");

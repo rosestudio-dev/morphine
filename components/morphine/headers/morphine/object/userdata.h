@@ -39,7 +39,5 @@ struct userdata *userdataI_create(
 
 void userdataI_free(morphine_instance_t, struct userdata *);
 
-size_t userdataI_allocated_size(struct userdata *);
-
 void userdataI_link(morphine_instance_t, struct userdata *, struct userdata *linking, bool soft);
 bool userdataI_unlink(morphine_instance_t, struct userdata *, void *);

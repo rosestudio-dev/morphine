@@ -17,9 +17,18 @@ stackI_ptr stack_raise(morphine_state_t S, size_t size) {
 
     stackI_ptr result = stack_ptr(stack->allocated + stack->top);
 
+    if (size > SIZE_MAX - stack->top) {
+        throwI_message_panic(S->I, S, "Raise top overflow");
+    }
+
     if (stack->top + size >= stack->size) {
         size_t grow = S->stack.settings.grow;
-        size_t new_size = stack->size + (((size / grow) + 1) * grow);
+        size_t raise_size = ((size / grow) + 1) * grow;
+        size_t new_size = stack->size + raise_size;
+
+        if (raise_size > SIZE_MAX - stack->size) {
+            throwI_message_panic(S->I, S, "Raise size overflow");
+        }
 
         if (new_size >= S->stack.settings.limit) {
             throwI_message_error(S, "Stack overflow");

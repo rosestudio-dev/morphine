@@ -17,19 +17,16 @@ typedef enum {
 
 struct garbage_collector {
     gc_status_t status;
-    size_t cycle;
 
     bool enabled;
 
-    struct {
-        size_t limit_bytes;
-        size_t start;
-        size_t grow;
-        size_t deal;
-    } settings;
+    struct gc_settings settings;
 
     struct {
-        size_t started;
+        size_t debt;
+    } stats;
+
+    struct {
         size_t allocated;
         size_t prev_allocated;
         size_t max_allocated;
@@ -56,5 +53,5 @@ struct garbage_collector {
     struct callinfo *callinfo_trash;
 };
 
-struct garbage_collector gcI_init(struct params, size_t inited_size);
+struct garbage_collector gcI_prototype(struct gc_settings, size_t inited_bytes);
 void gcI_destruct(morphine_instance_t, struct garbage_collector);

@@ -31,10 +31,6 @@ void iteratorI_free(morphine_instance_t I, struct iterator *iterator) {
     allocI_free(I, iterator);
 }
 
-size_t iteratorI_allocated_size(void) {
-    return sizeof(struct iterator);
-}
-
 void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
     if (iterator == NULL) {
         throwI_message_panic(I, NULL, "Iterator is null");

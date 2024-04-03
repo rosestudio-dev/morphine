@@ -76,6 +76,15 @@ next:
     }
 }
 
+struct throw throwI_prototype(void) {
+    return (struct throw) {
+        .inited = false,
+        .cause_state = NULL,
+        .is_message = false,
+        .result.value = valueI_nil,
+    };
+}
+
 void throwI_handler(morphine_instance_t I) {
     I->throw.inited = false;
 

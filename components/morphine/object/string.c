@@ -78,10 +78,6 @@ void stringI_free(morphine_instance_t I, struct string *string) {
     allocI_free(I, string);
 }
 
-size_t stringI_allocated_size(struct string *string) {
-    return sizeof(struct string) + sizeof(char) * (string->size + 1);
-}
-
 struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
     if (a == NULL || b == NULL) {
         throwI_message_panic(I, NULL, "Reference is null");

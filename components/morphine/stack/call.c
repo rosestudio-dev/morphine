@@ -52,12 +52,12 @@ static inline void stackI_call(morphine_state_t S, struct value callable, struct
         throwI_message_error(S, "Cannot pop values after call");
     }
 
+    stackI_ptr base = stack_raise(S, values_size + slots_count + params_count);
+
     struct callinfo *callinfo = gcI_hot_callinfo(S->I);
     if (callinfo == NULL) {
         callinfo = allocI_uni(S->I, NULL, sizeof(struct callinfo));
     }
-
-    stackI_ptr base = stack_raise(S, values_size + slots_count + params_count);
 
     (*callinfo) = (struct callinfo) {
         .s.base = base,
@@ -114,13 +114,6 @@ struct value callstackI_extract_callable(morphine_instance_t I, struct value cal
 repeat:;
     if (counter > 1000000) {
         throwI_message_panic(I, NULL, "Possible recursion while extracting callable");
-    }
-
-    struct value metacall = valueI_nil;
-    if (metatableI_test(I, callable, MF_CALL, &metacall)) {
-        callable = metacall;
-        counter++;
-        goto repeat;
     }
 
     struct closure *closure = valueI_safe_as_closure(callable, NULL);

@@ -32,10 +32,6 @@ void closureI_free(morphine_instance_t I, struct closure *closure) {
     allocI_free(I, closure);
 }
 
-size_t closureI_allocated_size(struct closure *closure) {
-    return sizeof(struct closure) + closure->size * sizeof(struct value);
-}
-
 struct value closureI_get(morphine_state_t S, struct closure *closure, size_t index) {
     if (closure == NULL) {
         throwI_message_panic(S->I, S, "Closure is null");

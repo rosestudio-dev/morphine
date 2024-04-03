@@ -53,13 +53,13 @@ void execute(
         return;
     }
 
-    struct params instance_params = {
+    struct settings settings = {
         .gc.limit_bytes = alloc_limit,
-        .gc.start = 200,
+        .gc.threshold = 8192,
         .gc.grow = 150,
         .gc.deal = 200,
-        .gc.finalizer.stack_limit = 256,
-        .gc.finalizer.stack_grow = 32,
+        .finalizer.stack_limit = 256,
+        .finalizer.stack_grow = 32,
         .states.stack_limit = 4096,
         .states.stack_grow = 64,
     };
@@ -81,7 +81,7 @@ void execute(
         instance_platform.functions.free = dfree;
     }
 
-    morphine_instance_t I = mapi_open(instance_platform, instance_params, NULL);
+    morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
     morphine_state_t S = mapi_state(I);
 
     load_program(S, path, binary);

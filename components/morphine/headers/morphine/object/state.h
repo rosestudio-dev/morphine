@@ -7,20 +7,20 @@
 #include "morphine/stack/structure.h"
 #include "morphine/object.h"
 
-typedef enum {
+enum state_status {
     STATE_STATUS_ATTACHED,
     STATE_STATUS_RUNNING,
     STATE_STATUS_SUSPENDED,
     STATE_STATUS_DEAD,
     STATE_STATUS_DETACHED,
-} state_status_t;
+};
 
-#define STATE_STATUS_COUNT (STATE_STATUS_DEAD + 1)
+#define STATE_STATUS_COUNT (STATE_STATUS_DETACHED + 1)
 
 struct state {
     struct object header;
 
-    state_status_t status;
+    enum state_status status;
     priority_t priority;
 
     struct stack stack;
@@ -33,8 +33,6 @@ morphine_state_t stateI_custom_create(morphine_instance_t, size_t stack_limit, s
 morphine_state_t stateI_create(morphine_instance_t);
 void stateI_free(morphine_instance_t, morphine_state_t state);
 
-size_t stateI_allocated_size(morphine_state_t);
-
 void stateI_priority(morphine_state_t, priority_t);
 void stateI_attach(morphine_state_t);
 void stateI_suspend(morphine_state_t);
@@ -43,5 +41,5 @@ void stateI_kill(morphine_state_t);
 void stateI_kill_regardless(morphine_state_t);
 bool stateI_isalive(morphine_state_t S);
 
-const char *stateI_status2string(morphine_state_t, state_status_t status);
-state_status_t stateI_string2status(morphine_state_t, const char *name);
+const char *stateI_status2string(morphine_state_t, enum state_status status);
+enum state_status stateI_string2status(morphine_state_t, const char *name);

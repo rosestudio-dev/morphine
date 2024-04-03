@@ -49,9 +49,7 @@ static inline bool movegray(morphine_instance_t I) {
 }
 
 bool gcstageI_increment(morphine_instance_t I) {
-    size_t deal = 0;
-    size_t expected_deal = (I->G.bytes.allocated * I->G.settings.deal) / 100;
-
+    size_t checked = 0;
     gcstageI_record(I);
 retry:
     {
@@ -63,7 +61,13 @@ retry:
             current->prev = I->G.pools.white;
             I->G.pools.white = current;
 
-            deal += mark_internal(I, current);
+            mark_internal(I, current);
+
+            size_t temp = checked;
+            checked++;
+            if (unlikely(temp > checked)) {
+                checked = SIZE_MAX;
+            }
 
             current = prev;
         }
@@ -71,13 +75,24 @@ retry:
         I->G.pools.gray = NULL;
     }
 
-    if (!movegray(I)) {
-        return true;
+    bool has_gray = movegray(I);
+
+    if (has_gray) {
+        size_t debtdiv = (I->G.stats.debt / 100);
+        if (unlikely(debtdiv == 0)) {
+            debtdiv = 1;
+        }
+
+        size_t percent = checked / debtdiv;
+
+        if (percent < I->G.settings.deal) {
+            goto retry;
+        }
     }
 
-    if (expected_deal > deal) {
-        goto retry;
+    if (I->G.stats.debt >= checked) {
+        I->G.stats.debt -= checked;
     }
 
-    return false;
+    return !has_gray;
 }

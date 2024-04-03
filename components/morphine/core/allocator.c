@@ -7,7 +7,7 @@
 #include "morphine/core/instance.h"
 #include "morphine/gc/control.h"
 
-struct pointer {
+struct metadata {
     size_t size;
 };
 
@@ -40,25 +40,28 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
         return NULL;
     }
 
-    nsize += sizeof(struct pointer);
+    size_t temp = nsize;
+    nsize += sizeof(struct metadata);
 
-    struct pointer *result;
-    if (likely(p == NULL)) {
+    struct metadata *result;
+    if (unlikely(temp >= nsize)) {
+        throwI_message_panic(I, NULL, "Allocation size is too big");
+    } else if (likely(p == NULL)) {
         change_allocated_size(I, nsize, true);
         gcI_work(I);
 
         result = I->platform.functions.malloc(nsize);
     } else {
-        struct pointer *pointer = p - sizeof(struct pointer);
+        struct metadata *metadata = p - sizeof(struct metadata);
 
-        if (nsize > pointer->size) {
-            change_allocated_size(I, nsize - pointer->size, true);
+        if (nsize > metadata->size) {
+            change_allocated_size(I, nsize - metadata->size, true);
             gcI_work(I);
         } else {
-            change_allocated_size(I, pointer->size - nsize, false);
+            change_allocated_size(I, metadata->size - nsize, false);
         }
 
-        result = I->platform.functions.realloc(pointer, nsize);
+        result = I->platform.functions.realloc(metadata, nsize);
     }
 
     if (unlikely(result == NULL)) {
@@ -69,13 +72,13 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
 
     result->size = nsize;
 
-    return ((void *) result) + sizeof(struct pointer);
+    return ((void *) result) + sizeof(struct metadata);
 }
 
 void allocI_free(morphine_instance_t I, void *p) {
     if (likely(p != NULL)) {
-        struct pointer *pointer = p - sizeof(struct pointer);
-        change_allocated_size(I, pointer->size, false);
-        I->platform.functions.free(pointer);
+        struct metadata *metadata = p - sizeof(struct metadata);
+        change_allocated_size(I, metadata->size, false);
+        I->platform.functions.free(metadata);
     }
 }

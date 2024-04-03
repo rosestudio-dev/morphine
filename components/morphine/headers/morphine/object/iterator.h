@@ -20,8 +20,6 @@ struct iterator {
 struct iterator *iteratorI_create(morphine_instance_t, struct value);
 void iteratorI_free(morphine_instance_t, struct iterator *);
 
-size_t iteratorI_allocated_size(void);
-
 void iteratorI_init(morphine_instance_t, struct iterator *);
 bool iteratorI_has(morphine_instance_t, struct iterator *);
 struct pair iteratorI_next(morphine_instance_t, struct iterator *);

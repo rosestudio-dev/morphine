@@ -5,7 +5,6 @@
 #include "morphine/gc/safe.h"
 #include "morphine/core/instance.h"
 
-
 void gcI_safe(morphine_instance_t I, struct value value) {
     I->G.safe.value = value;
 }

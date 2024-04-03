@@ -81,13 +81,13 @@ static void isenabled(morphine_state_t S) {
     nb_end
 }
 
-static void changestart(morphine_state_t S) {
+static void changethreshold(morphine_state_t S) {
     nb_function(S)
         nb_init
             maux_checkargs(S, 1, "integer");
             mapi_push_arg(S, 0);
             size_t value = mapi_get_size(S);
-            mapi_gc_change_start(mapi_instance(S), value);
+            mapi_gc_change_threshold(mapi_instance(S), value);
             nb_leave();
     nb_end
 }
@@ -192,7 +192,7 @@ static struct maux_construct_field table[] = {
     { "isrunning",                 isrunning },
     { "enable",                    enable },
     { "isenabled",                 isenabled },
-    { "changestart",               changestart },
+    { "changethreshold",           changethreshold },
     { "changedeal",                changedeal },
     { "changegrow",                changegrow },
     { "changefinalizerstacklimit", changefinalizerstacklimit },

@@ -29,8 +29,8 @@ morphine_state_t stateI_custom_create(morphine_instance_t I, size_t stack_limit,
 morphine_state_t stateI_create(morphine_instance_t I) {
     morphine_state_t result = stateI_custom_create(
         I,
-        I->params.states.stack_limit,
-        I->params.states.stack_grow
+        I->settings.states.stack_limit,
+        I->settings.states.stack_grow
     );
 
     return result;
@@ -39,10 +39,6 @@ morphine_state_t stateI_create(morphine_instance_t I) {
 void stateI_free(morphine_instance_t I, morphine_state_t state) {
     stackI_destruct(I, state->stack);
     allocI_free(I, state);
-}
-
-size_t stateI_allocated_size(morphine_state_t S) {
-    return sizeof(struct state) + stackI_allocated_size(S->stack);
 }
 
 void stateI_priority(morphine_state_t S, priority_t priority) {
@@ -141,7 +137,7 @@ bool stateI_isalive(morphine_state_t S) {
     throwI_message_panic(S->I, S, "Unknown status");
 }
 
-const char *stateI_status2string(morphine_state_t S, state_status_t status) {
+const char *stateI_status2string(morphine_state_t S, enum state_status status) {
     switch (status) {
         case STATE_STATUS_ATTACHED:
             return "attached";
@@ -158,8 +154,8 @@ const char *stateI_status2string(morphine_state_t S, state_status_t status) {
     throwI_message_panic(S->I, S, "Unknown status");
 }
 
-state_status_t stateI_string2status(morphine_state_t S, const char *name) {
-    for (state_status_t t = 0; t < STATE_STATUS_COUNT; t++) {
+enum state_status stateI_string2status(morphine_state_t S, const char *name) {
+    for (enum state_status t = 0; t < STATE_STATUS_COUNT; t++) {
         if (strcmp(stateI_status2string(S, t), name) == 0) {
             return t;
         }

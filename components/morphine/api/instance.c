@@ -7,8 +7,8 @@
 #include "morphine/core/interpreter.h"
 #include "morphine/object/state.h"
 
-MORPHINE_API morphine_instance_t mapi_open(struct platform platform, struct params params, void *userdata) {
-    return instanceI_open(platform, params, userdata);
+MORPHINE_API morphine_instance_t mapi_open(struct platform platform, struct settings settings, void *userdata) {
+    return instanceI_open(platform, settings, userdata);
 }
 
 MORPHINE_API void *mapi_userdata(morphine_instance_t I) {

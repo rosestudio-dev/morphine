@@ -16,20 +16,17 @@ static void free_objects(morphine_instance_t I, struct object *pool) {
     }
 }
 
-struct garbage_collector gcI_init(struct params params, size_t inited_size) {
+struct garbage_collector gcI_prototype(struct gc_settings settings, size_t inited_bytes) {
     return (struct garbage_collector) {
         .status = GC_STATUS_IDLE,
         .enabled = false,
-        .cycle = 1,
 
-        .settings.limit_bytes = params.gc.limit_bytes,
-        .settings.start = params.gc.start,
-        .settings.grow = params.gc.grow,
-        .settings.deal = params.gc.deal,
+        .settings = settings,
 
-        .bytes.started = inited_size,
-        .bytes.allocated = inited_size,
-        .bytes.max_allocated = inited_size,
+        .stats.debt = 0,
+
+        .bytes.allocated = inited_bytes,
+        .bytes.max_allocated = inited_bytes,
         .bytes.prev_allocated = 0,
 
         .pools.allocated = NULL,

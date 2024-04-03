@@ -164,12 +164,6 @@ void tableI_free(morphine_instance_t I, struct table *table) {
     allocI_free(I, table);
 }
 
-size_t tableI_allocated_size(struct table *table) {
-    return (sizeof(struct bucket *) * table->hashmap.hashing.size) +
-           (sizeof(struct bucket) * table->hashmap.buckets.count) +
-           sizeof(struct table);
-}
-
 size_t tableI_size(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_message_panic(I, NULL, "Table is null");

@@ -19,7 +19,7 @@ struct proto {
     struct uuid uuid;
     char *name;
 
-    size_t name_chars_count;
+    size_t name_len;
 
     size_t instructions_count;
     size_t constants_count;
@@ -42,7 +42,7 @@ bool protoI_uuid_equal(struct uuid a, struct uuid b);
 struct proto *protoI_create(
     morphine_instance_t,
     struct uuid uuid,
-    size_t name_chars_count,
+    size_t name_len,
     size_t constants_count,
     size_t instructions_count,
     size_t statics_count
@@ -55,5 +55,3 @@ void protoI_static_set(morphine_state_t, struct proto *, size_t index, struct va
 
 struct value protoI_constant_get(morphine_state_t, struct proto *, size_t index);
 void protoI_constant_set(morphine_state_t, struct proto *, size_t index, struct value value);
-
-size_t protoI_allocated_size(struct proto *);

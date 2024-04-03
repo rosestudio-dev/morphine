@@ -7,26 +7,18 @@
 #include <setjmp.h>
 #include "morphine/platform.h"
 #include "morphine/gc/structure.h"
+#include "morphine/core/throw.h"
 #include "metatable.h"
-
-struct throw {
-    bool inited;
-    jmp_buf handler;
-    bool is_message;
-    union {
-        struct value value;
-        const char *message;
-    } result;
-    morphine_state_t cause_state;
-};
 
 struct instance {
     struct platform platform;
-    struct params params;
+    struct settings settings;
     struct require_loader *require_loader_table;
     void *userdata;
 
     struct garbage_collector G;
+    struct throw throw;
+
     morphine_state_t states;
     morphine_state_t candidates;
 
@@ -35,15 +27,13 @@ struct instance {
     struct table *env;
     struct table *registry;
 
-    struct throw throw;
-
     struct {
         struct string *names[MFS_COUNT];
         struct table *defaults[VALUE_TYPES_COUNT];
     } metatable;
 };
 
-morphine_instance_t instanceI_open(struct platform, struct params, void *userdata);
+morphine_instance_t instanceI_open(struct platform, struct settings, void *userdata);
 void instanceI_close(morphine_instance_t);
 
 void instanceI_require_table(morphine_instance_t, struct require_loader *table);

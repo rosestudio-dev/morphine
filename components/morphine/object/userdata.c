@@ -58,12 +58,6 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
     allocI_free(I, userdata);
 }
 
-size_t userdataI_allocated_size(struct userdata *userdata) {
-    return (sizeof(char) * (strlen(userdata->type) + 1)) +
-           (sizeof(struct link) * userdata->links.size) +
-           sizeof(struct userdata);
-}
-
 void userdataI_link(morphine_instance_t I, struct userdata *userdata, struct userdata *linking, bool soft) {
     if (userdata == NULL) {
         throwI_message_panic(I, NULL, "Userdata is null");

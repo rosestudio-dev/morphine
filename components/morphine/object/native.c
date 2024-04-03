@@ -31,7 +31,3 @@ struct native *nativeI_create(morphine_instance_t I, const char *name, morphine_
 void nativeI_free(morphine_instance_t I, struct native *native) {
     allocI_free(I, native);
 }
-
-size_t nativeI_allocated_size(void) {
-    return sizeof(struct native);
-}

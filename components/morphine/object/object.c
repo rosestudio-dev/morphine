@@ -24,9 +24,17 @@ void objectI_init(morphine_instance_t I, struct object *object, enum obj_type ty
     };
 
     I->G.pools.allocated = object;
+
+    if (I->G.stats.debt < SIZE_MAX) {
+        I->G.stats.debt ++;
+    }
 }
 
 void objectI_free(morphine_instance_t I, struct object *object) {
+    if (I->G.stats.debt > 0) {
+        I->G.stats.debt --;
+    }
+
     switch (object->type) {
         case OBJ_TYPE_USERDATA:
             userdataI_free(I, cast(struct userdata *, object));

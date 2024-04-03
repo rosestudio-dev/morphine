@@ -7,17 +7,8 @@
 #include "morphine/gc/finalizer.h"
 #include "morphine/gc/control.h"
 
-static struct throw throw_prototype(void) {
-    return (struct throw) {
-        .inited = false,
-        .cause_state = NULL,
-        .is_message = false,
-        .result.value = valueI_nil,
-    };
-}
-
-morphine_instance_t instanceI_open(struct platform platform, struct params params, void *userdata) {
-    if (sizeof(struct instance) >= params.gc.limit_bytes) {
+morphine_instance_t instanceI_open(struct platform platform, struct settings settings, void *userdata) {
+    if (sizeof(struct instance) >= settings.gc.limit_bytes) {
         platform.functions.signal(NULL);
     }
 
@@ -29,8 +20,8 @@ morphine_instance_t instanceI_open(struct platform platform, struct params param
 
     *I = (struct instance) {
         .platform = platform,
-        .params = params,
-        .G = gcI_init(params, sizeof(struct instance)),
+        .settings = settings,
+        .G = gcI_prototype(settings.gc, sizeof(struct instance)),
         .require_loader_table = NULL,
         .userdata = userdata,
         .env = NULL,
@@ -38,13 +29,12 @@ morphine_instance_t instanceI_open(struct platform platform, struct params param
         .states = NULL,
         .candidates = NULL,
         .interpreter_circle = 0,
-        .throw = throw_prototype()
+        .throw = throwI_prototype()
     };
 
     initI_instance(I);
 
     gcI_init_finalizer(I);
-    gcI_recognize(I);
     gcI_enable(I);
 
     return I;

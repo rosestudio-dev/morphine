@@ -60,8 +60,8 @@ static void finalizer(morphine_state_t S) {
 void gcI_init_finalizer(morphine_instance_t I) {
     morphine_state_t state = stateI_custom_create(
         I,
-        I->params.gc.finalizer.stack_limit,
-        I->params.gc.finalizer.stack_grow
+        I->settings.finalizer.stack_limit,
+        I->settings.finalizer.stack_grow
     );
 
     stateI_priority(state, 1);

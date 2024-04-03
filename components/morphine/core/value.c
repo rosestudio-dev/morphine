@@ -25,8 +25,13 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
             return a.decimal == b.decimal;
         case VALUE_TYPE_BOOLEAN:
             return a.boolean == b.boolean;
-        case VALUE_TYPE_STRING:
-            return strcmp(valueI_as_string(a)->chars, valueI_as_string(b)->chars) == 0;
+        case VALUE_TYPE_STRING: {
+            struct string *str_a = valueI_as_string(a);
+            struct string *str_b = valueI_as_string(b);
+            bool equal_size = str_a->size == str_b->size;
+
+            return equal_size && (memcmp(str_a->chars, str_b->chars, str_a->size) == 0);
+        }
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_CLOSURE:
@@ -47,9 +52,9 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_NIL:
             return valueI_object(stringI_create(I, "nil"));
         case VALUE_TYPE_INTEGER:
-            return valueI_object(stringI_createf(I, "%"MORPHINE_INTEGER_PRINT, value.integer));
+            return valueI_object(stringI_createf(I, "%"MLIMIT_INTEGER_PR, value.integer));
         case VALUE_TYPE_DECIMAL:
-            return valueI_object(stringI_createf(I, "%"MORPHINE_DECIMAL_PRINT, value.decimal));
+            return valueI_object(stringI_createf(I, "%"MLIMIT_DECIMAL_PR, value.decimal));
         case VALUE_TYPE_BOOLEAN:
             return valueI_object(stringI_create(I, value.boolean ? "true" : "false"));
         case VALUE_TYPE_STRING:
@@ -83,7 +88,7 @@ struct value valueI_value2integer(morphine_state_t S, struct value value) {
     if (valueI_is_integer(value)) {
         return value;
     } else if (valueI_is_decimal(value)) {
-        return valueI_integer((morphine_integer_t) valueI_as_decimal(value));
+        return valueI_integer((ml_integer) valueI_as_decimal(value));
     } else if (valueI_is_boolean(value)) {
         if (valueI_as_boolean(value)) {
             return valueI_integer(1);
@@ -94,8 +99,8 @@ struct value valueI_value2integer(morphine_state_t S, struct value value) {
 
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
-        morphine_integer_t integer;
-        if (platformI_string2integer(str->chars, &integer, 10)) {
+        ml_integer integer;
+        if (platformI_string2integer(str->chars, &integer)) {
             return valueI_integer(integer);
         } else {
             throwI_errorf(S, "Cannot convert string '%s' to integer", str->chars);
@@ -107,7 +112,7 @@ struct value valueI_value2integer(morphine_state_t S, struct value value) {
 
 struct value valueI_value2decimal(morphine_state_t S, struct value value) {
     if (valueI_is_integer(value)) {
-        return valueI_decimal((morphine_decimal_t) valueI_as_integer(value));
+        return valueI_decimal((ml_decimal) valueI_as_integer(value));
     } else if (valueI_is_decimal(value)) {
         return value;
     } else if (valueI_is_boolean(value)) {
@@ -120,7 +125,7 @@ struct value valueI_value2decimal(morphine_state_t S, struct value value) {
 
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
-        morphine_decimal_t decimal;
+        ml_decimal decimal;
         if (platformI_string2decimal(str->chars, &decimal)) {
             return valueI_decimal(decimal);
         } else {
