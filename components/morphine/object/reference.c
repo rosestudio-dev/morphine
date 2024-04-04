@@ -3,9 +3,8 @@
 //
 
 #include "morphine/object/reference.h"
-#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
-#include "morphine/utils/unused.h"
+#include "morphine/gc/allocator.h"
 
 struct reference *referenceI_create(morphine_instance_t I, struct value value) {
     size_t alloc_size = sizeof(struct reference);
@@ -27,7 +26,7 @@ void referenceI_free(morphine_instance_t I, struct reference *reference) {
 
 struct value *referenceI_get(morphine_instance_t I, struct reference *reference) {
     if (reference == NULL) {
-        throwI_message_panic(I, NULL, "Reference is null");
+        throwI_error(I, "Reference is null");
     }
 
     return &reference->value;
@@ -35,7 +34,7 @@ struct value *referenceI_get(morphine_instance_t I, struct reference *reference)
 
 void referenceI_set(morphine_instance_t I, struct reference *reference, struct value value) {
     if (reference == NULL) {
-        throwI_message_panic(I, NULL, "Reference is null");
+        throwI_error(I, "Reference is null");
     }
 
     reference->value = value;

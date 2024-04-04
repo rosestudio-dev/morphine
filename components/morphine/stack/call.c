@@ -4,11 +4,11 @@
 
 #include "morphine/stack/call.h"
 #include "morphine/core/instance.h"
-#include "morphine/core/allocator.h"
 #include "morphine/object/string.h"
 #include "morphine/object/proto.h"
 #include "morphine/object/closure.h"
 #include "morphine/gc/hot.h"
+#include "morphine/gc/allocator.h"
 #include "morphine/stack/access.h"
 #include "morphine/object/table.h"
 #include "functions.h"
@@ -18,10 +18,6 @@ static inline void stackI_call(morphine_state_t S, struct value callable, struct
 
     struct value source = callstackI_extract_callable(S->I, callable);
 
-    if (valueI_is_nil(source)) {
-        throwI_errorf(S, "Unable to call %s", valueI_type2string(S->I, callable.type));
-    }
-
     size_t values_size = 6 + argc;
     size_t slots_count = 0;
     size_t params_count = 0;
@@ -30,7 +26,7 @@ static inline void stackI_call(morphine_state_t S, struct value callable, struct
         struct proto *proto = valueI_as_proto(source);
 
         if (argc != proto->arguments_count) {
-            throwI_message_error(S, "Wrong arguments count");
+            throwI_error(S->I, "Wrong arguments count");
         }
 
         slots_count = proto->slots_count;
@@ -43,13 +39,13 @@ static inline void stackI_call(morphine_state_t S, struct value callable, struct
     if (callstackI_info(S) != NULL) {
         env = *callstackI_info(S)->s.env.p;
     } else {
-        env = valueI_object_or_panic(S->I, S, S->I->env);
+        env = valueI_object(S->I->env);
     }
 
     // create callinfo
 
     if (pop_size > stackI_space_size(S)) {
-        throwI_message_error(S, "Cannot pop values after call");
+        throwI_error(S->I, "Cannot pop values after call");
     }
 
     stackI_ptr base = stack_raise(S, values_size + slots_count + params_count);
@@ -82,6 +78,7 @@ static inline void stackI_call(morphine_state_t S, struct value callable, struct
     };
 
     callstackI_info(S) = callinfo;
+    S->stack.callstack_size ++;
 
     // init callinfo stack region
 
@@ -95,7 +92,7 @@ static inline struct callinfo *checkargs(morphine_state_t S, size_t argc) {
     struct callinfo *callinfo = callstackI_info_or_error(S);
 
     if (argc != callinfo->arguments_count) {
-        throwI_message_error(S, "Wrong arguments count");
+        throwI_error(S->I, "Wrong arguments count");
     }
 
     return callinfo;
@@ -113,7 +110,7 @@ struct value callstackI_extract_callable(morphine_instance_t I, struct value cal
     size_t counter = 0;
 repeat:;
     if (counter > 1000000) {
-        throwI_message_panic(I, NULL, "Possible recursion while extracting callable");
+        throwI_error(I, "Possible recursion while extracting callable");
     }
 
     struct closure *closure = valueI_safe_as_closure(callable, NULL);
@@ -127,7 +124,7 @@ repeat:;
         return callable;
     }
 
-    return valueI_nil;
+    throwI_error(I, "Cannot extract callable value");
 }
 
 void callstackI_unsafe(
@@ -145,7 +142,7 @@ void callstackI_unsafe(
         stackI_push(S, args_table);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_size2integer(S, i);
+            struct value key = valueI_size2integer(S->I, i);
             struct value arg = args[i];
 
             tableI_set(S->I, table, key, arg);
@@ -176,7 +173,7 @@ void callstackI_stack(
         stackI_push(S, args_table);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_size2integer(S, i);
+            struct value key = valueI_size2integer(S->I, i);
             struct value arg = stackI_peek(S, argc - i + offset);
 
             tableI_set(S->I, table, key, arg);
@@ -205,10 +202,10 @@ void callstackI_params(
     size_t pop_size
 ) {
     struct callinfo *callinfo = callstackI_info_or_error(S);
-    size_t params_count = valueI_as_proto_or_error(S, *(callinfo->s.source.p))->params_count;
+    size_t params_count = valueI_as_proto_or_error(S->I, *(callinfo->s.source.p))->params_count;
 
     if (params_count < argc) {
-        throwI_message_error(S, "Arguments count is greater than params count");
+        throwI_error(S->I, "Arguments count is greater than params count");
     }
 
     struct value mt_field;
@@ -218,7 +215,7 @@ void callstackI_params(
         stackI_push(S, args_table);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_size2integer(S, i);
+            struct value key = valueI_size2integer(S->I, i);
             struct value arg = callinfo->s.params.p[i];
 
             tableI_set(S->I, table, key, arg);
@@ -246,6 +243,7 @@ void callstackI_pop(morphine_state_t S) {
     stack_reduce(S, (size_t) (callinfo->s.top.p - callinfo->s.base.p));
 
     callstackI_info(S) = callinfo->prev;
+    S->stack.callstack_size --;
 
     gcI_dispose_callinfo(S->I, callinfo);
 

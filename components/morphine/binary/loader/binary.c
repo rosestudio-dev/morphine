@@ -8,7 +8,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
 #include "morphine/stack/access.h"
-#include "morphine/core/allocator.h"
+#include "morphine/gc/allocator.h"
 #include <string.h>
 
 struct data {
@@ -301,7 +301,7 @@ static struct value get_constant(struct data *data) {
 static void load_constants(struct data *data, struct proto *proto) {
     for (size_t i = 0; i < proto->constants_count; i++) {
         protoI_constant_set(
-            data->S,
+            data->S->I,
             proto,
             i,
             get_constant(data)

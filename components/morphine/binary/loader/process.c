@@ -5,6 +5,7 @@
 #include "process.h"
 #include "morphine/stack/access.h"
 #include "morphine/core/throw.h"
+#include "morphine/object/state.h"
 
 struct process_state {
     morphine_state_t S;
@@ -42,7 +43,7 @@ struct proto *process(
             finish(S, process_state.data);
         }
 
-        throwI_message_error(S, process_state.message);
+        throwI_error(S->I, process_state.message);
     } else {
         result = loader(S, &process_state);
 

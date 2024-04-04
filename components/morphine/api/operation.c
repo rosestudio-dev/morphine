@@ -371,5 +371,5 @@ MORPHINE_API bool mapi_op(morphine_state_t S, const char *op) {
         }
     }
 
-    throwI_errorf(S, "Undefined %s operation", op);
+    throwI_errorf(S->I, "Undefined %s operation", op);
 }

@@ -4,9 +4,9 @@
 
 #include "morphine/object/proto.h"
 #include "morphine/object/state.h"
-#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/gc/allocator.h"
 #include <string.h>
 
 bool protoI_uuid_equal(struct uuid a, struct uuid b) {
@@ -72,25 +72,25 @@ void protoI_free(morphine_instance_t I, struct proto *proto) {
     allocI_free(I, proto);
 }
 
-struct value protoI_static_get(morphine_state_t S, struct proto *proto, size_t index) {
+struct value protoI_static_get(morphine_instance_t I, struct proto *proto, size_t index) {
     if (proto == NULL) {
-        throwI_message_panic(S->I, S, "Proto is null");
+        throwI_error(I, "Proto is null");
     }
 
     if (index >= proto->statics_count) {
-        throwI_message_error(S, "Static index was out of bounce");
+        throwI_error(I, "Static index was out of bounce");
     }
 
     return proto->statics[index];
 }
 
-void protoI_static_set(morphine_state_t S, struct proto *proto, size_t index, struct value value) {
+void protoI_static_set(morphine_instance_t I, struct proto *proto, size_t index, struct value value) {
     if (proto == NULL) {
-        throwI_message_panic(S->I, S, "Proto is null");
+        throwI_error(I, "Proto is null");
     }
 
     if (index >= proto->statics_count) {
-        throwI_message_error(S, "Static index was out of bounce");
+        throwI_error(I, "Static index was out of bounce");
     }
 
     gcI_barrier(proto, value);
@@ -98,25 +98,25 @@ void protoI_static_set(morphine_state_t S, struct proto *proto, size_t index, st
 }
 
 
-struct value protoI_constant_get(morphine_state_t S, struct proto *proto, size_t index) {
+struct value protoI_constant_get(morphine_instance_t I, struct proto *proto, size_t index) {
     if (proto == NULL) {
-        throwI_message_panic(S->I, S, "Proto is null");
+        throwI_error(I, "Proto is null");
     }
 
     if (index >= proto->constants_count) {
-        throwI_message_error(S, "Constant index was out of bounce");
+        throwI_error(I, "Constant index was out of bounce");
     }
 
     return proto->constants[index];
 }
 
-void protoI_constant_set(morphine_state_t S, struct proto *proto, size_t index, struct value value) {
+void protoI_constant_set(morphine_instance_t I, struct proto *proto, size_t index, struct value value) {
     if (proto == NULL) {
-        throwI_message_panic(S->I, S, "Proto is null");
+        throwI_error(I, "Proto is null");
     }
 
     if (index >= proto->constants_count) {
-        throwI_message_error(S, "Constant index was out of bounce");
+        throwI_error(I, "Constant index was out of bounce");
     }
 
     gcI_barrier(proto, value);

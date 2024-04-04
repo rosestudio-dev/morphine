@@ -8,6 +8,7 @@
 #include "morphine/object.h"
 
 enum state_status {
+    STATE_STATUS_CREATED,
     STATE_STATUS_ATTACHED,
     STATE_STATUS_RUNNING,
     STATE_STATUS_SUSPENDED,

@@ -3,8 +3,8 @@
 //
 
 #include "morphine/object/string.h"
-#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
+#include "morphine/gc/allocator.h"
 #include <stdio.h>
 #include <string.h>
 
@@ -50,7 +50,7 @@ struct string *stringI_createva(morphine_instance_t I, const char *str, va_list 
     va_end(temp);
 
     if (rawsize < 0) {
-        throwI_message_panic(I, NULL, "Cannot parse cformat");
+        throwI_error(I, "Cannot parse cformat");
     }
 
     size_t size = (size_t) rawsize;
@@ -80,7 +80,7 @@ void stringI_free(morphine_instance_t I, struct string *string) {
 
 struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
     if (a == NULL || b == NULL) {
-        throwI_message_panic(I, NULL, "Reference is null");
+        throwI_error(I, "Reference is null");
     }
 
     char *buffer;

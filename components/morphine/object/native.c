@@ -3,16 +3,16 @@
 //
 
 #include "morphine/object/native.h"
-#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
+#include "morphine/gc/allocator.h"
 
 struct native *nativeI_create(morphine_instance_t I, const char *name, morphine_native_t function) {
     if (name == NULL) {
-        throwI_message_panic(I, NULL, "Native name is null");
+        throwI_error(I, "Native name is null");
     }
 
     if (function == NULL) {
-        throwI_message_panic(I, NULL, "Native function is null");
+        throwI_error(I, "Native function is null");
     }
 
     struct native *result = allocI_uni(I, NULL, sizeof(struct native));

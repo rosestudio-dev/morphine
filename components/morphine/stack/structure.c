@@ -3,16 +3,16 @@
 //
 
 #include "morphine/stack/structure.h"
-#include "morphine/core/allocator.h"
+#include "morphine/gc/allocator.h"
 #include "morphine/stack/call.h"
 
 struct stack stackI_initial(morphine_instance_t I, size_t limit, size_t grow) {
     if (grow == 0) {
-        throwI_message_panic(I, NULL, "Stack grow size is zero");
+        throwI_panic(I, "Stack grow size is zero");
     }
 
     if (limit == 0) {
-        throwI_message_panic(I, NULL, "Stack limit is zero");
+        throwI_panic(I, "Stack limit is zero");
     }
 
     return (struct stack) {
@@ -21,6 +21,7 @@ struct stack stackI_initial(morphine_instance_t I, size_t limit, size_t grow) {
         .top = 0,
         .settings.grow = grow,
         .settings.limit = limit,
+        .callstack_size = 0,
         .callstack = NULL
     };
 }

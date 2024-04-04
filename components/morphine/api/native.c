@@ -14,14 +14,14 @@ MORPHINE_API void mapi_push_native(morphine_state_t S, const char *name, morphin
 
 MORPHINE_API const char *mapi_native_name(morphine_state_t S) {
     struct value value = stackI_peek(S, 1);
-    struct native *native = valueI_as_native_or_error(S, value);
+    struct native *native = valueI_as_native_or_error(S->I, value);
 
     return native->name;
 }
 
 MORPHINE_API morphine_native_t mapi_native_function(morphine_state_t S) {
     struct value value = stackI_peek(S, 1);
-    struct native *native = valueI_as_native_or_error(S, value);
+    struct native *native = valueI_as_native_or_error(S->I, value);
 
     return native->function;
 }

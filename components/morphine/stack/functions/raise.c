@@ -6,11 +6,11 @@
 
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
-#include "morphine/core/allocator.h"
+#include "morphine/gc/allocator.h"
 
 stackI_ptr stack_raise(morphine_state_t S, size_t size) {
     if (size == 0) {
-        throwI_message_panic(S->I, S, "Raise size is zero");
+        throwI_error(S->I, "Raise size is zero");
     }
 
     struct stack *stack = &S->stack;
@@ -18,7 +18,7 @@ stackI_ptr stack_raise(morphine_state_t S, size_t size) {
     stackI_ptr result = stack_ptr(stack->allocated + stack->top);
 
     if (size > SIZE_MAX - stack->top) {
-        throwI_message_panic(S->I, S, "Raise top overflow");
+        throwI_error(S->I, "Raise top overflow");
     }
 
     if (stack->top + size >= stack->size) {
@@ -27,11 +27,11 @@ stackI_ptr stack_raise(morphine_state_t S, size_t size) {
         size_t new_size = stack->size + raise_size;
 
         if (raise_size > SIZE_MAX - stack->size) {
-            throwI_message_panic(S->I, S, "Raise size overflow");
+            throwI_error(S->I, "Raise size overflow");
         }
 
         if (new_size >= S->stack.settings.limit) {
-            throwI_message_error(S, "Stack overflow");
+            throwI_error(S->I, "Stack overflow");
         }
 
         stack_save(stack);

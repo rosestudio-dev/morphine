@@ -5,7 +5,7 @@
 #include "morphine/object/closure.h"
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
-#include "morphine/core/allocator.h"
+#include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 
 struct closure *closureI_create(morphine_instance_t I, struct value callable, size_t size) {
@@ -32,25 +32,25 @@ void closureI_free(morphine_instance_t I, struct closure *closure) {
     allocI_free(I, closure);
 }
 
-struct value closureI_get(morphine_state_t S, struct closure *closure, size_t index) {
+struct value closureI_get(morphine_instance_t I, struct closure *closure, size_t index) {
     if (closure == NULL) {
-        throwI_message_panic(S->I, S, "Closure is null");
+        throwI_error(I, "Closure is null");
     }
 
     if (index >= closure->size) {
-        throwI_message_error(S, "Closure index was out of bounce");
+        throwI_error(I, "Closure index was out of bounce");
     }
 
     return closure->values[index];
 }
 
-void closureI_set(morphine_state_t S, struct closure *closure, size_t index, struct value value) {
+void closureI_set(morphine_instance_t I, struct closure *closure, size_t index, struct value value) {
     if (closure == NULL) {
-        throwI_message_panic(S->I, S, "Closure is null");
+        throwI_error(I, "Closure is null");
     }
 
     if (index >= closure->size) {
-        throwI_message_error(S, "Closure index was out of bounce");
+        throwI_error(I, "Closure index was out of bounce");
     }
 
     gcI_barrier(closure, value);

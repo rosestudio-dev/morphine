@@ -2,10 +2,10 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 #include "morphine/gc/control.h"
+#include "morphine/gc/allocator.h"
 
 struct metadata {
     size_t size;
@@ -25,7 +25,7 @@ static inline void change_allocated_size(morphine_instance_t I, size_t grow_size
         }
     }
 
-    throwI_message_panic(I, NULL, "Allocation size was corrupted");
+    throwI_panic(I, "Allocation size was corrupted");
 }
 
 static inline void calculate_max_alloc_size(morphine_instance_t I) {
@@ -45,7 +45,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
 
     struct metadata *result;
     if (unlikely(temp >= nsize)) {
-        throwI_message_panic(I, NULL, "Allocation size is too big");
+        throwI_panic(I, "Allocation size is too big");
     } else if (likely(p == NULL)) {
         change_allocated_size(I, nsize, true);
         gcI_work(I);
@@ -65,7 +65,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
     }
 
     if (unlikely(result == NULL)) {
-        throwI_message_panic(I, NULL, "Allocation fault");
+        throwI_panic(I, "Allocation fault");
     }
 
     calculate_max_alloc_size(I);

@@ -50,8 +50,8 @@ struct proto *protoI_create(
 
 void protoI_free(morphine_instance_t, struct proto *);
 
-struct value protoI_static_get(morphine_state_t, struct proto *, size_t index);
-void protoI_static_set(morphine_state_t, struct proto *, size_t index, struct value value);
+struct value protoI_static_get(morphine_instance_t, struct proto *, size_t index);
+void protoI_static_set(morphine_instance_t, struct proto *, size_t index, struct value value);
 
-struct value protoI_constant_get(morphine_state_t, struct proto *, size_t index);
-void protoI_constant_set(morphine_state_t, struct proto *, size_t index, struct value value);
+struct value protoI_constant_get(morphine_instance_t, struct proto *, size_t index);
+void protoI_constant_set(morphine_instance_t, struct proto *, size_t index, struct value value);

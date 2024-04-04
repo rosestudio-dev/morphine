@@ -34,7 +34,7 @@ static inline void resolve_refs(morphine_instance_t I) {
 
 static inline void shrink(morphine_instance_t I) {
     {
-        morphine_state_t current = I->states;
+        morphine_state_t current = I->E.states;
         while (current != NULL) {
             stackI_shrink(current);
             current = current->prev;

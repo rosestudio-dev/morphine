@@ -16,19 +16,19 @@ MORPHINE_API morphine_noret void mapi_errorf(morphine_state_t S, const char *str
     struct string *result = stringI_createva(S->I, str, args);
     va_end(args);
 
-    throwI_error(S, valueI_object(result));
+    throwI_errorv(S->I, valueI_object(result));
 }
 
 MORPHINE_API morphine_noret void mapi_error(morphine_state_t S) {
-    throwI_error(S, stackI_peek(S, 0));
+    throwI_errorv(S->I, stackI_peek(S, 0));
 }
 
 MORPHINE_API morphine_noret void mapi_panic(morphine_state_t S, const char *message) {
     if (message == NULL) {
         struct value value = stackI_peek(S, 0);
-        throwI_panic(S->I, S, value);
+        throwI_panicv(S->I, value);
     } else {
-        throwI_message_panic(S->I, S, message);
+        throwI_panic(S->I, message);
     }
 }
 
@@ -45,5 +45,5 @@ MORPHINE_API const char *mapi_get_panic_message(morphine_instance_t I) {
         return "Initial error";
     }
 
-    return throwI_get_panic_message(I);
+    return throwI_message(I);
 }

@@ -190,7 +190,7 @@ sp_case(OPCODE_JUMP_IF)
             {
                 struct value cond = slot(C, arg1);
 
-                if (valueI_as_boolean_or_error(S, cond)) {
+                if (valueI_as_boolean_or_error(S->I, cond)) {
                     *position = arg2.value;
                 } else {
                     *position = arg3.value;
@@ -200,22 +200,22 @@ sp_case(OPCODE_JUMP_IF)
             }
 sp_case(OPCODE_GET_STATIC)
             {
-                slot(C, arg2) = protoI_static_get(S, P, arg1.value);
+                slot(C, arg2) = protoI_static_get(S->I, P, arg1.value);
                 sp_end();
             }
 sp_case(OPCODE_SET_STATIC)
             {
-                protoI_static_set(S, P, arg1.value, slot(C, arg2));
+                protoI_static_set(S->I, P, arg1.value, slot(C, arg2));
                 sp_end();
             }
 sp_case(OPCODE_GET_CLOSURE)
             {
-                slot(C, arg2) = closureI_get(S, valueI_as_closure_or_error(S, *C->s.callable.p), arg1.value);
+                slot(C, arg2) = closureI_get(S->I, valueI_as_closure_or_error(S->I, *C->s.callable.p), arg1.value);
                 sp_end();
             }
 sp_case(OPCODE_SET_CLOSURE)
             {
-                closureI_set(S, valueI_as_closure_or_error(S, *C->s.callable.p), arg1.value, slot(C, arg2));
+                closureI_set(S->I, valueI_as_closure_or_error(S->I, *C->s.callable.p), arg1.value, slot(C, arg2));
                 sp_end();
             }
 sp_case(OPCODE_CLOSURE)
@@ -229,7 +229,7 @@ sp_case(OPCODE_CLOSURE)
                 struct value result = valueI_object(closure);
 
                 for (size_t i = 0; i < count; i++) {
-                    closureI_set(S, closure, i, params[i]);
+                    closureI_set(S->I, closure, i, params[i]);
                 }
 
                 slot(C, arg3) = result;
@@ -485,8 +485,10 @@ static inline void step(morphine_state_t S) {
 
     if (unlikely(callinfo == NULL)) {
         S->status = STATE_STATUS_DEAD;
-        throwI_message_error(S, "Require callinfo");
+        return;
     }
+
+    S->I->E.throw.context_state = S;
 
     struct value source = *callinfo->s.source.p;
 
@@ -498,25 +500,29 @@ static inline void step(morphine_state_t S) {
         struct native *native = valueI_as_native(source);
         native->function(S);
     } else {
-        throwI_message_error(S, "Attempt to execute unsupported callable");
+        throwI_error(S->I, "Attempt to execute unsupported callable");
     }
 
     if (unlikely(callinfo->exit)) {
         callstackI_pop(S);
     }
+
+    S->I->E.throw.context_state = NULL;
 }
 
 static inline void attach_candidates(morphine_instance_t I) {
-    if (unlikely(I->candidates != NULL)) {
-        morphine_state_t state = I->candidates;
-        I->candidates = state->prev;
-
-        state->prev = I->states;
-        I->states = state;
+    if (unlikely(I->E.candidates != NULL)) {
+        morphine_state_t state = I->E.candidates;
 
         if (state->status == STATE_STATUS_ATTACHED) {
             state->status = STATE_STATUS_RUNNING;
+        } else {
+            throwI_panic(I, "Unexpected candidate coroutine state");
         }
+
+        I->E.candidates = state->prev;
+        state->prev = I->E.states;
+        I->E.states = state;
     }
 }
 
@@ -524,7 +530,7 @@ static inline void execute(morphine_instance_t I) {
     attach_candidates(I);
 
     morphine_state_t last = NULL;
-    morphine_state_t current = I->states;
+    morphine_state_t current = I->E.states;
 
     for (;;) {
         if (unlikely(I->G.finalizer.work && I->G.finalizer.state != NULL)) {
@@ -533,25 +539,25 @@ static inline void execute(morphine_instance_t I) {
             if (current == NULL) {
                 attach_candidates(I);
 
-                if (I->states == NULL) {
+                if (I->E.states == NULL) {
                     continue;
                 }
 
-                current = I->states;
+                current = I->E.states;
             }
         } else if (unlikely(current == NULL)) {
             break;
         }
 
-        bool is_current_circle = (I->interpreter_circle % current->priority) == 0;
+        bool is_current_circle = (I->E.circle % current->priority) == 0;
 
         if (likely(is_current_circle && (current->status == STATE_STATUS_RUNNING))) {
             step(current);
         }
 
-        if (unlikely((current->status == STATE_STATUS_DEAD) || (current->status == STATE_STATUS_DETACHED))) {
+        if (unlikely(current->status == STATE_STATUS_DEAD)) {
             if (last == NULL) {
-                I->states = current->prev;
+                I->E.states = current->prev;
             } else {
                 last->prev = current->prev;
             }
@@ -566,25 +572,34 @@ static inline void execute(morphine_instance_t I) {
             attach_candidates(I);
 
             last = NULL;
-            current = I->states;
+            current = I->E.states;
 
             if (unlikely(current == NULL)) {
                 gcI_full(I);
             }
 
-            I->interpreter_circle++;
+            I->E.circle++;
         }
     }
 }
 
 void interpreterI_run(morphine_instance_t I) {
-    if (setjmp(I->throw.handler) != 0) {
+    if (setjmp(I->E.throw.handler) != 0) {
         throwI_handler(I);
     }
 
-    I->throw.inited = true;
+    I->E.throw.inited = true;
 
     execute(I);
 
-    I->throw.inited = false;
+    I->E.throw.inited = false;
+}
+
+struct interpreter interpreterI_prototype(void) {
+    return (struct interpreter) {
+        .states = NULL,
+        .candidates = NULL,
+        .circle = 0,
+        .throw = throwI_prototype(),
+    };
 }

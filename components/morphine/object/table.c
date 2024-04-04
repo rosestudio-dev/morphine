@@ -6,8 +6,8 @@
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
 #include "morphine/object/state.h"
-#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
+#include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 
 static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
@@ -44,7 +44,7 @@ static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
             return (uint64_t) valueI_as_object(value);
     }
 
-    throwI_message_panic(I, NULL, "Unknown value type");
+    throwI_panic(I, "Unknown value type");
 }
 
 static inline void insert_bucket(struct table *table, struct bucket *bucket) {
@@ -166,7 +166,7 @@ void tableI_free(morphine_instance_t I, struct table *table) {
 
 size_t tableI_size(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
-        throwI_message_panic(I, NULL, "Table is null");
+        throwI_error(I, "Table is null");
     }
 
     return table->hashmap.buckets.count;
@@ -174,7 +174,7 @@ size_t tableI_size(morphine_instance_t I, struct table *table) {
 
 void tableI_set(morphine_instance_t I, struct table *table, struct value key, struct value value) {
     if (table == NULL) {
-        throwI_message_panic(I, NULL, "Table is null");
+        throwI_error(I, "Table is null");
     }
 
     gcI_barrier(table, key);
@@ -217,7 +217,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
 
 struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
     if (table == NULL) {
-        throwI_message_panic(I, NULL, "Table is null");
+        throwI_error(I, "Table is null");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -237,7 +237,7 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
 
 bool tableI_remove(morphine_instance_t I, struct table *table, struct value key) {
     if (table == NULL) {
-        throwI_message_panic(I, NULL, "Table is null");
+        throwI_error(I, "Table is null");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -278,7 +278,7 @@ bool tableI_remove(morphine_instance_t I, struct table *table, struct value key)
 
 void tableI_clear(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
-        throwI_message_panic(I, NULL, "Table is null");
+        throwI_error(I, "Table is null");
     }
 
     struct bucket *current = table->hashmap.buckets.head;
@@ -303,7 +303,7 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
 
 struct value tableI_first(morphine_instance_t I, struct table *table, bool *has) {
     if (table == NULL) {
-        throwI_message_panic(I, NULL, "Table is null");
+        throwI_error(I, "Table is null");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -327,7 +327,7 @@ struct pair tableI_next(
     bool *next
 ) {
     if (table == NULL) {
-        throwI_message_panic(I, NULL, "Table is null");
+        throwI_error(I, "Table is null");
     }
 
     if (key == NULL) {

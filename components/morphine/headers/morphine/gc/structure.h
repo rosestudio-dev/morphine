@@ -47,7 +47,8 @@ struct garbage_collector {
     } finalizer;
 
     struct {
-        struct value value;
+        size_t index;
+        struct value stack[8];
     } safe;
 
     struct callinfo *callinfo_trash;

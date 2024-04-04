@@ -54,7 +54,7 @@ static void finalizer(morphine_state_t S) {
         return;
     }
 
-    throwI_message_panic(I, S, "Undefined gc finalizer's state");
+    throwI_panic(I, "Undefined gc finalizer's state");
 }
 
 void gcI_init_finalizer(morphine_instance_t I) {

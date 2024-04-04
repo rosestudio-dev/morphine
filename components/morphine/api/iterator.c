@@ -17,21 +17,21 @@ MORPHINE_API void mapi_iterator(morphine_state_t S) {
 
 MORPHINE_API void mapi_iterator_init(morphine_state_t S) {
     struct value value = stackI_peek(S, 0);
-    struct iterator *iterator = valueI_as_iterator_or_error(S, value);
+    struct iterator *iterator = valueI_as_iterator_or_error(S->I, value);
 
     iteratorI_init(S->I, iterator);
 }
 
 MORPHINE_API bool mapi_iterator_has(morphine_state_t S) {
     struct value value = stackI_peek(S, 0);
-    struct iterator *iterator = valueI_as_iterator_or_error(S, value);
+    struct iterator *iterator = valueI_as_iterator_or_error(S->I, value);
 
     return iteratorI_has(S->I, iterator);
 }
 
 MORPHINE_API void mapi_iterator_next(morphine_state_t S) {
     struct value value = stackI_peek(S, 0);
-    struct iterator *iterator = valueI_as_iterator_or_error(S, value);
+    struct iterator *iterator = valueI_as_iterator_or_error(S->I, value);
 
     struct pair pair = iteratorI_next(S->I, iterator);
 

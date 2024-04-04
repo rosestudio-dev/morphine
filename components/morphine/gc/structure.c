@@ -5,6 +5,7 @@
 #include "morphine/gc/structure.h"
 #include "morphine/object.h"
 #include "morphine/stack/call.h"
+#include "morphine/gc/safe.h"
 
 static void free_objects(morphine_instance_t I, struct object *pool) {
     struct object *current = pool;
@@ -17,7 +18,7 @@ static void free_objects(morphine_instance_t I, struct object *pool) {
 }
 
 struct garbage_collector gcI_prototype(struct gc_settings settings, size_t inited_bytes) {
-    return (struct garbage_collector) {
+    struct garbage_collector G = {
         .status = GC_STATUS_IDLE,
         .enabled = false,
 
@@ -38,10 +39,18 @@ struct garbage_collector gcI_prototype(struct gc_settings settings, size_t inite
         .finalizer.state = NULL,
         .finalizer.work = false,
 
-        .safe.value = valueI_nil,
+        .safe.index = 0,
 
         .callinfo_trash = NULL,
     };
+
+    size_t size = sizeof(G.safe.stack) / sizeof(struct value);
+
+    for (size_t i = 0; i < size; i++) {
+        G.safe.stack[i] = valueI_nil;
+    }
+
+    return G;
 }
 
 void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {

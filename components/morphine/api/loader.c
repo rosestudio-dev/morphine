@@ -7,6 +7,7 @@
 #include "morphine/utils/unused.h"
 #include "morphine/core/throw.h"
 #include "morphine/stack/access.h"
+#include "morphine/object/state.h"
 #include <stddef.h>
 
 struct loader_array {
@@ -19,7 +20,7 @@ static void *loader_array_open(morphine_state_t S, void *data) {
     struct loader_array *array = cast(struct loader_array *, data);
 
     if (array->size == 0 || array->vector == NULL) {
-        throwI_message_error(S, "Binary vector is empty");
+        throwI_error(S->I, "Binary vector is empty");
     }
 
     array->pointer = 0;

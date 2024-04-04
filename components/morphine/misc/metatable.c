@@ -2,7 +2,7 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include "morphine/core/metatable.h"
+#include "morphine/misc/metatable.h"
 #include "morphine/object.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
@@ -13,7 +13,7 @@
 #include "morphine/gc/barrier.h"
 #include <string.h>
 
-void metatableI_set(morphine_state_t S, struct value value, struct table *metatable) {
+void metatableI_set(morphine_instance_t I, struct value value, struct table *metatable) {
     {
         struct table *table = valueI_safe_as_table(value, NULL);
         if (table != NULL) {
@@ -36,7 +36,7 @@ void metatableI_set(morphine_state_t S, struct value value, struct table *metata
         }
     }
 
-    throwI_errorf(S, "Metatable can be set to %s", valueI_type2string(S->I, value.type));
+    throwI_errorf(I, "Metatable can be set to %s", valueI_type2string(I, value.type));
 }
 
 void metatableI_set_default(morphine_instance_t I, enum value_type type, struct table *metatable) {
@@ -67,17 +67,17 @@ static inline struct table *get_metatable(morphine_instance_t I, struct value va
     return metatable;
 }
 
-struct value metatableI_get(morphine_state_t S, struct value value) {
-    struct table *metatable = get_metatable(S->I, value);
+struct value metatableI_get(morphine_instance_t I, struct value value) {
+    struct table *metatable = get_metatable(I, value);
 
     if (metatable == NULL) {
         return valueI_nil;
     }
 
-    struct value field_name = valueI_object(S->I->metatable.names[MF_MASK]);
+    struct value field_name = valueI_object(I->metatable.names[MF_MASK]);
 
     bool has = false;
-    struct value lock_value = tableI_get(S->I, metatable, field_name, &has);
+    struct value lock_value = tableI_get(I, metatable, field_name, &has);
 
     if (has) {
         return lock_value;
@@ -162,15 +162,15 @@ const char *metatableI_field2string(morphine_instance_t I, enum metatable_field 
             return "_mf_iterator_next";
     }
 
-    throwI_message_panic(I, NULL, "Unsupported meta field");
+    throwI_panic(I, "Unsupported meta field");
 }
 
-enum metatable_field metatableI_string2field(morphine_state_t S, const char *name) {
+enum metatable_field metatableI_string2field(morphine_instance_t I, const char *name) {
     for (enum metatable_field field = MFS_START; field < MFS_COUNT; field++) {
-        if (strcmp(metatableI_field2string(S->I, field), name) == 0) {
+        if (strcmp(metatableI_field2string(I, field), name) == 0) {
             return field;
         }
     }
 
-    throwI_errorf(S, "Unknown type '%s'", name);
+    throwI_errorf(I, "Unknown type '%s'", name);
 }

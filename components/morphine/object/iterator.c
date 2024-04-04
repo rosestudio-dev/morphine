@@ -3,15 +3,15 @@
 //
 
 #include "morphine/object/iterator.h"
-#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/object/table.h"
+#include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 
 struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
     struct table *table = valueI_safe_as_table(value, NULL);
     if (table == NULL) {
-        throwI_message_panic(I, NULL, "Iterator only supports table");
+        throwI_error(I, "Iterator only supports table");
     }
 
     struct iterator *result = allocI_uni(I, NULL, sizeof(struct iterator));
@@ -33,7 +33,7 @@ void iteratorI_free(morphine_instance_t I, struct iterator *iterator) {
 
 void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
     if (iterator == NULL) {
-        throwI_message_panic(I, NULL, "Iterator is null");
+        throwI_error(I, "Iterator is null");
     }
 
     iterator->next.key = tableI_first(
@@ -46,7 +46,7 @@ void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
 
 bool iteratorI_has(morphine_instance_t I, struct iterator *iterator) {
     if (iterator == NULL) {
-        throwI_message_panic(I, NULL, "Iterator is null");
+        throwI_error(I, "Iterator is null");
     }
 
     return iterator->next.has;
@@ -54,7 +54,7 @@ bool iteratorI_has(morphine_instance_t I, struct iterator *iterator) {
 
 struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
     if (iterator == NULL) {
-        throwI_message_panic(I, NULL, "Iterator is null");
+        throwI_error(I, "Iterator is null");
     }
 
     struct pair result = tableI_next(

@@ -8,25 +8,23 @@
 
 void gcstageI_record(morphine_instance_t I) {
     {
-        morphine_state_t current_state = I->states;
+        morphine_state_t current_state = I->E.states;
         while (current_state != NULL) {
             mark_object(objectI_cast(current_state));
             mark_internal(I, objectI_cast(current_state));
             current_state = current_state->prev;
+        }
+
+        morphine_state_t candidate = I->E.candidates;
+        while (candidate != NULL) {
+            mark_object(objectI_cast(candidate));
+            mark_internal(I, objectI_cast(candidate));
+            candidate = candidate->prev;
         }
 
         if (I->G.finalizer.state != NULL) {
             mark_object(objectI_cast(I->G.finalizer.state));
             mark_internal(I, objectI_cast(I->G.finalizer.state));
-        }
-    }
-
-    {
-        morphine_state_t current_state = I->candidates;
-        while (current_state != NULL) {
-            mark_object(objectI_cast(current_state));
-            mark_internal(I, objectI_cast(current_state));
-            current_state = current_state->prev;
         }
     }
 
@@ -53,8 +51,8 @@ void gcstageI_record(morphine_instance_t I) {
         }
     }
 
-    if (!I->throw.is_message) {
-        mark_value(I->throw.result.value);
+    if (!I->E.throw.is_message) {
+        mark_value(I->E.throw.error.value);
     }
 
     if (I->env != NULL) {
@@ -65,5 +63,11 @@ void gcstageI_record(morphine_instance_t I) {
         mark_object(objectI_cast(I->registry));
     }
 
-    mark_value(I->G.safe.value);
+    {
+        size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
+
+        for (size_t i = 0; i < size; i++) {
+            mark_value(I->G.safe.stack[i]);
+        }
+    }
 }

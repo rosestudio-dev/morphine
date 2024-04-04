@@ -4,8 +4,8 @@
 
 #include <string.h>
 #include "morphine/object/userdata.h"
-#include "morphine/core/allocator.h"
 #include "morphine/core/throw.h"
+#include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 
 struct userdata *userdataI_create(
@@ -16,7 +16,7 @@ struct userdata *userdataI_create(
     morphine_userdata_free_t free
 ) {
     if (type == NULL) {
-        throwI_message_panic(I, NULL, "Userdata type is null");
+        throwI_error(I, "Userdata type is null");
     }
 
     size_t type_len = strlen(type) + 1;
@@ -60,11 +60,11 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
 
 void userdataI_link(morphine_instance_t I, struct userdata *userdata, struct userdata *linking, bool soft) {
     if (userdata == NULL) {
-        throwI_message_panic(I, NULL, "Userdata is null");
+        throwI_error(I, "Userdata is null");
     }
 
     if (linking == NULL) {
-        throwI_message_panic(I, NULL, "Linking userdata is null");
+        throwI_error(I, "Linking userdata is null");
     }
 
     gcI_objbarrier(userdata, linking);
@@ -92,7 +92,7 @@ void userdataI_link(morphine_instance_t I, struct userdata *userdata, struct use
 
 bool userdataI_unlink(morphine_instance_t I, struct userdata *userdata, void *pointer) {
     if (userdata == NULL) {
-        throwI_message_panic(I, NULL, "Userdata is null");
+        throwI_error(I, "Userdata is null");
     }
 
     struct link *current = userdata->links.pool;

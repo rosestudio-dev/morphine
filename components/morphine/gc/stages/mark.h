@@ -126,5 +126,5 @@ static inline void mark_internal(morphine_instance_t I, struct object *obj) {
         }
     }
 
-    throwI_message_panic(I, NULL, "Unsupported object");
+    throwI_panic(I, "Unsupported object");
 }

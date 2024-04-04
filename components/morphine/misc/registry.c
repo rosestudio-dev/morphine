@@ -2,7 +2,7 @@
 // Created by whyiskra on 07.01.24.
 //
 
-#include "morphine/core/registry.h"
+#include "morphine/misc/registry.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
 #include "morphine/object/proto.h"
@@ -11,10 +11,9 @@
 #include "morphine/object/state.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/stack/call.h"
-#include "morphine/stack/access.h"
+#include "morphine/gc/safe.h"
 
-
-void registryI_set_key(morphine_instance_t I, morphine_state_t S, struct value callable, struct value key) {
+void registryI_set_key(morphine_instance_t I, struct value callable, struct value key) {
     struct value source = callstackI_extract_callable(I, callable);
 
     if (valueI_is_proto(source)) {
@@ -25,18 +24,12 @@ void registryI_set_key(morphine_instance_t I, morphine_state_t S, struct value c
         struct native *native = valueI_as_native(source);
         native->registry_key = key;
         gcI_barrier(native, key);
-    } else if(S != NULL) {
-        throwI_message_error(S, "Attempt to change registry key for unsupported callable");
-    } else {
-        throwI_message_panic(I, NULL, "Attempt to change registry key for unsupported callable");
     }
 }
 
 void registryI_set(morphine_state_t S, struct value key, struct value value) {
+    morphine_instance_t I = S->I;
     struct value source = *callstackI_info_or_error(S)->s.source.p;
-
-    stackI_push(S, key);
-    stackI_push(S, value);
 
     struct value registry_key;
     if (valueI_is_proto(source)) {
@@ -44,24 +37,25 @@ void registryI_set(morphine_state_t S, struct value key, struct value value) {
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {
-        throwI_message_error(S, "Attempt to set to registry for unsupported callable");
+        throwI_error(I, "Attempt to set to registry for unsupported callable");
     }
+
+    gcI_safe(I, key);
+    gcI_safe(I, value);
 
     bool has = false;
-    struct value table = tableI_get(S->I, S->I->registry, registry_key, &has);
+    struct value table = tableI_get(I, I->registry, registry_key, &has);
 
     if (!has) {
-        table = valueI_object(tableI_create(S->I));
-        stackI_push(S, table);
+        table = valueI_object(tableI_create(I));
+        gcI_safe(I, table);
 
-        tableI_set(S->I, S->I->registry, registry_key, table);
-
-        stackI_pop(S, 1);
+        tableI_set(I, I->registry, registry_key, table);
     }
 
-    tableI_set(S->I, valueI_as_table_or_error(S, table), key, value);
+    tableI_set(I, valueI_as_table_or_error(I, table), key, value);
 
-    stackI_pop(S, 2);
+    gcI_reset_safe(I);
 }
 
 struct value registryI_get(morphine_state_t S, struct value key, bool *has) {
@@ -73,12 +67,7 @@ struct value registryI_get(morphine_state_t S, struct value key, bool *has) {
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {
-        throwI_message_error(S, "Attempt to get from registry for unsupported callable");
-    }
-
-    bool ihas = false;
-    if (has == NULL) {
-        has = &ihas;
+        throwI_error(S->I, "Attempt to get from registry for unsupported callable");
     }
 
     struct value table = tableI_get(S->I, S->I->registry, registry_key, has);
@@ -87,7 +76,7 @@ struct value registryI_get(morphine_state_t S, struct value key, bool *has) {
         return valueI_nil;
     }
 
-    return tableI_get(S->I, valueI_as_table_or_error(S, table), key, has);
+    return tableI_get(S->I, valueI_as_table_or_error(S->I, table), key, has);
 }
 
 void registryI_clear(morphine_state_t S) {
@@ -99,7 +88,7 @@ void registryI_clear(morphine_state_t S) {
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {
-        throwI_message_error(S, "Attempt to clear registry for unsupported callable");
+        throwI_error(S->I, "Attempt to clear registry for unsupported callable");
     }
 
     tableI_remove(S->I, S->I->registry, registry_key);

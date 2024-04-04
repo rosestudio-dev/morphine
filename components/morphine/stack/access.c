@@ -49,7 +49,7 @@ struct value *stackI_vector(morphine_state_t S, size_t offset, size_t size) {
     }
 
     if (offset + size > space_size) {
-        throwI_message_error(S, "Cannot peek vector from space");
+        throwI_error(S->I, "Cannot peek vector from space");
     }
 
     return (p - offset - size);
@@ -67,7 +67,7 @@ void stackI_pop(morphine_state_t S, size_t count) {
         size_t size = stackI_space_size(S);
 
         if (count > size) {
-            throwI_message_error(S, "Cannot pop from space");
+            throwI_error(S->I, "Cannot pop from space");
         }
 
         callinfo->s.top = stack_reduce(S, count);

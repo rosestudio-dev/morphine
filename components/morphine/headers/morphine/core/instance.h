@@ -7,8 +7,8 @@
 #include <setjmp.h>
 #include "morphine/platform.h"
 #include "morphine/gc/structure.h"
-#include "morphine/core/throw.h"
-#include "metatable.h"
+#include "morphine/core/interpreter.h"
+#include "morphine/misc/metatable.h"
 
 struct instance {
     struct platform platform;
@@ -17,12 +17,7 @@ struct instance {
     void *userdata;
 
     struct garbage_collector G;
-    struct throw throw;
-
-    morphine_state_t states;
-    morphine_state_t candidates;
-
-    uint16_t interpreter_circle;
+    struct interpreter E;
 
     struct table *env;
     struct table *registry;

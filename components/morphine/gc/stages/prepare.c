@@ -8,7 +8,7 @@
 
 void gcstageI_prepare(morphine_instance_t I) {
     if (unlikely(I->G.pools.gray != NULL || I->G.pools.white != NULL)) {
-        throwI_message_panic(I, NULL, "Corrupted gc pools");
+        throwI_panic(I, "Corrupted gc pools");
     }
 
     struct object *current = I->G.pools.allocated;

@@ -4,12 +4,13 @@
 
 #pragma once
 
-#include "morphine/core/value.h"
 #include "morphine/core/throw.h"
+#include "morphine/core/value.h"
+#include "morphine/object/string.h"
 #include "morphine/object/state.h"
 
 #define callstackI_info(S) (S)->stack.callstack
-#define callstackI_info_or_error(S) ({ morphine_state_t s = (S); struct callinfo *c = callstackI_info(s); if(unlikely(c == NULL)) throwI_message_error(s, "Require callable"); c; })
+#define callstackI_info_or_error(S) ({ morphine_state_t s = (S); struct callinfo *c = callstackI_info(s); if(unlikely(c == NULL)) throwI_errorf(s->I, "Require callable"); c; })
 
 typedef union {
     struct value *p;

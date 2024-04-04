@@ -127,8 +127,10 @@ void gcI_dump(morphine_instance_t I) {
     object(I, (struct object *) I->G.finalizer.state);
     fprintf(out, "\n");
     fprintf(out, "Safe:\n");
-    fprintf(out, "  - Value:              ");
-    value(I, I->G.safe.value);
+    for (size_t i = 0; i < sizeof(I->G.safe.stack) / sizeof(struct value); i++) {
+        fprintf(out, "  - Value:              ");
+        value(I, I->G.safe.stack[i]);
+    }
     fprintf(out, "\n");
     fprintf(out, "Pool 'allocated':\n");
     pool(I, I->G.pools.allocated);

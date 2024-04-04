@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "value.h"
+#include "morphine/core/value.h"
 
 #define MFS_START (MF_CALL)
 #define MFS_COUNT (MF_GC + 1)
@@ -28,13 +28,13 @@ enum metatable_field {
     MF_MASK, MF_GC
 };
 
-void metatableI_set(morphine_state_t, struct value, struct table *);
+void metatableI_set(morphine_instance_t, struct value, struct table *);
 void metatableI_set_default(morphine_instance_t, enum value_type, struct table *);
 
-struct value metatableI_get(morphine_state_t, struct value);
+struct value metatableI_get(morphine_instance_t, struct value);
 struct value metatableI_get_default(morphine_instance_t, enum value_type);
 
 bool metatableI_test(morphine_instance_t, struct value, enum metatable_field, struct value *result);
 
 const char *metatableI_field2string(morphine_instance_t, enum metatable_field);
-enum metatable_field metatableI_string2field(morphine_state_t, const char *name);
+enum metatable_field metatableI_string2field(morphine_instance_t, const char *name);

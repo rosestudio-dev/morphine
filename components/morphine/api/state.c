@@ -19,7 +19,7 @@ MORPHINE_API void mapi_push_current_state(morphine_state_t S) {
 }
 
 MORPHINE_API morphine_state_t mapi_get_state(morphine_state_t S) {
-    return valueI_as_state_or_error(S, stackI_peek(S, 0));
+    return valueI_as_state_or_error(S->I, stackI_peek(S, 0));
 }
 
 MORPHINE_API void mapi_attach(morphine_state_t S) {

@@ -38,16 +38,16 @@ MORPHINE_API void mapi_push_stringv(morphine_state_t S, const char *str, va_list
 }
 
 MORPHINE_API const char *mapi_get_string(morphine_state_t S) {
-    return valueI_as_string_or_error(S, stackI_peek(S, 0))->chars;
+    return valueI_as_string_or_error(S->I, stackI_peek(S, 0))->chars;
 }
 
 MORPHINE_API size_t mapi_string_len(morphine_state_t S) {
-    return valueI_as_string_or_error(S, stackI_peek(S, 0))->size;
+    return valueI_as_string_or_error(S->I, stackI_peek(S, 0))->size;
 }
 
 MORPHINE_API void mapi_string_concat(morphine_state_t S) {
-    struct string *a = valueI_as_string_or_error(S, stackI_peek(S, 1));
-    struct string *b = valueI_as_string_or_error(S, stackI_peek(S, 0));
+    struct string *a = valueI_as_string_or_error(S->I, stackI_peek(S, 1));
+    struct string *b = valueI_as_string_or_error(S->I, stackI_peek(S, 0));
     struct string *result = stringI_concat(S->I, a, b);
     stackI_pop(S, 1);
     *stackI_vector(S, 0, 1) = valueI_object(result);

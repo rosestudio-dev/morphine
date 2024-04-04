@@ -18,7 +18,7 @@ struct value stack_peek(morphine_state_t S, struct callinfo *callinfo, size_t of
     }
 
     if (offset >= space_size) {
-        throwI_message_error(S, "Cannot peek value from space");
+        throwI_error(S->I, "Cannot peek value from space");
     }
 
     return *(p - offset - 1);

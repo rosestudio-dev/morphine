@@ -4,7 +4,7 @@
 
 #include "morphine/stack/control.h"
 #include "morphine/object/state.h"
-#include "morphine/core/allocator.h"
+#include "morphine/gc/allocator.h"
 #include "functions.h"
 
 void stackI_shrink(morphine_state_t S) {
@@ -27,7 +27,7 @@ void stackI_shrink(morphine_state_t S) {
 
 void stackI_set_grow(morphine_state_t S, size_t grow) {
     if (grow == 0) {
-        throwI_message_error(S, "Stack grow size is zero");
+        throwI_error(S->I, "Stack grow size is zero");
     }
 
     S->stack.settings.grow = grow;
@@ -35,7 +35,7 @@ void stackI_set_grow(morphine_state_t S, size_t grow) {
 
 void stackI_set_limit(morphine_state_t S, size_t limit) {
     if (limit == 0) {
-        throwI_message_error(S, "Stack limit is zero");
+        throwI_error(S->I, "Stack limit is zero");
     }
 
     S->stack.settings.limit = limit;

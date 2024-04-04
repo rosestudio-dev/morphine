@@ -24,7 +24,7 @@ static inline bool gc_need(morphine_instance_t I) {
 
 static inline void ofm_check(morphine_instance_t I) {
     if (I->G.bytes.allocated >= I->G.settings.limit_bytes) {
-        throwI_message_panic(I, NULL, "Out of memory");
+        throwI_panic(I, "Out of memory");
     }
 }
 
@@ -43,20 +43,20 @@ static inline void step(morphine_instance_t I) {
             case GC_STATUS_PREPARE: {
                 gcstageI_prepare(I);
                 I->G.status = GC_STATUS_INCREMENT;
-                goto exit;
+                return;
             }
             case GC_STATUS_INCREMENT: {
                 if (gcstageI_increment(I)) {
                     I->G.status = GC_STATUS_FINALIZE_PREPARE;
                     break;
                 } else {
-                    goto exit;
+                    return;
                 }
             }
             case GC_STATUS_FINALIZE_PREPARE: {
                 if (gcstageI_finalize(I)) {
                     I->G.status = GC_STATUS_FINALIZE_INCREMENT;
-                    goto exit;
+                    return;
                 } else {
                     I->G.status = GC_STATUS_SWEEP;
                     break;
@@ -67,19 +67,16 @@ static inline void step(morphine_instance_t I) {
                     I->G.status = GC_STATUS_SWEEP;
                     break;
                 } else {
-                    goto exit;
+                    return;
                 }
             }
             case GC_STATUS_SWEEP: {
                 gcstageI_sweep(I);
                 I->G.status = GC_STATUS_IDLE;
-                goto exit;
+                return;
             }
         }
     }
-
-exit:
-    gcI_reset_safe(I);
 }
 
 void gcI_enable(morphine_instance_t I) {
@@ -134,6 +131,4 @@ void gcI_full(morphine_instance_t I) {
     ofm_check(I);
 
     I->G.status = GC_STATUS_IDLE;
-
-    gcI_reset_safe(I);
 }

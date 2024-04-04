@@ -44,7 +44,7 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
             return a.object.header == b.object.header;
     }
 
-    throwI_message_panic(I, NULL, "Unsupported type");
+    throwI_panic(I, "Unsupported type");
 }
 
 struct value valueI_value2string(morphine_instance_t I, struct value value) {
@@ -81,10 +81,10 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
             return valueI_object(stringI_createf(I, "[raw:%p]", value.raw));
     }
 
-    throwI_message_panic(I, NULL, "Unsupported type");
+    throwI_panic(I, "Unsupported type");
 }
 
-struct value valueI_value2integer(morphine_state_t S, struct value value) {
+struct value valueI_value2integer(morphine_instance_t I, struct value value) {
     if (valueI_is_integer(value)) {
         return value;
     } else if (valueI_is_decimal(value)) {
@@ -103,14 +103,14 @@ struct value valueI_value2integer(morphine_state_t S, struct value value) {
         if (platformI_string2integer(str->chars, &integer)) {
             return valueI_integer(integer);
         } else {
-            throwI_errorf(S, "Cannot convert string '%s' to integer", str->chars);
+            throwI_errorf(I, "Cannot convert string '%s' to integer", str->chars);
         }
     }
 
-    throwI_errorf(S, "Cannot convert %s to integer", valueI_type2string(S->I, value.type));
+    throwI_errorf(I, "Cannot convert %s to integer", valueI_type2string(I, value.type));
 }
 
-struct value valueI_value2decimal(morphine_state_t S, struct value value) {
+struct value valueI_value2decimal(morphine_instance_t I, struct value value) {
     if (valueI_is_integer(value)) {
         return valueI_decimal((ml_decimal) valueI_as_integer(value));
     } else if (valueI_is_decimal(value)) {
@@ -129,14 +129,14 @@ struct value valueI_value2decimal(morphine_state_t S, struct value value) {
         if (platformI_string2decimal(str->chars, &decimal)) {
             return valueI_decimal(decimal);
         } else {
-            throwI_errorf(S, "Cannot convert string '%s' to decimal", str->chars);
+            throwI_errorf(I, "Cannot convert string '%s' to decimal", str->chars);
         }
     }
 
-    throwI_errorf(S, "Cannot convert %s to decimal", valueI_type2string(S->I, value.type));
+    throwI_errorf(I, "Cannot convert %s to decimal", valueI_type2string(I, value.type));
 }
 
-struct value valueI_value2boolean(morphine_state_t S, struct value value) {
+struct value valueI_value2boolean(morphine_instance_t I, struct value value) {
     if (valueI_is_integer(value)) {
         return valueI_boolean(valueI_as_integer(value) != 0);
     } else if (valueI_is_decimal(value)) {
@@ -152,11 +152,11 @@ struct value valueI_value2boolean(morphine_state_t S, struct value value) {
         } else if (strcmp(str->chars, "false") == 0) {
             return valueI_boolean(false);
         } else {
-            throwI_errorf(S, "Cannot convert string '%s' to boolean", str->chars);
+            throwI_errorf(I, "Cannot convert string '%s' to boolean", str->chars);
         }
     }
 
-    throwI_errorf(S, "Cannot convert %s to boolean", valueI_type2string(S->I, value.type));
+    throwI_errorf(I, "Cannot convert %s to boolean", valueI_type2string(I, value.type));
 }
 
 const char *valueI_type2string(morphine_instance_t I, enum value_type type) {
@@ -191,15 +191,15 @@ const char *valueI_type2string(morphine_instance_t I, enum value_type type) {
             return "raw";
     }
 
-    throwI_message_panic(I, NULL, "Unsupported type");
+    throwI_panic(I, "Unsupported type");
 }
 
-enum value_type valueI_string2type(morphine_state_t S, const char *name) {
+enum value_type valueI_string2type(morphine_instance_t I, const char *name) {
     for (enum value_type t = VALUE_TYPES_START; t < VALUE_TYPES_COUNT; t++) {
-        if (strcmp(valueI_type2string(S->I, t), name) == 0) {
+        if (strcmp(valueI_type2string(I, t), name) == 0) {
             return t;
         }
     }
 
-    throwI_errorf(S, "Unknown type '%s'", name);
+    throwI_errorf(I, "Unknown type '%s'", name);
 }

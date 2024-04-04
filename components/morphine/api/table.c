@@ -18,7 +18,7 @@ MORPHINE_API void mapi_table_set(morphine_state_t S) {
     struct value key = stackI_peek(S, 1);
     struct value value = stackI_peek(S, 0);
 
-    tableI_set(S->I, valueI_as_table_or_error(S, table), key, value);
+    tableI_set(S->I, valueI_as_table_or_error(S->I, table), key, value);
 
     stackI_pop(S, 2);
 }
@@ -28,7 +28,7 @@ MORPHINE_API bool mapi_table_get(morphine_state_t S) {
     struct value *value = stackI_vector(S, 0, 1);
 
     bool has = false;
-    *value = tableI_get(S->I, valueI_as_table_or_error(S, table), *value, &has);
+    *value = tableI_get(S->I, valueI_as_table_or_error(S->I, table), *value, &has);
 
     return has;
 }
@@ -38,15 +38,15 @@ MORPHINE_API void mapi_table_getoe(morphine_state_t S) {
     struct value *value = stackI_vector(S, 0, 1);
 
     bool has = false;
-    struct value result = tableI_get(S->I, valueI_as_table_or_error(S, table), *value, &has);
+    struct value result = tableI_get(S->I, valueI_as_table_or_error(S->I, table), *value, &has);
 
     if (has) {
         *value = result;
     } else {
-        throwI_errorf(S, "Cannot get value from table by %s", valueI_value2string(S->I, *value));
+        throwI_errorf(S->I, "Cannot get value from table by %s", valueI_value2string(S->I, *value));
     }
 }
 
 MORPHINE_API size_t mapi_table_len(morphine_state_t S) {
-    return tableI_size(S->I, valueI_as_table_or_error(S, stackI_peek(S, 0)));
+    return tableI_size(S->I, valueI_as_table_or_error(S->I, stackI_peek(S, 0)));
 }

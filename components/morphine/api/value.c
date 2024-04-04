@@ -19,7 +19,7 @@ MORPHINE_API void mapi_push_integer(morphine_state_t S, ml_integer value) {
 }
 
 MORPHINE_API void mapi_push_size(morphine_state_t S, size_t value) {
-    stackI_push(S, valueI_size2integer(S, value));
+    stackI_push(S, valueI_size2integer(S->I, value));
 }
 
 MORPHINE_API void mapi_push_decimal(morphine_state_t S, ml_decimal value) {
@@ -35,24 +35,24 @@ MORPHINE_API void mapi_push_raw(morphine_state_t S, void *value) {
 }
 
 MORPHINE_API ml_integer mapi_get_integer(morphine_state_t S) {
-    return valueI_as_integer_or_error(S, stackI_peek(S, 0));
+    return valueI_as_integer_or_error(S->I, stackI_peek(S, 0));
 }
 
 MORPHINE_API size_t mapi_get_size(morphine_state_t S) {
-    ml_integer integer = valueI_as_integer_or_error(S, stackI_peek(S, 0));
-    return valueI_integer2size(S, integer);
+    ml_integer integer = valueI_as_integer_or_error(S->I, stackI_peek(S, 0));
+    return valueI_integer2size(S->I, integer);
 }
 
 MORPHINE_API ml_decimal mapi_get_decimal(morphine_state_t S) {
-    return valueI_as_decimal_or_error(S, stackI_peek(S, 0));
+    return valueI_as_decimal_or_error(S->I, stackI_peek(S, 0));
 }
 
 MORPHINE_API bool mapi_get_boolean(morphine_state_t S) {
-    return valueI_as_boolean_or_error(S, stackI_peek(S, 0));
+    return valueI_as_boolean_or_error(S->I, stackI_peek(S, 0));
 }
 
 MORPHINE_API void *mapi_get_raw(morphine_state_t S) {
-    return valueI_as_raw_or_error(S, stackI_peek(S, 0));
+    return valueI_as_raw_or_error(S->I, stackI_peek(S, 0));
 }
 
 MORPHINE_API const char *mapi_type(morphine_state_t S) {
@@ -60,22 +60,22 @@ MORPHINE_API const char *mapi_type(morphine_state_t S) {
 }
 
 MORPHINE_API bool mapi_checktype(morphine_state_t S, const char *name) {
-    return valueI_string2type(S, name) == stackI_peek(S, 0).type;
+    return valueI_string2type(S->I, name) == stackI_peek(S, 0).type;
 }
 
 MORPHINE_API void mapi_to_integer(morphine_state_t S) {
     struct value *value = stackI_vector(S, 0, 1);
-    *value = valueI_value2integer(S, *value);
+    *value = valueI_value2integer(S->I, *value);
 }
 
 MORPHINE_API void mapi_to_decimal(morphine_state_t S) {
     struct value *value = stackI_vector(S, 0, 1);
-    *value = valueI_value2decimal(S, *value);
+    *value = valueI_value2decimal(S->I, *value);
 }
 
 MORPHINE_API void mapi_to_boolean(morphine_state_t S) {
     struct value *value = stackI_vector(S, 0, 1);
-    *value = valueI_value2boolean(S, *value);
+    *value = valueI_value2boolean(S->I, *value);
 }
 
 MORPHINE_API bool mapi_is_callable(morphine_state_t S) {

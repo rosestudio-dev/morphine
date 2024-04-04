@@ -16,6 +16,7 @@ struct stack {
         size_t grow;
     } settings;
 
+    size_t callstack_size;
     struct callinfo *callstack;
 };
 

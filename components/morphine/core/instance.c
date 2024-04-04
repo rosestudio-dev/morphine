@@ -22,14 +22,11 @@ morphine_instance_t instanceI_open(struct platform platform, struct settings set
         .platform = platform,
         .settings = settings,
         .G = gcI_prototype(settings.gc, sizeof(struct instance)),
+        .E = interpreterI_prototype(),
         .require_loader_table = NULL,
         .userdata = userdata,
         .env = NULL,
         .registry = NULL,
-        .states = NULL,
-        .candidates = NULL,
-        .interpreter_circle = 0,
-        .throw = throwI_prototype()
     };
 
     initI_instance(I);

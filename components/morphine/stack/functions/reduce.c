@@ -9,7 +9,7 @@
 
 stackI_ptr stack_reduce(morphine_state_t S, size_t size) {
     if (size > S->stack.top) {
-        throwI_message_error(S, "Cannot reduce stack");
+        throwI_error(S->I, "Cannot reduce stack");
     }
 
     S->stack.top -= size;

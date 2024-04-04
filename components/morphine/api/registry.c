@@ -3,17 +3,17 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/core/registry.h"
 #include "morphine/object/string.h"
 #include "morphine/object/state.h"
 #include "morphine/core/throw.h"
+#include "morphine/misc//registry.h"
 #include "morphine/stack/access.h"
 
 MORPHINE_API void mapi_registry_set_key(morphine_state_t S) {
     struct value callable = stackI_peek(S, 1);
     struct value key = stackI_peek(S, 0);
 
-    registryI_set_key(S->I, S, callable, key);
+    registryI_set_key(S->I, callable, key);
 
     stackI_pop(S, 1);
 }
@@ -36,7 +36,7 @@ MORPHINE_API void mapi_registry_getoe(morphine_state_t S) {
     if (has) {
         *value = result;
     } else {
-        throwI_errorf(S, "Cannot get value from registry by %s", valueI_value2string(S->I, *value));
+        throwI_errorf(S->I, "Cannot get value from registry by %s", valueI_value2string(S->I, *value));
     }
 }
 

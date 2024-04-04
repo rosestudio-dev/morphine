@@ -20,8 +20,6 @@
 
 #define valueI_object(x)  ({struct object *_obj = objectI_cast(x); ((struct value) { .type = (enum value_type) (_obj->type), .object.header = _obj });})
 
-#define valueI_object_or_panic(I, S, x)  ({struct object *_obj = objectI_cast(x); if(unlikely(_obj == NULL)) throwI_message_panic((I), (S), "Object is null"); ((struct value) { .type = (enum value_type) (_obj->type), .object.header = _obj });})
-
 // endregion
 
 // region is
@@ -43,7 +41,7 @@
 #define valueI_is_reference(x) valueI_is(REFERENCE, x)
 #define valueI_is_iterator(x)  valueI_is(ITERATOR, x)
 
-#define valueI_is_object(x)  typeI_value_is_obj((x).type)
+#define valueI_is_object(x)    typeI_value_is_obj((x).type)
 
 // endregion
 
@@ -65,8 +63,7 @@
 #define valueI_as_native(x)    valueI_as(object.native, x)
 #define valueI_as_reference(x) valueI_as(object.reference, x)
 #define valueI_as_iterator(x)  valueI_as(object.iterator, x)
-
-#define valueI_as_object(x) valueI_as(object.header, x)
+#define valueI_as_object(x)    valueI_as(object.header, x)
 
 // endregion
 
@@ -88,36 +85,34 @@
 #define valueI_safe_as_native(x, o)    valueI_safe_as(native, x, o)
 #define valueI_safe_as_reference(x, o) valueI_safe_as(reference, x, o)
 #define valueI_safe_as_iterator(x, o)  valueI_safe_as(iterator, x, o)
-
-#define valueI_safe_as_object(x, o) ({struct value _a = (x); (likely(valueI_is_object(_a)) ? valueI_as_object(_a) : (o));})
+#define valueI_safe_as_object(x, o)    valueI_safe_as(object, x, o)
 
 // endregion
 
 // region as_or_error
 
-#define valueI_as_or_error(S, t, x) ({struct value _a = (x); if(unlikely(!valueI_is_##t(_a))) throwI_message_error((S), "Expected " #t); valueI_as_##t(_a);})
+#define valueI_as_or_error(I, t, x) ({struct value _a = (x); if(unlikely(!valueI_is_##t(_a))) throwI_error((I), "Expected " #t); valueI_as_##t(_a);})
 
-#define valueI_as_nil_or_error(S, x)       valueI_as_or_error(S, nil, x)
-#define valueI_as_integer_or_error(S, x)   valueI_as_or_error(S, integer, x)
-#define valueI_as_decimal_or_error(S, x)   valueI_as_or_error(S, decimal, x)
-#define valueI_as_boolean_or_error(S, x)   valueI_as_or_error(S, boolean, x)
-#define valueI_as_raw_or_error(S, x)       valueI_as_or_error(S, raw, x)
-#define valueI_as_userdata_or_error(S, x)  valueI_as_or_error(S, userdata, x)
-#define valueI_as_string_or_error(S, x)    valueI_as_or_error(S, string, x)
-#define valueI_as_table_or_error(S, x)     valueI_as_or_error(S, table, x)
-#define valueI_as_closure_or_error(S, x)   valueI_as_or_error(S, closure, x)
-#define valueI_as_state_or_error(S, x)     valueI_as_or_error(S, state, x)
-#define valueI_as_proto_or_error(S, x)     valueI_as_or_error(S, proto, x)
-#define valueI_as_native_or_error(S, x)    valueI_as_or_error(S, native, x)
-#define valueI_as_reference_or_error(S, x) valueI_as_or_error(S, reference, x)
-#define valueI_as_iterator_or_error(S, x)  valueI_as_or_error(S, iterator, x)
-
-#define valueI_as_object_or_error(S, x) ({struct value _a = (x); if(unlikely(!valueI_is_object(_a))) throwI_message_error((S), "Expected object"); valueI_as_object(_a);})
+#define valueI_as_nil_or_error(I, x)       valueI_as_or_error(I, nil, x)
+#define valueI_as_integer_or_error(I, x)   valueI_as_or_error(I, integer, x)
+#define valueI_as_decimal_or_error(I, x)   valueI_as_or_error(I, decimal, x)
+#define valueI_as_boolean_or_error(I, x)   valueI_as_or_error(I, boolean, x)
+#define valueI_as_raw_or_error(I, x)       valueI_as_or_error(I, raw, x)
+#define valueI_as_userdata_or_error(I, x)  valueI_as_or_error(I, userdata, x)
+#define valueI_as_string_or_error(I, x)    valueI_as_or_error(I, string, x)
+#define valueI_as_table_or_error(I, x)     valueI_as_or_error(I, table, x)
+#define valueI_as_closure_or_error(I, x)   valueI_as_or_error(I, closure, x)
+#define valueI_as_state_or_error(I, x)     valueI_as_or_error(I, state, x)
+#define valueI_as_proto_or_error(I, x)     valueI_as_or_error(I, proto, x)
+#define valueI_as_native_or_error(I, x)    valueI_as_or_error(I, native, x)
+#define valueI_as_reference_or_error(I, x) valueI_as_or_error(I, reference, x)
+#define valueI_as_iterator_or_error(I, x)  valueI_as_or_error(I, iterator, x)
+#define valueI_as_object_or_error(I, x)    valueI_as_or_error(I, object, x)
 
 // endregion
 
-#define valueI_size2integer(S, x) ({size_t _s = (x); if(unlikely(_s > MLIMIT_INTEGER_MAX)) throwI_errorf((S), "Cannot convert %zu to integer", _s); valueI_integer((ml_integer) _s);})
-#define valueI_integer2size(S, x) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((size_t) _i) > SIZE_MAX)) throwI_errorf((S), "Cannot convert %"MLIMIT_INTEGER_PR" to size", _i); ((size_t) _i);})
+#define valueI_size2integer(I, x) ({size_t _s = (x); if(unlikely(_s > MLIMIT_INTEGER_MAX)) throwI_errorf((I), "Cannot convert %zu to integer", _s); valueI_integer((ml_integer) _s);})
+#define valueI_integer2size(I, x) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((size_t) _i) > SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to size", _i); ((size_t) _i);})
 
 #define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
 
@@ -151,10 +146,10 @@ struct pair {
 };
 
 const char *valueI_type2string(morphine_instance_t, enum value_type type);
-enum value_type valueI_string2type(morphine_state_t, const char *name);
+enum value_type valueI_string2type(morphine_instance_t, const char *name);
 
 bool valueI_equal(morphine_instance_t, struct value a, struct value b);
-struct value valueI_value2string(morphine_instance_t, struct value value);
-struct value valueI_value2integer(morphine_state_t, struct value value);
-struct value valueI_value2decimal(morphine_state_t, struct value value);
-struct value valueI_value2boolean(morphine_state_t, struct value value);
+struct value valueI_value2string(morphine_instance_t, struct value);
+struct value valueI_value2integer(morphine_instance_t, struct value);
+struct value valueI_value2decimal(morphine_instance_t, struct value);
+struct value valueI_value2boolean(morphine_instance_t, struct value);
