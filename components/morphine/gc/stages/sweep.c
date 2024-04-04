@@ -5,8 +5,8 @@
 #include "../stages.h"
 #include "mark.h"
 #include "morphine/core/instance.h"
-#include "morphine/stack/control.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/control.h"
+#include "morphine/object/coroutine/stack/call.h"
 #include "morphine/object/reference.h"
 
 static inline void invalidate_ref(struct reference *reference) {

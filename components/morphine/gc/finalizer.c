@@ -5,7 +5,7 @@
 #include "morphine/gc/finalizer.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/native.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/call.h"
 
 static void finalizer(morphine_coroutine_t U) {
     morphine_instance_t I = U->I;

@@ -3,7 +3,7 @@
 //
 
 #include "../functions.h"
-#include "morphine/stack/access.h"
+#include "morphine/object/coroutine/stack/access.h"
 
 struct value stack_peek(morphine_coroutine_t U, struct callinfo *callinfo, size_t offset) {
     struct value *p;

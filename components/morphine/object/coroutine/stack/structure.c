@@ -2,9 +2,9 @@
 // Created by whyiskra on 3/24/24.
 //
 
-#include "morphine/stack/structure.h"
+#include "morphine/object/coroutine/stack/structure.h"
 #include "morphine/gc/allocator.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/call.h"
 
 struct stack stackI_initial(morphine_instance_t I, size_t limit, size_t grow) {
     if (grow == 0) {

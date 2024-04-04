@@ -2,7 +2,7 @@
 // Created by why-iskra on 31.03.2024.
 //
 
-#include "morphine/binary/loader.h"
+#include "morphine/object/function/loader.h"
 #include "loader/process.h"
 #include "loader/binary.h"
 

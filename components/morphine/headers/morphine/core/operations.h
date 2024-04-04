@@ -9,7 +9,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/iterator.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/call.h"
 
 typedef enum {
     NORMAL,

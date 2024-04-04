@@ -7,7 +7,7 @@
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
-#include "morphine/stack/access.h"
+#include "morphine/object/coroutine/stack/access.h"
 
 MORPHINE_API void mapi_push_table(morphine_coroutine_t U) {
     stackI_push(U, valueI_object(tableI_create(U->I)));

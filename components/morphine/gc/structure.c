@@ -4,7 +4,7 @@
 
 #include "morphine/gc/structure.h"
 #include "morphine/object.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/call.h"
 #include "morphine/gc/safe.h"
 
 static void free_objects(morphine_instance_t I, struct object *pool) {

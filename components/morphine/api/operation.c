@@ -5,8 +5,8 @@
 #include <string.h>
 #include "morphine/api.h"
 #include "morphine/core/operations.h"
-#include "morphine/stack/access.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/access.h"
+#include "morphine/object/coroutine/stack/call.h"
 
 struct op_func {
     const char *name;

@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "morphine/stack/structure.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/structure.h"
+#include "morphine/object/coroutine/stack/call.h"
 
 #define stack_ptr(ptr) ((stackI_ptr) { .p = (ptr) })
 #define stack_ptr_save(a, ptr) (ptr) = (stackI_ptr) { .diff = (size_t) ((ptr).p - (a)) }

@@ -2,8 +2,8 @@
 // Created by whyiskra on 3/24/24.
 //
 
-#include "morphine/stack/access.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/access.h"
+#include "morphine/object/coroutine/stack/call.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"

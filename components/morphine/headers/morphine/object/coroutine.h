@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/stack/structure.h"
+#include "morphine/object/coroutine/stack/structure.h"
 #include "morphine/object.h"
 
 enum coroutine_status {

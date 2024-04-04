@@ -7,7 +7,7 @@
 #include "morphine/core/instance.h"
 #include "morphine/gc/control.h"
 #include "morphine/gc/status.h"
-#include "morphine/stack/control.h"
+#include "morphine/object/coroutine/stack/control.h"
 
 MORPHINE_API void mapi_gc_full(morphine_instance_t I) {
     gcI_full(I);

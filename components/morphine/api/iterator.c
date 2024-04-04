@@ -4,7 +4,7 @@
 
 #include "morphine/api.h"
 #include "morphine/core/throw.h"
-#include "morphine/stack/access.h"
+#include "morphine/object/coroutine/stack/access.h"
 #include "morphine/object/iterator.h"
 #include "morphine/object/coroutine.h"
 

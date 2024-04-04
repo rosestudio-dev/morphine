@@ -11,8 +11,8 @@
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
-#include "morphine/stack/call.h"
-#include "morphine/stack/access.h"
+#include "morphine/object/coroutine/stack/call.h"
+#include "morphine/object/coroutine/stack/access.h"
 #include "morphine/gc/safe.h"
 
 static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {

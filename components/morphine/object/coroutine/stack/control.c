@@ -2,7 +2,7 @@
 // Created by whyiskra on 3/24/24.
 //
 
-#include "morphine/stack/control.h"
+#include "morphine/object/coroutine/stack/control.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/gc/allocator.h"
 #include "functions.h"

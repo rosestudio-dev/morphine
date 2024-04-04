@@ -7,7 +7,7 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
 #include "morphine/misc//registry.h"
-#include "morphine/stack/access.h"
+#include "morphine/object/coroutine/stack/access.h"
 
 MORPHINE_API void mapi_registry_set_key(morphine_coroutine_t U) {
     struct value callable = stackI_peek(U, 1);

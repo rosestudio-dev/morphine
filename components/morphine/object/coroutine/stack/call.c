@@ -2,14 +2,14 @@
 // Created by whyiskra on 3/24/24.
 //
 
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/call.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/string.h"
 #include "morphine/object/function.h"
 #include "morphine/object/closure.h"
 #include "morphine/gc/hot.h"
 #include "morphine/gc/allocator.h"
-#include "morphine/stack/access.h"
+#include "morphine/object/coroutine/stack/access.h"
 #include "morphine/object/table.h"
 #include "functions.h"
 

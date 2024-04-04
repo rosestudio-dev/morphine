@@ -3,7 +3,7 @@
 //
 
 #include "process.h"
-#include "morphine/stack/access.h"
+#include "morphine/object/coroutine/stack/access.h"
 #include "morphine/core/throw.h"
 #include "morphine/object/coroutine.h"
 

@@ -10,7 +10,7 @@
 #include "morphine/object/table.h"
 #include "morphine/object/closure.h"
 #include "morphine/gc/control.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/call.h"
 
 // loop
 

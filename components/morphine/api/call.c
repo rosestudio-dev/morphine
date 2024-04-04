@@ -3,8 +3,8 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/stack/access.h"
-#include "morphine/stack/call.h"
+#include "morphine/object/coroutine/stack/access.h"
+#include "morphine/object/coroutine/stack/call.h"
 
 MORPHINE_API void mapi_call(morphine_coroutine_t U, size_t argc) {
     struct value callable = stackI_peek(U, argc);

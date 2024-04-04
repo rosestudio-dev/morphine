@@ -3,10 +3,10 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/binary/loader.h"
+#include "morphine/object/function/loader.h"
 #include "morphine/utils/unused.h"
 #include "morphine/core/throw.h"
-#include "morphine/stack/access.h"
+#include "morphine/object/coroutine/stack/access.h"
 #include "morphine/object/coroutine.h"
 #include <stddef.h>
 
