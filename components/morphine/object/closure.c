@@ -3,7 +3,7 @@
 //
 
 #include "morphine/object/closure.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"

@@ -8,23 +8,23 @@
 
 void gcstageI_record(morphine_instance_t I) {
     {
-        morphine_state_t current_state = I->E.states;
-        while (current_state != NULL) {
-            mark_object(objectI_cast(current_state));
-            mark_internal(I, objectI_cast(current_state));
-            current_state = current_state->prev;
+        morphine_coroutine_t current = I->E.coroutines;
+        while (current != NULL) {
+            mark_object(objectI_cast(current));
+            mark_internal(I, objectI_cast(current));
+            current = current->prev;
         }
 
-        morphine_state_t candidate = I->E.candidates;
+        morphine_coroutine_t candidate = I->E.candidates;
         while (candidate != NULL) {
             mark_object(objectI_cast(candidate));
             mark_internal(I, objectI_cast(candidate));
             candidate = candidate->prev;
         }
 
-        if (I->G.finalizer.state != NULL) {
-            mark_object(objectI_cast(I->G.finalizer.state));
-            mark_internal(I, objectI_cast(I->G.finalizer.state));
+        if (I->G.finalizer.coroutine != NULL) {
+            mark_object(objectI_cast(I->G.finalizer.coroutine));
+            mark_internal(I, objectI_cast(I->G.finalizer.coroutine));
         }
     }
 

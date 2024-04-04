@@ -8,7 +8,7 @@
 #include "morphine/api.h"
 
 static bool check_type(
-    morphine_state_t S,
+    morphine_coroutine_t U,
     const char *expected_type,
     size_t expected_type_len,
     bool is_self,
@@ -19,29 +19,29 @@ static bool check_type(
     }
 
     if (is_self) {
-        mapi_push_self(S);
+        mapi_push_self(U);
     } else {
-        mapi_push_arg(S, arg);
+        mapi_push_arg(U, arg);
     }
 
     if (expected_type_len == 8 && memcmp(expected_type, "callable", 8) == 0) {
-        bool is_callable = mapi_is_callable(S);
-        mapi_pop(S, 1);
+        bool is_callable = mapi_is_callable(U);
+        mapi_pop(U, 1);
 
         return is_callable;
     }
 
     if (expected_type_len == 4 && memcmp(expected_type, "meta", 4) == 0) {
-        bool is_callable = mapi_is_metatype(S);
-        mapi_pop(S, 1);
+        bool is_callable = mapi_is_metatype(U);
+        mapi_pop(U, 1);
 
         return is_callable;
     }
 
-    const char *type = mapi_type(S);
+    const char *type = mapi_type(U);
     size_t typelen = strlen(type);
 
-    mapi_pop(S, 1);
+    mapi_pop(U, 1);
 
     if (expected_type_len != typelen || memcmp(expected_type, type, typelen) != 0) {
         return false;
@@ -51,10 +51,10 @@ static bool check_type(
 }
 
 static bool check_pattern(
-    morphine_state_t S,
+    morphine_coroutine_t U,
     const char *pattern
 ) {
-    size_t argc = mapi_args(S);
+    size_t argc = mapi_args(U);
 
     if (strcmp(pattern, "empty") == 0) {
         return argc == 0;
@@ -85,7 +85,7 @@ static bool check_pattern(
 
         if (sublen >= 3 && memcmp(substr + (sublen - 3), "...", 3) == 0) {
             if (i < parts - 1) {
-                mapi_errorf(S, "Wrong argument pattern (vararg should be always last)");
+                mapi_errorf(U, "Wrong argument pattern (vararg should be always last)");
             } else {
                 vararg = true;
             }
@@ -93,9 +93,9 @@ static bool check_pattern(
 
         if (sublen >= 5 && memcmp(substr, "self:", 5) == 0) {
             if (vararg) {
-                mapi_errorf(S, "Wrong argument pattern (vararg cannot be combine with self)");
+                mapi_errorf(U, "Wrong argument pattern (vararg cannot be combine with self)");
             } else if (i > 0) {
-                mapi_errorf(S, "Wrong argument pattern (self should be always first)");
+                mapi_errorf(U, "Wrong argument pattern (self should be always first)");
             } else {
                 self = true;
             }
@@ -105,7 +105,7 @@ static bool check_pattern(
             size_t expected_type_len = sublen - 3;
 
             for (size_t k = reqargs; k < argc; k++) {
-                if (!check_type(S, substr, expected_type_len, false, k)) {
+                if (!check_type(U, substr, expected_type_len, false, k)) {
                     return false;
                 }
             }
@@ -114,7 +114,7 @@ static bool check_pattern(
         }
 
         if (self) {
-            if (!check_type(S, substr + 5, sublen - 5, true, 0)) {
+            if (!check_type(U, substr + 5, sublen - 5, true, 0)) {
                 return false;
             }
         } else {
@@ -122,7 +122,7 @@ static bool check_pattern(
                 return false;
             }
 
-            if (!check_type(S, substr, sublen, false, reqargs)) {
+            if (!check_type(U, substr, sublen, false, reqargs)) {
                 return false;
             }
 
@@ -139,12 +139,12 @@ static bool check_pattern(
     return true;
 }
 
-MORPHINE_AUX size_t maux_checkargs(morphine_state_t S, size_t count, ...) {
+MORPHINE_AUX size_t maux_checkargs(morphine_coroutine_t U, size_t count, ...) {
     if (count == 0) {
-        if (mapi_args(S) == 0) {
+        if (mapi_args(U) == 0) {
             return 0;
         } else {
-            mapi_errorf(S, "Arguments aren't expected");
+            mapi_errorf(U, "Arguments aren't expected");
         }
     }
 
@@ -156,7 +156,7 @@ MORPHINE_AUX size_t maux_checkargs(morphine_state_t S, size_t count, ...) {
     for (size_t i = 0; i < count; i++) {
         const char *pattern = va_arg(vargs, const char *);
 
-        if (check_pattern(S, pattern)) {
+        if (check_pattern(U, pattern)) {
             if (!found) {
                 result = i;
             }
@@ -167,7 +167,7 @@ MORPHINE_AUX size_t maux_checkargs(morphine_state_t S, size_t count, ...) {
     va_end(vargs);
 
     if (!found) {
-        mapi_errorf(S, "Unexpected arguments");
+        mapi_errorf(U, "Unexpected arguments");
     }
 
     return result;

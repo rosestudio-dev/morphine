@@ -7,11 +7,11 @@
 #include "morphine/object/native.h"
 #include "morphine/stack/call.h"
 
-static void finalizer(morphine_state_t S) {
-    morphine_instance_t I = S->I;
+static void finalizer(morphine_coroutine_t U) {
+    morphine_instance_t I = U->I;
 
-    if (callstackI_state(S) == 0) {
-        callstackI_continue(S, 0);
+    if (callstackI_state(U) == 0) {
+        callstackI_continue(U, 0);
 
         struct object *candidate = I->G.pools.finalize;
         if (candidate == NULL) {
@@ -27,21 +27,21 @@ static void finalizer(morphine_state_t S) {
             return;
         }
 
-        callstackI_continue(S, 1);
+        callstackI_continue(U, 1);
 
         I->G.finalizer.candidate = candidate;
 
         struct value candidate_value = valueI_object(candidate);
         struct value callable = valueI_nil;
         candidate->flags.finalized = true;
-        if (metatableI_test(S->I, candidate_value, MF_GC, &callable)) {
-            callstackI_unsafe(S, callable, candidate_value, NULL, 0, 0);
+        if (metatableI_test(U->I, candidate_value, MF_GC, &callable)) {
+            callstackI_unsafe(U, callable, candidate_value, NULL, 0, 0);
             return;
         }
     }
 
-    if (callstackI_state(S) == 1) {
-        callstackI_continue(S, 0);
+    if (callstackI_state(U) == 1) {
+        callstackI_continue(U, 0);
 
         struct object *candidate = I->G.finalizer.candidate;
         I->G.finalizer.candidate = NULL;
@@ -58,16 +58,16 @@ static void finalizer(morphine_state_t S) {
 }
 
 void gcI_init_finalizer(morphine_instance_t I) {
-    morphine_state_t state = stateI_custom_create(
+    morphine_coroutine_t coroutine = coroutineI_custom_create(
         I,
         I->settings.finalizer.stack_limit,
         I->settings.finalizer.stack_grow
     );
 
-    stateI_priority(state, 1);
+    coroutineI_priority(coroutine, 1);
 
     struct native *native = nativeI_create(I, "gc_finalizer", finalizer);
-    callstackI_unsafe(state, valueI_object(native), valueI_nil, NULL, 0, 0);
+    callstackI_unsafe(coroutine, valueI_object(native), valueI_nil, NULL, 0, 0);
 
-    I->G.finalizer.state = state;
+    I->G.finalizer.coroutine = coroutine;
 }

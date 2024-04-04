@@ -3,7 +3,7 @@
 //
 
 #include "binary.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/object/proto.h"
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
@@ -12,7 +12,7 @@
 #include <string.h>
 
 struct data {
-    morphine_state_t S;
+    morphine_coroutine_t U;
     struct process_state *state;
     struct crc32_buf crc;
 
@@ -93,14 +93,14 @@ static double get_double(struct data *data) {
 static struct value get_string(struct data *data) {
     size_t size = get_u32(data);
     char *buffer;
-    struct string *string = stringI_createn(data->S->I, size, &buffer);
+    struct string *string = stringI_createn(data->U->I, size, &buffer);
 
     for (size_t i = 0; i < size; i++) {
         buffer[i] = (char) get_u8(data);
     }
 
     struct value value = valueI_object(string);
-    stackI_push(data->S, value);
+    stackI_push(data->U, value);
 
     return value;
 }
@@ -220,7 +220,7 @@ static struct proto *get_function(struct data *data) {
     size_t instructions_count = get_u32(data);
 
     struct proto *proto = protoI_create(
-        data->S->I,
+        data->U->I,
         uuid,
         name_chars_count,
         constants_count,
@@ -228,7 +228,7 @@ static struct proto *get_function(struct data *data) {
         statics_count
     );
 
-    stackI_push(data->S, valueI_object(proto));
+    stackI_push(data->U, valueI_object(proto));
 
     for (size_t i = 0; i < instructions_count; i++) {
         proto->instructions[i] = get_instruction(data);
@@ -301,7 +301,7 @@ static struct value get_constant(struct data *data) {
 static void load_constants(struct data *data, struct proto *proto) {
     for (size_t i = 0; i < proto->constants_count; i++) {
         protoI_constant_set(
-            data->S->I,
+            data->U->I,
             proto,
             i,
             get_constant(data)
@@ -342,12 +342,12 @@ static struct uuid load(struct data *data) {
     struct uuid main_uuid = get_uuid(data);
     size_t functions_count = get_u32(data);
 
-    struct proto **protos = allocI_uni(data->S->I, NULL, functions_count * sizeof(struct proto *));
+    struct proto **protos = allocI_uni(data->U->I, NULL, functions_count * sizeof(struct proto *));
     data->protos.count = functions_count;
     data->protos.vector = protos;
 
-    struct userdata *userdata = userdataI_create(data->S->I, "protos", protos, NULL, allocI_free);
-    stackI_push(data->S, valueI_object(userdata));
+    struct userdata *userdata = userdataI_create(data->U->I, "protos", protos, NULL, allocI_free);
+    stackI_push(data->U, valueI_object(userdata));
 
     for (size_t i = 0; i < functions_count; i++) {
         protos[i] = get_function(data);
@@ -383,9 +383,9 @@ static struct proto *resolve(struct data *data, struct uuid main_uuid) {
     return main;
 }
 
-struct proto *binary(morphine_state_t S, struct process_state *state) {
+struct proto *binary(morphine_coroutine_t U, struct process_state *state) {
     struct data data = {
-        .S = S,
+        .U = U,
         .state = state,
         .crc = crc32_init(),
         .protos.vector = NULL,

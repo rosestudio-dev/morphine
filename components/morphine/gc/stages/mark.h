@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/object/table.h"
 #include "morphine/object/closure.h"
 #include "morphine/object/userdata.h"
@@ -97,11 +97,11 @@ static inline void mark_internal(morphine_instance_t I, struct object *obj) {
 
             return;
         }
-        case OBJ_TYPE_STATE: {
-            morphine_state_t state = cast(morphine_state_t, obj);
+        case OBJ_TYPE_COROUTINE: {
+            morphine_coroutine_t coroutine = cast(morphine_coroutine_t, obj);
 
-            for (size_t i = 0; i < state->stack.top; i++) {
-                mark_value(state->stack.allocated[i]);
+            for (size_t i = 0; i < coroutine->stack.top; i++) {
+                mark_value(coroutine->stack.allocated[i]);
             }
 
             return;

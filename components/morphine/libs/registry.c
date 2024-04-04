@@ -6,44 +6,44 @@
 #include <string.h>
 #include "morphine/libs/loader.h"
 
-static void get(morphine_state_t S) {
-    nb_function(S)
+static void get(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any");
-            mapi_push_arg(S, 0);
-            mapi_registry_get(S);
+            maux_checkargs(U, 1, "any");
+            mapi_push_arg(U, 0);
+            mapi_registry_get(U);
             nb_return();
     nb_end
 }
 
-static void has(morphine_state_t S) {
-    nb_function(S)
+static void has(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any");
-            mapi_push_arg(S, 0);
-            bool has = mapi_registry_get(S);
-            mapi_pop(S, 1);
-            mapi_push_boolean(S, has);
+            maux_checkargs(U, 1, "any");
+            mapi_push_arg(U, 0);
+            bool has = mapi_registry_get(U);
+            mapi_pop(U, 1);
+            mapi_push_boolean(U, has);
             nb_return();
     nb_end
 }
 
-static void set(morphine_state_t S) {
-    nb_function(S)
+static void set(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any,any");
-            mapi_push_arg(S, 0);
-            mapi_push_arg(S, 1);
-            mapi_registry_set(S);
+            maux_checkargs(U, 1, "any,any");
+            mapi_push_arg(U, 0);
+            mapi_push_arg(U, 1);
+            mapi_registry_set(U);
             nb_leave();
     nb_end
 }
 
-static void clear(morphine_state_t S) {
-    nb_function(S)
+static void clear(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "empty");
-            mapi_registry_clear(S);
+            maux_checkargs(U, 1, "empty");
+            mapi_registry_clear(U);
             nb_leave();
     nb_end
 }
@@ -56,10 +56,10 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_registry_loader(morphine_state_t S) {
-    maux_construct(S, table);
+void mlib_registry_loader(morphine_coroutine_t U) {
+    maux_construct(U, table);
 }
 
-MORPHINE_LIB void mlib_registry_call(morphine_state_t S, const char *name, size_t argc) {
-    maux_construct_call(S, table, name, argc);
+MORPHINE_LIB void mlib_registry_call(morphine_coroutine_t U, const char *name, size_t argc) {
+    maux_construct_call(U, table, name, argc);
 }

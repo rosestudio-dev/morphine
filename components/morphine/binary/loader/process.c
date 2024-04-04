@@ -5,10 +5,10 @@
 #include "process.h"
 #include "morphine/stack/access.h"
 #include "morphine/core/throw.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 
 struct process_state {
-    morphine_state_t S;
+    morphine_coroutine_t U;
     jmp_buf jump;
     void *data;
     morphine_loader_read_t read;
@@ -16,7 +16,7 @@ struct process_state {
 };
 
 struct proto *process(
-    morphine_state_t S,
+    morphine_coroutine_t U,
     morphine_loader_init_t init,
     morphine_loader_read_t read,
     morphine_loader_finish_t finish,
@@ -24,33 +24,33 @@ struct proto *process(
     function_loader_t loader
 ) {
     struct process_state process_state = {
-        .S = S,
+        .U = U,
         .read = read,
     };
 
     if (init == NULL) {
         process_state.data = args;
     } else {
-        process_state.data = init(S, args);
+        process_state.data = init(U, args);
     }
 
-    size_t stack_size = stackI_space_size(S);
+    size_t stack_size = stackI_space_size(U);
 
     struct proto *result;
 
     if (setjmp(process_state.jump) != 0) {
         if (finish != NULL) {
-            finish(S, process_state.data);
+            finish(U, process_state.data);
         }
 
-        throwI_error(S->I, process_state.message);
+        throwI_error(U->I, process_state.message);
     } else {
-        result = loader(S, &process_state);
+        result = loader(U, &process_state);
 
-        stackI_pop(S, stackI_space_size(S) - stack_size);
+        stackI_pop(U, stackI_space_size(U) - stack_size);
 
         if (finish != NULL) {
-            finish(S, process_state.data);
+            finish(U, process_state.data);
         }
     }
 
@@ -67,7 +67,7 @@ morphine_noret void process_error(
 
 uint8_t process_byte(struct process_state *process_state) {
     const char *error = NULL;
-    uint8_t c = process_state->read(process_state->S, process_state->data, &error);
+    uint8_t c = process_state->read(process_state->U, process_state->data, &error);
 
     if (error != NULL) {
         process_error(process_state, error);

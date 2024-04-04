@@ -6,26 +6,26 @@
 #include "morphine/auxiliary/constructor.h"
 #include "morphine/api.h"
 
-MORPHINE_AUX void maux_construct(morphine_state_t S, struct maux_construct_field *table) {
+MORPHINE_AUX void maux_construct(morphine_coroutine_t U, struct maux_construct_field *table) {
     void *registry_key = table;
 
-    mapi_push_table(S);
+    mapi_push_table(U);
 
     while (table->name != NULL) {
-        mapi_push_stringf(S, table->name);
-        mapi_push_native(S, table->name, table->value);
+        mapi_push_stringf(U, table->name);
+        mapi_push_native(U, table->name, table->value);
 
-        mapi_push_raw(S, registry_key);
-        mapi_registry_set_key(S);
+        mapi_push_raw(U, registry_key);
+        mapi_registry_set_key(U);
 
-        mapi_table_set(S);
+        mapi_table_set(U);
 
         table++;
     }
 }
 
 MORPHINE_AUX void maux_construct_call(
-    morphine_state_t S,
+    morphine_coroutine_t U,
     struct maux_construct_field *table,
     const char *name,
     size_t argc
@@ -40,12 +40,12 @@ MORPHINE_AUX void maux_construct_call(
         table++;
     }
 
-    mapi_errorf(S, "Function %s wasn't found in table", name);
+    mapi_errorf(U, "Function %s wasn't found in table", name);
 
 found:;
-    mapi_push_native(S, table->name, table->value);
-    mapi_push_raw(S, registry_key);
-    mapi_registry_set_key(S);
+    mapi_push_native(U, table->name, table->value);
+    mapi_push_raw(U, registry_key);
+    mapi_registry_set_key(U);
 
-    mapi_calli(S, argc);
+    mapi_calli(U, argc);
 }

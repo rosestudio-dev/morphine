@@ -9,10 +9,10 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_table_loader(morphine_state_t S) {
-    maux_construct(S, table);
+void mlib_table_loader(morphine_coroutine_t U) {
+    maux_construct(U, table);
 }
 
-MORPHINE_LIB void mlib_table_call(morphine_state_t S, const char *name, size_t argc) {
-    maux_construct_call(S, table, name, argc);
+MORPHINE_LIB void mlib_table_call(morphine_coroutine_t U, const char *name, size_t argc) {
+    maux_construct_call(U, table, name, argc);
 }

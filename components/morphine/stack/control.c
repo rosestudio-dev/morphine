@@ -3,40 +3,40 @@
 //
 
 #include "morphine/stack/control.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/gc/allocator.h"
 #include "functions.h"
 
-void stackI_shrink(morphine_state_t S) {
-    size_t grow = S->stack.settings.grow;
+void stackI_shrink(morphine_coroutine_t U) {
+    size_t grow = U->stack.settings.grow;
 
-    if (S->stack.top + grow >= S->stack.size) {
+    if (U->stack.top + grow >= U->stack.size) {
         return;
     }
 
-    size_t size = S->stack.top + grow;
+    size_t size = U->stack.top + grow;
 
-    stack_save(&S->stack);
+    stack_save(&U->stack);
 
-    S->stack.allocated = allocI_uni(S->I, S->stack.allocated, size * sizeof(struct value));
+    U->stack.allocated = allocI_uni(U->I, U->stack.allocated, size * sizeof(struct value));
 
-    stack_recover(&S->stack);
+    stack_recover(&U->stack);
 
-    S->stack.size = size;
+    U->stack.size = size;
 }
 
-void stackI_set_grow(morphine_state_t S, size_t grow) {
+void stackI_set_grow(morphine_coroutine_t U, size_t grow) {
     if (grow == 0) {
-        throwI_error(S->I, "Stack grow size is zero");
+        throwI_error(U->I, "Stack grow size is zero");
     }
 
-    S->stack.settings.grow = grow;
+    U->stack.settings.grow = grow;
 }
 
-void stackI_set_limit(morphine_state_t S, size_t limit) {
+void stackI_set_limit(morphine_coroutine_t U, size_t limit) {
     if (limit == 0) {
-        throwI_error(S->I, "Stack limit is zero");
+        throwI_error(U->I, "Stack limit is zero");
     }
 
-    S->stack.settings.limit = limit;
+    U->stack.settings.limit = limit;
 }

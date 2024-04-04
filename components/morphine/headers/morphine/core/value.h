@@ -35,7 +35,7 @@
 #define valueI_is_string(x)    valueI_is(STRING, x)
 #define valueI_is_table(x)     valueI_is(TABLE, x)
 #define valueI_is_closure(x)   valueI_is(CLOSURE, x)
-#define valueI_is_state(x)     valueI_is(STATE, x)
+#define valueI_is_coroutine(x) valueI_is(COROUTINE, x)
 #define valueI_is_proto(x)     valueI_is(PROTO, x)
 #define valueI_is_native(x)    valueI_is(NATIVE, x)
 #define valueI_is_reference(x) valueI_is(REFERENCE, x)
@@ -58,7 +58,7 @@
 #define valueI_as_string(x)    valueI_as(object.string, x)
 #define valueI_as_table(x)     valueI_as(object.table, x)
 #define valueI_as_closure(x)   valueI_as(object.closure, x)
-#define valueI_as_state(x)     valueI_as(object.state, x)
+#define valueI_as_coroutine(x) valueI_as(object.coroutine, x)
 #define valueI_as_proto(x)     valueI_as(object.proto, x)
 #define valueI_as_native(x)    valueI_as(object.native, x)
 #define valueI_as_reference(x) valueI_as(object.reference, x)
@@ -80,7 +80,7 @@
 #define valueI_safe_as_string(x, o)    valueI_safe_as(string, x, o)
 #define valueI_safe_as_table(x, o)     valueI_safe_as(table, x, o)
 #define valueI_safe_as_closure(x, o)   valueI_safe_as(closure, x, o)
-#define valueI_safe_as_state(x, o)     valueI_safe_as(state, x, o)
+#define valueI_safe_as_coroutine(x, o) valueI_safe_as(coroutine, x, o)
 #define valueI_safe_as_proto(x, o)     valueI_safe_as(proto, x, o)
 #define valueI_safe_as_native(x, o)    valueI_safe_as(native, x, o)
 #define valueI_safe_as_reference(x, o) valueI_safe_as(reference, x, o)
@@ -102,7 +102,7 @@
 #define valueI_as_string_or_error(I, x)    valueI_as_or_error(I, string, x)
 #define valueI_as_table_or_error(I, x)     valueI_as_or_error(I, table, x)
 #define valueI_as_closure_or_error(I, x)   valueI_as_or_error(I, closure, x)
-#define valueI_as_state_or_error(I, x)     valueI_as_or_error(I, state, x)
+#define valueI_as_coroutine_or_error(I, x) valueI_as_or_error(I, coroutine, x)
 #define valueI_as_proto_or_error(I, x)     valueI_as_or_error(I, proto, x)
 #define valueI_as_native_or_error(I, x)    valueI_as_or_error(I, native, x)
 #define valueI_as_reference_or_error(I, x) valueI_as_or_error(I, reference, x)
@@ -131,7 +131,7 @@ struct value {
             struct native *native;
             struct proto *proto;
             struct reference *reference;
-            struct state *state;
+            struct coroutine *coroutine;
             struct string *string;
             struct table *table;
             struct userdata *userdata;

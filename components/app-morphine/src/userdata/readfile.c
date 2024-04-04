@@ -22,8 +22,8 @@ static void readfile_free(morphine_instance_t I, void *p) {
     mapi_allocator_free(I, readfile);
 }
 
-void *userdata_readfile(morphine_state_t S, const char *path) {
-    struct readfile *readfile = mapi_allocator_uni(mapi_instance(S), NULL, sizeof(struct readfile));
+void *userdata_readfile(morphine_coroutine_t U, const char *path) {
+    struct readfile *readfile = mapi_allocator_uni(mapi_instance(U), NULL, sizeof(struct readfile));
 
     (*readfile) = (struct readfile) {
         .data = NULL,
@@ -32,11 +32,11 @@ void *userdata_readfile(morphine_state_t S, const char *path) {
     };
 
     if (readfile->file == NULL) {
-        mapi_allocator_free(mapi_instance(S), readfile);
-        mapi_errorf(S, "Cannot open file %s", path);
+        mapi_allocator_free(mapi_instance(U), readfile);
+        mapi_errorf(U, "Cannot open file %s", path);
     }
 
-    mapi_push_userdata(S, "readfile", readfile, NULL, readfile_free);
+    mapi_push_userdata(U, "readfile", readfile, NULL, readfile_free);
 
     // get size
 
@@ -47,7 +47,7 @@ void *userdata_readfile(morphine_state_t S, const char *path) {
         size = ftell(readfile->file);
 
         if (size < 0 || fseek_end_res != 0) {
-            mapi_errorf(S, "Cannot get file size");
+            mapi_errorf(U, "Cannot get file size");
         }
 
         int fseek_set_res = fseek(readfile->file, 0, SEEK_SET);
@@ -59,7 +59,7 @@ void *userdata_readfile(morphine_state_t S, const char *path) {
 
     // read
 
-    readfile->data = mapi_allocator_uni(mapi_instance(S), NULL, (size_t) (size + 1));
+    readfile->data = mapi_allocator_uni(mapi_instance(U), NULL, (size_t) (size + 1));
     memset(readfile->data, 0, (unsigned long) (size + 1));
 
     size_t result = fread(readfile->data, 1, (unsigned long) size, readfile->file);
@@ -76,5 +76,5 @@ void *userdata_readfile(morphine_state_t S, const char *path) {
     return readfile->data;
 
 cannot_read:
-    mapi_errorf(S, "Cannot read file");
+    mapi_errorf(U, "Cannot read file");
 }

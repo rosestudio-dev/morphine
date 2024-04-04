@@ -124,7 +124,7 @@ void gcI_dump(morphine_instance_t I) {
     object(I, I->G.finalizer.candidate);
     fprintf(out, "\n");
     fprintf(out, "  - State:              ");
-    object(I, (struct object *) I->G.finalizer.state);
+    object(I, (struct object *) I->G.finalizer.coroutine);
     fprintf(out, "\n");
     fprintf(out, "Safe:\n");
     for (size_t i = 0; i < sizeof(I->G.safe.stack) / sizeof(struct value); i++) {

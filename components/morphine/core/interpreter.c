@@ -17,7 +17,7 @@
 #define sp_fetch() \
     morphinem_blk_start \
     if (unlikely(*position >= instructions_count)) { \
-        callstackI_return(S, valueI_nil); \
+        callstackI_return(U, valueI_nil); \
         sp_yield(); \
     } \
     instruction = P->instructions[*position]; \
@@ -35,12 +35,12 @@
 
 #define complex_fun(name, s, ...) \
     morphinem_blk_start \
-        op_result_t operation_result = name(S, s, __VA_ARGS__, 0, true); \
+        op_result_t operation_result = name(U, s, __VA_ARGS__, 0, true); \
         if(unlikely(operation_result != NORMAL)) { \
             if (operation_result == CALLED) { \
                 sp_yield(); \
             } else if(operation_result == CALLED_COMPLETE) { \
-                callstackI_continue(S, 0); \
+                callstackI_continue(U, 0); \
             } \
         } \
     morphinem_blk_end
@@ -62,14 +62,14 @@ static inline void clear_params(struct callinfo *C, size_t count) {
 
 // code
 
-static void step_proto(morphine_state_t S, struct proto *P) {
+static void step_proto(morphine_coroutine_t U, struct proto *P) {
 #ifdef MORPHINE_ENABLE_JUMPTABLE
 
 #include "jumptable.h"
 
 #endif
 
-    struct callinfo *C = callstackI_info(S);
+    struct callinfo *C = callstackI_info(U);
     size_t *position = &C->pc.position;
     size_t instructions_count = P->instructions_count;
 
@@ -122,7 +122,7 @@ sp_case(OPCODE_RECURSION)
             }
 sp_case(OPCODE_TABLE)
             {
-                slot(C, arg1) = valueI_object(tableI_create(S->I));
+                slot(C, arg1) = valueI_object(tableI_create(U->I));
                 sp_end();
             }
 sp_case(OPCODE_GET)
@@ -190,7 +190,7 @@ sp_case(OPCODE_JUMP_IF)
             {
                 struct value cond = slot(C, arg1);
 
-                if (valueI_as_boolean_or_error(S->I, cond)) {
+                if (valueI_as_boolean_or_error(U->I, cond)) {
                     *position = arg2.value;
                 } else {
                     *position = arg3.value;
@@ -200,22 +200,22 @@ sp_case(OPCODE_JUMP_IF)
             }
 sp_case(OPCODE_GET_STATIC)
             {
-                slot(C, arg2) = protoI_static_get(S->I, P, arg1.value);
+                slot(C, arg2) = protoI_static_get(U->I, P, arg1.value);
                 sp_end();
             }
 sp_case(OPCODE_SET_STATIC)
             {
-                protoI_static_set(S->I, P, arg1.value, slot(C, arg2));
+                protoI_static_set(U->I, P, arg1.value, slot(C, arg2));
                 sp_end();
             }
 sp_case(OPCODE_GET_CLOSURE)
             {
-                slot(C, arg2) = closureI_get(S->I, valueI_as_closure_or_error(S->I, *C->s.callable.p), arg1.value);
+                slot(C, arg2) = closureI_get(U->I, valueI_as_closure_or_error(U->I, *C->s.callable.p), arg1.value);
                 sp_end();
             }
 sp_case(OPCODE_SET_CLOSURE)
             {
-                closureI_set(S->I, valueI_as_closure_or_error(S->I, *C->s.callable.p), arg1.value, slot(C, arg2));
+                closureI_set(U->I, valueI_as_closure_or_error(U->I, *C->s.callable.p), arg1.value, slot(C, arg2));
                 sp_end();
             }
 sp_case(OPCODE_CLOSURE)
@@ -223,13 +223,13 @@ sp_case(OPCODE_CLOSURE)
                 size_t count = arg2.value;
                 struct value callable = slot(C, arg1);
 
-                struct closure *closure = closureI_create(S->I, callable, count);
+                struct closure *closure = closureI_create(U->I, callable, count);
 
                 struct value *params = &param(C, 0);
                 struct value result = valueI_object(closure);
 
                 for (size_t i = 0; i < count; i++) {
-                    closureI_set(S->I, closure, i, params[i]);
+                    closureI_set(U->I, closure, i, params[i]);
                 }
 
                 slot(C, arg3) = result;
@@ -239,18 +239,18 @@ sp_case(OPCODE_CLOSURE)
             }
 sp_case(OPCODE_CALL)
             {
-                if (callstackI_state(S) == 1) {
-                    callstackI_continue(S, 0);
+                if (callstackI_state(U) == 1) {
+                    callstackI_continue(U, 0);
                     sp_end();
                 }
 
                 struct value callable = slot(C, arg1);
                 size_t count = arg2.value;
 
-                callstackI_continue(S, 1);
+                callstackI_continue(U, 1);
 
                 callstackI_params(
-                    S,
+                    U,
                     callable,
                     valueI_nil,
                     count,
@@ -262,8 +262,8 @@ sp_case(OPCODE_CALL)
             }
 sp_case(OPCODE_SCALL)
             {
-                if (callstackI_state(S) == 1) {
-                    callstackI_continue(S, 0);
+                if (callstackI_state(U) == 1) {
+                    callstackI_continue(U, 0);
                     sp_end();
                 }
 
@@ -271,10 +271,10 @@ sp_case(OPCODE_SCALL)
                 struct value self = slot(C, arg3);
                 size_t count = arg2.value;
 
-                callstackI_continue(S, 1);
+                callstackI_continue(U, 1);
 
                 callstackI_params(
-                    S,
+                    U,
                     callable,
                     self,
                     count,
@@ -286,13 +286,13 @@ sp_case(OPCODE_SCALL)
             }
 sp_case(OPCODE_LEAVE)
             {
-                callstackI_return(S, slot(C, arg1));
+                callstackI_return(U, slot(C, arg1));
                 (*position)++;
                 sp_yield();
             }
 sp_case(OPCODE_RESULT)
             {
-                slot(C, arg1) = callstackI_result(S);
+                slot(C, arg1) = callstackI_result(U);
                 sp_end();
             }
 sp_case(OPCODE_ADD)
@@ -480,70 +480,70 @@ sp_case(OPCODE_LENGTH)
     }
 }
 
-static inline void step(morphine_state_t S) {
-    struct callinfo *callinfo = callstackI_info(S);
+static inline void step(morphine_coroutine_t U) {
+    struct callinfo *callinfo = callstackI_info(U);
 
     if (unlikely(callinfo == NULL)) {
-        S->status = STATE_STATUS_DEAD;
+        U->status = COROUTINE_STATUS_DEAD;
         return;
     }
 
-    S->I->E.throw.context_state = S;
+    U->I->E.throw.context_coroutine = U;
 
     struct value source = *callinfo->s.source.p;
 
     if (likely(valueI_is_proto(source))) {
         callinfo->exit = false;
-        step_proto(S, valueI_as_proto(source));
+        step_proto(U, valueI_as_proto(source));
     } else if (valueI_is_native(source)) {
         callinfo->exit = true;
         struct native *native = valueI_as_native(source);
-        native->function(S);
+        native->function(U);
     } else {
-        throwI_error(S->I, "Attempt to execute unsupported callable");
+        throwI_error(U->I, "Attempt to execute unsupported callable");
     }
 
     if (unlikely(callinfo->exit)) {
-        callstackI_pop(S);
+        callstackI_pop(U);
     }
 
-    S->I->E.throw.context_state = NULL;
+    U->I->E.throw.context_coroutine = NULL;
 }
 
 static inline void attach_candidates(morphine_instance_t I) {
     if (unlikely(I->E.candidates != NULL)) {
-        morphine_state_t state = I->E.candidates;
+        morphine_coroutine_t coroutine = I->E.candidates;
 
-        if (state->status == STATE_STATUS_ATTACHED) {
-            state->status = STATE_STATUS_RUNNING;
+        if (coroutine->status == COROUTINE_STATUS_ATTACHED) {
+            coroutine->status = COROUTINE_STATUS_RUNNING;
         } else {
-            throwI_panic(I, "Unexpected candidate coroutine state");
+            throwI_panic(I, "Unexpected candidate coroutine status");
         }
 
-        I->E.candidates = state->prev;
-        state->prev = I->E.states;
-        I->E.states = state;
+        I->E.candidates = coroutine->prev;
+        coroutine->prev = I->E.coroutines;
+        I->E.coroutines = coroutine;
     }
 }
 
 static inline void execute(morphine_instance_t I) {
     attach_candidates(I);
 
-    morphine_state_t last = NULL;
-    morphine_state_t current = I->E.states;
+    morphine_coroutine_t last = NULL;
+    morphine_coroutine_t current = I->E.coroutines;
 
     for (;;) {
-        if (unlikely(I->G.finalizer.work && I->G.finalizer.state != NULL)) {
-            step(I->G.finalizer.state);
+        if (unlikely(I->G.finalizer.work && I->G.finalizer.coroutine != NULL)) {
+            step(I->G.finalizer.coroutine);
 
             if (current == NULL) {
                 attach_candidates(I);
 
-                if (I->E.states == NULL) {
+                if (I->E.coroutines == NULL) {
                     continue;
                 }
 
-                current = I->E.states;
+                current = I->E.coroutines;
             }
         } else if (unlikely(current == NULL)) {
             break;
@@ -551,17 +551,17 @@ static inline void execute(morphine_instance_t I) {
 
         bool is_current_circle = (I->E.circle % current->priority) == 0;
 
-        if (likely(is_current_circle && (current->status == STATE_STATUS_RUNNING))) {
+        if (likely(is_current_circle && (current->status == COROUTINE_STATUS_RUNNING))) {
             step(current);
         }
 
-        if (unlikely(current->status == STATE_STATUS_DEAD)) {
+        if (unlikely(current->status == COROUTINE_STATUS_DEAD)) {
             if (last == NULL) {
-                I->E.states = current->prev;
+                I->E.coroutines = current->prev;
             } else {
                 last->prev = current->prev;
             }
-            current->status = STATE_STATUS_DETACHED;
+            current->status = COROUTINE_STATUS_DETACHED;
         } else {
             last = current;
         }
@@ -572,7 +572,7 @@ static inline void execute(morphine_instance_t I) {
             attach_candidates(I);
 
             last = NULL;
-            current = I->E.states;
+            current = I->E.coroutines;
 
             if (unlikely(current == NULL)) {
                 gcI_full(I);
@@ -597,7 +597,7 @@ void interpreterI_run(morphine_instance_t I) {
 
 struct interpreter interpreterI_prototype(void) {
     return (struct interpreter) {
-        .states = NULL,
+        .coroutines = NULL,
         .candidates = NULL,
         .circle = 0,
         .throw = throwI_prototype(),

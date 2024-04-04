@@ -6,4 +6,4 @@
 
 #include <morphine.h>
 
-void *userdata_readfile(morphine_state_t, const char *path);
+void *userdata_readfile(morphine_coroutine_t, const char *path);

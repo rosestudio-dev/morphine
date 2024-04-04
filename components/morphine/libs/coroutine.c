@@ -5,60 +5,60 @@
 #include <morphine.h>
 #include "morphine/libs/loader.h"
 
-static void kill(morphine_state_t S) {
-    nb_function(S)
+static void kill(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "self:table");
-            mapi_push_self(S);
-            mapi_push_stringf(S, "__state");
-            mapi_table_getoe(S);
-            morphine_state_t state = mapi_get_state(S);
+            maux_checkargs(U, 1, "self:table");
+            mapi_push_self(U);
+            mapi_push_stringf(U, "__coroutine");
+            mapi_table_getoe(U);
+            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            mapi_state_kill(state);
+            mapi_coroutine_kill(coroutine);
             nb_leave();
     nb_end
 }
 
-static void status(morphine_state_t S) {
-    nb_function(S)
+static void status(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "self:table");
-            mapi_push_self(S);
-            mapi_push_stringf(S, "__state");
-            mapi_table_getoe(S);
-            morphine_state_t state = mapi_get_state(S);
+            maux_checkargs(U, 1, "self:table");
+            mapi_push_self(U);
+            mapi_push_stringf(U, "__coroutine");
+            mapi_table_getoe(U);
+            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            mapi_push_stringf(S, mapi_state_status(state));
+            mapi_push_stringf(U, mapi_coroutine_status(coroutine));
             nb_return();
     nb_end
 }
 
-static void priority(morphine_state_t S) {
-    nb_function(S)
+static void priority(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "self:table,integer");
-            mapi_push_self(S);
-            mapi_push_stringf(S, "__state");
-            mapi_table_getoe(S);
-            morphine_state_t state = mapi_get_state(S);
+            maux_checkargs(U, 1, "self:table,integer");
+            mapi_push_self(U);
+            mapi_push_stringf(U, "__coroutine");
+            mapi_table_getoe(U);
+            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            mapi_push_arg(S, 0);
-            ml_integer priority = mapi_get_integer(S);
-            mapi_state_priority(state, (priority_t) priority);
+            mapi_push_arg(U, 0);
+            ml_integer priority = mapi_get_integer(U);
+            mapi_coroutine_priority(coroutine, (priority_t) priority);
             nb_leave();
     nb_end
 }
 
-static void wait(morphine_state_t S) {
-    nb_function(S)
+static void wait(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "self:table");
-            mapi_push_self(S);
-            mapi_push_stringf(S, "__state");
-            mapi_table_getoe(S);
-            morphine_state_t state = mapi_get_state(S);
+            maux_checkargs(U, 1, "self:table");
+            mapi_push_self(U);
+            mapi_push_stringf(U, "__coroutine");
+            mapi_table_getoe(U);
+            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            if (mapi_state_isalive(state)) {
+            if (mapi_coroutine_isalive(coroutine)) {
                 nb_continue(0);
             } else {
                 nb_leave();
@@ -66,125 +66,125 @@ static void wait(morphine_state_t S) {
     nb_end
 }
 
-static void suspend(morphine_state_t S) {
-    nb_function(S)
+static void suspend(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "self:table");
-            mapi_push_self(S);
-            mapi_push_stringf(S, "__state");
-            mapi_table_getoe(S);
-            morphine_state_t state = mapi_get_state(S);
+            maux_checkargs(U, 1, "self:table");
+            mapi_push_self(U);
+            mapi_push_stringf(U, "__coroutine");
+            mapi_table_getoe(U);
+            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            mapi_state_suspend(state);
+            mapi_coroutine_suspend(coroutine);
             nb_leave();
     nb_end
 }
 
-static void resume(morphine_state_t S) {
-    nb_function(S)
+static void resume(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "self:table");
-            mapi_push_self(S);
-            mapi_push_stringf(S, "__state");
-            mapi_table_getoe(S);
-            morphine_state_t state = mapi_get_state(S);
+            maux_checkargs(U, 1, "self:table");
+            mapi_push_self(U);
+            mapi_push_stringf(U, "__coroutine");
+            mapi_table_getoe(U);
+            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            mapi_state_resume(state);
+            mapi_coroutine_resume(coroutine);
             nb_leave();
     nb_end
 }
 
-static void create_instance(morphine_state_t S) {
-    mapi_push_stringf(S, "kill");
-    mapi_push_native(S, "coroutine.instance.kill", kill);
-    mapi_table_set(S);
+static void create_instance(morphine_coroutine_t U) {
+    mapi_push_stringf(U, "kill");
+    mapi_push_native(U, "coroutine.instance.kill", kill);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "status");
-    mapi_push_native(S, "coroutine.instance.status", status);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "status");
+    mapi_push_native(U, "coroutine.instance.status", status);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "priority");
-    mapi_push_native(S, "coroutine.instance.priority", priority);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "priority");
+    mapi_push_native(U, "coroutine.instance.priority", priority);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "wait");
-    mapi_push_native(S, "coroutine.instance.wait", wait);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "wait");
+    mapi_push_native(U, "coroutine.instance.wait", wait);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "suspend");
-    mapi_push_native(S, "coroutine.instance.suspend", suspend);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "suspend");
+    mapi_push_native(U, "coroutine.instance.suspend", suspend);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "resume");
-    mapi_push_native(S, "coroutine.instance.resume", resume);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "resume");
+    mapi_push_native(U, "coroutine.instance.resume", resume);
+    mapi_table_set(U);
 
-    maux_table_lock(S);
+    maux_table_lock(U);
 }
 
-static void start(morphine_state_t S) {
-    nb_function(S)
+static void start(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "self:table");
-            mapi_push_table(S);
+            maux_checkargs(U, 1, "self:table");
+            mapi_push_table(U);
 
-            mapi_push_stringf(S, "__state");
-            morphine_state_t state = mapi_push_state(S);
-            mapi_table_set(S);
+            mapi_push_stringf(U, "__coroutine");
+            morphine_coroutine_t coroutine = mapi_push_coroutine(U);
+            mapi_table_set(U);
 
-            mapi_copy(S, state, 0);
+            mapi_copy(U, coroutine, 0);
 
-            mapi_push_self(S);
-            mapi_push_stringf(S, "__callable");
-            mapi_table_getoe(S);
-            mapi_move(S, state);
-            mapi_pop(S, 1);
+            mapi_push_self(U);
+            mapi_push_stringf(U, "__callable");
+            mapi_table_getoe(U);
+            mapi_move(U, coroutine);
+            mapi_pop(U, 1);
 
-            for (size_t i = 0; i < mapi_args(S); i++) {
-                mapi_push_arg(S, i);
-                mapi_move(S, state);
+            for (size_t i = 0; i < mapi_args(U); i++) {
+                mapi_push_arg(U, i);
+                mapi_move(U, coroutine);
             }
 
-            mapi_callself(state, mapi_args(S));
+            mapi_callself(coroutine, mapi_args(U));
 
-            create_instance(S);
+            create_instance(U);
 
-            mapi_attach(state);
+            mapi_attach(coroutine);
             nb_return();
     nb_end
 }
 
-static void create(morphine_state_t S) {
-    nb_function(S)
+static void create(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "callable");
-            mapi_push_table(S);
+            maux_checkargs(U, 1, "callable");
+            mapi_push_table(U);
 
-            mapi_push_stringf(S, "__callable");
-            mapi_push_arg(S, 0);
-            mapi_table_set(S);
+            mapi_push_stringf(U, "__callable");
+            mapi_push_arg(U, 0);
+            mapi_table_set(U);
 
-            mapi_push_stringf(S, "start");
-            mapi_push_native(S, "coroutine.start", start);
-            mapi_table_set(S);
+            mapi_push_stringf(U, "start");
+            mapi_push_native(U, "coroutine.start", start);
+            mapi_table_set(U);
 
-            maux_table_lock(S);
+            maux_table_lock(U);
 
             nb_return();
     nb_end
 }
 
-static void current(morphine_state_t S) {
-    nb_function(S)
+static void current(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "empty");
-            mapi_push_table(S);
+            maux_checkargs(U, 1, "empty");
+            mapi_push_table(U);
 
-            mapi_push_stringf(S, "__state");
-            mapi_push_current_state(S);
-            mapi_table_set(S);
+            mapi_push_stringf(U, "__coroutine");
+            mapi_push_current_coroutine(U);
+            mapi_table_set(U);
 
-            create_instance(S);
+            create_instance(U);
 
             nb_return();
     nb_end
@@ -196,10 +196,10 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_coroutine_loader(morphine_state_t S) {
-    maux_construct(S, table);
+void mlib_coroutine_loader(morphine_coroutine_t U) {
+    maux_construct(U, table);
 }
 
-MORPHINE_LIB void mlib_coroutine_call(morphine_state_t S, const char *name, size_t argc) {
-    maux_construct_call(S, table, name, argc);
+MORPHINE_LIB void mlib_coroutine_call(morphine_coroutine_t U, const char *name, size_t argc) {
+    maux_construct_call(U, table, name, argc);
 }

@@ -10,10 +10,10 @@
 
 struct process_state;
 
-typedef struct proto *(function_loader_t)(morphine_state_t, struct process_state *);
+typedef struct proto *(function_loader_t)(morphine_coroutine_t, struct process_state *);
 
 struct proto *process(
-    morphine_state_t,
+    morphine_coroutine_t,
     morphine_loader_init_t,
     morphine_loader_read_t,
     morphine_loader_finish_t,

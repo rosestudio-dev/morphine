@@ -5,7 +5,7 @@
 #include <memory.h>
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
@@ -36,7 +36,7 @@ static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_STRING:
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_CLOSURE:
-        case VALUE_TYPE_STATE:
+        case VALUE_TYPE_COROUTINE:
         case VALUE_TYPE_PROTO:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_ITERATOR:

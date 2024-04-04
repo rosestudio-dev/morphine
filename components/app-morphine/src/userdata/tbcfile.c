@@ -10,14 +10,14 @@ static void tbc_file_free(morphine_instance_t I, void *p) {
     fclose(p);
 }
 
-FILE *userdata_tbc_file(morphine_state_t S, const char *path, const char *mode) {
+FILE *userdata_tbc_file(morphine_coroutine_t U, const char *path, const char *mode) {
     FILE *file = fopen(path, mode);
 
     if (file == NULL) {
-        mapi_errorf(S, "Cannot open file %s", path);
+        mapi_errorf(U, "Cannot open file %s", path);
     }
 
-    mapi_push_userdata(S, "tbc_file", file, NULL, tbc_file_free);
+    mapi_push_userdata(U, "tbc_file", file, NULL, tbc_file_free);
 
     return file;
 }

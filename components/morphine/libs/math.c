@@ -10,32 +10,32 @@
 #define E_CONST  2.7182818284590452354
 
 #define math_func_1(name) \
-static void math_##name(morphine_state_t S) { \
-    nb_function(S) \
+static void math_##name(morphine_coroutine_t U) { \
+    nb_function(U) \
         nb_init \
-            maux_checkargs(S, 1, "any"); \
-            mapi_push_arg(S, 0); \
-            mapi_to_decimal(S); \
-            ml_decimal a = mapi_get_decimal(S); \
-            mapi_pop(S, 1); \
-            mapi_push_decimal(S, name(a)); \
+            maux_checkargs(U, 1, "any"); \
+            mapi_push_arg(U, 0); \
+            mapi_to_decimal(U); \
+            ml_decimal a = mapi_get_decimal(U); \
+            mapi_pop(U, 1); \
+            mapi_push_decimal(U, name(a)); \
             nb_return(); \
     nb_end \
 }
 
 #define math_func_2(name) \
-static void math_##name(morphine_state_t S) { \
-    nb_function(S) \
+static void math_##name(morphine_coroutine_t U) { \
+    nb_function(U) \
         nb_init \
-            maux_checkargs(S, 1, "any,any"); \
-            mapi_push_arg(S, 0); \
-            mapi_to_decimal(S); \
-            ml_decimal a = mapi_get_decimal(S); \
-            mapi_push_arg(S, 1); \
-            mapi_to_decimal(S); \
-            ml_decimal b = mapi_get_decimal(S); \
-            mapi_pop(S, 2); \
-            mapi_push_decimal(S, name(a, b)); \
+            maux_checkargs(U, 1, "any,any"); \
+            mapi_push_arg(U, 0); \
+            mapi_to_decimal(U); \
+            ml_decimal a = mapi_get_decimal(U); \
+            mapi_push_arg(U, 1); \
+            mapi_to_decimal(U); \
+            ml_decimal b = mapi_get_decimal(U); \
+            mapi_pop(U, 2); \
+            mapi_push_decimal(U, name(a, b)); \
             nb_return(); \
     nb_end \
 }
@@ -155,171 +155,171 @@ math_func_1(fabs)
  * modf Break into fractional and integral parts
  */
 
-static void math_modf(morphine_state_t S) {
-    nb_function(S)
+static void math_modf(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any");
+            maux_checkargs(U, 1, "any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_decimal(S);
-            ml_decimal a = mapi_get_decimal(S);
-            mapi_pop(S, 1);
+            mapi_push_arg(U, 0);
+            mapi_to_decimal(U);
+            ml_decimal a = mapi_get_decimal(U);
+            mapi_pop(U, 1);
 
             ml_decimal integral = 0;
             ml_decimal fraction = modf(a, &integral);
 
-            mapi_push_table(S);
+            mapi_push_table(U);
 
-            mapi_push_stringf(S, "integral");
-            mapi_push_decimal(S, integral);
-            mapi_table_set(S);
+            mapi_push_stringf(U, "integral");
+            mapi_push_decimal(U, integral);
+            mapi_table_set(U);
 
-            mapi_push_stringf(S, "fraction");
-            mapi_push_decimal(S, fraction);
-            mapi_table_set(S);
+            mapi_push_stringf(U, "fraction");
+            mapi_push_decimal(U, fraction);
+            mapi_table_set(U);
 
             nb_return();
     nb_end
 }
 
-static void math_rad(morphine_state_t S) {
-    nb_function(S)
+static void math_rad(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any");
+            maux_checkargs(U, 1, "any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_decimal(S);
-            ml_decimal a = mapi_get_decimal(S);
-            mapi_pop(S, 1);
+            mapi_push_arg(U, 0);
+            mapi_to_decimal(U);
+            ml_decimal a = mapi_get_decimal(U);
+            mapi_pop(U, 1);
 
-            mapi_push_decimal(S, a * PI_CONST / 180);
+            mapi_push_decimal(U, a * PI_CONST / 180);
             nb_return();
     nb_end
 }
 
-static void math_deg(morphine_state_t S) {
-    nb_function(S)
+static void math_deg(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any");
+            maux_checkargs(U, 1, "any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_decimal(S);
-            ml_decimal a = mapi_get_decimal(S);
-            mapi_pop(S, 1);
+            mapi_push_arg(U, 0);
+            mapi_to_decimal(U);
+            ml_decimal a = mapi_get_decimal(U);
+            mapi_pop(U, 1);
 
-            mapi_push_decimal(S, a * 180 / PI_CONST);
+            mapi_push_decimal(U, a * 180 / PI_CONST);
             nb_return();
     nb_end
 }
 
-static void math_imax(morphine_state_t S) {
-    nb_function(S)
+static void math_imax(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any,any");
+            maux_checkargs(U, 1, "any,any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_integer(S);
-            ml_integer a = mapi_get_integer(S);
+            mapi_push_arg(U, 0);
+            mapi_to_integer(U);
+            ml_integer a = mapi_get_integer(U);
 
-            mapi_push_arg(S, 1);
-            mapi_to_integer(S);
-            ml_integer b = mapi_get_integer(S);
+            mapi_push_arg(U, 1);
+            mapi_to_integer(U);
+            ml_integer b = mapi_get_integer(U);
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
-            mapi_push_integer(S, a > b ? a : b);
+            mapi_push_integer(U, a > b ? a : b);
             nb_return();
     nb_end
 }
 
-static void math_imin(morphine_state_t S) {
-    nb_function(S)
+static void math_imin(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any,any");
+            maux_checkargs(U, 1, "any,any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_integer(S);
-            ml_integer a = mapi_get_integer(S);
+            mapi_push_arg(U, 0);
+            mapi_to_integer(U);
+            ml_integer a = mapi_get_integer(U);
 
-            mapi_push_arg(S, 1);
-            mapi_to_integer(S);
-            ml_integer b = mapi_get_integer(S);
+            mapi_push_arg(U, 1);
+            mapi_to_integer(U);
+            ml_integer b = mapi_get_integer(U);
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
-            mapi_push_integer(S, a > b ? b : a);
+            mapi_push_integer(U, a > b ? b : a);
             nb_return();
     nb_end
 }
 
-static void math_dmax(morphine_state_t S) {
-    nb_function(S)
+static void math_dmax(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any,any");
+            maux_checkargs(U, 1, "any,any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_decimal(S);
-            ml_decimal a = mapi_get_decimal(S);
+            mapi_push_arg(U, 0);
+            mapi_to_decimal(U);
+            ml_decimal a = mapi_get_decimal(U);
 
-            mapi_push_arg(S, 1);
-            mapi_to_decimal(S);
-            ml_decimal b = mapi_get_decimal(S);
+            mapi_push_arg(U, 1);
+            mapi_to_decimal(U);
+            ml_decimal b = mapi_get_decimal(U);
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
-            mapi_push_decimal(S, a > b ? a : b);
+            mapi_push_decimal(U, a > b ? a : b);
             nb_return();
     nb_end
 }
 
-static void math_dmin(morphine_state_t S) {
-    nb_function(S)
+static void math_dmin(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any,any");
+            maux_checkargs(U, 1, "any,any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_decimal(S);
-            ml_decimal a = mapi_get_decimal(S);
+            mapi_push_arg(U, 0);
+            mapi_to_decimal(U);
+            ml_decimal a = mapi_get_decimal(U);
 
-            mapi_push_arg(S, 1);
-            mapi_to_decimal(S);
-            ml_decimal b = mapi_get_decimal(S);
+            mapi_push_arg(U, 1);
+            mapi_to_decimal(U);
+            ml_decimal b = mapi_get_decimal(U);
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
-            mapi_push_decimal(S, a > b ? b : a);
+            mapi_push_decimal(U, a > b ? b : a);
             nb_return();
     nb_end
 }
 
-static void math_isnan(morphine_state_t S) {
-    nb_function(S)
+static void math_isnan(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any");
+            maux_checkargs(U, 1, "any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_decimal(S);
-            ml_decimal a = mapi_get_decimal(S);
+            mapi_push_arg(U, 0);
+            mapi_to_decimal(U);
+            ml_decimal a = mapi_get_decimal(U);
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
-            mapi_push_boolean(S, isnan(a));
+            mapi_push_boolean(U, isnan(a));
             nb_return();
     nb_end
 }
 
-static void math_isinf(morphine_state_t S) {
-    nb_function(S)
+static void math_isinf(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            maux_checkargs(S, 1, "any");
+            maux_checkargs(U, 1, "any");
 
-            mapi_push_arg(S, 0);
-            mapi_to_decimal(S);
-            ml_decimal a = mapi_get_decimal(S);
+            mapi_push_arg(U, 0);
+            mapi_to_decimal(U);
+            ml_decimal a = mapi_get_decimal(U);
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
-            mapi_push_boolean(S, isinf(a));
+            mapi_push_boolean(U, isinf(a));
             nb_return();
     nb_end
 }
@@ -380,26 +380,26 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_math_loader(morphine_state_t S) {
-    maux_construct(S, table);
+void mlib_math_loader(morphine_coroutine_t U) {
+    maux_construct(U, table);
 
-    mapi_push_stringf(S, "pi");
-    mapi_push_decimal(S, PI_CONST);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "pi");
+    mapi_push_decimal(U, PI_CONST);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "e");
-    mapi_push_decimal(S, E_CONST);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "e");
+    mapi_push_decimal(U, E_CONST);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "nan");
-    mapi_push_decimal(S, (ml_decimal) NAN);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "nan");
+    mapi_push_decimal(U, (ml_decimal) NAN);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "inf");
-    mapi_push_decimal(S, (ml_decimal) INFINITY);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "inf");
+    mapi_push_decimal(U, (ml_decimal) INFINITY);
+    mapi_table_set(U);
 }
 
-MORPHINE_LIB void mlib_math_call(morphine_state_t S, const char *name, size_t argc) {
-    maux_construct_call(S, table, name, argc);
+MORPHINE_LIB void mlib_math_call(morphine_coroutine_t U, const char *name, size_t argc) {
+    maux_construct_call(U, table, name, argc);
 }

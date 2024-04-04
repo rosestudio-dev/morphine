@@ -8,7 +8,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/proto.h"
 #include "morphine/object/native.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/object/userdata.h"
 
 bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
@@ -35,7 +35,7 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_CLOSURE:
-        case VALUE_TYPE_STATE:
+        case VALUE_TYPE_COROUTINE:
         case VALUE_TYPE_PROTO:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
@@ -69,8 +69,8 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
             return valueI_object(stringI_createf(I, "[object:iterator:%p]", value.object.iterator));
         case VALUE_TYPE_CLOSURE:
             return valueI_object(stringI_createf(I, "[object:closure:%p]", value.object.closure));
-        case VALUE_TYPE_STATE:
-            return valueI_object(stringI_createf(I, "[object:state:%p]", value.object.state));
+        case VALUE_TYPE_COROUTINE:
+            return valueI_object(stringI_createf(I, "[object:coroutine:%p]", value.object.coroutine));
         case VALUE_TYPE_REFERENCE:
             return valueI_object(stringI_createf(I, "[object:reference:%p]", value.object.reference));
         case VALUE_TYPE_PROTO:
@@ -179,8 +179,8 @@ const char *valueI_type2string(morphine_instance_t I, enum value_type type) {
             return "table";
         case VALUE_TYPE_CLOSURE:
             return "closure";
-        case VALUE_TYPE_STATE:
-            return "state";
+        case VALUE_TYPE_COROUTINE:
+            return "coroutine";
         case VALUE_TYPE_PROTO:
             return "proto";
         case VALUE_TYPE_REFERENCE:

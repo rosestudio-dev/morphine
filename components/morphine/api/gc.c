@@ -3,7 +3,7 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/core/instance.h"
 #include "morphine/gc/control.h"
 #include "morphine/gc/status.h"
@@ -62,21 +62,21 @@ MORPHINE_API void mapi_gc_change_deal(morphine_instance_t I, size_t value) {
 }
 
 MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value) {
-    if (I->G.finalizer.state != NULL) {
-        stackI_set_limit(I->G.finalizer.state, value);
+    if (I->G.finalizer.coroutine != NULL) {
+        stackI_set_limit(I->G.finalizer.coroutine, value);
     }
 }
 
 MORPHINE_API void mapi_gc_change_finalizer_stack_grow(morphine_instance_t I, size_t value) {
-    if (I->G.finalizer.state != NULL) {
-        stackI_set_grow(I->G.finalizer.state, value);
+    if (I->G.finalizer.coroutine != NULL) {
+        stackI_set_grow(I->G.finalizer.coroutine, value);
     }
 }
 
-MORPHINE_API void mapi_gc_change_stack_limit(morphine_state_t S, size_t value) {
-    stackI_set_limit(S, value);
+MORPHINE_API void mapi_gc_change_stack_limit(morphine_coroutine_t U, size_t value) {
+    stackI_set_limit(U, value);
 }
 
-MORPHINE_API void mapi_gc_change_stack_grow(morphine_state_t S, size_t value) {
-    stackI_set_grow(S, value);
+MORPHINE_API void mapi_gc_change_stack_grow(morphine_coroutine_t U, size_t value) {
+    stackI_set_grow(U, value);
 }

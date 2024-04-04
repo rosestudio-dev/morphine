@@ -7,4 +7,4 @@
 #include "morphine/platform.h"
 #include "morphine/config.h"
 
-MORPHINE_AUX void maux_table_lock(morphine_state_t);
+MORPHINE_AUX void maux_table_lock(morphine_coroutine_t);

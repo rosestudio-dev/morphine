@@ -43,7 +43,7 @@ struct garbage_collector {
     struct {
         bool work;
         struct object *candidate;
-        morphine_state_t state;
+        morphine_coroutine_t coroutine;
     } finalizer;
 
     struct {

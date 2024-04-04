@@ -36,7 +36,7 @@ struct garbage_collector gcI_prototype(struct gc_settings settings, size_t inite
         .pools.finalize = NULL,
 
         .finalizer.candidate = NULL,
-        .finalizer.state = NULL,
+        .finalizer.coroutine = NULL,
         .finalizer.work = false,
 
         .safe.index = 0,

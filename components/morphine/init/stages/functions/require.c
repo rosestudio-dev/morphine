@@ -34,60 +34,60 @@ static inline struct require_loader *search(struct require_loader *loader, const
     return NULL;
 }
 
-void require(morphine_state_t S) {
-    nb_function(S)
+void require(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
             size_t variant = maux_checkargs(
-                S, 4,
+                U, 4,
                 "string",
                 "string,string",
                 "string,boolean",
                 "string,string,boolean"
             );
 
-            mapi_push_arg(S, 0);
-            const char *id = mapi_get_string(S);
+            mapi_push_arg(U, 0);
+            const char *id = mapi_get_string(U);
 
-            bool has = mapi_registry_get(S);
+            bool has = mapi_registry_get(U);
             bool force_load = false;
             if (variant == 2) {
-                mapi_push_arg(S, 1);
-                force_load = mapi_get_boolean(S);
-                mapi_pop(S, 1);
+                mapi_push_arg(U, 1);
+                force_load = mapi_get_boolean(U);
+                mapi_pop(U, 1);
             } else if (variant == 3) {
-                mapi_push_arg(S, 2);
-                force_load = mapi_get_boolean(S);
-                mapi_pop(S, 1);
+                mapi_push_arg(U, 2);
+                force_load = mapi_get_boolean(U);
+                mapi_pop(U, 1);
             }
 
             if (!has || force_load) {
-                mapi_pop(S, 1);
+                mapi_pop(U, 1);
 
                 struct require_loader *result = search(table, id);
-                if (result == NULL && mapi_instance(S)->require_loader_table != NULL) {
-                    result = search(mapi_instance(S)->require_loader_table, id);
+                if (result == NULL && mapi_instance(U)->require_loader_table != NULL) {
+                    result = search(mapi_instance(U)->require_loader_table, id);
                 }
 
                 if (result == NULL) {
-                    mapi_errorf(S, "Cannot find '%s' library", id);
+                    mapi_errorf(U, "Cannot find '%s' library", id);
                 }
 
-                result->loader(S);
-                mapi_push_arg(S, 0);
-                mapi_peek(S, 1);
-                mapi_registry_set(S);
+                result->loader(U);
+                mapi_push_arg(U, 0);
+                mapi_peek(U, 1);
+                mapi_registry_set(U);
             }
 
             if (variant == 0 || variant == 2) {
                 nb_return();
             }
 
-            mapi_push_arg(S, 1);
-            const char *symbol = mapi_get_string(S);
-            bool has_part = mapi_table_get(S);
+            mapi_push_arg(U, 1);
+            const char *symbol = mapi_get_string(U);
+            bool has_part = mapi_table_get(U);
 
             if (!has_part) {
-                mapi_errorf(S, "Cannot find '%s' symbol from '%s' library", symbol, id);
+                mapi_errorf(U, "Cannot find '%s' symbol from '%s' library", symbol, id);
             }
 
             nb_return();

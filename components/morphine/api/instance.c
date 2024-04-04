@@ -5,7 +5,7 @@
 #include "morphine/api.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/interpreter.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 
 MORPHINE_API morphine_instance_t mapi_open(struct platform platform, struct settings settings, void *userdata) {
     return instanceI_open(platform, settings, userdata);
@@ -35,12 +35,12 @@ MORPHINE_API FILE *mapi_io_in(morphine_instance_t I) {
     return I->platform.io.in;
 }
 
-MORPHINE_API morphine_instance_t mapi_instance(morphine_state_t S) {
-    return S->I;
+MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t U) {
+    return U->I;
 }
 
-MORPHINE_API morphine_state_t mapi_state(morphine_instance_t I) {
-    morphine_state_t S = stateI_create(I);
-    stateI_attach(S);
-    return S;
+MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t I) {
+    morphine_coroutine_t U = coroutineI_create(I);
+    coroutineI_attach(U);
+    return U;
 }

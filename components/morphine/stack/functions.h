@@ -14,8 +14,8 @@
 void stack_save(struct stack *);
 void stack_recover(struct stack *);
 
-stackI_ptr stack_raise(morphine_state_t, size_t size);
-stackI_ptr stack_reduce(morphine_state_t, size_t size);
+stackI_ptr stack_raise(morphine_coroutine_t, size_t size);
+stackI_ptr stack_reduce(morphine_coroutine_t, size_t size);
 
-struct value stack_peek(morphine_state_t, struct callinfo *, size_t offset);
-size_t stack_space_size(morphine_state_t, struct callinfo *);
+struct value stack_peek(morphine_coroutine_t, struct callinfo *, size_t offset);
+size_t stack_space_size(morphine_coroutine_t, struct callinfo *);

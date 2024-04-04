@@ -8,8 +8,8 @@
 #include "morphine/core/value.h"
 #include "morphine/utils/semicolon.h"
 
-#define throwI_errorf(I, ...) morphinem_blk_start morphine_instance_t P_I = (I); throwI_errorv(P_I, valueI_object(stringI_createf(P_I, __VA_ARGS__))); morphinem_blk_end
-#define throwI_panicf(I, ...) morphinem_blk_start morphine_instance_t P_I = (I); throwI_panicv(P_I, valueI_object(stringI_createf(P_I, __VA_ARGS__))); morphinem_blk_end
+#define throwI_errorf(I, ...) morphinem_blk_start morphine_instance_t _I = (I); throwI_errorv(_I, valueI_object(stringI_createf(_I, __VA_ARGS__))); morphinem_blk_end
+#define throwI_panicf(I, ...) morphinem_blk_start morphine_instance_t _I = (I); throwI_panicv(_I, valueI_object(stringI_createf(_I, __VA_ARGS__))); morphinem_blk_end
 
 struct throw {
     bool inited;
@@ -21,7 +21,7 @@ struct throw {
         const char *message;
     } error;
 
-    morphine_state_t context_state;
+    morphine_coroutine_t context_coroutine;
 };
 
 struct throw throwI_prototype(void);
@@ -36,4 +36,4 @@ morphine_noret void throwI_panic(morphine_instance_t, const char *message);
 
 const char *throwI_message(morphine_instance_t);
 
-void throwI_catchable(morphine_state_t, size_t callstate);
+void throwI_catchable(morphine_coroutine_t, size_t callstate);

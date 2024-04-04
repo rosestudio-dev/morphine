@@ -19,109 +19,108 @@ MORPHINE_API void mapi_userlibs(morphine_instance_t, struct require_loader *tabl
 MORPHINE_API FILE *mapi_io_out(morphine_instance_t);
 MORPHINE_API FILE *mapi_io_in(morphine_instance_t);
 
-MORPHINE_API morphine_instance_t mapi_instance(morphine_state_t);
-MORPHINE_API morphine_state_t mapi_state(morphine_instance_t);
+MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t);
+MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t);
 
-MORPHINE_API void mapi_call(morphine_state_t, size_t argc);
-MORPHINE_API void mapi_calli(morphine_state_t, size_t argc);
-MORPHINE_API void mapi_callself(morphine_state_t, size_t argc);
-MORPHINE_API void mapi_callselfi(morphine_state_t, size_t argc);
-MORPHINE_API void mapi_push_result(morphine_state_t);
-MORPHINE_API void mapi_return(morphine_state_t);
-MORPHINE_API void mapi_leave(morphine_state_t);
-MORPHINE_API void mapi_continue(morphine_state_t, size_t callstate);
-MORPHINE_API size_t mapi_callstate(morphine_state_t);
-MORPHINE_API size_t mapi_args(morphine_state_t);
-MORPHINE_API void mapi_push_arg(morphine_state_t, size_t index);
-MORPHINE_API void mapi_push_env(morphine_state_t);
-MORPHINE_API void mapi_push_self(morphine_state_t);
-MORPHINE_API void mapi_changeenv(morphine_state_t);
+MORPHINE_API void mapi_call(morphine_coroutine_t, size_t argc);
+MORPHINE_API void mapi_calli(morphine_coroutine_t, size_t argc);
+MORPHINE_API void mapi_callself(morphine_coroutine_t, size_t argc);
+MORPHINE_API void mapi_callselfi(morphine_coroutine_t, size_t argc);
+MORPHINE_API void mapi_push_result(morphine_coroutine_t);
+MORPHINE_API void mapi_return(morphine_coroutine_t);
+MORPHINE_API void mapi_leave(morphine_coroutine_t);
+MORPHINE_API void mapi_continue(morphine_coroutine_t, size_t callstate);
+MORPHINE_API size_t mapi_callstate(morphine_coroutine_t);
+MORPHINE_API size_t mapi_args(morphine_coroutine_t);
+MORPHINE_API void mapi_push_arg(morphine_coroutine_t, size_t index);
+MORPHINE_API void mapi_push_env(morphine_coroutine_t);
+MORPHINE_API void mapi_push_self(morphine_coroutine_t);
+MORPHINE_API void mapi_changeenv(morphine_coroutine_t);
 
-MORPHINE_API morphine_noret void mapi_errorf(morphine_state_t, const char *str, ...);
-MORPHINE_API morphine_noret void mapi_error(morphine_state_t);
-MORPHINE_API morphine_noret void mapi_panic(morphine_state_t, const char *message);
-MORPHINE_API void mapi_catchable(morphine_state_t, size_t callstate);
-MORPHINE_API void mapi_push_thrown(morphine_state_t);
+MORPHINE_API morphine_noret void mapi_errorf(morphine_coroutine_t, const char *str, ...);
+MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t);
+MORPHINE_API morphine_noret void mapi_panic(morphine_coroutine_t, const char *message);
+MORPHINE_API void mapi_catchable(morphine_coroutine_t, size_t callstate);
+MORPHINE_API void mapi_push_thrown(morphine_coroutine_t);
 MORPHINE_API const char *mapi_get_panic_message(morphine_instance_t);
 
-MORPHINE_API void mapi_rload(morphine_state_t, size_t size, const uint8_t *vector);
+MORPHINE_API void mapi_rload(morphine_coroutine_t, size_t size, const uint8_t *vector);
 MORPHINE_API void mapi_load(
-    morphine_state_t,
+    morphine_coroutine_t,
     morphine_loader_init_t init,
     morphine_loader_read_t read,
     morphine_loader_finish_t finish,
     void *args
 );
 
-MORPHINE_API void mapi_push_nil(morphine_state_t);
-MORPHINE_API void mapi_push_integer(morphine_state_t, ml_integer value);
-MORPHINE_API void mapi_push_size(morphine_state_t, size_t value);
-MORPHINE_API void mapi_push_decimal(morphine_state_t, ml_decimal value);
-MORPHINE_API void mapi_push_boolean(morphine_state_t, bool value);
-MORPHINE_API void mapi_push_raw(morphine_state_t, void *value);
+MORPHINE_API void mapi_push_nil(morphine_coroutine_t);
+MORPHINE_API void mapi_push_integer(morphine_coroutine_t, ml_integer value);
+MORPHINE_API void mapi_push_size(morphine_coroutine_t, size_t value);
+MORPHINE_API void mapi_push_decimal(morphine_coroutine_t, ml_decimal value);
+MORPHINE_API void mapi_push_boolean(morphine_coroutine_t, bool value);
+MORPHINE_API void mapi_push_raw(morphine_coroutine_t, void *value);
 
-MORPHINE_API ml_integer mapi_get_integer(morphine_state_t);
-MORPHINE_API size_t mapi_get_size(morphine_state_t);
-MORPHINE_API ml_decimal mapi_get_decimal(morphine_state_t);
-MORPHINE_API bool mapi_get_boolean(morphine_state_t);
-MORPHINE_API void *mapi_get_raw(morphine_state_t);
+MORPHINE_API ml_integer mapi_get_integer(morphine_coroutine_t);
+MORPHINE_API size_t mapi_get_size(morphine_coroutine_t);
+MORPHINE_API ml_decimal mapi_get_decimal(morphine_coroutine_t);
+MORPHINE_API bool mapi_get_boolean(morphine_coroutine_t);
+MORPHINE_API void *mapi_get_raw(morphine_coroutine_t);
 
-MORPHINE_API void mapi_to_integer(morphine_state_t);
-MORPHINE_API void mapi_to_decimal(morphine_state_t);
-MORPHINE_API void mapi_to_boolean(morphine_state_t);
-MORPHINE_API void mapi_to_string(morphine_state_t);
-MORPHINE_API bool mapi_is_callable(morphine_state_t);
+MORPHINE_API void mapi_to_integer(morphine_coroutine_t);
+MORPHINE_API void mapi_to_decimal(morphine_coroutine_t);
+MORPHINE_API void mapi_to_boolean(morphine_coroutine_t);
+MORPHINE_API void mapi_to_string(morphine_coroutine_t);
+MORPHINE_API bool mapi_is_callable(morphine_coroutine_t);
 
-MORPHINE_API const char *mapi_type(morphine_state_t);
-MORPHINE_API bool mapi_checktype(morphine_state_t, const char *name);
+MORPHINE_API const char *mapi_type(morphine_coroutine_t);
+MORPHINE_API bool mapi_checktype(morphine_coroutine_t, const char *name);
 
-MORPHINE_API void mapi_push_string(morphine_state_t, const char *str);
-MORPHINE_API void mapi_push_stringn(morphine_state_t, const char *str, size_t size);
-MORPHINE_API void mapi_push_stringf(morphine_state_t, const char *str, ...);
-MORPHINE_API void mapi_push_stringv(morphine_state_t, const char *str, va_list args);
-MORPHINE_API const char *mapi_get_string(morphine_state_t);
-MORPHINE_API size_t mapi_string_len(morphine_state_t);
-MORPHINE_API void mapi_string_concat(morphine_state_t);
+MORPHINE_API void mapi_push_string(morphine_coroutine_t, const char *str);
+MORPHINE_API void mapi_push_stringn(morphine_coroutine_t, const char *str, size_t size);
+MORPHINE_API void mapi_push_stringf(morphine_coroutine_t, const char *str, ...);
+MORPHINE_API void mapi_push_stringv(morphine_coroutine_t, const char *str, va_list args);
+MORPHINE_API const char *mapi_get_string(morphine_coroutine_t);
+MORPHINE_API size_t mapi_string_len(morphine_coroutine_t);
+MORPHINE_API void mapi_string_concat(morphine_coroutine_t);
 
-MORPHINE_API void mapi_push_table(morphine_state_t);
-MORPHINE_API void mapi_table_set(morphine_state_t);
-MORPHINE_API bool mapi_table_get(morphine_state_t);
-MORPHINE_API void mapi_table_getoe(morphine_state_t);
-MORPHINE_API size_t mapi_table_len(morphine_state_t);
+MORPHINE_API void mapi_push_table(morphine_coroutine_t);
+MORPHINE_API void mapi_table_set(morphine_coroutine_t);
+MORPHINE_API bool mapi_table_get(morphine_coroutine_t);
+MORPHINE_API void mapi_table_getoe(morphine_coroutine_t);
+MORPHINE_API size_t mapi_table_len(morphine_coroutine_t);
 
-MORPHINE_API void mapi_push_ref(morphine_state_t);
-MORPHINE_API void mapi_ref_set(morphine_state_t);
-MORPHINE_API void mapi_ref_get(morphine_state_t);
+MORPHINE_API void mapi_push_ref(morphine_coroutine_t);
+MORPHINE_API void mapi_ref_set(morphine_coroutine_t);
+MORPHINE_API void mapi_ref_get(morphine_coroutine_t);
 
-MORPHINE_API void mapi_push_native(morphine_state_t, const char *name, morphine_native_t native);
-MORPHINE_API const char *mapi_native_name(morphine_state_t);
-MORPHINE_API morphine_native_t mapi_native_function(morphine_state_t);
+MORPHINE_API void mapi_push_native(morphine_coroutine_t, const char *name, morphine_native_t native);
+MORPHINE_API const char *mapi_native_name(morphine_coroutine_t);
+MORPHINE_API morphine_native_t mapi_native_function(morphine_coroutine_t);
 
 MORPHINE_API void mapi_push_userdata(
-    morphine_state_t,
+    morphine_coroutine_t,
     const char *type,
     void *pointer,
     morphine_userdata_mark_t mark,
     morphine_userdata_free_t free
 );
-MORPHINE_API const char *mapi_userdata_type(morphine_state_t);
-MORPHINE_API void *mapi_userdata_pointer(morphine_state_t);
-MORPHINE_API void mapi_userdata_link(morphine_state_t, bool soft);
-MORPHINE_API bool mapi_userdata_unlink(morphine_state_t, void *pointer);
+MORPHINE_API const char *mapi_userdata_type(morphine_coroutine_t);
+MORPHINE_API void *mapi_userdata_pointer(morphine_coroutine_t);
+MORPHINE_API void mapi_userdata_link(morphine_coroutine_t, bool soft);
+MORPHINE_API bool mapi_userdata_unlink(morphine_coroutine_t, void *pointer);
 
-MORPHINE_API morphine_state_t mapi_push_state(morphine_state_t);
-MORPHINE_API void mapi_push_current_state(morphine_state_t);
-MORPHINE_API morphine_state_t mapi_get_state(morphine_state_t);
-MORPHINE_API void mapi_attach(morphine_state_t);
-MORPHINE_API void mapi_state_suspend(morphine_state_t);
-MORPHINE_API void mapi_state_kill(morphine_state_t);
-MORPHINE_API void mapi_state_resume(morphine_state_t);
-MORPHINE_API void mapi_state_priority(morphine_state_t, priority_t);
-MORPHINE_API const char *mapi_state_status(morphine_state_t);
-MORPHINE_API bool mapi_state_checkstatus(morphine_state_t, const char *name);
-MORPHINE_API bool mapi_state_isalive(morphine_state_t);
+MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t);
+MORPHINE_API void mapi_push_current_coroutine(morphine_coroutine_t);
+MORPHINE_API morphine_coroutine_t mapi_get_coroutine(morphine_coroutine_t);
+MORPHINE_API void mapi_attach(morphine_coroutine_t);
+MORPHINE_API void mapi_coroutine_suspend(morphine_coroutine_t);
+MORPHINE_API void mapi_coroutine_kill(morphine_coroutine_t);
+MORPHINE_API void mapi_coroutine_resume(morphine_coroutine_t);
+MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t, priority_t priority);
+MORPHINE_API const char *mapi_coroutine_status(morphine_coroutine_t);
+MORPHINE_API bool mapi_coroutine_isalive(morphine_coroutine_t);
 
-MORPHINE_API bool mapi_op(morphine_state_t, const char *op);
+MORPHINE_API bool mapi_op(morphine_coroutine_t, const char *op);
 
 MORPHINE_API void *mapi_allocator_uni(morphine_instance_t, void *, size_t size);
 MORPHINE_API void mapi_allocator_free(morphine_instance_t, void *);
@@ -141,31 +140,31 @@ MORPHINE_API void mapi_gc_change_grow(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_deal(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value);
 MORPHINE_API void mapi_gc_change_finalizer_stack_grow(morphine_instance_t I, size_t value);
-MORPHINE_API void mapi_gc_change_stack_limit(morphine_state_t, size_t value);
-MORPHINE_API void mapi_gc_change_stack_grow(morphine_state_t, size_t value);
+MORPHINE_API void mapi_gc_change_stack_limit(morphine_coroutine_t, size_t value);
+MORPHINE_API void mapi_gc_change_stack_grow(morphine_coroutine_t, size_t value);
 
-MORPHINE_API bool mapi_metatable_test(morphine_state_t, const char *field);
-MORPHINE_API void mapi_set_metatable(morphine_state_t);
-MORPHINE_API void mapi_get_metatable(morphine_state_t);
-MORPHINE_API void mapi_set_default_metatable(morphine_state_t, const char *type);
-MORPHINE_API void mapi_get_default_metatable(morphine_state_t, const char *type);
-MORPHINE_API bool mapi_is_metatype(morphine_state_t);
+MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t, const char *field);
+MORPHINE_API void mapi_set_metatable(morphine_coroutine_t);
+MORPHINE_API void mapi_get_metatable(morphine_coroutine_t);
+MORPHINE_API void mapi_set_default_metatable(morphine_coroutine_t, const char *type);
+MORPHINE_API void mapi_get_default_metatable(morphine_coroutine_t, const char *type);
+MORPHINE_API bool mapi_is_metatype(morphine_coroutine_t);
 
-MORPHINE_API void mapi_rotate(morphine_state_t, size_t count);
-MORPHINE_API void mapi_pop(morphine_state_t, size_t size);
-MORPHINE_API void mapi_peek(morphine_state_t, size_t offset);
-MORPHINE_API void mapi_move(morphine_state_t, morphine_state_t to);
-MORPHINE_API void mapi_copy(morphine_state_t, morphine_state_t to, size_t offset);
-MORPHINE_API size_t mapi_stack_size(morphine_state_t);
-MORPHINE_API void mapi_stack_reset(morphine_state_t);
+MORPHINE_API void mapi_rotate(morphine_coroutine_t, size_t count);
+MORPHINE_API void mapi_pop(morphine_coroutine_t, size_t size);
+MORPHINE_API void mapi_peek(morphine_coroutine_t, size_t offset);
+MORPHINE_API void mapi_move(morphine_coroutine_t, morphine_coroutine_t to);
+MORPHINE_API void mapi_copy(morphine_coroutine_t, morphine_coroutine_t to, size_t offset);
+MORPHINE_API size_t mapi_stack_size(morphine_coroutine_t);
+MORPHINE_API void mapi_stack_reset(morphine_coroutine_t);
 
-MORPHINE_API void mapi_registry_set_key(morphine_state_t);
-MORPHINE_API bool mapi_registry_get(morphine_state_t);
-MORPHINE_API void mapi_registry_getoe(morphine_state_t);
-MORPHINE_API void mapi_registry_set(morphine_state_t);
-MORPHINE_API void mapi_registry_clear(morphine_state_t);
+MORPHINE_API void mapi_registry_set_key(morphine_coroutine_t);
+MORPHINE_API bool mapi_registry_get(morphine_coroutine_t);
+MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t);
+MORPHINE_API void mapi_registry_set(morphine_coroutine_t);
+MORPHINE_API void mapi_registry_clear(morphine_coroutine_t);
 
-MORPHINE_API void mapi_iterator(morphine_state_t);
-MORPHINE_API void mapi_iterator_init(morphine_state_t);
-MORPHINE_API bool mapi_iterator_has(morphine_state_t);
-MORPHINE_API void mapi_iterator_next(morphine_state_t);
+MORPHINE_API void mapi_iterator(morphine_coroutine_t);
+MORPHINE_API void mapi_iterator_init(morphine_coroutine_t);
+MORPHINE_API bool mapi_iterator_has(morphine_coroutine_t);
+MORPHINE_API void mapi_iterator_next(morphine_coroutine_t);

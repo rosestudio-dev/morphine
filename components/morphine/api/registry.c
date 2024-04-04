@@ -4,51 +4,51 @@
 
 #include "morphine/api.h"
 #include "morphine/object/string.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
 #include "morphine/misc//registry.h"
 #include "morphine/stack/access.h"
 
-MORPHINE_API void mapi_registry_set_key(morphine_state_t S) {
-    struct value callable = stackI_peek(S, 1);
-    struct value key = stackI_peek(S, 0);
+MORPHINE_API void mapi_registry_set_key(morphine_coroutine_t U) {
+    struct value callable = stackI_peek(U, 1);
+    struct value key = stackI_peek(U, 0);
 
-    registryI_set_key(S->I, callable, key);
+    registryI_set_key(U->I, callable, key);
 
-    stackI_pop(S, 1);
+    stackI_pop(U, 1);
 }
 
-MORPHINE_API bool mapi_registry_get(morphine_state_t S) {
-    struct value *value = stackI_vector(S, 0, 1);
+MORPHINE_API bool mapi_registry_get(morphine_coroutine_t U) {
+    struct value *value = stackI_vector(U, 0, 1);
 
     bool has = false;
-    *value = registryI_get(S, *value, &has);
+    *value = registryI_get(U, *value, &has);
 
     return has;
 }
 
-MORPHINE_API void mapi_registry_getoe(morphine_state_t S) {
-    struct value *value = stackI_vector(S, 0, 1);
+MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t U) {
+    struct value *value = stackI_vector(U, 0, 1);
 
     bool has = false;
-    struct value result = registryI_get(S, *value, &has);
+    struct value result = registryI_get(U, *value, &has);
 
     if (has) {
         *value = result;
     } else {
-        throwI_errorf(S->I, "Cannot get value from registry by %s", valueI_value2string(S->I, *value));
+        throwI_errorf(U->I, "Cannot get value from registry by %s", valueI_value2string(U->I, *value));
     }
 }
 
-MORPHINE_API void mapi_registry_set(morphine_state_t S) {
-    struct value key = stackI_peek(S, 1);
-    struct value value = stackI_peek(S, 0);
+MORPHINE_API void mapi_registry_set(morphine_coroutine_t U) {
+    struct value key = stackI_peek(U, 1);
+    struct value value = stackI_peek(U, 0);
 
-    registryI_set(S, key, value);
+    registryI_set(U, key, value);
 
-    stackI_pop(S, 2);
+    stackI_pop(U, 2);
 }
 
-MORPHINE_API void mapi_registry_clear(morphine_state_t S) {
-    registryI_clear(S);
+MORPHINE_API void mapi_registry_clear(morphine_coroutine_t U) {
+    registryI_clear(U);
 }

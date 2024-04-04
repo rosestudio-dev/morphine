@@ -11,11 +11,11 @@ static inline bool checkblank(char c) {
     return isspace(c);
 }
 
-static void substring(morphine_state_t S) {
-    nb_function(S)
+static void substring(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
             size_t variant = maux_checkargs(
-                S,
+                U,
                 2,
                 "self:string,integer,integer",
                 "string,integer,integer"
@@ -27,32 +27,32 @@ static void substring(morphine_state_t S) {
             size_t end;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                len = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                len = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                start = mapi_get_size(S);
+                mapi_push_arg(U, 0);
+                start = mapi_get_size(U);
 
-                mapi_push_arg(S, 1);
-                end = mapi_get_size(S);
+                mapi_push_arg(U, 1);
+                end = mapi_get_size(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                len = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                len = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                start = mapi_get_size(S);
+                mapi_push_arg(U, 1);
+                start = mapi_get_size(U);
 
-                mapi_push_arg(S, 2);
-                end = mapi_get_size(S);
+                mapi_push_arg(U, 2);
+                end = mapi_get_size(U);
             }
 
-            mapi_pop(S, 3);
+            mapi_pop(U, 3);
 
             if (start > len || len < end || start > end) {
                 mapi_errorf(
-                    S,
+                    U,
                     "Cannot sub string with len %zu from %zu to %zu",
                     len,
                     start,
@@ -60,152 +60,152 @@ static void substring(morphine_state_t S) {
                 );
             }
 
-            mapi_push_stringn(S, string + start, end - start);
+            mapi_push_stringn(U, string + start, end - start);
             nb_return();
     nb_end
 }
 
-static void tochararray(morphine_state_t S) {
-    nb_function(S)
+static void tochararray(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(U, 2, "self:string", "string");
 
             if (variant == 0) {
-                mapi_push_self(S);
+                mapi_push_self(U);
             } else {
-                mapi_push_arg(S, 0);
+                mapi_push_arg(U, 0);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
-            const char *string = mapi_get_string(S);
-            size_t len = mapi_string_len(S);
+            const char *string = mapi_get_string(U);
+            size_t len = mapi_string_len(U);
 
-            mapi_push_table(S);
+            mapi_push_table(U);
 
             for (size_t i = 0; i < len; i++) {
-                mapi_push_size(S, i);
-                mapi_push_stringf(S, "%c", string[i]);
-                mapi_table_set(S);
+                mapi_push_size(U, i);
+                mapi_push_stringf(U, "%c", string[i]);
+                mapi_table_set(U);
             }
 
             nb_return();
     nb_end
 }
 
-static void codeat(morphine_state_t S) {
-    nb_function(S)
+static void codeat(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,integer", "string,integer");
+            size_t variant = maux_checkargs(U, 2, "self:string,integer", "string,integer");
 
             const char *string;
             size_t len;
             size_t at;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                len = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                len = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                at = mapi_get_size(S);
+                mapi_push_arg(U, 0);
+                at = mapi_get_size(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                len = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                len = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                at = mapi_get_size(S);
+                mapi_push_arg(U, 1);
+                at = mapi_get_size(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             if (at >= len) {
-                mapi_errorf(S, "Cannot get code of char at %zu position", at);
+                mapi_errorf(U, "Cannot get code of char at %zu position", at);
             }
 
-            mapi_push_integer(S, string[at]);
+            mapi_push_integer(U, string[at]);
             nb_return();
     nb_end
 }
 
-static void charat(morphine_state_t S) {
-    nb_function(S)
+static void charat(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,integer", "string,integer");
+            size_t variant = maux_checkargs(U, 2, "self:string,integer", "string,integer");
 
             const char *string;
             size_t len;
             size_t at;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                len = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                len = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                at = mapi_get_size(S);
+                mapi_push_arg(U, 0);
+                at = mapi_get_size(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                len = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                len = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                at = mapi_get_size(S);
+                mapi_push_arg(U, 1);
+                at = mapi_get_size(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             if (at >= len) {
-                mapi_errorf(S, "Cannot get char at %zu position", at);
+                mapi_errorf(U, "Cannot get char at %zu position", at);
             }
 
-            mapi_push_stringf(S, "%c", string[at]);
+            mapi_push_stringf(U, "%c", string[at]);
             nb_return();
     nb_end
 }
 
-static void isempty(morphine_state_t S) {
-    nb_function(S)
+static void isempty(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(U, 2, "self:string", "string");
 
             size_t len;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                len = mapi_string_len(S);
+                mapi_push_self(U);
+                len = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                len = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                len = mapi_string_len(U);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
-            mapi_push_boolean(S, len == 0);
+            mapi_push_boolean(U, len == 0);
             nb_return();
     nb_end
 }
 
-static void isblankstr(morphine_state_t S) {
-    nb_function(S)
+static void isblankstr(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(U, 2, "self:string", "string");
 
             const char *string;
             size_t len;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                len = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                len = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                len = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                len = mapi_string_len(U);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
             bool isblank = true;
 
@@ -215,47 +215,47 @@ static void isblankstr(morphine_state_t S) {
                 }
             }
 
-            mapi_push_boolean(S, isblank);
+            mapi_push_boolean(U, isblank);
             nb_return();
     nb_end
 }
 
-static void repeat(morphine_state_t S) {
-    nb_function(S)
+static void repeat(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,integer", "string,integer");
+            size_t variant = maux_checkargs(U, 2, "self:string,integer", "string,integer");
 
             size_t count;
 
             if (variant == 0) {
-                mapi_push_arg(S, 0);
-                count = mapi_get_size(S);
+                mapi_push_arg(U, 0);
+                count = mapi_get_size(U);
             } else {
-                mapi_push_arg(S, 1);
-                count = mapi_get_size(S);
+                mapi_push_arg(U, 1);
+                count = mapi_get_size(U);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
-            mapi_push_string(S, "");
+            mapi_push_string(U, "");
             for (size_t i = 0; i < count; i++) {
                 if (variant == 0) {
-                    mapi_push_self(S);
+                    mapi_push_self(U);
                 } else {
-                    mapi_push_arg(S, 0);
+                    mapi_push_arg(U, 0);
                 }
 
-                mapi_string_concat(S);
+                mapi_string_concat(U);
             }
 
             nb_return();
     nb_end
 }
 
-static void startswith(morphine_state_t S) {
-    nb_function(S)
+static void startswith(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(U, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -264,36 +264,36 @@ static void startswith(morphine_state_t S) {
             size_t plen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                prefix = mapi_get_string(S);
-                plen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                prefix = mapi_get_string(U);
+                plen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                prefix = mapi_get_string(S);
-                plen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                prefix = mapi_get_string(U);
+                plen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             bool result = strlen >= plen && memcmp(string, prefix, plen) == 0;
 
-            mapi_push_boolean(S, result);
+            mapi_push_boolean(U, result);
             nb_return();
     nb_end
 }
 
-static void endswith(morphine_state_t S) {
-    nb_function(S)
+static void endswith(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(U, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -302,110 +302,110 @@ static void endswith(morphine_state_t S) {
             size_t slen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                suffix = mapi_get_string(S);
-                slen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                suffix = mapi_get_string(U);
+                slen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                suffix = mapi_get_string(S);
-                slen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                suffix = mapi_get_string(U);
+                slen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             bool result = strlen >= slen && memcmp(string + (strlen - slen), suffix, slen) == 0;
 
-            mapi_push_boolean(S, result);
+            mapi_push_boolean(U, result);
             nb_return();
     nb_end
 }
 
-static void tolowercase(morphine_state_t S) {
-    nb_function(S)
+static void tolowercase(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(U, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
             if (strlen > 0) {
-                char *result = mapi_allocator_uni(mapi_instance(S), NULL, strlen);
-                mapi_push_userdata(S, "tempstring", result, NULL, mapi_allocator_free);
+                char *result = mapi_allocator_uni(mapi_instance(U), NULL, strlen);
+                mapi_push_userdata(U, "tempstring", result, NULL, mapi_allocator_free);
 
                 for (size_t i = 0; i < strlen; i++) {
                     result[i] = (char) tolower(string[i]);
                 }
 
-                mapi_push_stringn(S, result, strlen);
+                mapi_push_stringn(U, result, strlen);
             } else {
-                mapi_push_string(S, "");
+                mapi_push_string(U, "");
             }
 
             nb_return();
     nb_end
 }
 
-static void touppercase(morphine_state_t S) {
-    nb_function(S)
+static void touppercase(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(U, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
             if (strlen > 0) {
-                char *result = mapi_allocator_uni(mapi_instance(S), NULL, strlen);
-                mapi_push_userdata(S, "tempstring", result, NULL, mapi_allocator_free);
+                char *result = mapi_allocator_uni(mapi_instance(U), NULL, strlen);
+                mapi_push_userdata(U, "tempstring", result, NULL, mapi_allocator_free);
 
                 for (size_t i = 0; i < strlen; i++) {
                     result[i] = (char) toupper(string[i]);
                 }
 
-                mapi_push_stringn(S, result, strlen);
+                mapi_push_stringn(U, result, strlen);
             } else {
-                mapi_push_string(S, "");
+                mapi_push_string(U, "");
             }
 
             nb_return();
     nb_end
 }
 
-static void split(morphine_state_t S) {
-    nb_function(S)
+static void split(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(U, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -414,26 +414,26 @@ static void split(morphine_state_t S) {
             size_t seplen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                separator = mapi_get_string(S);
-                seplen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                separator = mapi_get_string(U);
+                seplen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                separator = mapi_get_string(S);
-                seplen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                separator = mapi_get_string(U);
+                seplen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
-            mapi_push_table(S);
+            mapi_push_table(U);
             if (strlen < seplen) {
                 nb_return();
             }
@@ -442,9 +442,9 @@ static void split(morphine_state_t S) {
             size_t start = 0;
 
             if (seplen == 0) {
-                mapi_push_size(S, count);
-                mapi_push_string(S, "");
-                mapi_table_set(S);
+                mapi_push_size(U, count);
+                mapi_push_string(U, "");
+                mapi_table_set(U);
                 count++;
             }
 
@@ -454,15 +454,15 @@ static void split(morphine_state_t S) {
                 }
 
                 if (seplen == 0) {
-                    mapi_push_size(S, count);
-                    mapi_push_stringn(S, string + start, 1);
-                    mapi_table_set(S);
+                    mapi_push_size(U, count);
+                    mapi_push_stringn(U, string + start, 1);
+                    mapi_table_set(U);
                     count++;
                     start++;
                 } else if (memcmp(string + i, separator, seplen) == 0) {
-                    mapi_push_size(S, count);
-                    mapi_push_stringn(S, string + start, i - start);
-                    mapi_table_set(S);
+                    mapi_push_size(U, count);
+                    mapi_push_stringn(U, string + start, i - start);
+                    mapi_table_set(U);
 
                     count++;
                     start = i + seplen;
@@ -470,22 +470,22 @@ static void split(morphine_state_t S) {
                 }
             }
 
-            mapi_push_size(S, count);
+            mapi_push_size(U, count);
             if (strlen >= start) {
-                mapi_push_stringn(S, string + start, strlen - start);
+                mapi_push_stringn(U, string + start, strlen - start);
             } else {
-                mapi_push_string(S, "");
+                mapi_push_string(U, "");
             }
-            mapi_table_set(S);
+            mapi_table_set(U);
 
             nb_return();
     nb_end
 }
 
-static void contains(morphine_state_t S) {
-    nb_function(S)
+static void contains(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(U, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -494,24 +494,24 @@ static void contains(morphine_state_t S) {
             size_t findlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             bool found = false;
             if (strlen >= findlen) {
@@ -523,15 +523,15 @@ static void contains(morphine_state_t S) {
                 }
             }
 
-            mapi_push_boolean(S, found);
+            mapi_push_boolean(U, found);
             nb_return();
     nb_end
 }
 
-static void indexof(morphine_state_t S) {
-    nb_function(S)
+static void indexof(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(U, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -540,24 +540,24 @@ static void indexof(morphine_state_t S) {
             size_t findlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             bool found = false;
             size_t index;
@@ -572,18 +572,18 @@ static void indexof(morphine_state_t S) {
             }
 
             if (found) {
-                mapi_push_size(S, index);
+                mapi_push_size(U, index);
             } else {
-                mapi_push_nil(S);
+                mapi_push_nil(U);
             }
             nb_return();
     nb_end
 }
 
-static void lastindexof(morphine_state_t S) {
-    nb_function(S)
+static void lastindexof(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string,string", "string,string");
+            size_t variant = maux_checkargs(U, 2, "self:string,string", "string,string");
 
             const char *string;
             size_t strlen;
@@ -592,24 +592,24 @@ static void lastindexof(morphine_state_t S) {
             size_t findlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             bool found = false;
             size_t index;
@@ -624,33 +624,33 @@ static void lastindexof(morphine_state_t S) {
             }
 
             if (found) {
-                mapi_push_size(S, index);
+                mapi_push_size(U, index);
             } else {
-                mapi_push_nil(S);
+                mapi_push_nil(U);
             }
             nb_return();
     nb_end
 }
 
-static void trim(morphine_state_t S) {
-    nb_function(S)
+static void trim(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(U, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
             size_t start = 0;
             size_t end = strlen;
@@ -674,34 +674,34 @@ static void trim(morphine_state_t S) {
             }
 
             if (start < end) {
-                mapi_push_stringn(S, string + start, end - start);
+                mapi_push_stringn(U, string + start, end - start);
             } else {
-                mapi_push_string(S, "");
+                mapi_push_string(U, "");
             }
 
             nb_return();
     nb_end
 }
 
-static void trimstart(morphine_state_t S) {
-    nb_function(S)
+static void trimstart(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(U, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
             size_t start = 0;
 
@@ -715,34 +715,34 @@ static void trimstart(morphine_state_t S) {
             }
 
             if (start < strlen) {
-                mapi_push_stringn(S, string + start, strlen - start);
+                mapi_push_stringn(U, string + start, strlen - start);
             } else {
-                mapi_push_string(S, "");
+                mapi_push_string(U, "");
             }
 
             nb_return();
     nb_end
 }
 
-static void trimend(morphine_state_t S) {
-    nb_function(S)
+static void trimend(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(S, 2, "self:string", "string");
+            size_t variant = maux_checkargs(U, 2, "self:string", "string");
 
             const char *string;
             size_t strlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 1);
+            mapi_pop(U, 1);
 
             size_t end = strlen;
 
@@ -756,20 +756,20 @@ static void trimend(morphine_state_t S) {
             }
 
             if (end > 0) {
-                mapi_push_stringn(S, string, end);
+                mapi_push_stringn(U, string, end);
             } else {
-                mapi_push_string(S, "");
+                mapi_push_string(U, "");
             }
 
             nb_return();
     nb_end
 }
 
-static void replace(morphine_state_t S) {
-    nb_function(S)
+static void replace(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
             size_t variant = maux_checkargs(
-                S, 2, "self:string,string,string", "string,string,string"
+                U, 2, "self:string,string,string", "string,string,string"
             );
 
             const char *string;
@@ -782,32 +782,32 @@ static void replace(morphine_state_t S) {
             size_t replen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                replace = mapi_get_string(S);
-                replen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                replace = mapi_get_string(U);
+                replen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 2);
-                replace = mapi_get_string(S);
-                replen = mapi_string_len(S);
+                mapi_push_arg(U, 2);
+                replace = mapi_get_string(U);
+                replen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             if (findlen > strlen) {
                 nb_return();
@@ -825,11 +825,11 @@ static void replace(morphine_state_t S) {
                 if (eq) {
                     size_t len = strlen + (replen - findlen);
                     char *result = mapi_allocator_uni(
-                        mapi_instance(S), NULL, len
+                        mapi_instance(U), NULL, len
                     );
 
                     mapi_push_userdata(
-                        S, "tempstring", result, NULL, mapi_allocator_free
+                        U, "tempstring", result, NULL, mapi_allocator_free
                     );
 
                     memcpy(result, string, i);
@@ -842,7 +842,7 @@ static void replace(morphine_state_t S) {
                         );
                     }
 
-                    mapi_push_stringn(S, result, len);
+                    mapi_push_stringn(U, result, len);
                     break;
                 }
             }
@@ -851,11 +851,11 @@ static void replace(morphine_state_t S) {
     nb_end
 }
 
-static void replacelast(morphine_state_t S) {
-    nb_function(S)
+static void replacelast(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
             size_t variant = maux_checkargs(
-                S, 2, "self:string,string,string", "string,string,string"
+                U, 2, "self:string,string,string", "string,string,string"
             );
 
             const char *string;
@@ -868,32 +868,32 @@ static void replacelast(morphine_state_t S) {
             size_t replen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                replace = mapi_get_string(S);
-                replen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                replace = mapi_get_string(U);
+                replen = mapi_string_len(U);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 2);
-                replace = mapi_get_string(S);
-                replen = mapi_string_len(S);
+                mapi_push_arg(U, 2);
+                replace = mapi_get_string(U);
+                replen = mapi_string_len(U);
             }
 
-            mapi_pop(S, 2);
+            mapi_pop(U, 2);
 
             if (findlen > strlen) {
                 nb_return();
@@ -919,11 +919,11 @@ static void replacelast(morphine_state_t S) {
             if (found) {
                 size_t len = strlen + (replen - findlen);
                 char *result = mapi_allocator_uni(
-                    mapi_instance(S), NULL, len
+                    mapi_instance(U), NULL, len
                 );
 
                 mapi_push_userdata(
-                    S, "tempstring", result, NULL, mapi_allocator_free
+                    U, "tempstring", result, NULL, mapi_allocator_free
                 );
 
                 memcpy(result, string, index);
@@ -936,18 +936,18 @@ static void replacelast(morphine_state_t S) {
                     );
                 }
 
-                mapi_push_stringn(S, result, len);
+                mapi_push_stringn(U, result, len);
             }
 
             nb_return();
     nb_end
 }
 
-static void replaceall(morphine_state_t S) {
-    nb_function(S)
+static void replaceall(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
             size_t variant = maux_checkargs(
-                S, 2, "self:string,string,string", "string,string,string"
+                U, 2, "self:string,string,string", "string,string,string"
             );
 
             const char *string;
@@ -957,33 +957,33 @@ static void replaceall(morphine_state_t S) {
             size_t findlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
 
-                mapi_pop(S, 1);
+                mapi_pop(U, 1);
 
-                mapi_push_arg(S, 1);
+                mapi_push_arg(U, 1);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
-                find = mapi_get_string(S);
-                findlen = mapi_string_len(S);
+                mapi_push_arg(U, 1);
+                find = mapi_get_string(U);
+                findlen = mapi_string_len(U);
 
-                mapi_pop(S, 1);
+                mapi_pop(U, 1);
 
-                mapi_push_arg(S, 2);
+                mapi_push_arg(U, 2);
             }
 
             if (findlen > strlen) {
-                mapi_pop(S, 1);
+                mapi_pop(U, 1);
                 nb_return();
             }
 
@@ -1002,15 +1002,15 @@ static void replaceall(morphine_state_t S) {
                     found = true;
 
                     if (index > 0) {
-                        mapi_push_stringn(S, string + index, i - index);
-                        mapi_string_concat(S);
-                        mapi_peek(S, 1);
-                        mapi_string_concat(S);
+                        mapi_push_stringn(U, string + index, i - index);
+                        mapi_string_concat(U);
+                        mapi_peek(U, 1);
+                        mapi_string_concat(U);
                     } else {
-                        mapi_peek(S, 0);
-                        mapi_push_stringn(S, string, i);
-                        mapi_rotate(S, 2);
-                        mapi_string_concat(S);
+                        mapi_peek(U, 0);
+                        mapi_push_stringn(U, string, i);
+                        mapi_rotate(U, 2);
+                        mapi_string_concat(U);
                     }
 
                     index += (i - index) + findlen;
@@ -1022,46 +1022,46 @@ static void replaceall(morphine_state_t S) {
             }
 
             if (found && strlen > index) {
-                mapi_push_stringn(S, string + index, strlen - index);
-                mapi_string_concat(S);
+                mapi_push_stringn(U, string + index, strlen - index);
+                mapi_string_concat(U);
             }
 
             if (found && strlen > 0 && findlen == 0) {
-                mapi_peek(S, 1);
-                mapi_rotate(S, 2);
-                mapi_string_concat(S);
+                mapi_peek(U, 1);
+                mapi_rotate(U, 2);
+                mapi_string_concat(U);
             }
 
             if (!found) {
-                mapi_pop(S, 1);
+                mapi_pop(U, 1);
             }
 
             nb_return();
     nb_end
 }
 
-static void format(morphine_state_t S) {
-    nb_function(S)
+static void format(morphine_coroutine_t U) {
+    nb_function(U)
         nb_init
             size_t variant = maux_checkargs(
-                S, 2, "self:string,table", "string,table"
+                U, 2, "self:string,table", "string,table"
             );
 
             const char *string;
             size_t strlen;
 
             if (variant == 0) {
-                mapi_push_self(S);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_self(U);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 0);
+                mapi_push_arg(U, 0);
             } else {
-                mapi_push_arg(S, 0);
-                string = mapi_get_string(S);
-                strlen = mapi_string_len(S);
+                mapi_push_arg(U, 0);
+                string = mapi_get_string(U);
+                strlen = mapi_string_len(U);
 
-                mapi_push_arg(S, 1);
+                mapi_push_arg(U, 1);
             }
 
             bool found = false;
@@ -1077,10 +1077,10 @@ static void format(morphine_state_t S) {
                 size_t offset = 0;
                 if (i + 1 < strlen && string[i + 1] == '$') {
                     if (index > 0) {
-                        mapi_rotate(S, 2);
+                        mapi_rotate(U, 2);
                     }
 
-                    mapi_push_string(S, "$");
+                    mapi_push_string(U, "$");
 
                     offset = 1;
                 } else if (i + 1 < strlen && string[i + 1] == '{') {
@@ -1094,46 +1094,46 @@ static void format(morphine_state_t S) {
                     }
 
                     if (!closed) {
-                        mapi_errorf(S, "Format access key isn't closed");
+                        mapi_errorf(U, "Format access key isn't closed");
                     }
 
                     if (index > 0) {
-                        mapi_rotate(S, 2);
-                        mapi_push_stringn(S, string + i + 2, c - i - 2);
-                        mapi_table_get(S);
-                        mapi_to_string(S);
+                        mapi_rotate(U, 2);
+                        mapi_push_stringn(U, string + i + 2, c - i - 2);
+                        mapi_table_get(U);
+                        mapi_to_string(U);
                     } else {
-                        mapi_push_stringn(S, string + i + 2, c - i - 2);
-                        mapi_table_get(S);
-                        mapi_to_string(S);
+                        mapi_push_stringn(U, string + i + 2, c - i - 2);
+                        mapi_table_get(U);
+                        mapi_to_string(U);
                     }
 
                     offset = c - i;
                 } else {
                     if (index > 0) {
-                        mapi_rotate(S, 2);
-                        mapi_push_integer(S, parsed);
-                        mapi_table_get(S);
-                        mapi_to_string(S);
+                        mapi_rotate(U, 2);
+                        mapi_push_integer(U, parsed);
+                        mapi_table_get(U);
+                        mapi_to_string(U);
                     } else {
-                        mapi_push_integer(S, parsed);
-                        mapi_table_get(S);
-                        mapi_to_string(S);
+                        mapi_push_integer(U, parsed);
+                        mapi_table_get(U);
+                        mapi_to_string(U);
                     }
 
                     parsed++;
                 }
 
                 if (index > 0) {
-                    mapi_peek(S, 2);
-                    mapi_push_stringn(S, string + index, i - index);
-                    mapi_string_concat(S);
-                    mapi_rotate(S, 2);
-                    mapi_string_concat(S);
+                    mapi_peek(U, 2);
+                    mapi_push_stringn(U, string + index, i - index);
+                    mapi_string_concat(U);
+                    mapi_rotate(U, 2);
+                    mapi_string_concat(U);
                 } else {
-                    mapi_push_stringn(S, string, i);
-                    mapi_rotate(S, 2);
-                    mapi_string_concat(S);
+                    mapi_push_stringn(U, string, i);
+                    mapi_rotate(U, 2);
+                    mapi_string_concat(U);
                 }
 
                 index = i + offset + 1;
@@ -1141,12 +1141,12 @@ static void format(morphine_state_t S) {
             }
 
             if (found && strlen > index) {
-                mapi_push_stringn(S, string + index, strlen - index);
-                mapi_string_concat(S);
+                mapi_push_stringn(U, string + index, strlen - index);
+                mapi_string_concat(U);
             }
 
             if (!found) {
-                mapi_pop(S, 1);
+                mapi_pop(U, 1);
             }
 
             nb_return();
@@ -1184,10 +1184,10 @@ static struct maux_construct_field table[] = {
     { NULL, NULL },
 };
 
-void mlib_string_loader(morphine_state_t S) {
-    maux_construct(S, table);
+void mlib_string_loader(morphine_coroutine_t U) {
+    maux_construct(U, table);
 }
 
-MORPHINE_LIB void mlib_string_call(morphine_state_t S, const char *name, size_t argc) {
-    maux_construct_call(S, table, name, argc);
+MORPHINE_LIB void mlib_string_call(morphine_coroutine_t U, const char *name, size_t argc) {
+    maux_construct_call(U, table, name, argc);
 }

@@ -8,8 +8,8 @@
 #include "morphine/core/throw.h"
 
 struct interpreter {
-    morphine_state_t states;
-    morphine_state_t candidates;
+    morphine_coroutine_t coroutines;
+    morphine_coroutine_t candidates;
 
     uint16_t circle;
     struct throw throw;

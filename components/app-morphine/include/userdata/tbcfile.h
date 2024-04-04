@@ -6,4 +6,4 @@
 
 #include <morphine.h>
 
-FILE *userdata_tbc_file(morphine_state_t, const char *path, const char *mode);
+FILE *userdata_tbc_file(morphine_coroutine_t, const char *path, const char *mode);

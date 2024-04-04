@@ -9,7 +9,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/table.h"
 #include "morphine/object/userdata.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/gc/barrier.h"
 #include <string.h>
 

@@ -6,4 +6,4 @@
 
 #include "morphine/platform.h"
 
-void require(morphine_state_t);
+void require(morphine_coroutine_t);

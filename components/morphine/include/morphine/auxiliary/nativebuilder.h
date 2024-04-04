@@ -4,9 +4,9 @@
 
 #pragma once
 
-#define nb_function(s) morphine_state_t _nb_state = (s); switch (mapi_callstate(_nb_state)) {
+#define nb_function(s) morphine_coroutine_t _nb_state = (s); switch (mapi_callstate(_nb_state)) {
 #define nb_init case (0): { mapi_continue(_nb_state, 1);
-#define nb_state(s) goto _nb_end_leave; } case (s): { mapi_continue(_nb_state, (s+1));
+#define nb_state(s) goto _nb_end_leave; } case (s): { mapi_continue(_nb_state, ((s)+1));
 #define nb_state_custom_direction(s, n) goto _nb_end_leave; } case (s): { morphine_continue(_nb_state, (n));
 #define nb_end }} mapi_errorf(_nb_state, "Undefined state"); _nb_end_leave: return;
 

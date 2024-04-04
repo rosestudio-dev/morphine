@@ -5,24 +5,24 @@
 #include "morphine/auxiliary/table.h"
 #include "morphine/api.h"
 
-static void setprotection(morphine_state_t S) {
-    mapi_errorf(S, "Table is protected from changes");
+static void setprotection(morphine_coroutine_t U) {
+    mapi_errorf(U, "Table is protected from changes");
 }
 
-static void mask(morphine_state_t S) {
-    mapi_leave(S);
+static void mask(morphine_coroutine_t U) {
+    mapi_leave(U);
 }
 
-MORPHINE_AUX void maux_table_lock(morphine_state_t S) {
-    mapi_push_table(S);
+MORPHINE_AUX void maux_table_lock(morphine_coroutine_t U) {
+    mapi_push_table(U);
 
-    mapi_push_stringf(S, "_mf_mask");
-    mapi_push_native(S, "aux.table.mask", mask);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "_mf_mask");
+    mapi_push_native(U, "aux.table.mask", mask);
+    mapi_table_set(U);
 
-    mapi_push_stringf(S, "_mf_set");
-    mapi_push_native(S, "aux.table.setprotection", setprotection);
-    mapi_table_set(S);
+    mapi_push_stringf(U, "_mf_set");
+    mapi_push_native(U, "aux.table.setprotection", setprotection);
+    mapi_table_set(U);
 
-    mapi_set_metatable(S);
+    mapi_set_metatable(U);
 }

@@ -15,6 +15,6 @@ struct binary_data {
 };
 
 struct proto *binary(
-    morphine_state_t,
+    morphine_coroutine_t,
     struct process_state *
 );

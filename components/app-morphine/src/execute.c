@@ -33,13 +33,13 @@ static void dfree(void *ptr) {
     allocator_free(pallocator, ptr);
 }
 
-static void load_program(morphine_state_t S, const char *path, bool binary) {
+static void load_program(morphine_coroutine_t U, const char *path, bool binary) {
     if (path == NULL) {
-        mapi_errorf(S, "Empty file path");
+        mapi_errorf(U, "Empty file path");
     } else if (binary) {
-        loader_binary_file(S, path);
+        loader_binary_file(U, path);
     } else {
-        loader_source_file(S, path);
+        loader_source_file(U, path);
     }
 }
 
@@ -82,10 +82,10 @@ void execute(
     }
 
     morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
-    morphine_state_t S = mapi_state(I);
+    morphine_coroutine_t U = mapi_coroutine(I);
 
-    load_program(S, path, binary);
-    mapi_call(S, 0);
+    load_program(U, path, binary);
+    mapi_call(U, 0);
 
     mapi_interpreter(I);
     mapi_close(I);

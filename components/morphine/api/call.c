@@ -6,71 +6,71 @@
 #include "morphine/stack/access.h"
 #include "morphine/stack/call.h"
 
-MORPHINE_API void mapi_call(morphine_state_t S, size_t argc) {
-    struct value callable = stackI_peek(S, argc);
-    callstackI_stack(S, callable, valueI_nil, 0, argc, argc + 1);
+MORPHINE_API void mapi_call(morphine_coroutine_t U, size_t argc) {
+    struct value callable = stackI_peek(U, argc);
+    callstackI_stack(U, callable, valueI_nil, 0, argc, argc + 1);
 }
 
-MORPHINE_API void mapi_calli(morphine_state_t S, size_t argc) {
-    struct value callable = stackI_peek(S, 0);
-    callstackI_stack(S, callable, valueI_nil, 1, argc, argc + 1);
+MORPHINE_API void mapi_calli(morphine_coroutine_t U, size_t argc) {
+    struct value callable = stackI_peek(U, 0);
+    callstackI_stack(U, callable, valueI_nil, 1, argc, argc + 1);
 }
 
-MORPHINE_API void mapi_callself(morphine_state_t S, size_t argc) {
-    struct value self = stackI_peek(S, argc + 1);
-    struct value callable = stackI_peek(S, argc);
-    callstackI_stack(S, callable, self, 0, argc, argc + 2);
+MORPHINE_API void mapi_callself(morphine_coroutine_t U, size_t argc) {
+    struct value self = stackI_peek(U, argc + 1);
+    struct value callable = stackI_peek(U, argc);
+    callstackI_stack(U, callable, self, 0, argc, argc + 2);
 }
 
-MORPHINE_API void mapi_callselfi(morphine_state_t S, size_t argc) {
-    struct value callable = stackI_peek(S, 1);
-    struct value self = stackI_peek(S, 0);
-    callstackI_stack(S, callable, self, 2, argc, argc + 2);
+MORPHINE_API void mapi_callselfi(morphine_coroutine_t U, size_t argc) {
+    struct value callable = stackI_peek(U, 1);
+    struct value self = stackI_peek(U, 0);
+    callstackI_stack(U, callable, self, 2, argc, argc + 2);
 }
 
-MORPHINE_API void mapi_push_result(morphine_state_t S) {
-    stackI_push(S, callstackI_result(S));
+MORPHINE_API void mapi_push_result(morphine_coroutine_t U) {
+    stackI_push(U, callstackI_result(U));
 }
 
-MORPHINE_API void mapi_return(morphine_state_t S) {
-    callstackI_return(S, stackI_peek(S, 0));
-    stackI_pop(S, 1);
+MORPHINE_API void mapi_return(morphine_coroutine_t U) {
+    callstackI_return(U, stackI_peek(U, 0));
+    stackI_pop(U, 1);
 }
 
-MORPHINE_API void mapi_leave(morphine_state_t S) {
-    callstackI_leave(S);
+MORPHINE_API void mapi_leave(morphine_coroutine_t U) {
+    callstackI_leave(U);
 }
 
-MORPHINE_API void mapi_continue(morphine_state_t S, size_t callstate) {
-    callstackI_continue(S, callstate);
+MORPHINE_API void mapi_continue(morphine_coroutine_t U, size_t callstate) {
+    callstackI_continue(U, callstate);
 }
 
-MORPHINE_API size_t mapi_callstate(morphine_state_t S) {
-    return callstackI_state(S);
+MORPHINE_API size_t mapi_callstate(morphine_coroutine_t U) {
+    return callstackI_state(U);
 }
 
-MORPHINE_API size_t mapi_args(morphine_state_t S) {
-    return callstackI_info_or_error(S)->arguments_count;
+MORPHINE_API size_t mapi_args(morphine_coroutine_t U) {
+    return callstackI_info_or_error(U)->arguments_count;
 }
 
-MORPHINE_API void mapi_push_arg(morphine_state_t S, size_t index) {
-    struct callinfo *callinfo = callstackI_info_or_error(S);
+MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, size_t index) {
+    struct callinfo *callinfo = callstackI_info_or_error(U);
     if (index >= callinfo->arguments_count) {
-        throwI_error(S->I, "Argument index out of bounce");
+        throwI_error(U->I, "Argument index out of bounce");
     }
 
-    stackI_push(S, callinfo->s.args.p[index]);
+    stackI_push(U, callinfo->s.args.p[index]);
 }
 
-MORPHINE_API void mapi_push_env(morphine_state_t S) {
-    stackI_push(S, *callstackI_info_or_error(S)->s.env.p);
+MORPHINE_API void mapi_push_env(morphine_coroutine_t U) {
+    stackI_push(U, *callstackI_info_or_error(U)->s.env.p);
 }
 
-MORPHINE_API void mapi_push_self(morphine_state_t S) {
-    stackI_push(S, *callstackI_info_or_error(S)->s.self.p);
+MORPHINE_API void mapi_push_self(morphine_coroutine_t U) {
+    stackI_push(U, *callstackI_info_or_error(U)->s.self.p);
 }
 
-MORPHINE_API void mapi_changeenv(morphine_state_t S) {
-    struct value env = stackI_peek(S, 0);
-    *callstackI_info_or_error(S)->s.env.p = env;
+MORPHINE_API void mapi_changeenv(morphine_coroutine_t U) {
+    struct value env = stackI_peek(U, 0);
+    *callstackI_info_or_error(U)->s.env.p = env;
 }

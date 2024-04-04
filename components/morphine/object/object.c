@@ -3,7 +3,7 @@
 //
 
 #include "morphine/object.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
@@ -54,8 +54,8 @@ void objectI_free(morphine_instance_t I, struct object *object) {
         case OBJ_TYPE_NATIVE:
             nativeI_free(I, cast(struct native *, object));
             return;
-        case OBJ_TYPE_STATE:
-            stateI_free(I, cast(morphine_state_t, object));
+        case OBJ_TYPE_COROUTINE:
+            coroutineI_free(I, cast(morphine_coroutine_t, object));
             return;
         case OBJ_TYPE_REFERENCE:
             referenceI_free(I, cast(struct reference *, object));

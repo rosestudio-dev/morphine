@@ -7,7 +7,7 @@
 #include "morphine/utils/unused.h"
 #include "morphine/core/throw.h"
 #include "morphine/stack/access.h"
-#include "morphine/object/state.h"
+#include "morphine/object/coroutine.h"
 #include <stddef.h>
 
 struct loader_array {
@@ -16,11 +16,11 @@ struct loader_array {
     const uint8_t *vector;
 };
 
-static void *loader_array_open(morphine_state_t S, void *data) {
+static void *loader_array_open(morphine_coroutine_t U, void *data) {
     struct loader_array *array = cast(struct loader_array *, data);
 
     if (array->size == 0 || array->vector == NULL) {
-        throwI_error(S->I, "Binary vector is empty");
+        throwI_error(U->I, "Binary vector is empty");
     }
 
     array->pointer = 0;
@@ -28,8 +28,8 @@ static void *loader_array_open(morphine_state_t S, void *data) {
     return array;
 }
 
-static uint8_t loader_array_read(morphine_state_t S, void *data, const char **error) {
-    unused(S);
+static uint8_t loader_array_read(morphine_coroutine_t U, void *data, const char **error) {
+    unused(U);
 
     struct loader_array *loader = cast(struct loader_array *, data);
 
@@ -41,23 +41,23 @@ static uint8_t loader_array_read(morphine_state_t S, void *data, const char **er
     return loader->vector[loader->pointer++];
 }
 
-MORPHINE_API void mapi_rload(morphine_state_t S, size_t size, const uint8_t *vector) {
+MORPHINE_API void mapi_rload(morphine_coroutine_t U, size_t size, const uint8_t *vector) {
     struct loader_array array = {
         .vector = vector,
         .size = size
     };
 
-    struct proto *result = loaderI_load(S, loader_array_open, loader_array_read, NULL, cast(void *, &array));
-    stackI_push(S, valueI_object(result));
+    struct proto *result = loaderI_load(U, loader_array_open, loader_array_read, NULL, cast(void *, &array));
+    stackI_push(U, valueI_object(result));
 }
 
 MORPHINE_API void mapi_load(
-    morphine_state_t S,
+    morphine_coroutine_t U,
     morphine_loader_init_t init,
     morphine_loader_read_t read,
     morphine_loader_finish_t finish,
     void *args
 ) {
-    struct proto *result = loaderI_load(S, init, read, finish, args);
-    stackI_push(S, valueI_object(result));
+    struct proto *result = loaderI_load(U, init, read, finish, args);
+    stackI_push(U, valueI_object(result));
 }
