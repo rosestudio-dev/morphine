@@ -4,7 +4,7 @@
 
 #include "binary.h"
 #include "morphine/object/coroutine.h"
-#include "morphine/object/proto.h"
+#include "morphine/object/function.h"
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
 #include "morphine/stack/access.h"
@@ -17,9 +17,9 @@ struct data {
     struct crc32_buf crc;
 
     struct {
-        struct proto **vector;
+        struct function **vector;
         size_t count;
-    } protos;
+    } functions;
 };
 
 static uint8_t get_u8(struct data *data) {
@@ -208,7 +208,7 @@ static void validate_instruction(
     }
 }
 
-static struct proto *get_function(struct data *data) {
+static struct function *get_function(struct data *data) {
     struct uuid uuid = get_uuid(data);
     size_t name_chars_count = get_u32(data);
     size_t arguments_count = get_u32(data);
@@ -219,7 +219,7 @@ static struct proto *get_function(struct data *data) {
     size_t constants_count = get_u32(data);
     size_t instructions_count = get_u32(data);
 
-    struct proto *proto = protoI_create(
+    struct function *function = functionI_create(
         data->U->I,
         uuid,
         name_chars_count,
@@ -228,16 +228,16 @@ static struct proto *get_function(struct data *data) {
         statics_count
     );
 
-    stackI_push(data->U, valueI_object(proto));
+    stackI_push(data->U, valueI_object(function));
 
     for (size_t i = 0; i < instructions_count; i++) {
-        proto->instructions[i] = get_instruction(data);
+        function->instructions[i] = get_instruction(data);
     }
 
     for (size_t i = 0; i < instructions_count; i++) {
         validate_instruction(
             data,
-            proto->instructions[i],
+            function->instructions[i],
             arguments_count,
             slots_count,
             params_count,
@@ -247,12 +247,12 @@ static struct proto *get_function(struct data *data) {
         );
     }
 
-    proto->arguments_count = arguments_count;
-    proto->slots_count = slots_count;
-    proto->closures_count = closures_count;
-    proto->params_count = params_count;
+    function->arguments_count = arguments_count;
+    function->slots_count = slots_count;
+    function->closures_count = closures_count;
+    function->params_count = params_count;
 
-    return proto;
+    return function;
 }
 
 static struct value get_constant(struct data *data) {
@@ -268,10 +268,10 @@ static struct value get_constant(struct data *data) {
         case 'f': {
             struct uuid uuid = get_uuid(data);
 
-            struct proto *found = NULL;
-            for (size_t i = 0; i < data->protos.count; i++) {
-                if (protoI_uuid_equal(data->protos.vector[i]->uuid, uuid)) {
-                    found = data->protos.vector[i];
+            struct function *found = NULL;
+            for (size_t i = 0; i < data->functions.count; i++) {
+                if (functionI_uuid_equal(data->functions.vector[i]->uuid, uuid)) {
+                    found = data->functions.vector[i];
                     break;
                 }
             }
@@ -298,20 +298,20 @@ static struct value get_constant(struct data *data) {
     }
 }
 
-static void load_constants(struct data *data, struct proto *proto) {
-    for (size_t i = 0; i < proto->constants_count; i++) {
-        protoI_constant_set(
+static void load_constants(struct data *data, struct function *function) {
+    for (size_t i = 0; i < function->constants_count; i++) {
+        functionI_constant_set(
             data->U->I,
-            proto,
+            function,
             i,
             get_constant(data)
         );
     }
 }
 
-static void load_name(struct data *data, struct proto *proto) {
-    for (size_t i = 0; i < proto->name_len; i++) {
-        proto->name[i] = (char) get_u8(data);
+static void load_name(struct data *data, struct function *function) {
+    for (size_t i = 0; i < function->name_len; i++) {
+        function->name[i] = (char) get_u8(data);
     }
 }
 
@@ -342,23 +342,23 @@ static struct uuid load(struct data *data) {
     struct uuid main_uuid = get_uuid(data);
     size_t functions_count = get_u32(data);
 
-    struct proto **protos = allocI_uni(data->U->I, NULL, functions_count * sizeof(struct proto *));
-    data->protos.count = functions_count;
-    data->protos.vector = protos;
+    struct function **functions = allocI_uni(data->U->I, NULL, functions_count * sizeof(struct function *));
+    data->functions.count = functions_count;
+    data->functions.vector = functions;
 
-    struct userdata *userdata = userdataI_create(data->U->I, "protos", protos, NULL, allocI_free);
+    struct userdata *userdata = userdataI_create(data->U->I, "functions", functions, NULL, allocI_free);
     stackI_push(data->U, valueI_object(userdata));
 
     for (size_t i = 0; i < functions_count; i++) {
-        protos[i] = get_function(data);
+        functions[i] = get_function(data);
     }
 
     for (size_t i = 0; i < functions_count; i++) {
-        load_constants(data, protos[i]);
+        load_constants(data, functions[i]);
     }
 
     for (size_t i = 0; i < functions_count; i++) {
-        load_name(data, protos[i]);
+        load_name(data, functions[i]);
     }
 
     check_csum(data);
@@ -366,30 +366,30 @@ static struct uuid load(struct data *data) {
     return main_uuid;
 }
 
-static struct proto *resolve(struct data *data, struct uuid main_uuid) {
-    struct proto *main = NULL;
+static struct function *resolve(struct data *data, struct uuid main_uuid) {
+    struct function *main = NULL;
 
-    for (size_t i = 0; i < data->protos.count; i++) {
-        if (protoI_uuid_equal(data->protos.vector[i]->uuid, main_uuid)) {
-            main = data->protos.vector[i];
+    for (size_t i = 0; i < data->functions.count; i++) {
+        if (functionI_uuid_equal(data->functions.vector[i]->uuid, main_uuid)) {
+            main = data->functions.vector[i];
             break;
         }
     }
 
     if (main == NULL) {
-        process_error(data->state, "Main proto wasn't found");
+        process_error(data->state, "Main function wasn't found");
     }
 
     return main;
 }
 
-struct proto *binary(morphine_coroutine_t U, struct process_state *state) {
+struct function *binary(morphine_coroutine_t U, struct process_state *state) {
     struct data data = {
         .U = U,
         .state = state,
         .crc = crc32_init(),
-        .protos.vector = NULL,
-        .protos.count = 0
+        .functions.vector = NULL,
+        .functions.count = 0
     };
 
     struct uuid main_uuid = load(&data);

@@ -6,7 +6,7 @@
 #include <stdio.h>
 #include <inttypes.h>
 #include "morphine/object/coroutine.h"
-#include "morphine/object/proto.h"
+#include "morphine/object/function.h"
 #include "morphine/object/native.h"
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
@@ -38,16 +38,16 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
 
         struct value callable = *callstackI_info(U)->s.source.p;
 
-        if (valueI_is_proto(callable)) {
-            struct proto *proto = valueI_as_proto(callable);
+        if (valueI_is_function(callable)) {
+            struct function *function = valueI_as_function(callable);
 
             size_t position = callstackI_info(U)->pc.position;
             uint32_t line = 0;
-            if (position < proto->instructions_count) {
-                line = proto->instructions[position].line;
+            if (position < function->instructions_count) {
+                line = function->instructions[position].line;
             }
 
-            fprintf(file, "[line: %"PRIu32", p: %zu] proto %s (%p)\n", line, position, proto->name, proto);
+            fprintf(file, "[line: %"PRIu32", p: %zu] function %s (%p)\n", line, position, function->name, function);
         } else if (valueI_is_native(callable)) {
             struct native *native = valueI_as_native(callable);
 

@@ -5,7 +5,7 @@
 #include "morphine/gc/dump.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/string.h"
-#include "morphine/object/proto.h"
+#include "morphine/object/function.h"
 #include "morphine/object/native.h"
 #include "morphine/object/userdata.h"
 
@@ -22,14 +22,14 @@ static void object(morphine_instance_t I, struct object *obj) {
             obj,
             ((struct string *) obj)->chars
         );
-    } else if (obj->type == OBJ_TYPE_PROTO) {
+    } else if (obj->type == OBJ_TYPE_FUNCTION) {
         fprintf(
             out, "(%s%s) %s %p '%s'",
             obj->flags.mark ? "+" : "-",
             obj->flags.finalized ? "l" : "f",
             valueI_type2string(I, valueI_object(obj).type),
             obj,
-            ((struct proto *) obj)->name
+            ((struct function *) obj)->name
         );
     } else if (obj->type == OBJ_TYPE_NATIVE) {
         fprintf(

@@ -15,7 +15,7 @@ struct process_state {
     const char *message;
 };
 
-struct proto *process(
+struct function *process(
     morphine_coroutine_t U,
     morphine_loader_init_t init,
     morphine_loader_read_t read,
@@ -36,7 +36,7 @@ struct proto *process(
 
     size_t stack_size = stackI_space_size(U);
 
-    struct proto *result;
+    struct function *result;
 
     if (setjmp(process_state.jump) != 0) {
         if (finish != NULL) {

@@ -6,7 +6,7 @@
 
 #include "morphine/platform.h"
 
-struct proto *loaderI_load(
+struct function *loaderI_load(
     morphine_coroutine_t,
     morphine_loader_init_t,
     morphine_loader_read_t,

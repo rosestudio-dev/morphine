@@ -5,7 +5,7 @@
 #include "morphine/stack/call.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/string.h"
-#include "morphine/object/proto.h"
+#include "morphine/object/function.h"
 #include "morphine/object/closure.h"
 #include "morphine/gc/hot.h"
 #include "morphine/gc/allocator.h"
@@ -22,15 +22,15 @@ static inline void stackI_call(morphine_coroutine_t U, struct value callable, st
     size_t slots_count = 0;
     size_t params_count = 0;
 
-    if (valueI_is_proto(source)) {
-        struct proto *proto = valueI_as_proto(source);
+    if (valueI_is_function(source)) {
+        struct function *function = valueI_as_function(source);
 
-        if (argc != proto->arguments_count) {
+        if (argc != function->arguments_count) {
             throwI_error(U->I, "Wrong arguments count");
         }
 
-        slots_count = proto->slots_count;
-        params_count = proto->params_count;
+        slots_count = function->slots_count;
+        params_count = function->params_count;
     }
 
     // get env
@@ -120,7 +120,7 @@ repeat:;
         goto repeat;
     }
 
-    if (valueI_is_native(callable) || valueI_is_proto(callable)) {
+    if (valueI_is_native(callable) || valueI_is_function(callable)) {
         return callable;
     }
 
@@ -202,7 +202,7 @@ void callstackI_params(
     size_t pop_size
 ) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
-    size_t params_count = valueI_as_proto_or_error(U->I, *(callinfo->s.source.p))->params_count;
+    size_t params_count = valueI_as_function_or_error(U->I, *(callinfo->s.source.p))->params_count;
 
     if (params_count < argc) {
         throwI_error(U->I, "Arguments count is greater than params count");

@@ -6,7 +6,7 @@
 #include "loader/process.h"
 #include "loader/binary.h"
 
-struct proto *loaderI_load(
+struct function *loaderI_load(
     morphine_coroutine_t U,
     morphine_loader_init_t init,
     morphine_loader_read_t read,

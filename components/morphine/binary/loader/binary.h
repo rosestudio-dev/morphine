@@ -11,10 +11,10 @@
 
 struct binary_data {
     struct crc32_buf crc;
-    struct proto **created_protos;
+    struct function **functions;
 };
 
-struct proto *binary(
+struct function *binary(
     morphine_coroutine_t,
     struct process_state *
 );

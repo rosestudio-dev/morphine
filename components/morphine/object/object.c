@@ -8,7 +8,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
 #include "morphine/object/closure.h"
-#include "morphine/object/proto.h"
+#include "morphine/object/function.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/native.h"
 #include "morphine/object/iterator.h"
@@ -48,8 +48,8 @@ void objectI_free(morphine_instance_t I, struct object *object) {
         case OBJ_TYPE_CLOSURE:
             closureI_free(I, cast(struct closure *, object));
             return;
-        case OBJ_TYPE_PROTO:
-            protoI_free(I, cast(struct proto *, object));
+        case OBJ_TYPE_FUNCTION:
+            functionI_free(I, cast(struct function *, object));
             return;
         case OBJ_TYPE_NATIVE:
             nativeI_free(I, cast(struct native *, object));

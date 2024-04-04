@@ -5,7 +5,7 @@
 #include "morphine/misc/registry.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
-#include "morphine/object/proto.h"
+#include "morphine/object/function.h"
 #include "morphine/object/native.h"
 #include "morphine/object/table.h"
 #include "morphine/object/coroutine.h"
@@ -16,10 +16,10 @@
 void registryI_set_key(morphine_instance_t I, struct value callable, struct value key) {
     struct value source = callstackI_extract_callable(I, callable);
 
-    if (valueI_is_proto(source)) {
-        struct proto *proto = valueI_as_proto(source);
-        proto->registry_key = key;
-        gcI_barrier(proto, key);
+    if (valueI_is_function(source)) {
+        struct function *function = valueI_as_function(source);
+        function->registry_key = key;
+        gcI_barrier(function, key);
     } else if (valueI_is_native(source)) {
         struct native *native = valueI_as_native(source);
         native->registry_key = key;
@@ -32,8 +32,8 @@ void registryI_set(morphine_coroutine_t U, struct value key, struct value value)
     struct value source = *callstackI_info_or_error(U)->s.source.p;
 
     struct value registry_key;
-    if (valueI_is_proto(source)) {
-        registry_key = valueI_as_proto(source)->registry_key;
+    if (valueI_is_function(source)) {
+        registry_key = valueI_as_function(source)->registry_key;
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {
@@ -62,8 +62,8 @@ struct value registryI_get(morphine_coroutine_t U, struct value key, bool *has) 
     struct value source = *callstackI_info_or_error(U)->s.source.p;
 
     struct value registry_key;
-    if (valueI_is_proto(source)) {
-        registry_key = valueI_as_proto(source)->registry_key;
+    if (valueI_is_function(source)) {
+        registry_key = valueI_as_function(source)->registry_key;
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {
@@ -83,8 +83,8 @@ void registryI_clear(morphine_coroutine_t U) {
     struct value source = *callstackI_info_or_error(U)->s.source.p;
 
     struct value registry_key;
-    if (valueI_is_proto(source)) {
-        registry_key = valueI_as_proto(source)->registry_key;
+    if (valueI_is_function(source)) {
+        registry_key = valueI_as_function(source)->registry_key;
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {

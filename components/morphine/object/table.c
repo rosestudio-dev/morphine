@@ -37,7 +37,7 @@ static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_CLOSURE:
         case VALUE_TYPE_COROUTINE:
-        case VALUE_TYPE_PROTO:
+        case VALUE_TYPE_FUNCTION:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_ITERATOR:
         case VALUE_TYPE_REFERENCE:

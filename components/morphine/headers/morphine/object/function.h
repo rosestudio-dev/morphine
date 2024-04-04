@@ -13,7 +13,7 @@ struct uuid {
     uint64_t least_significant_bits;
 };
 
-struct proto {
+struct function {
     struct object header;
 
     struct uuid uuid;
@@ -37,9 +37,9 @@ struct proto {
     struct value registry_key;
 };
 
-bool protoI_uuid_equal(struct uuid a, struct uuid b);
+bool functionI_uuid_equal(struct uuid a, struct uuid b);
 
-struct proto *protoI_create(
+struct function *functionI_create(
     morphine_instance_t,
     struct uuid uuid,
     size_t name_len,
@@ -48,10 +48,10 @@ struct proto *protoI_create(
     size_t statics_count
 );
 
-void protoI_free(morphine_instance_t, struct proto *);
+void functionI_free(morphine_instance_t, struct function *);
 
-struct value protoI_static_get(morphine_instance_t, struct proto *, size_t index);
-void protoI_static_set(morphine_instance_t, struct proto *, size_t index, struct value value);
+struct value functionI_static_get(morphine_instance_t, struct function *, size_t index);
+void functionI_static_set(morphine_instance_t, struct function *, size_t index, struct value value);
 
-struct value protoI_constant_get(morphine_instance_t, struct proto *, size_t index);
-void protoI_constant_set(morphine_instance_t, struct proto *, size_t index, struct value value);
+struct value functionI_constant_get(morphine_instance_t, struct function *, size_t index);
+void functionI_constant_set(morphine_instance_t, struct function *, size_t index, struct value value);

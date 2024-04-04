@@ -5,7 +5,7 @@
 #include "morphine/core/interpreter.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/operations.h"
-#include "morphine/object/proto.h"
+#include "morphine/object/function.h"
 #include "morphine/object/native.h"
 #include "morphine/object/table.h"
 #include "morphine/object/closure.h"
@@ -20,7 +20,7 @@
         callstackI_return(U, valueI_nil); \
         sp_yield(); \
     } \
-    instruction = P->instructions[*position]; \
+    instruction = F->instructions[*position]; \
     morphinem_blk_end
 
 #define sp_yield() morphinem_blk_start return; morphinem_blk_end
@@ -62,7 +62,7 @@ static inline void clear_params(struct callinfo *C, size_t count) {
 
 // code
 
-static void step_proto(morphine_coroutine_t U, struct proto *P) {
+static void step_function(morphine_coroutine_t U, struct function *F) {
 #ifdef MORPHINE_ENABLE_JUMPTABLE
 
 #include "jumptable.h"
@@ -71,7 +71,7 @@ static void step_proto(morphine_coroutine_t U, struct proto *P) {
 
     struct callinfo *C = callstackI_info(U);
     size_t *position = &C->pc.position;
-    size_t instructions_count = P->instructions_count;
+    size_t instructions_count = F->instructions_count;
 
     for (;;) {
         instruction_t instruction;
@@ -87,7 +87,7 @@ sp_case(OPCODE_YIELD)
             }
 sp_case(OPCODE_LOAD)
             {
-                slot(C, arg2) = P->constants[arg1.value];
+                slot(C, arg2) = F->constants[arg1.value];
                 sp_end();
             }
 sp_case(OPCODE_MOVE)
@@ -200,12 +200,12 @@ sp_case(OPCODE_JUMP_IF)
             }
 sp_case(OPCODE_GET_STATIC)
             {
-                slot(C, arg2) = protoI_static_get(U->I, P, arg1.value);
+                slot(C, arg2) = functionI_static_get(U->I, F, arg1.value);
                 sp_end();
             }
 sp_case(OPCODE_SET_STATIC)
             {
-                protoI_static_set(U->I, P, arg1.value, slot(C, arg2));
+                functionI_static_set(U->I, F, arg1.value, slot(C, arg2));
                 sp_end();
             }
 sp_case(OPCODE_GET_CLOSURE)
@@ -492,9 +492,9 @@ static inline void step(morphine_coroutine_t U) {
 
     struct value source = *callinfo->s.source.p;
 
-    if (likely(valueI_is_proto(source))) {
+    if (likely(valueI_is_function(source))) {
         callinfo->exit = false;
-        step_proto(U, valueI_as_proto(source));
+        step_function(U, valueI_as_function(source));
     } else if (valueI_is_native(source)) {
         callinfo->exit = true;
         struct native *native = valueI_as_native(source);

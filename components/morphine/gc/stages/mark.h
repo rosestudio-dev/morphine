@@ -8,7 +8,7 @@
 #include "morphine/object/table.h"
 #include "morphine/object/closure.h"
 #include "morphine/object/userdata.h"
-#include "morphine/object/proto.h"
+#include "morphine/object/function.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/string.h"
 #include "morphine/object/native.h"
@@ -63,18 +63,18 @@ static inline void mark_internal(morphine_instance_t I, struct object *obj) {
 
             return;
         }
-        case OBJ_TYPE_PROTO: {
-            struct proto *proto = cast(struct proto *, obj);
+        case OBJ_TYPE_FUNCTION: {
+            struct function *function = cast(struct function *, obj);
 
-            for (size_t i = 0; i < proto->constants_count; i++) {
-                mark_value(proto->constants[i]);
+            for (size_t i = 0; i < function->constants_count; i++) {
+                mark_value(function->constants[i]);
             }
 
-            for (size_t i = 0; i < proto->statics_count; i++) {
-                mark_value(proto->statics[i]);
+            for (size_t i = 0; i < function->statics_count; i++) {
+                mark_value(function->statics[i]);
             }
 
-            mark_value(proto->registry_key);
+            mark_value(function->registry_key);
 
             return;
         }
