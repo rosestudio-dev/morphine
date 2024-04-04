@@ -3,7 +3,6 @@
 //
 
 #include "process.h"
-#include "morphine/object/coroutine/stack/access.h"
 #include "morphine/core/throw.h"
 #include "morphine/object/coroutine.h"
 
@@ -34,7 +33,7 @@ struct function *process(
         process_state.data = init(U, args);
     }
 
-    size_t stack_size = stackI_space_size(U);
+    size_t stack_size = stackI_space(U);
 
     struct function *result;
 
@@ -47,7 +46,7 @@ struct function *process(
     } else {
         result = loader(U, &process_state);
 
-        stackI_pop(U, stackI_space_size(U) - stack_size);
+        stackI_pop(U, stackI_space(U) - stack_size);
 
         if (finish != NULL) {
             finish(U, process_state.data);

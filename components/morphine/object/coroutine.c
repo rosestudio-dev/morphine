@@ -15,11 +15,11 @@ morphine_coroutine_t coroutineI_custom_create(morphine_instance_t I, size_t stac
     (*result) = (struct coroutine) {
         .status = COROUTINE_STATUS_CREATED,
         .priority = 1,
+        .stack = stackI_prototype(I, stack_limit, stack_grow),
+        .callstack = callstackI_prototype(),
         .prev = NULL,
         .I = I
     };
-
-    result->stack = stackI_initial(I, stack_limit, stack_grow);
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_COROUTINE);
 
@@ -37,7 +37,8 @@ morphine_coroutine_t coroutineI_create(morphine_instance_t I) {
 }
 
 void coroutineI_free(morphine_instance_t I, morphine_coroutine_t coroutine) {
-    stackI_destruct(I, coroutine->stack);
+    callstackI_destruct(I, &coroutine->callstack);
+    stackI_destruct(I, &coroutine->stack);
     allocI_free(I, coroutine);
 }
 

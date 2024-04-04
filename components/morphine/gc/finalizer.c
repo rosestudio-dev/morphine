@@ -5,7 +5,7 @@
 #include "morphine/gc/finalizer.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/native.h"
-#include "morphine/object/coroutine/stack/call.h"
+#include "morphine/object/coroutine.h"
 
 static void finalizer(morphine_coroutine_t U) {
     morphine_instance_t I = U->I;
@@ -35,7 +35,7 @@ static void finalizer(morphine_coroutine_t U) {
         struct value callable = valueI_nil;
         candidate->flags.finalized = true;
         if (metatableI_test(U->I, candidate_value, MF_GC, &callable)) {
-            callstackI_unsafe(U, callable, candidate_value, NULL, 0, 0);
+            callstackI_call_unsafe(U, callable, candidate_value, NULL, 0, 0);
             return;
         }
     }
@@ -67,7 +67,7 @@ void gcI_init_finalizer(morphine_instance_t I) {
     coroutineI_priority(coroutine, 1);
 
     struct native *native = nativeI_create(I, "gc_finalizer", finalizer);
-    callstackI_unsafe(coroutine, valueI_object(native), valueI_nil, NULL, 0, 0);
+    callstackI_call_unsafe(coroutine, valueI_object(native), valueI_nil, NULL, 0, 0);
 
     I->G.finalizer.coroutine = coroutine;
 }

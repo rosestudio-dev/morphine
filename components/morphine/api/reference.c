@@ -6,7 +6,6 @@
 #include "morphine/core/throw.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/reference.h"
-#include "morphine/object/coroutine/stack/access.h"
 
 MORPHINE_API void mapi_push_ref(morphine_coroutine_t U) {
     struct value *value = stackI_vector(U, 0, 1);

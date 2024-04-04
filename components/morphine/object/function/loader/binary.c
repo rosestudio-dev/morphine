@@ -7,7 +7,6 @@
 #include "morphine/object/function.h"
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
-#include "morphine/object/coroutine/stack/access.h"
 #include "morphine/gc/allocator.h"
 #include <string.h>
 

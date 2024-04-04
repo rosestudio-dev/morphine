@@ -7,8 +7,6 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
-#include "morphine/object/coroutine/stack/access.h"
-#include "morphine/object/coroutine/stack/call.h"
 
 MORPHINE_API void mapi_push_nil(morphine_coroutine_t U) {
     stackI_push(U, valueI_nil);

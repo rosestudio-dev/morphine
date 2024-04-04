@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/object/coroutine/stack/structure.h"
+#include "morphine/object/coroutine/stack.h"
 #include "morphine/object.h"
 
 enum coroutine_status {
@@ -25,6 +25,7 @@ struct coroutine {
     priority_t priority;
 
     struct stack stack;
+    struct callstack callstack;
 
     morphine_coroutine_t prev;
     morphine_instance_t I;

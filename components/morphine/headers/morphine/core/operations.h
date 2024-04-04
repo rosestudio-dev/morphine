@@ -9,7 +9,8 @@
 #include "morphine/object/string.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/iterator.h"
-#include "morphine/object/coroutine/stack/call.h"
+#include "morphine/object/coroutine.h"
+#include "morphine/core/throw.h"
 
 typedef enum {
     NORMAL,
@@ -33,7 +34,7 @@ static inline op_result_t interpreter_fun_iterator(
     struct value mt_field;
     if (metatableI_test(U->I, container, MF_ITERATOR, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, container, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, container, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -58,7 +59,7 @@ static inline op_result_t interpreter_fun_iterator_init(
         return NORMAL;
     } else if (metatableI_test(U->I, iterator, MF_ITERATOR_INIT, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -85,7 +86,7 @@ static inline op_result_t interpreter_fun_iterator_has(
         return NORMAL;
     } else if (metatableI_test(U->I, iterator, MF_ITERATOR_HAS, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -117,7 +118,7 @@ static inline op_result_t interpreter_fun_iterator_next(
         return NORMAL;
     } else if (metatableI_test(U->I, iterator, MF_ITERATOR_NEXT, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -146,7 +147,7 @@ static inline op_result_t interpreter_fun_get(
         if (!has && metatableI_test(U->I, container, MF_GET, &mt_field)) {
             struct value new_args[] = { key };
             callstackI_continue(U, callstate);
-            callstackI_unsafe(U, mt_field, container, new_args, 1, pop_size);
+            callstackI_call_unsafe(U, mt_field, container, new_args, 1, pop_size);
             return CALLED;
         }
 
@@ -154,7 +155,7 @@ static inline op_result_t interpreter_fun_get(
     } else if (metatableI_test(U->I, container, MF_GET, &mt_field)) {
         struct value new_args[] = { key };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, container, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, container, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -178,7 +179,7 @@ static inline op_result_t interpreter_fun_set(
     if (metatableI_test(U->I, container, MF_SET, &mt_field)) {
         struct value new_args[] = { key, value };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, container, new_args, 2, pop_size);
+        callstackI_call_unsafe(U, mt_field, container, new_args, 2, pop_size);
         return CALLED;
     }
 
@@ -214,7 +215,7 @@ static inline op_result_t interpreter_fun_add(
     if (metatableI_test(U->I, a, MF_ADD, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -249,7 +250,7 @@ static inline op_result_t interpreter_fun_sub(
     if (metatableI_test(U->I, a, MF_SUB, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -284,7 +285,7 @@ static inline op_result_t interpreter_fun_mul(
     if (metatableI_test(U->I, a, MF_MUL, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -329,7 +330,7 @@ static inline op_result_t interpreter_fun_div(
     if (metatableI_test(U->I, a, MF_DIV, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -364,7 +365,7 @@ static inline op_result_t interpreter_fun_mod(
     if (metatableI_test(U->I, a, MF_MOD, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -389,7 +390,7 @@ static inline op_result_t interpreter_fun_equal(
     if (metatableI_test(U->I, a, MF_EQUAL, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -425,7 +426,7 @@ static inline op_result_t interpreter_fun_less(
     if (metatableI_test(U->I, a, MF_LESS, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -460,7 +461,7 @@ static inline op_result_t interpreter_fun_less_equal(
     if (metatableI_test(U->I, a, MF_LESS_EQUAL, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -490,7 +491,7 @@ static inline op_result_t interpreter_fun_and(
     if (metatableI_test(U->I, a, MF_AND, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -520,7 +521,7 @@ static inline op_result_t interpreter_fun_or(
     if (metatableI_test(U->I, a, MF_OR, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -553,7 +554,7 @@ static inline op_result_t interpreter_fun_concat(
     if (metatableI_test(U->I, a, MF_CONCAT, &mt_field)) {
         struct value new_args[] = { b };
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, new_args, 1, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
         return CALLED;
     }
 
@@ -576,7 +577,7 @@ static inline op_result_t interpreter_fun_type(
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_TYPE, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -610,7 +611,7 @@ static inline op_result_t interpreter_fun_negative(
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_NEGATE, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -638,7 +639,7 @@ static inline op_result_t interpreter_fun_not(
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_NOT, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -661,7 +662,7 @@ static inline op_result_t interpreter_fun_ref(
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_REF, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -690,7 +691,7 @@ static inline op_result_t interpreter_fun_deref(
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_DEREF, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 
@@ -723,7 +724,7 @@ static inline op_result_t interpreter_fun_length(
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_LENGTH, &mt_field)) {
         callstackI_continue(U, callstate);
-        callstackI_unsafe(U, mt_field, a, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
         return CALLED;
     }
 

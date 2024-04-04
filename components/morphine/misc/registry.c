@@ -9,8 +9,8 @@
 #include "morphine/object/native.h"
 #include "morphine/object/table.h"
 #include "morphine/object/coroutine.h"
+#include "morphine/object/string.h"
 #include "morphine/gc/barrier.h"
-#include "morphine/object/coroutine/stack/call.h"
 #include "morphine/gc/safe.h"
 
 void registryI_set_key(morphine_instance_t I, struct value callable, struct value key) {

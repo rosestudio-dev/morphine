@@ -5,7 +5,6 @@
 #include "morphine/api.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
-#include "morphine/object/coroutine/stack/access.h"
 
 MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U) {
     morphine_coroutine_t coroutine = coroutineI_create(U->I);

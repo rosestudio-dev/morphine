@@ -4,7 +4,7 @@
 
 #include "morphine/api.h"
 #include "morphine/object/coroutine.h"
-#include "morphine/object/coroutine/stack/access.h"
+#include "morphine/core/value.h"
 
 MORPHINE_API void mapi_rotate(morphine_coroutine_t U, size_t count) {
     if (count == 0) {
@@ -42,5 +42,5 @@ MORPHINE_API size_t mapi_stack_size(morphine_coroutine_t U) {
 }
 
 MORPHINE_API void mapi_stack_reset(morphine_coroutine_t U) {
-    stackI_pop(U, stackI_space_size(U));
+    stackI_pop(U, stackI_space(U));
 }

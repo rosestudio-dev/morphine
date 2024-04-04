@@ -10,7 +10,6 @@
 #include "morphine/object/table.h"
 #include "morphine/object/closure.h"
 #include "morphine/gc/control.h"
-#include "morphine/object/coroutine/stack/call.h"
 
 // loop
 
@@ -249,7 +248,7 @@ sp_case(OPCODE_CALL)
 
                 callstackI_continue(U, 1);
 
-                callstackI_params(
+                callstackI_call_params(
                     U,
                     callable,
                     valueI_nil,
@@ -273,7 +272,7 @@ sp_case(OPCODE_SCALL)
 
                 callstackI_continue(U, 1);
 
-                callstackI_params(
+                callstackI_call_params(
                     U,
                     callable,
                     self,

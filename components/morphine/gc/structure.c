@@ -3,9 +3,8 @@
 //
 
 #include "morphine/gc/structure.h"
+#include "morphine/object/coroutine/callstack.h"
 #include "morphine/object.h"
-#include "morphine/object/coroutine/stack/call.h"
-#include "morphine/gc/safe.h"
 
 static void free_objects(morphine_instance_t I, struct object *pool) {
     struct object *current = pool;
@@ -66,7 +65,7 @@ void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {
     struct callinfo *current = G.callinfo_trash;
     while (current != NULL) {
         struct callinfo *prev = current->prev;
-        callstackI_info_free(I, current);
+        callstackI_callinfo_free(I, current);
 
         current = prev;
     }

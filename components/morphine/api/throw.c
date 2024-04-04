@@ -4,11 +4,9 @@
 
 #include "morphine/api.h"
 #include "morphine/object/coroutine.h"
-#include "morphine/core/throw.h"
 #include "morphine/object/string.h"
+#include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
-#include "morphine/object/coroutine/stack/access.h"
-#include "morphine/object/coroutine/stack/call.h"
 
 MORPHINE_API morphine_noret void mapi_errorf(morphine_coroutine_t U, const char *str, ...) {
     va_list args;

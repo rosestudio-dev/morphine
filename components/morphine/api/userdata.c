@@ -6,7 +6,6 @@
 #include "morphine/core/throw.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/userdata.h"
-#include "morphine/object/coroutine/stack/access.h"
 
 MORPHINE_API void mapi_push_userdata(
     morphine_coroutine_t U,

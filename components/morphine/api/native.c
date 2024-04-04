@@ -6,7 +6,6 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/native.h"
 #include "morphine/core/throw.h"
-#include "morphine/object/coroutine/stack/access.h"
 
 MORPHINE_API void mapi_push_native(morphine_coroutine_t U, const char *name, morphine_native_t native) {
     stackI_push(U, valueI_object(nativeI_create(U->I, name, native)));

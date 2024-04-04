@@ -5,8 +5,6 @@
 #include "../stages.h"
 #include "mark.h"
 #include "morphine/core/instance.h"
-#include "morphine/object/coroutine/stack/control.h"
-#include "morphine/object/coroutine/stack/call.h"
 #include "morphine/object/reference.h"
 
 static inline void invalidate_ref(struct reference *reference) {
@@ -45,7 +43,7 @@ static inline void shrink(morphine_instance_t I) {
         struct callinfo *current = I->G.callinfo_trash;
         while (current != NULL) {
             struct callinfo *prev = current->prev;
-            callstackI_info_free(I, current);
+            callstackI_callinfo_free(I, current);
 
             current = prev;
         }

@@ -1,17 +1,19 @@
 //
-// Created by whyiskra on 3/24/24.
+// Created by why-iskra on 04.04.2024.
 //
 
-#include "morphine/object/coroutine/stack/call.h"
-#include "morphine/core/instance.h"
-#include "morphine/object/string.h"
+#include "morphine/object/coroutine/callstack.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/closure.h"
+#include "morphine/object/table.h"
+#include "morphine/object/string.h"
+#include "morphine/core/value.h"
+#include "morphine/core/throw.h"
+#include "morphine/core/instance.h"
 #include "morphine/gc/hot.h"
 #include "morphine/gc/allocator.h"
-#include "morphine/object/coroutine/stack/access.h"
-#include "morphine/object/table.h"
-#include "functions.h"
+#include "morphine/misc/metatable.h"
 
 static inline void stackI_call(morphine_coroutine_t U, struct value callable, struct value self, size_t argc, size_t pop_size) {
     // get source and calc values size
@@ -44,11 +46,11 @@ static inline void stackI_call(morphine_coroutine_t U, struct value callable, st
 
     // create callinfo
 
-    if (pop_size > stackI_space_size(U)) {
+    if (pop_size > stackI_space(U)) {
         throwI_error(U->I, "Cannot pop values after call");
     }
 
-    stackI_ptr base = stack_raise(U, values_size + slots_count + params_count);
+    struct value *base = stackI_raise(U, values_size + slots_count + params_count);
 
     struct callinfo *callinfo = gcI_hot_callinfo(U->I);
     if (callinfo == NULL) {
@@ -56,17 +58,17 @@ static inline void stackI_call(morphine_coroutine_t U, struct value callable, st
     }
 
     (*callinfo) = (struct callinfo) {
-        .s.base = base,
-        .s.source = stack_ptr(base.p + 1),
-        .s.env = stack_ptr(base.p + 2),
-        .s.self = stack_ptr(base.p + 3),
-        .s.result = stack_ptr(base.p + 4),
-        .s.thrown = stack_ptr(base.p + 5),
-        .s.args = stack_ptr(base.p + 6),
-        .s.slots = stack_ptr(base.p + 6 + argc),
-        .s.params = stack_ptr(base.p + 6 + argc + slots_count),
-        .s.space = stack_ptr(U->stack.allocated + U->stack.top),
-        .s.top = stack_ptr(U->stack.allocated + U->stack.top),
+        .s.base = stackI_ptr(base),
+        .s.source = stackI_ptr(base + 1),
+        .s.env = stackI_ptr(base + 2),
+        .s.self = stackI_ptr(base + 3),
+        .s.result = stackI_ptr(base + 4),
+        .s.thrown = stackI_ptr(base + 5),
+        .s.args = stackI_ptr(base + 6),
+        .s.slots = stackI_ptr(base + 6 + argc),
+        .s.params = stackI_ptr(base + 6 + argc + slots_count),
+        .s.space = stackI_ptr(U->stack.allocated + U->stack.top),
+        .s.top = stackI_ptr(U->stack.allocated + U->stack.top),
         .pop_size = pop_size,
         .arguments_count = argc,
         .pc.position = 0,
@@ -78,7 +80,7 @@ static inline void stackI_call(morphine_coroutine_t U, struct value callable, st
     };
 
     callstackI_info(U) = callinfo;
-    U->stack.callstack_size ++;
+    U->callstack.size ++;
 
     // init callinfo stack region
 
@@ -106,28 +108,29 @@ static inline void stackI_set_args_unsafe(morphine_coroutine_t U, struct value *
     }
 }
 
-struct value callstackI_extract_callable(morphine_instance_t I, struct value callable) {
-    size_t counter = 0;
-repeat:;
-    if (counter > 1000000) {
-        throwI_error(I, "Possible recursion while extracting callable");
-    }
-
-    struct closure *closure = valueI_safe_as_closure(callable, NULL);
-    if (closure != NULL) {
-        callable = closure->callable;
-        counter++;
-        goto repeat;
-    }
-
-    if (valueI_is_native(callable) || valueI_is_function(callable)) {
-        return callable;
-    }
-
-    throwI_error(I, "Cannot extract callable value");
+struct callstack callstackI_prototype(void) {
+    return (struct callstack) {
+        .callinfo = NULL,
+        .size = 0,
+    };
 }
 
-void callstackI_unsafe(
+void callstackI_destruct(morphine_instance_t I, struct callstack *callstack) {
+    struct callinfo *callinfo = callstack->callinfo;
+    while (callinfo != NULL) {
+        struct callinfo *prev = callinfo->prev;
+        callstackI_callinfo_free(I, callinfo);
+        callinfo = prev;
+    }
+    callstack->callinfo = NULL;
+    callstack->size = 0;
+}
+
+void callstackI_callinfo_free(morphine_instance_t I, struct callinfo *callinfo) {
+    allocI_free(I, callinfo);
+}
+
+void callstackI_call_unsafe(
     morphine_coroutine_t U,
     struct value callable,
     struct value self,
@@ -158,7 +161,7 @@ void callstackI_unsafe(
     }
 }
 
-void callstackI_stack(
+void callstackI_call_stack(
     morphine_coroutine_t U,
     struct value callable,
     struct value self,
@@ -188,13 +191,13 @@ void callstackI_stack(
         stackI_call(U, callable, self, argc, pop_size);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value arg = stack_peek(U, callinfo, argc - i - 1 + offset);
+            struct value arg = stackI_callinfo_peek(U, callinfo, argc - i - 1 + offset);
             callstackI_info(U)->s.args.p[i] = arg;
         }
     }
 }
 
-void callstackI_params(
+void callstackI_call_params(
     morphine_coroutine_t U,
     struct value callable,
     struct value self,
@@ -240,10 +243,10 @@ void callstackI_pop(morphine_coroutine_t U) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
     size_t pop_size = callinfo->pop_size;
 
-    stack_reduce(U, (size_t) (callinfo->s.top.p - callinfo->s.base.p));
+    stackI_reduce(U, (size_t) (callinfo->s.top.p - callinfo->s.base.p));
 
     callstackI_info(U) = callinfo->prev;
-    U->stack.callstack_size --;
+    U->callstack.size --;
 
     gcI_dispose_callinfo(U->I, callinfo);
 
@@ -254,6 +257,51 @@ void callstackI_pop(morphine_coroutine_t U) {
     }
 }
 
-void callstackI_info_free(morphine_instance_t I, struct callinfo *callinfo) {
-    allocI_free(I, callinfo);
+struct value callstackI_extract_callable(morphine_instance_t I, struct value callable) {
+    size_t counter = 0;
+repeat:;
+    if (counter > 1000000) {
+        throwI_error(I, "Possible recursion while extracting callable");
+    }
+
+    struct closure *closure = valueI_safe_as_closure(callable, NULL);
+    if (closure != NULL) {
+        callable = closure->callable;
+        counter++;
+        goto repeat;
+    }
+
+    if (valueI_is_native(callable) || valueI_is_function(callable)) {
+        return callable;
+    }
+
+    throwI_error(I, "Cannot extract callable value");
+}
+
+struct value callstackI_result(morphine_coroutine_t U) {
+    return *callstackI_info_or_error(U)->s.result.p;
+}
+
+void callstackI_return(morphine_coroutine_t U, struct value value) {
+    struct callinfo *callinfo = callstackI_info_or_error(U);
+
+    if (callinfo->prev != NULL) {
+        *callinfo->prev->s.result.p = value;
+    }
+
+    callinfo->exit = true;
+}
+
+void callstackI_leave(morphine_coroutine_t U) {
+    callstackI_return(U, valueI_nil);
+}
+
+void callstackI_continue(morphine_coroutine_t U, size_t state) {
+    struct callinfo *callinfo = callstackI_info_or_error(U);
+    callinfo->pc.state = state;
+    callinfo->exit = false;
+}
+
+size_t callstackI_state(morphine_coroutine_t U) {
+    return callstackI_info_or_error(U)->pc.state;
 }

@@ -11,8 +11,6 @@
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
-#include "morphine/object/coroutine/stack/call.h"
-#include "morphine/object/coroutine/stack/access.h"
 #include "morphine/gc/safe.h"
 
 static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
@@ -21,7 +19,7 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
     fprintf(file, "morphine error (in coroutine %p): %s\n", U, message);
     fprintf(file, "Tracing callstack:\n");
 
-    size_t callstack_size = U->stack.callstack_size;
+    size_t callstack_size = U->callstack.size;
     size_t callstack_index = 0;
     while (callstackI_info(U) != NULL) {
         if (callstack_size >= 30) {
@@ -87,7 +85,7 @@ void throwI_handler(morphine_instance_t I) {
         throw->context_coroutine = NULL;
     }
 
-    struct callinfo *callinfo = coroutine->stack.callstack;
+    struct callinfo *callinfo = callstackI_info(coroutine);
 
     {
         while (callinfo != NULL) {
@@ -116,7 +114,7 @@ void throwI_handler(morphine_instance_t I) {
             *callinfo->s.thrown.p = throw->error.value;
         }
 
-        size_t stack_size = stackI_space_size(coroutine);
+        size_t stack_size = stackI_space(coroutine);
         size_t expected_stack_size = callinfo->catch.space_size;
         if (stack_size > expected_stack_size) {
             stackI_pop(coroutine, stack_size - expected_stack_size);
@@ -192,5 +190,5 @@ void throwI_catchable(morphine_coroutine_t U, size_t callstate) {
 
     callinfo->catch.enable = true;
     callinfo->catch.state = callstate;
-    callinfo->catch.space_size = stackI_space_size(U);
+    callinfo->catch.space_size = stackI_space(U);
 }
