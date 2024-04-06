@@ -222,7 +222,7 @@ static void error(morphine_coroutine_t U) {
                 mapi_push_arg(U, 0);
             }
 
-            mapi_error(U);
+            mapi_error(U, NULL);
             nb_leave();
     nb_end
 }
