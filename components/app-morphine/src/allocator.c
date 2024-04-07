@@ -14,8 +14,9 @@ struct allocated_block {
     struct allocated_block *prev;
 };
 
-void allocator_init(struct allocator *allocator) {
+void allocator_init(struct allocator *allocator, size_t max_bytes) {
     *allocator = (struct allocator) {
+        .max_bytes = max_bytes,
         .allocated = NULL,
         .allocated_bytes = 0,
         .allocations_count = 0,
@@ -27,6 +28,11 @@ void *allocator_alloc(struct allocator *allocator, size_t size) {
     if (size == 0) {
         fprintf(stderr, "Allocator: Attempt to allocate zero size\n");
         abort();
+    }
+
+    if (allocator->allocated_bytes >= allocator->max_bytes) {
+        fprintf(stderr, "Allocator: overflow\n");
+        return NULL;
     }
 
     void *pointer = malloc(size);
@@ -76,6 +82,11 @@ void *allocator_realloc(struct allocator *allocator, void *pointer, size_t size)
     if (current == NULL) {
         fprintf(stderr, "Allocator: %p not found\n", pointer);
         abort();
+    }
+
+    if (allocator->allocated_bytes + size - current->size >= allocator->max_bytes) {
+        fprintf(stderr, "Allocator: overflow\n");
+        return NULL;
     }
 
     current->pointer = realloc(pointer, size);

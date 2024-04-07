@@ -18,6 +18,10 @@ morphine_noret static void signal(morphine_instance_t I) {
     const char *message = mapi_get_panic_message(I);
     printf("morphine panic: %s\n", message);
 
+    if (I != NULL) {
+        mapi_close(I);
+    }
+
     cabort();
 }
 

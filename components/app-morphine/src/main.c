@@ -20,7 +20,7 @@ int main(int argc, char **argv) {
     struct allocator allocator;
     struct allocator *pallocator = NULL;
     if (args.custom_alloc) {
-        allocator_init(&allocator);
+        allocator_init(&allocator, SIZE_MAX);
         pallocator = &allocator;
     }
 
