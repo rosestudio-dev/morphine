@@ -349,7 +349,7 @@ static void tolowercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (strlen > 0) {
-                char *result = mapi_allocator_uni(mapi_instance(U), NULL, strlen * sizeof(char));
+                char *result = mapi_allocator_vec(mapi_instance(U), NULL, strlen, sizeof(char));
                 mapi_push_userdata(U, "tempstring", result, NULL, mapi_allocator_free);
 
                 for (size_t i = 0; i < strlen; i++) {
@@ -386,7 +386,7 @@ static void touppercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (strlen > 0) {
-                char *result = mapi_allocator_uni(mapi_instance(U), NULL, strlen * sizeof(char));
+                char *result = mapi_allocator_vec(mapi_instance(U), NULL, strlen, sizeof(char));
                 mapi_push_userdata(U, "tempstring", result, NULL, mapi_allocator_free);
 
                 for (size_t i = 0; i < strlen; i++) {
@@ -765,7 +765,7 @@ static void trimend(morphine_coroutine_t U) {
     nb_end
 }
 
-static void replace(morphine_coroutine_t U) {
+static void replacefirst(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             size_t variant = maux_checkargs(
@@ -778,9 +778,6 @@ static void replace(morphine_coroutine_t U) {
             const char *find;
             size_t findlen;
 
-            const char *replace;
-            size_t replen;
-
             if (variant == 0) {
                 mapi_push_self(U);
                 string = mapi_get_string(U);
@@ -790,9 +787,9 @@ static void replace(morphine_coroutine_t U) {
                 find = mapi_get_string(U);
                 findlen = mapi_string_len(U);
 
+                mapi_pop(U, 1);
+
                 mapi_push_arg(U, 1);
-                replace = mapi_get_string(U);
-                replen = mapi_string_len(U);
             } else {
                 mapi_push_arg(U, 0);
                 string = mapi_get_string(U);
@@ -802,14 +799,13 @@ static void replace(morphine_coroutine_t U) {
                 find = mapi_get_string(U);
                 findlen = mapi_string_len(U);
 
+                mapi_pop(U, 1);
+
                 mapi_push_arg(U, 2);
-                replace = mapi_get_string(U);
-                replen = mapi_string_len(U);
             }
 
-            mapi_pop(U, 2);
-
             if (findlen > strlen) {
+                mapi_pop(U, 1);
                 nb_return();
             }
 
@@ -823,26 +819,11 @@ static void replace(morphine_coroutine_t U) {
                 }
 
                 if (eq) {
-                    size_t len = strlen + (replen - findlen);
-                    char *result = mapi_allocator_uni(
-                        mapi_instance(U), NULL, len * sizeof(char)
-                    );
-
-                    mapi_push_userdata(
-                        U, "tempstring", result, NULL, mapi_allocator_free
-                    );
-
-                    memcpy(result, string, i);
-                    memcpy(result + i, replace, replen);
-                    if (strlen > i + findlen) {
-                        memcpy(
-                            result + i + replen,
-                            string + i + findlen,
-                            strlen - (i + findlen)
-                        );
-                    }
-
-                    mapi_push_stringn(U, result, len);
+                    mapi_push_stringn(U, string, i);
+                    mapi_rotate(U, 2);
+                    mapi_string_concat(U);
+                    mapi_push_stringn(U, string + i + findlen, strlen - findlen);
+                    mapi_string_concat(U);
                     break;
                 }
             }
@@ -864,9 +845,6 @@ static void replacelast(morphine_coroutine_t U) {
             const char *find;
             size_t findlen;
 
-            const char *replace;
-            size_t replen;
-
             if (variant == 0) {
                 mapi_push_self(U);
                 string = mapi_get_string(U);
@@ -876,9 +854,9 @@ static void replacelast(morphine_coroutine_t U) {
                 find = mapi_get_string(U);
                 findlen = mapi_string_len(U);
 
+                mapi_pop(U, 1);
+
                 mapi_push_arg(U, 1);
-                replace = mapi_get_string(U);
-                replen = mapi_string_len(U);
             } else {
                 mapi_push_arg(U, 0);
                 string = mapi_get_string(U);
@@ -888,14 +866,13 @@ static void replacelast(morphine_coroutine_t U) {
                 find = mapi_get_string(U);
                 findlen = mapi_string_len(U);
 
+                mapi_pop(U, 1);
+
                 mapi_push_arg(U, 2);
-                replace = mapi_get_string(U);
-                replen = mapi_string_len(U);
             }
 
-            mapi_pop(U, 2);
-
             if (findlen > strlen) {
+                mapi_pop(U, 1);
                 nb_return();
             }
 
@@ -917,33 +894,18 @@ static void replacelast(morphine_coroutine_t U) {
             }
 
             if (found) {
-                size_t len = strlen + (replen - findlen);
-                char *result = mapi_allocator_uni(
-                    mapi_instance(U), NULL, len * sizeof(char)
-                );
-
-                mapi_push_userdata(
-                    U, "tempstring", result, NULL, mapi_allocator_free
-                );
-
-                memcpy(result, string, index);
-                memcpy(result + index, replace, replen);
-                if (strlen > index + findlen) {
-                    memcpy(
-                        result + index + replen,
-                        string + index + findlen,
-                        strlen - (index + findlen)
-                    );
-                }
-
-                mapi_push_stringn(U, result, len);
+                mapi_push_stringn(U, string, index);
+                mapi_rotate(U, 2);
+                mapi_string_concat(U);
+                mapi_push_stringn(U, string + index + findlen, strlen - findlen);
+                mapi_string_concat(U);
             }
 
             nb_return();
     nb_end
 }
 
-static void replaceall(morphine_coroutine_t U) {
+static void replace(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             size_t variant = maux_checkargs(
@@ -1065,7 +1027,7 @@ static void format(morphine_coroutine_t U) {
             }
 
             bool found = false;
-            ml_integer parsed = 0;
+            size_t parsed = 0;
             size_t index = 0;
             for (size_t i = 0; i < strlen; i++) {
                 if (string[i] != '$') {
@@ -1112,11 +1074,11 @@ static void format(morphine_coroutine_t U) {
                 } else {
                     if (index > 0) {
                         mapi_rotate(U, 2);
-                        mapi_push_integer(U, parsed);
+                        mapi_push_size(U, parsed);
                         mapi_table_get(U);
                         mapi_to_string(U);
                     } else {
-                        mapi_push_integer(U, parsed);
+                        mapi_push_size(U, parsed);
                         mapi_table_get(U);
                         mapi_to_string(U);
                     }
@@ -1154,32 +1116,32 @@ static void format(morphine_coroutine_t U) {
 }
 
 static struct maux_construct_field table[] = {
-    { "format",      format },
+    { "format",       format },
 
-    { "substring",   substring },
-    { "trim",        trim },
-    { "trimstart",   trimstart },
-    { "trimend",     trimend },
-    { "split",       split },
-    { "replace",     replace },
-    { "replacelast", replacelast },
-    { "replaceall",  replaceall },
-    { "tolower",     tolowercase },
-    { "toupper",     touppercase },
-    { "repeat",      repeat },
+    { "substring",    substring },
+    { "trim",         trim },
+    { "trimstart",    trimstart },
+    { "trimend",      trimend },
+    { "split",        split },
+    { "replacefirst", replacefirst },
+    { "replacelast",  replacelast },
+    { "replace",      replace },
+    { "tolower",      tolowercase },
+    { "toupper",      touppercase },
+    { "repeat",       repeat },
 
-    { "tochararray", tochararray },
-    { "codeat",      codeat },
-    { "charat",      charat },
+    { "tochararray",  tochararray },
+    { "codeat",       codeat },
+    { "charat",       charat },
 
-    { "contains",    contains },
-    { "indexof",     indexof },
-    { "lastindexof", lastindexof },
-    { "startswith",  startswith },
-    { "endswith",    endswith },
+    { "contains",     contains },
+    { "indexof",      indexof },
+    { "lastindexof",  lastindexof },
+    { "startswith",   startswith },
+    { "endswith",     endswith },
 
-    { "isempty",     isempty },
-    { "isblank",     isblankstr },
+    { "isempty",      isempty },
+    { "isblank",      isblankstr },
 
     { NULL, NULL },
 };

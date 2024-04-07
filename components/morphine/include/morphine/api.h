@@ -124,6 +124,7 @@ MORPHINE_API bool mapi_coroutine_isalive(morphine_coroutine_t);
 MORPHINE_API bool mapi_op(morphine_coroutine_t, const char *op);
 
 MORPHINE_API void *mapi_allocator_uni(morphine_instance_t, void *, size_t size);
+MORPHINE_API void *mapi_allocator_vec(morphine_instance_t, void *, size_t n, size_t size);
 MORPHINE_API void mapi_allocator_free(morphine_instance_t, void *);
 
 MORPHINE_API void mapi_gc_full(morphine_instance_t);
