@@ -14,7 +14,7 @@ static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         uint64_t h = 0;
-        for (size_t i = 0; i < str->size; i++) {
+        for (ml_size i = 0; i < str->size; i++) {
             h = 31 * h + (str->chars[i] & 0xff);
         }
 
@@ -90,7 +90,10 @@ static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
         new_size = hashmap->hashing.size + hashmap->hashing.size / 2;
     }
 
-    hashmap->hashing.trees = allocI_uni(I, hashmap->hashing.trees, new_size * sizeof(struct bucket *));
+    hashmap->hashing.trees = allocI_vec(
+        I, hashmap->hashing.trees, new_size, sizeof(struct bucket *)
+    );
+
     hashmap->hashing.size = new_size;
 
     for (size_t i = 0; i < new_size; i++) {
@@ -164,7 +167,7 @@ void tableI_free(morphine_instance_t I, struct table *table) {
     allocI_free(I, table);
 }
 
-size_t tableI_size(morphine_instance_t I, struct table *table) {
+ml_size tableI_size(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_error(I, "Table is null");
     }
@@ -200,6 +203,10 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
         }
     }
 
+    if (unlikely(hashmap->buckets.count + 1 > MLIMIT_SIZE_MAX)) {
+        throwI_error(I, "Table size too big");
+    }
+
     struct bucket *bucket = allocI_uni(I, NULL, sizeof(struct bucket));
 
     (*bucket) = (struct bucket) {
@@ -211,8 +218,11 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     insert_bucket(table, bucket);
     hashmap->buckets.count++;
 
+//    if (hashmap->hashing.trees[index] == NULL) {
+        hashmap->hashing.used++;
+//    }
+
     hashmap->hashing.trees[index] = bucket;
-    hashmap->hashing.used++;
 }
 
 struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {

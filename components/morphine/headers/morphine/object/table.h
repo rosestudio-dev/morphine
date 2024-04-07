@@ -23,7 +23,7 @@ struct hashmap {
     struct {
         struct bucket *head;
         struct bucket *tail;
-        size_t count;
+        ml_size count;
     } buckets;
 
     struct {
@@ -44,7 +44,7 @@ struct table {
 struct table *tableI_create(morphine_instance_t);
 void tableI_free(morphine_instance_t, struct table *);
 
-size_t tableI_size(morphine_instance_t, struct table *);
+ml_size tableI_size(morphine_instance_t, struct table *);
 void tableI_set(morphine_instance_t, struct table *, struct value key, struct value value);
 struct value tableI_get(morphine_instance_t, struct table *, struct value key, bool *has);
 bool tableI_remove(morphine_instance_t, struct table *, struct value key);

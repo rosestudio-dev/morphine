@@ -13,7 +13,7 @@ static inline bool gc_need(morphine_instance_t I) {
     size_t prev = I->G.bytes.prev_allocated;
 
     size_t prevdiv = (prev / 100);
-    if(unlikely(prevdiv == 0)) {
+    if (unlikely(prevdiv == 0)) {
         prevdiv = 1;
     }
 
@@ -29,9 +29,12 @@ static inline void ofm_check(morphine_instance_t I) {
 }
 
 static inline void step(morphine_instance_t I) {
+    bool throw_inited = I->E.throw.inited;
+    I->E.throw.inited = false;
+
     if (I->G.bytes.allocated >= I->G.settings.limit_bytes) {
         gcI_full(I);
-        return;
+        goto exit;
     }
 
     while (true) {
@@ -43,20 +46,20 @@ static inline void step(morphine_instance_t I) {
             case GC_STATUS_PREPARE: {
                 gcstageI_prepare(I);
                 I->G.status = GC_STATUS_INCREMENT;
-                return;
+                goto exit;
             }
             case GC_STATUS_INCREMENT: {
                 if (gcstageI_increment(I)) {
                     I->G.status = GC_STATUS_FINALIZE_PREPARE;
                     break;
                 } else {
-                    return;
+                    goto exit;
                 }
             }
             case GC_STATUS_FINALIZE_PREPARE: {
                 if (gcstageI_finalize(I)) {
                     I->G.status = GC_STATUS_FINALIZE_INCREMENT;
-                    return;
+                    goto exit;
                 } else {
                     I->G.status = GC_STATUS_SWEEP;
                     break;
@@ -67,16 +70,19 @@ static inline void step(morphine_instance_t I) {
                     I->G.status = GC_STATUS_SWEEP;
                     break;
                 } else {
-                    return;
+                    goto exit;
                 }
             }
             case GC_STATUS_SWEEP: {
                 gcstageI_sweep(I);
                 I->G.status = GC_STATUS_IDLE;
-                return;
+                goto exit;
             }
         }
     }
+
+exit:
+    I->E.throw.inited = throw_inited;
 }
 
 void gcI_enable(morphine_instance_t I) {

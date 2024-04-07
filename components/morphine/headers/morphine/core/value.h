@@ -111,8 +111,8 @@
 
 // endregion
 
-#define valueI_size2integer(I, x) ({size_t _s = (x); if(unlikely(_s > MLIMIT_INTEGER_MAX)) throwI_errorf((I), "Cannot convert %zu to integer", _s); valueI_integer((ml_integer) _s);})
-#define valueI_integer2size(I, x) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((size_t) _i) > SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to size", _i); ((size_t) _i);})
+#define valueI_size2integer(I, x) ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to integer", _s); valueI_integer((ml_integer) _s);})
+#define valueI_integer2size(I, x) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((ml_size) _i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to size", _i); ((ml_size) _i);})
 
 #define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
 

@@ -55,9 +55,10 @@ void coroutineI_attach(morphine_coroutine_t U) {
         case COROUTINE_STATUS_ATTACHED:
         case COROUTINE_STATUS_RUNNING:
         case COROUTINE_STATUS_SUSPENDED:
+            throwI_error(U->I, "Coroutine is already attached");
         case COROUTINE_STATUS_DEAD:
         case COROUTINE_STATUS_DETACHED:
-            throwI_error(U->I, "Coroutine is already attached");
+            throwI_error(U->I, "Coroutine is dead");
         case COROUTINE_STATUS_CREATED: {
             morphine_instance_t I = U->I;
             U->prev = I->E.candidates;

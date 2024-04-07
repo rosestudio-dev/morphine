@@ -19,7 +19,7 @@ MORPHINE_API void mapi_push_userdata(
 }
 
 MORPHINE_API const char *mapi_userdata_type(morphine_coroutine_t U) {
-    return valueI_as_userdata_or_error(U->I, stackI_peek(U, 0))->type;
+    return valueI_as_userdata_or_error(U->I, stackI_peek(U, 0))->name;
 }
 
 MORPHINE_API void *mapi_userdata_pointer(morphine_coroutine_t U) {

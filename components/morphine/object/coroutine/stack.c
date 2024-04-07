@@ -73,33 +73,27 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
         throwI_error(U->I, "Raise size is zero");
     }
 
+    morphine_instance_t I = U->I;
     struct stack *stack = &U->stack;
 
-    stackI_ptr result = stackI_ptr(stack->allocated + stack->top);
-
-    if (size > SIZE_MAX - stack->top) {
-        throwI_error(U->I, "Raise top overflow");
+    if (unlikely(size > SIZE_MAX - stack->top)) {
+        throwI_error(I, "Stack overflow");
     }
 
     if (stack->top + size >= stack->size) {
         size_t grow = U->stack.settings.grow;
-        size_t raise_size = ((size / grow) + 1) * grow;
-        size_t new_size = stack->size + raise_size;
-
-        if (raise_size > SIZE_MAX - stack->size) {
-            throwI_error(U->I, "Raise size overflow");
+        if (grow < size) {
+            grow = size;
         }
 
-        if (new_size >= U->stack.settings.limit) {
-            throwI_error(U->I, "Stack overflow");
+        size_t new_size = stack->size + grow;
+
+        if (unlikely(grow > SIZE_MAX - stack->size || new_size >= U->stack.settings.limit)) {
+            throwI_error(I, "Stack overflow");
         }
 
         callstack_save(U);
-        stackI_ptr_save(stack->allocated, result);
-
-        stack->allocated = allocI_uni(U->I, stack->allocated, new_size * sizeof(struct value));
-
-        stackI_ptr_recover(stack->allocated, result);
+        stack->allocated = allocI_vec(I, stack->allocated, new_size, sizeof(struct value));
         callstack_recover(U);
 
         stack->size = new_size;
@@ -111,7 +105,7 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
         stack->allocated[i] = valueI_nil;
     }
 
-    return result.p;
+    return stack->allocated + (stack->top - size);
 }
 
 struct value *stackI_reduce(morphine_coroutine_t U, size_t size) {
@@ -125,23 +119,16 @@ struct value *stackI_reduce(morphine_coroutine_t U, size_t size) {
 }
 
 void stackI_shrink(morphine_coroutine_t U) {
-    size_t grow = U->stack.settings.grow;
-
-    if (U->stack.top + grow >= U->stack.size) {
-        return;
-    }
-
-    size_t size = U->stack.top + grow;
+    size_t size = U->stack.top;
 
     callstack_save(U);
-
-    U->stack.allocated = allocI_uni(U->I, U->stack.allocated, size * sizeof(struct value));
-
+    U->stack.allocated = allocI_vec(
+        U->I, U->stack.allocated, size, sizeof(struct value)
+    );
     callstack_recover(U);
 
     U->stack.size = size;
 }
-
 
 
 void stackI_set_grow(morphine_coroutine_t U, size_t grow) {

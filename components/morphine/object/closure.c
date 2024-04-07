@@ -7,28 +7,35 @@
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/gc/safe.h"
 
 struct closure *closureI_create(morphine_instance_t I, struct value callable, size_t size) {
-    size_t alloc_size = sizeof(struct closure) + size * sizeof(struct value);
-
-    struct closure *result = allocI_uni(I, NULL, alloc_size);
+    struct closure *result = allocI_uni(I, NULL, sizeof(struct closure));
 
     (*result) = (struct closure) {
         .size = size,
         .callable = callable,
-        .values = ((void *) result) + sizeof(struct closure)
+        .values = NULL
     };
+
+    objectI_init(I, objectI_cast(result), OBJ_TYPE_CLOSURE);
+
+    gcI_safe_obj(I, objectI_cast(result));
+
+    result->values = allocI_vec(I, NULL, size, sizeof(struct closure));
+    result->size = size;
 
     for (size_t i = 0; i < size; i++) {
         result->values[i] = valueI_nil;
     }
 
-    objectI_init(I, objectI_cast(result), OBJ_TYPE_CLOSURE);
+    gcI_reset_safe(I);
 
     return result;
 }
 
 void closureI_free(morphine_instance_t I, struct closure *closure) {
+    allocI_free(I, closure->values);
     allocI_free(I, closure);
 }
 

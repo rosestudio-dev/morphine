@@ -40,7 +40,7 @@ MORPHINE_API const char *mapi_get_string(morphine_coroutine_t U) {
     return valueI_as_string_or_error(U->I, stackI_peek(U, 0))->chars;
 }
 
-MORPHINE_API size_t mapi_string_len(morphine_coroutine_t U) {
+MORPHINE_API ml_size mapi_string_len(morphine_coroutine_t U) {
     return valueI_as_string_or_error(U->I, stackI_peek(U, 0))->size;
 }
 

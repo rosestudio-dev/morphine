@@ -47,7 +47,7 @@ static void object(morphine_instance_t I, struct object *obj) {
             obj->flags.finalized ? "l" : "f",
             valueI_type2string(I, valueI_object(obj).type),
             obj,
-            ((struct userdata *) obj)->type
+            ((struct userdata *) obj)->name
         );
     } else {
         fprintf(

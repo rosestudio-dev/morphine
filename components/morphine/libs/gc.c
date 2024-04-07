@@ -176,15 +176,6 @@ static void getallocated(morphine_coroutine_t U) {
     nb_end
 }
 
-static void getstacksize(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
-            maux_checkargs(U, 1, "empty");
-            size_t result = mapi_stack_size(U);
-            nb_return(mapi_push_size(U, result));
-    nb_end
-}
-
 static struct maux_construct_field table[] = {
     { "full",                      full },
     { "force",                     force },
@@ -201,7 +192,6 @@ static struct maux_construct_field table[] = {
     { "changestackgrow",           changestackgrow },
     { "getmaxallocated",           getmaxallocated },
     { "getallocated",              getallocated },
-    { "getstacksize",              getstacksize },
     { NULL, NULL }
 };
 

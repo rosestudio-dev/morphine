@@ -10,7 +10,7 @@
 struct string {
     struct object header;
 
-    size_t size;
+    ml_size size;
     const char *chars;
 };
 

@@ -34,19 +34,36 @@ static inline void calculate_max_alloc_size(morphine_instance_t I) {
     }
 }
 
+static inline size_t safe_mul(morphine_instance_t I, size_t a, size_t b) {
+    if (a > SIZE_MAX / b) {
+        throwI_error(I, "Allocation overflow");
+    }
+
+    return a * b;
+}
+
+static inline size_t safe_add(morphine_instance_t I, size_t a, size_t b) {
+    if (a > SIZE_MAX - b) {
+        throwI_error(I, "Allocation overflow");
+    }
+
+    return a + b;
+}
+
+void *allocI_vec(morphine_instance_t I, void *p, size_t n, size_t size) {
+    return allocI_uni(I, p, safe_mul(I, n, size));
+}
+
 void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
     if (likely(nsize == 0)) {
         allocI_free(I, p);
         return NULL;
     }
 
-    size_t temp = nsize;
-    nsize += sizeof(struct metadata);
+    nsize = safe_add(I, nsize, sizeof(struct metadata));
 
     struct metadata *result;
-    if (unlikely(temp >= nsize)) {
-        throwI_panic(I, "Allocation size is too big");
-    } else if (likely(p == NULL)) {
+    if (likely(p == NULL)) {
         change_allocated_size(I, nsize, true);
         gcI_work(I);
 

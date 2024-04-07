@@ -61,7 +61,7 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
             return value;
         case VALUE_TYPE_USERDATA:
             return valueI_object(
-                stringI_createf(I, "[object:userdata:%s:%p]", value.object.userdata->type, value.object.userdata)
+                stringI_createf(I, "[object:userdata:%s:%p]", value.object.userdata->name, value.object.userdata)
             );
         case VALUE_TYPE_TABLE:
             return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));

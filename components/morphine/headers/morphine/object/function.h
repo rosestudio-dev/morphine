@@ -31,7 +31,6 @@ struct function {
 
     instruction_t *instructions;
     struct value *constants;
-
     struct value *statics;
 
     struct value registry_key;
@@ -45,10 +44,16 @@ struct function *functionI_create(
     size_t name_len,
     size_t constants_count,
     size_t instructions_count,
-    size_t statics_count
+    size_t statics_count,
+    size_t arguments_count,
+    size_t slots_count,
+    size_t closures_count,
+    size_t params_count
 );
 
 void functionI_free(morphine_instance_t, struct function *);
+
+void functionI_validate(morphine_instance_t, struct function *);
 
 struct value functionI_static_get(morphine_instance_t, struct function *, size_t index);
 void functionI_static_set(morphine_instance_t, struct function *, size_t index, struct value value);

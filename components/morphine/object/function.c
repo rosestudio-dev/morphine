@@ -7,6 +7,7 @@
 #include "morphine/core/throw.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/allocator.h"
+#include "morphine/gc/safe.h"
 #include <string.h>
 
 bool functionI_uuid_equal(struct uuid a, struct uuid b) {
@@ -20,56 +21,91 @@ struct function *functionI_create(
     size_t name_len,
     size_t constants_count,
     size_t instructions_count,
-    size_t statics_count
+    size_t statics_count,
+    size_t arguments_count,
+    size_t slots_count,
+    size_t closures_count,
+    size_t params_count
 ) {
-    size_t function_size = sizeof(struct function);
-    size_t name_size = sizeof(char) * (name_len + 1);
-    size_t constants_size = sizeof(struct value) * constants_count;
-    size_t instructions_size = sizeof(instruction_t) * instructions_count;
-    size_t statics_size = sizeof(struct value) * statics_count;
+    if (name_len > MLIMIT_FUNCTION_NAME) {
+        throwI_error(I, "Function name too big");
+    }
 
-    size_t size = function_size + name_size + constants_size + instructions_size + statics_size;
-
-    struct function *result = allocI_uni(I, NULL, size);
-
-    void *ptr_name = ((void *) result) + function_size;
-    void *ptr_constants = ((void *) ptr_name) + name_size;
-    void *ptr_instructions = ((void *) ptr_constants) + constants_size;
-    void *ptr_statics = ((void *) ptr_instructions) + instructions_size;
+    struct function *result = allocI_uni(I, NULL, sizeof(struct function));
 
     (*result) = (struct function) {
         .uuid = uuid,
-        .name = ptr_name,
-        .name_len = name_len,
-        .constants_count = constants_count,
-        .instructions_count = instructions_count,
-        .statics_count = statics_count,
-        .arguments_count = 0,
-        .slots_count = 0,
-        .params_count = 0,
-        .constants = ptr_constants,
-        .instructions = ptr_instructions,
-        .statics = ptr_statics,
+        .name = NULL,
+        .name_len = 0,
+        .constants_count = 0,
+        .instructions_count = 0,
+        .statics_count = 0,
+        .arguments_count = arguments_count,
+        .slots_count = slots_count,
+        .closures_count = closures_count,
+        .params_count = params_count,
+        .constants = NULL,
+        .instructions = NULL,
+        .statics = NULL,
         .registry_key = valueI_nil
     };
 
+    objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);
+
+    gcI_safe_obj(I, objectI_cast(result));
+
+    result->name = allocI_vec(I, NULL, name_len + 1, sizeof(char));
+    result->name_len = name_len;
+    memset(result->name, 0, (name_len + 1) * sizeof(char));
+
+    result->instructions = allocI_vec(I, NULL, instructions_count, sizeof(instruction_t));
+    result->instructions_count = instructions_count;
+
+    result->constants = allocI_vec(I, NULL, constants_count, sizeof(struct value));
+    result->constants_count = constants_count;
     for (size_t i = 0; i < constants_count; i++) {
         result->constants[i] = valueI_nil;
     }
 
+    result->statics = allocI_vec(I, NULL, statics_count, sizeof(struct value));
+    result->statics_count = statics_count;
     for (size_t i = 0; i < statics_count; i++) {
         result->statics[i] = valueI_nil;
     }
 
-    result->name[name_len] = '\0';
-
-    objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);
+    gcI_reset_safe(I);
 
     return result;
 }
 
 void functionI_free(morphine_instance_t I, struct function *function) {
+    allocI_free(I, function->name);
+    allocI_free(I, function->instructions);
+    allocI_free(I, function->constants);
+    allocI_free(I, function->statics);
     allocI_free(I, function);
+}
+
+void functionI_validate(morphine_instance_t I, struct function *function) {
+    if (function == NULL) {
+        throwI_error(I, "Function is null");
+    }
+
+    for (size_t i = 0; i < function->instructions_count; i++) {
+        bool is_valid = instructionI_validate(
+            function->instructions[i],
+            function->arguments_count,
+            function->slots_count,
+            function->params_count,
+            function->closures_count,
+            function->statics_count,
+            function->constants_count
+        );
+
+        if (!is_valid) {
+            throwI_error(I, "Instruction structure corrupted");
+        }
+    }
 }
 
 struct value functionI_static_get(morphine_instance_t I, struct function *function, size_t index) {
@@ -84,7 +120,12 @@ struct value functionI_static_get(morphine_instance_t I, struct function *functi
     return function->statics[index];
 }
 
-void functionI_static_set(morphine_instance_t I, struct function *function, size_t index, struct value value) {
+void functionI_static_set(
+    morphine_instance_t I,
+    struct function *function,
+    size_t index,
+    struct value value
+) {
     if (function == NULL) {
         throwI_error(I, "Function is null");
     }
@@ -110,7 +151,12 @@ struct value functionI_constant_get(morphine_instance_t I, struct function *func
     return function->constants[index];
 }
 
-void functionI_constant_set(morphine_instance_t I, struct function *function, size_t index, struct value value) {
+void functionI_constant_set(
+    morphine_instance_t I,
+    struct function *function,
+    size_t index,
+    struct value value
+) {
     if (function == NULL) {
         throwI_error(I, "Function is null");
     }

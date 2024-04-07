@@ -10,7 +10,7 @@ struct native {
     struct object header;
 
     morphine_native_t function;
-    const char *name;
+    char *name;
 
     struct value registry_key;
 };

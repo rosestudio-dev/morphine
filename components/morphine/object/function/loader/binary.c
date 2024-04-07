@@ -89,13 +89,26 @@ static double get_double(struct data *data) {
     return buffer.result;
 }
 
+static char get_char(struct data *data) {
+    union {
+        uint8_t raw[sizeof(char)];
+        char result;
+    } buffer;
+
+    for (size_t i = 0; i < sizeof(char); i++) {
+        buffer.raw[i] = get_u8(data);
+    }
+
+    return buffer.result;
+}
+
 static struct value get_string(struct data *data) {
     size_t size = get_u32(data);
     char *buffer;
     struct string *string = stringI_createn(data->U->I, size, &buffer);
 
     for (size_t i = 0; i < size; i++) {
-        buffer[i] = (char) get_u8(data);
+        buffer[i] = get_char(data);
     }
 
     struct value value = valueI_object(string);
@@ -182,31 +195,6 @@ static instruction_t get_instruction(struct data *data) {
     return instruction;
 }
 
-static void validate_instruction(
-    struct data *data,
-    instruction_t instruction,
-    size_t arguments_count,
-    size_t slots_count,
-    size_t params_count,
-    size_t closures_count,
-    size_t statics_count,
-    size_t constants_count
-) {
-    bool is_valid = instructionI_validate(
-        instruction,
-        arguments_count,
-        slots_count,
-        params_count,
-        closures_count,
-        statics_count,
-        constants_count
-    );
-
-    if (!is_valid) {
-        process_error(data->state, "Instruction structure corrupted");
-    }
-}
-
 static struct function *get_function(struct data *data) {
     struct uuid uuid = get_uuid(data);
     size_t name_chars_count = get_u32(data);
@@ -224,7 +212,11 @@ static struct function *get_function(struct data *data) {
         name_chars_count,
         constants_count,
         instructions_count,
-        statics_count
+        statics_count,
+        arguments_count,
+        slots_count,
+        closures_count,
+        params_count
     );
 
     stackI_push(data->U, valueI_object(function));
@@ -233,23 +225,7 @@ static struct function *get_function(struct data *data) {
         function->instructions[i] = get_instruction(data);
     }
 
-    for (size_t i = 0; i < instructions_count; i++) {
-        validate_instruction(
-            data,
-            function->instructions[i],
-            arguments_count,
-            slots_count,
-            params_count,
-            closures_count,
-            statics_count,
-            constants_count
-        );
-    }
-
-    function->arguments_count = arguments_count;
-    function->slots_count = slots_count;
-    function->closures_count = closures_count;
-    function->params_count = params_count;
+    functionI_validate(data->U->I, function);
 
     return function;
 }
@@ -310,7 +286,7 @@ static void load_constants(struct data *data, struct function *function) {
 
 static void load_name(struct data *data, struct function *function) {
     for (size_t i = 0; i < function->name_len; i++) {
-        function->name[i] = (char) get_u8(data);
+        function->name[i] = get_char(data);
     }
 }
 
@@ -327,7 +303,7 @@ static void check_tag(struct data *data) {
     memset(buffer, 0, sizeof(buffer));
 
     for (size_t i = 0; i < (sizeof(FORMAT_TAG) - 1); i++) {
-        buffer[i] = (char) get_u8(data);
+        buffer[i] = get_char(data);
     }
 
     if (strcmp(buffer, FORMAT_TAG) != 0) {

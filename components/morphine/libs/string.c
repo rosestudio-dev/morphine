@@ -349,7 +349,7 @@ static void tolowercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (strlen > 0) {
-                char *result = mapi_allocator_uni(mapi_instance(U), NULL, strlen);
+                char *result = mapi_allocator_uni(mapi_instance(U), NULL, strlen * sizeof(char));
                 mapi_push_userdata(U, "tempstring", result, NULL, mapi_allocator_free);
 
                 for (size_t i = 0; i < strlen; i++) {
@@ -386,7 +386,7 @@ static void touppercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (strlen > 0) {
-                char *result = mapi_allocator_uni(mapi_instance(U), NULL, strlen);
+                char *result = mapi_allocator_uni(mapi_instance(U), NULL, strlen * sizeof(char));
                 mapi_push_userdata(U, "tempstring", result, NULL, mapi_allocator_free);
 
                 for (size_t i = 0; i < strlen; i++) {
@@ -825,7 +825,7 @@ static void replace(morphine_coroutine_t U) {
                 if (eq) {
                     size_t len = strlen + (replen - findlen);
                     char *result = mapi_allocator_uni(
-                        mapi_instance(U), NULL, len
+                        mapi_instance(U), NULL, len * sizeof(char)
                     );
 
                     mapi_push_userdata(
@@ -919,7 +919,7 @@ static void replacelast(morphine_coroutine_t U) {
             if (found) {
                 size_t len = strlen + (replen - findlen);
                 char *result = mapi_allocator_uni(
-                    mapi_instance(U), NULL, len
+                    mapi_instance(U), NULL, len * sizeof(char)
                 );
 
                 mapi_push_userdata(

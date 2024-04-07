@@ -9,18 +9,24 @@
 #include <string.h>
 
 static struct string *create(morphine_instance_t I, size_t size, char **buffer) {
-    size_t alloc_size = sizeof(struct string) + sizeof(char) * (size + 1);
+    bool check1 = size > MLIMIT_SIZE_MAX - 1;
+    bool check2 = (size + 1) > SIZE_MAX / sizeof(char);
+    bool check3 = (size + 1) * sizeof(char) > SIZE_MAX - sizeof(struct string);
+    if (check1 || check2 || check3) {
+        throwI_error(I, "String size too big");
+    }
 
+    size_t alloc_size = sizeof(struct string) + ((size + 1) * sizeof(char));
     struct string *result = allocI_uni(I, NULL, alloc_size);
 
     char *str_p = ((void *) result) + sizeof(struct string);
 
     (*result) = (struct string) {
-        .size = size,
+        .size = (ml_size) size,
         .chars = str_p
     };
 
-    memset(str_p, '\0', size + 1);
+    memset(str_p, 0, (size + 1) * sizeof(char));
 
     if (buffer != NULL) {
         (*buffer) = str_p;

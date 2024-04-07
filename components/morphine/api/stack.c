@@ -37,10 +37,6 @@ MORPHINE_API void mapi_copy(morphine_coroutine_t U, morphine_coroutine_t to, siz
     stackI_push(to, stackI_peek(U, offset));
 }
 
-MORPHINE_API size_t mapi_stack_size(morphine_coroutine_t U) {
-    return U->stack.top;
-}
-
 MORPHINE_API void mapi_stack_reset(morphine_coroutine_t U) {
     stackI_pop(U, stackI_space(U));
 }

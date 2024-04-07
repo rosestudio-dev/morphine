@@ -13,9 +13,9 @@ bool instructionI_validate(
     size_t statics_count,
     size_t constants_count
 ) {
-#define arg_type(a, t) if(instruction.a.type != t) goto error;
-#define arg_type_count(a, t, s) if(instruction.a.type != t || instruction.a.value >= s) goto error;
-#define arg_type_size(a, t, s) if(instruction.a.type != t || instruction.a.value > s) goto error;
+#define arg_type(a, t) if(instruction.a.type != (t)) goto error;
+#define arg_type_count(a, t, s) if(instruction.a.type != (t) || instruction.a.value >= (s)) goto error;
+#define arg_type_size(a, t, s) if(instruction.a.type != (t) || instruction.a.value > (s)) goto error;
 
 #define arg_position(a) arg_type(a, ARGUMENT_TYPE_POSITION)
 #define arg_closure(a) arg_type_count(a, ARGUMENT_TYPE_CLOSURE, closures_count)
@@ -32,64 +32,64 @@ bool instructionI_validate(
             arg_undefined(argument1)
             arg_undefined(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_LOAD: {
             arg_constant(argument1)
             arg_slot(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_PARAM: {
             arg_slot(argument1)
             arg_param(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_ARG: {
             arg_argument(argument1)
             arg_slot(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_JUMP: {
             arg_position(argument1)
             arg_undefined(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_JUMP_IF: {
             arg_slot(argument1)
             arg_position(argument2)
             arg_position(argument3)
-            break;
+            return true;
         }
         case OPCODE_GET_STATIC:
         case OPCODE_SET_STATIC: {
             arg_static(argument1)
             arg_slot(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_GET_CLOSURE:
         case OPCODE_SET_CLOSURE: {
             arg_closure(argument1)
             arg_slot(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_CLOSURE:
         case OPCODE_SCALL: {
             arg_slot(argument1)
             arg_params_count(argument2)
             arg_slot(argument3)
-            break;
+            return true;
         }
         case OPCODE_CALL: {
             arg_slot(argument1)
             arg_params_count(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_ITERATOR_INIT:
         case OPCODE_RECURSION:
@@ -101,7 +101,7 @@ bool instructionI_validate(
             arg_slot(argument1)
             arg_undefined(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
         case OPCODE_GET:
         case OPCODE_SET:
@@ -119,7 +119,7 @@ bool instructionI_validate(
             arg_slot(argument1)
             arg_slot(argument2)
             arg_slot(argument3)
-            break;
+            return true;
         }
         case OPCODE_ITERATOR:
         case OPCODE_ITERATOR_HAS:
@@ -134,11 +134,10 @@ bool instructionI_validate(
             arg_slot(argument1)
             arg_slot(argument2)
             arg_undefined(argument3)
-            break;
+            return true;
         }
     }
 
-    return true;
 error:
     return false;
 }

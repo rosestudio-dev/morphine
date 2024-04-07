@@ -10,31 +10,35 @@
 
 struct userdata *userdataI_create(
     morphine_instance_t I,
-    const char *type,
+    const char *name,
     void *p,
     morphine_userdata_mark_t mark,
     morphine_userdata_free_t free
 ) {
-    if (type == NULL) {
-        throwI_error(I, "Userdata type is null");
+    if (name == NULL) {
+        throwI_error(I, "Userdata name is null");
     }
 
-    size_t type_len = strlen(type) + 1;
+    size_t name_len = strlen(name);
 
-    struct userdata *result = allocI_uni(I, NULL, sizeof(struct userdata) + type_len);
+    if (name_len > MLIMIT_USERDATA_NAME) {
+        throwI_error(I, "Native name too big");
+    }
+
+    size_t alloc_size = sizeof(struct userdata) + ((name_len + 1) * sizeof(char));
+    struct userdata *result = allocI_uni(I, NULL, alloc_size);
 
     (*result) = (struct userdata) {
-        .type = ((void *) result) + sizeof(struct userdata),
+        .name = ((void *) result) + sizeof(struct userdata),
         .data = p,
         .free = free,
         .mark = mark,
-        .links.size = 0,
         .links.pool = NULL,
         .metatable = NULL,
     };
 
-    memset(result->type, '\0', type_len);
-    strcpy(result->type, type);
+    memset(result->name, 0, (name_len + 1) * sizeof(char));
+    strcpy(result->name, name);
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_USERDATA);
 
@@ -87,7 +91,6 @@ void userdataI_link(morphine_instance_t I, struct userdata *userdata, struct use
     };
 
     userdata->links.pool = link;
-    userdata->links.size++;
 }
 
 bool userdataI_unlink(morphine_instance_t I, struct userdata *userdata, void *pointer) {
@@ -102,7 +105,6 @@ bool userdataI_unlink(morphine_instance_t I, struct userdata *userdata, void *po
         struct link *prev = current->prev;
 
         if (current->userdata->data == pointer) {
-            userdata->links.size--;
             allocI_free(I, current);
             found = true;
         } else {

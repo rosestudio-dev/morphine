@@ -13,6 +13,10 @@ void gcI_safe(morphine_instance_t I, struct value value) {
     I->G.safe.stack[I->G.safe.index ++] = value;
 }
 
+void gcI_safe_obj(morphine_instance_t I, struct object *object) {
+    gcI_safe(I, valueI_object(object));
+}
+
 void gcI_reset_safe(morphine_instance_t I) {
     size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
 

@@ -15,14 +15,13 @@ struct link {
 struct userdata {
     struct object header;
 
-    char *type;
+    char *name;
     void *data;
 
     morphine_userdata_mark_t mark;
     morphine_userdata_free_t free;
 
     struct {
-        size_t size;
         struct link *pool;
     } links;
 
@@ -31,7 +30,7 @@ struct userdata {
 
 struct userdata *userdataI_create(
     morphine_instance_t,
-    const char *type,
+    const char *name,
     void *p,
     morphine_userdata_mark_t mark,
     morphine_userdata_free_t free
