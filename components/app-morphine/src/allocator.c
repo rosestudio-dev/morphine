@@ -30,7 +30,7 @@ void *allocator_alloc(struct allocator *allocator, size_t size) {
         abort();
     }
 
-    if (allocator->allocated_bytes >= allocator->max_bytes) {
+    if (allocator->allocated_bytes + size >= allocator->max_bytes) {
         fprintf(stderr, "Allocator: overflow\n");
         return NULL;
     }
