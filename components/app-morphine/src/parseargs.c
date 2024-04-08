@@ -20,13 +20,13 @@ static void help(const char *program, const char *message, bool disable_usage) {
         printf("    program       path to program\n");
         printf("    args          program arguments\n");
         printf("Optional arguments:\n");
-        printf("    -l bytes [8M] Limit of allocation in bytes (suffixes: K, M, G, T)\n");
-        printf("    -b            Binary program\n");
-        printf("    -a, -A        Use custom debug allocator (Use uppercase for pretty printing)\n");
-        printf("    -m, -M        Enable executing time measure (Use uppercase for pretty printing)\n");
-        printf("    -v            Print version\n");
-        printf("    -h            Usage info\n");
-        printf("    --            Stop handling options\n");
+        printf("    -l     bytes [8M] Limit of allocation in bytes (suffixes: K, M, G, T)\n");
+        printf("    -b                Binary program\n");
+        printf("    -a, -A bytes [8M] Use custom debug allocator (Use uppercase for pretty printing) with limit (suffixes: K, M, G, T)\n");
+        printf("    -m, -M            Enable executing time measure (Use uppercase for pretty printing)\n");
+        printf("    -v                Print version\n");
+        printf("    -h                Usage info\n");
+        printf("    --                Stop handling options\n");
     }
 
     exit(1);
@@ -60,6 +60,7 @@ static size_t read_bytes(const char *str, const char *program) {
 struct args parseargs(int argc, char **argv) {
     struct args args = {
         .alloc_limit = 1024 * 1024 * 8,
+        .custom_alloc_limit = 1024 * 1024 * 8,
         .measure_time = false,
         .measure_time_pretty = false,
         .custom_alloc = false,
@@ -113,10 +114,22 @@ struct args parseargs(int argc, char **argv) {
                     args.alloc_limit = read_bytes(argv[parsed + offset], program);
                     break;
                 case 'a':
+                    offset++;
+                    if (parsed + offset >= argc) {
+                        help(program, "bytes are expected", true);
+                    }
+
+                    args.custom_alloc_limit = read_bytes(argv[parsed + offset], program);
                     args.custom_alloc = true;
                     args.custom_alloc_pretty = false;
                     break;
                 case 'A':
+                    offset++;
+                    if (parsed + offset >= argc) {
+                        help(program, "bytes are expected", true);
+                    }
+
+                    args.custom_alloc_limit = read_bytes(argv[parsed + offset], program);
                     args.custom_alloc = true;
                     args.custom_alloc_pretty = true;
                     break;

@@ -9,6 +9,7 @@
 
 struct args {
     size_t alloc_limit;
+    size_t custom_alloc_limit;
     bool measure_time;
     bool measure_time_pretty;
     bool custom_alloc;
