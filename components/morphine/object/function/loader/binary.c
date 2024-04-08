@@ -245,7 +245,7 @@ static struct value get_constant(struct data *data) {
 
             struct function *found = NULL;
             for (size_t i = 0; i < data->functions.count; i++) {
-                if (functionI_uuid_equal(data->functions.vector[i]->uuid, uuid)) {
+                if (uuidI_equal(data->functions.vector[i]->uuid, uuid)) {
                     found = data->functions.vector[i];
                     break;
                 }
@@ -345,7 +345,7 @@ static struct function *resolve(struct data *data, struct uuid main_uuid) {
     struct function *main = NULL;
 
     for (size_t i = 0; i < data->functions.count; i++) {
-        if (functionI_uuid_equal(data->functions.vector[i]->uuid, main_uuid)) {
+        if (uuidI_equal(data->functions.vector[i]->uuid, main_uuid)) {
             main = data->functions.vector[i];
             break;
         }

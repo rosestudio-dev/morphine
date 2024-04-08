@@ -7,11 +7,7 @@
 #include <stddef.h>
 #include "morphine/core/value.h"
 #include "morphine/core/instruction.h"
-
-struct uuid {
-    uint64_t most_significant_bits;
-    uint64_t least_significant_bits;
-};
+#include "morphine/misc/uuid.h"
 
 struct function {
     struct object header;
@@ -35,8 +31,6 @@ struct function {
 
     struct value registry_key;
 };
-
-bool functionI_uuid_equal(struct uuid a, struct uuid b);
 
 struct function *functionI_create(
     morphine_instance_t,

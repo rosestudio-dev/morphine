@@ -10,11 +10,6 @@
 #include "morphine/gc/safe.h"
 #include <string.h>
 
-bool functionI_uuid_equal(struct uuid a, struct uuid b) {
-    return (a.most_significant_bits == b.most_significant_bits) &&
-           (a.least_significant_bits == b.least_significant_bits);
-}
-
 struct function *functionI_create(
     morphine_instance_t I,
     struct uuid uuid,
