@@ -198,7 +198,7 @@ void callstackI_call_stack(
 
         for (size_t i = 0; i < argc; i++) {
             struct value key = valueI_size2integer(U->I, i);
-            struct value arg = stackI_peek(U, argc - i + offset);
+            struct value arg = stackI_peek(U, argc - i - 1 + offset);
 
             tableI_set(U->I, table, key, arg);
         }

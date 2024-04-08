@@ -46,6 +46,49 @@ static inline void callstack_recover(struct coroutine *U) {
     }
 }
 
+static inline struct value *stack_peek(morphine_coroutine_t U, struct callinfo *callinfo, size_t offset) {
+    struct value *p;
+    size_t space_size;
+
+    if (callinfo == NULL) {
+        space_size = U->stack.top;
+        p = U->stack.allocated + U->stack.top;
+    } else {
+        space_size = stackI_callinfo_space(U, callinfo);
+        p = callinfo->s.top.p;
+    }
+
+    if (offset >= space_size) {
+        throwI_error(U->I, "Cannot peek value from space");
+    }
+
+    return p - offset - 1;
+}
+
+static struct value *stack_vector(morphine_coroutine_t U, size_t offset, size_t size) {
+    if (size == 0) {
+        return NULL;
+    }
+
+    struct value *p;
+    size_t space_size;
+
+    struct callinfo *callinfo = callstackI_info(U);
+    if (callinfo == NULL) {
+        space_size = U->stack.top;
+        p = U->stack.allocated + U->stack.top;
+    } else {
+        space_size = stackI_callinfo_space(U, callinfo);
+        p = callinfo->s.top.p;
+    }
+
+    if (offset + size > space_size) {
+        throwI_error(U->I, "Cannot peek vector from space");
+    }
+
+    return (p - offset - size);
+}
+
 struct stack stackI_prototype(morphine_instance_t I, size_t limit, size_t grow) {
     if (grow == 0) {
         throwI_panic(I, "Stack grow size is zero");
@@ -164,31 +207,7 @@ void stackI_push(morphine_coroutine_t U, struct value value) {
 }
 
 struct value stackI_peek(morphine_coroutine_t U, size_t offset) {
-    return stackI_callinfo_peek(U, callstackI_info(U), offset);
-}
-
-struct value *stackI_vector(morphine_coroutine_t U, size_t offset, size_t size) {
-    if (size == 0) {
-        return NULL;
-    }
-
-    struct value *p;
-    size_t space_size;
-
-    struct callinfo *callinfo = callstackI_info(U);
-    if (callinfo == NULL) {
-        space_size = U->stack.top;
-        p = U->stack.allocated + U->stack.top;
-    } else {
-        space_size = stackI_callinfo_space(U, callinfo);
-        p = callinfo->s.top.p;
-    }
-
-    if (offset + size > space_size) {
-        throwI_error(U->I, "Cannot peek vector from space");
-    }
-
-    return (p - offset - size);
+    return *stack_peek(U, callstackI_info(U), offset);
 }
 
 void stackI_pop(morphine_coroutine_t U, size_t count) {
@@ -210,23 +229,26 @@ void stackI_pop(morphine_coroutine_t U, size_t count) {
     }
 }
 
+void stackI_rotate(morphine_coroutine_t U, size_t count) {
+    if (count == 0) {
+        return;
+    }
+
+    struct value *values = stack_vector(U, 0, count);
+
+    struct value temp = values[count - 1];
+    for (size_t i = 0; i < count - 1; i++) {
+        values[count - i - 1] = values[count - i - 2];
+    }
+    values[0] = temp;
+}
+
+void stackI_replace(morphine_coroutine_t U, size_t offset, struct value value) {
+    *stack_peek(U, callstackI_info(U), offset) = value;
+}
+
 struct value stackI_callinfo_peek(morphine_coroutine_t U, struct callinfo *callinfo, size_t offset) {
-    struct value *p;
-    size_t space_size;
-
-    if (callinfo == NULL) {
-        space_size = U->stack.top;
-        p = U->stack.allocated + U->stack.top;
-    } else {
-        space_size = stackI_callinfo_space(U, callinfo);
-        p = callinfo->s.top.p;
-    }
-
-    if (offset >= space_size) {
-        throwI_error(U->I, "Cannot peek value from space");
-    }
-
-    return *(p - offset - 1);
+    return *stack_peek(U, callinfo, offset);
 }
 
 size_t stackI_callinfo_space(morphine_coroutine_t U, struct callinfo *callinfo) {

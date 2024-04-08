@@ -18,24 +18,25 @@ MORPHINE_API void mapi_registry_set_key(morphine_coroutine_t U) {
 }
 
 MORPHINE_API bool mapi_registry_get(morphine_coroutine_t U) {
-    struct value *value = stackI_vector(U, 0, 1);
+    struct value value = stackI_peek(U, 0);
 
     bool has = false;
-    *value = registryI_get(U, *value, &has);
+    struct value result = registryI_get(U, value, &has);
+    stackI_push(U, result);
 
     return has;
 }
 
 MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t U) {
-    struct value *value = stackI_vector(U, 0, 1);
+    struct value value = stackI_peek(U, 0);
 
     bool has = false;
-    struct value result = registryI_get(U, *value, &has);
+    struct value result = registryI_get(U, value, &has);
 
     if (has) {
-        *value = result;
+        stackI_push(U, result);
     } else {
-        throwI_errorf(U->I, "Cannot get value from registry by %s", valueI_value2string(U->I, *value));
+        throwI_errorf(U->I, "Cannot get value from registry by %s", valueI_value2string(U->I, value));
     }
 }
 

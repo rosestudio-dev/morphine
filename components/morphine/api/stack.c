@@ -7,17 +7,7 @@
 #include "morphine/core/value.h"
 
 MORPHINE_API void mapi_rotate(morphine_coroutine_t U, size_t count) {
-    if (count == 0) {
-        return;
-    }
-
-    struct value *values = stackI_vector(U, 0, count);
-
-    struct value temp = values[count - 1];
-    for (size_t i = 0; i < count - 1; i++) {
-        values[count - i - 1] = values[count - i - 2];
-    }
-    values[0] = temp;
+    stackI_rotate(U, count);
 }
 
 MORPHINE_API void mapi_pop(morphine_coroutine_t U, size_t size) {

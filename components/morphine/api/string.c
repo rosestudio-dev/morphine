@@ -48,6 +48,6 @@ MORPHINE_API void mapi_string_concat(morphine_coroutine_t U) {
     struct string *a = valueI_as_string_or_error(U->I, stackI_peek(U, 1));
     struct string *b = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
     struct string *result = stringI_concat(U->I, a, b);
+    stackI_replace(U, 1, valueI_object(result));
     stackI_pop(U, 1);
-    *stackI_vector(U, 0, 1) = valueI_object(result);
 }

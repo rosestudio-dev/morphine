@@ -32,8 +32,9 @@ MORPHINE_API void mapi_set_default_metatable(morphine_coroutine_t U, const char 
 }
 
 MORPHINE_API void mapi_get_metatable(morphine_coroutine_t U) {
-    struct value *source = stackI_vector(U, 0, 1);
-    *source = metatableI_get(U->I, *source);
+    struct value source = stackI_peek(U, 0);
+    struct value result = metatableI_get(U->I, source);
+    stackI_push(U, result);
 }
 
 MORPHINE_API void mapi_get_default_metatable(morphine_coroutine_t U, const char *type) {

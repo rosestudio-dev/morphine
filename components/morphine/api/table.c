@@ -24,25 +24,26 @@ MORPHINE_API void mapi_table_set(morphine_coroutine_t U) {
 
 MORPHINE_API bool mapi_table_get(morphine_coroutine_t U) {
     struct value table = stackI_peek(U, 1);
-    struct value *value = stackI_vector(U, 0, 1);
+    struct value value = stackI_peek(U, 0);
 
     bool has = false;
-    *value = tableI_get(U->I, valueI_as_table_or_error(U->I, table), *value, &has);
+    struct value result = tableI_get(U->I, valueI_as_table_or_error(U->I, table), value, &has);
+    stackI_replace(U, 0, result);
 
     return has;
 }
 
 MORPHINE_API void mapi_table_getoe(morphine_coroutine_t U) {
     struct value table = stackI_peek(U, 1);
-    struct value *value = stackI_vector(U, 0, 1);
+    struct value value = stackI_peek(U, 0);
 
     bool has = false;
-    struct value result = tableI_get(U->I, valueI_as_table_or_error(U->I, table), *value, &has);
+    struct value result = tableI_get(U->I, valueI_as_table_or_error(U->I, table), value, &has);
 
     if (has) {
-        *value = result;
+        stackI_replace(U, 0, result);
     } else {
-        throwI_errorf(U->I, "Cannot get value from table by %s", valueI_value2string(U->I, *value));
+        throwI_errorf(U->I, "Cannot get value from table by %s", valueI_value2string(U->I, value));
     }
 }
 
