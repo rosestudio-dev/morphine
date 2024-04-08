@@ -2,8 +2,10 @@ project('compiler')
 
 version = get_option('version')
 
+prog_python = find_program('python', required : true)
+
 sources_kts = run_command(
-    'python',
+    prog_python,
     meson.source_root() / 'extra' / 'scripts' / 'walker.py',
     '-p',
     '**/*.kt',
@@ -11,7 +13,7 @@ sources_kts = run_command(
 ).stdout().strip().split('\n')
 
 sources_kt = run_command(
-    'python',
+    prog_python,
     meson.source_root() / 'extra' / 'scripts' / 'walker.py',
     '-p',
     '**/*.kts',
