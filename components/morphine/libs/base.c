@@ -232,7 +232,7 @@ static void changeenv(morphine_coroutine_t U) {
         nb_init
             maux_checkargs(U, 1, "any");
             mapi_push_arg(U, 0);
-            mapi_changeenv(U);
+            mapi_change_env(U);
             nb_leave();
     nb_end
 }

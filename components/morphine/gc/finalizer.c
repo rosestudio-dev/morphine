@@ -60,6 +60,7 @@ static void finalizer(morphine_coroutine_t U) {
 void gcI_init_finalizer(morphine_instance_t I) {
     morphine_coroutine_t coroutine = coroutineI_custom_create(
         I,
+        valueI_nil,
         I->settings.finalizer.stack_limit,
         I->settings.finalizer.stack_grow
     );

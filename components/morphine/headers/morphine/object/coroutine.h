@@ -5,7 +5,7 @@
 #pragma once
 
 #include "morphine/object/coroutine/stack.h"
-#include "morphine/object.h"
+#include "morphine/core/value.h"
 
 enum coroutine_status {
     COROUTINE_STATUS_CREATED,
@@ -26,13 +26,20 @@ struct coroutine {
 
     struct stack stack;
     struct callstack callstack;
+    struct value env;
 
     morphine_coroutine_t prev;
     morphine_instance_t I;
 };
 
-morphine_coroutine_t coroutineI_custom_create(morphine_instance_t, size_t stack_limit, size_t stack_grow);
-morphine_coroutine_t coroutineI_create(morphine_instance_t);
+morphine_coroutine_t coroutineI_custom_create(
+    morphine_instance_t,
+    struct value env,
+    size_t stack_limit,
+    size_t stack_grow
+);
+
+morphine_coroutine_t coroutineI_create(morphine_instance_t, struct value env);
 void coroutineI_free(morphine_instance_t, morphine_coroutine_t coroutine);
 
 void coroutineI_priority(morphine_coroutine_t, priority_t);

@@ -7,7 +7,14 @@
 #include "morphine/core/throw.h"
 
 MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U) {
-    morphine_coroutine_t coroutine = coroutineI_create(U->I);
+    struct value env;
+    if (callstackI_info(U) != NULL) {
+        env = *callstackI_info(U)->s.env.p;
+    } else {
+        env = U->env;
+    }
+
+    morphine_coroutine_t coroutine = coroutineI_create(U->I, env);
     stackI_push(U, valueI_object(coroutine));
 
     return coroutine;

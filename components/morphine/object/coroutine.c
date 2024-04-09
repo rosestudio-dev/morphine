@@ -9,7 +9,12 @@
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 
-morphine_coroutine_t coroutineI_custom_create(morphine_instance_t I, size_t stack_limit, size_t stack_grow) {
+morphine_coroutine_t coroutineI_custom_create(
+    morphine_instance_t I,
+    struct value env,
+    size_t stack_limit,
+    size_t stack_grow
+) {
     morphine_coroutine_t result = allocI_uni(I, NULL, sizeof(struct coroutine));
 
     (*result) = (struct coroutine) {
@@ -17,6 +22,7 @@ morphine_coroutine_t coroutineI_custom_create(morphine_instance_t I, size_t stac
         .priority = 1,
         .stack = stackI_prototype(I, stack_limit, stack_grow),
         .callstack = callstackI_prototype(),
+        .env = env,
         .prev = NULL,
         .I = I
     };
@@ -26,9 +32,10 @@ morphine_coroutine_t coroutineI_custom_create(morphine_instance_t I, size_t stac
     return result;
 }
 
-morphine_coroutine_t coroutineI_create(morphine_instance_t I) {
+morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct value env) {
     morphine_coroutine_t result = coroutineI_custom_create(
         I,
+        env,
         I->settings.states.stack_limit,
         I->settings.states.stack_grow
     );

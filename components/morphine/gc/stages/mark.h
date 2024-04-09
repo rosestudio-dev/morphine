@@ -100,6 +100,7 @@ static inline void mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_COROUTINE: {
             morphine_coroutine_t coroutine = cast(morphine_coroutine_t, obj);
 
+            mark_value(coroutine->env);
             for (size_t i = 0; i < coroutine->stack.top; i++) {
                 mark_value(coroutine->stack.allocated[i]);
             }

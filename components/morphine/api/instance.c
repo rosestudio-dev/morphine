@@ -40,7 +40,7 @@ MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t U) {
 }
 
 MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t I) {
-    morphine_coroutine_t U = coroutineI_create(I);
+    morphine_coroutine_t U = coroutineI_create(I, valueI_object(I->env));
     coroutineI_attach(U);
     return U;
 }

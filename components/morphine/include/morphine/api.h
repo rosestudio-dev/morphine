@@ -35,7 +35,7 @@ MORPHINE_API size_t mapi_args(morphine_coroutine_t);
 MORPHINE_API void mapi_push_arg(morphine_coroutine_t, size_t index);
 MORPHINE_API void mapi_push_env(morphine_coroutine_t);
 MORPHINE_API void mapi_push_self(morphine_coroutine_t);
-MORPHINE_API void mapi_changeenv(morphine_coroutine_t);
+MORPHINE_API void mapi_change_env(morphine_coroutine_t);
 
 MORPHINE_API morphine_noret void mapi_errorf(morphine_coroutine_t, const char *, ...);
 MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t, const char *);

@@ -59,7 +59,7 @@ static inline void stackI_call(
     if (callstackI_info(U) != NULL) {
         env = *callstackI_info(U)->s.env.p;
     } else {
-        env = valueI_object(I->env);
+        env = U->env;
     }
 
     // create callinfo
