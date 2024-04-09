@@ -119,7 +119,7 @@ MORPHINE_API void mapi_coroutine_kill(morphine_coroutine_t);
 MORPHINE_API void mapi_coroutine_resume(morphine_coroutine_t);
 MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t, priority_t priority);
 MORPHINE_API const char *mapi_coroutine_status(morphine_coroutine_t);
-MORPHINE_API bool mapi_coroutine_isalive(morphine_coroutine_t);
+MORPHINE_API bool mapi_coroutine_is_alive(morphine_coroutine_t);
 
 MORPHINE_API bool mapi_op(morphine_coroutine_t, const char *op);
 
@@ -130,10 +130,10 @@ MORPHINE_API void mapi_allocator_free(morphine_instance_t, void *);
 MORPHINE_API void mapi_gc_full(morphine_instance_t);
 MORPHINE_API void mapi_gc_work(morphine_instance_t);
 MORPHINE_API void mapi_gc_force(morphine_instance_t);
-MORPHINE_API bool mapi_gc_isrunning(morphine_instance_t);
+MORPHINE_API bool mapi_gc_is_running(morphine_instance_t);
 MORPHINE_API void mapi_gc_enable(morphine_instance_t);
 MORPHINE_API void mapi_gc_disable(morphine_instance_t);
-MORPHINE_API bool mapi_gc_isenabled(morphine_instance_t);
+MORPHINE_API bool mapi_gc_is_enabled(morphine_instance_t);
 MORPHINE_API const char *mapi_gc_status(morphine_instance_t);
 MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t);
 MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t);

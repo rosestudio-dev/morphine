@@ -20,7 +20,7 @@ MORPHINE_API void mapi_gc_force(morphine_instance_t I) {
     gcI_force(I);
 }
 
-MORPHINE_API bool mapi_gc_isrunning(morphine_instance_t I) {
+MORPHINE_API bool mapi_gc_is_running(morphine_instance_t I) {
     return gcI_isrunning(I);
 }
 
@@ -32,7 +32,7 @@ MORPHINE_API void mapi_gc_disable(morphine_instance_t I) {
     gcI_disable(I);
 }
 
-MORPHINE_API bool mapi_gc_isenabled(morphine_instance_t I) {
+MORPHINE_API bool mapi_gc_is_enabled(morphine_instance_t I) {
     return gcI_isenabled(I);
 }
 

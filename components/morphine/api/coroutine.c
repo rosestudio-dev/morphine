@@ -52,6 +52,6 @@ MORPHINE_API const char *mapi_coroutine_status(morphine_coroutine_t U) {
     return coroutineI_status2string(U, U->status);
 }
 
-MORPHINE_API bool mapi_coroutine_isalive(morphine_coroutine_t U) {
+MORPHINE_API bool mapi_coroutine_is_alive(morphine_coroutine_t U) {
     return coroutineI_isalive(U);
 }

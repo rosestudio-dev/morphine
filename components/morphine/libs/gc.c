@@ -47,7 +47,7 @@ static void isrunning(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             maux_checkargs(U, 1, "empty");
-            bool result = mapi_gc_isrunning(mapi_instance(U));
+            bool result = mapi_gc_is_running(mapi_instance(U));
             nb_return(mapi_push_boolean(U, result));
     nb_end
 }
@@ -76,7 +76,7 @@ static void isenabled(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             maux_checkargs(U, 1, "empty");
-            bool result = mapi_gc_isenabled(mapi_instance(U));
+            bool result = mapi_gc_is_enabled(mapi_instance(U));
             nb_return(mapi_push_boolean(U, result));
     nb_end
 }
