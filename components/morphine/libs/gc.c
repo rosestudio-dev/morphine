@@ -176,10 +176,20 @@ static void getallocated(morphine_coroutine_t U) {
     nb_end
 }
 
+static void status(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_checkargs(U, 1, "empty");
+            const char *result = mapi_gc_status(mapi_instance(U));
+            nb_return(mapi_push_string(U, result));
+    nb_end
+}
+
 static struct maux_construct_field table[] = {
     { "full",                      full },
     { "force",                     force },
     { "step",                      step },
+    { "status",                    status },
     { "isrunning",                 isrunning },
     { "enable",                    enable },
     { "isenabled",                 isenabled },

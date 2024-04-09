@@ -7,7 +7,7 @@
 #include "morphine/gc/finalizer.h"
 #include "morphine/gc/control.h"
 
-morphine_instance_t instanceI_open(struct platform platform, struct settings settings, void *userdata) {
+morphine_instance_t instanceI_open(struct platform platform, struct settings settings, void *data) {
     if (sizeof(struct instance) >= settings.gc.limit_bytes) {
         platform.functions.signal(NULL);
     }
@@ -24,7 +24,7 @@ morphine_instance_t instanceI_open(struct platform platform, struct settings set
         .G = gcI_prototype(settings.gc, sizeof(struct instance)),
         .E = interpreterI_prototype(),
         .require_loader_table = NULL,
-        .userdata = userdata,
+        .data = data,
         .env = NULL,
         .registry = NULL,
     };

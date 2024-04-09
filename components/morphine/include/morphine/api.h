@@ -10,8 +10,8 @@
 
 MORPHINE_API const char *mapi_version(void);
 
-MORPHINE_API morphine_instance_t mapi_open(struct platform, struct settings, void *userdata);
-MORPHINE_API void *mapi_userdata(morphine_instance_t);
+MORPHINE_API morphine_instance_t mapi_open(struct platform, struct settings, void *data);
+MORPHINE_API void *mapi_instance_data(morphine_instance_t);
 MORPHINE_API void mapi_interpreter(morphine_instance_t);
 MORPHINE_API void mapi_close(morphine_instance_t);
 MORPHINE_API void mapi_userlibs(morphine_instance_t, struct require_loader *table);

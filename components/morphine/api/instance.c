@@ -7,12 +7,12 @@
 #include "morphine/core/interpreter.h"
 #include "morphine/object/coroutine.h"
 
-MORPHINE_API morphine_instance_t mapi_open(struct platform platform, struct settings settings, void *userdata) {
-    return instanceI_open(platform, settings, userdata);
+MORPHINE_API morphine_instance_t mapi_open(struct platform platform, struct settings settings, void *data) {
+    return instanceI_open(platform, settings, data);
 }
 
-MORPHINE_API void *mapi_userdata(morphine_instance_t I) {
-    return I->userdata;
+MORPHINE_API void *mapi_instance_data(morphine_instance_t I) {
+    return I->data;
 }
 
 MORPHINE_API void mapi_interpreter(morphine_instance_t I) {

@@ -14,7 +14,7 @@ struct instance {
     struct platform platform;
     struct settings settings;
     struct require_loader *require_loader_table;
-    void *userdata;
+    void *data;
 
     struct garbage_collector G;
     struct interpreter E;
@@ -28,7 +28,7 @@ struct instance {
     } metatable;
 };
 
-morphine_instance_t instanceI_open(struct platform, struct settings, void *userdata);
+morphine_instance_t instanceI_open(struct platform, struct settings, void *data);
 void instanceI_close(morphine_instance_t);
 
 void instanceI_require_table(morphine_instance_t, struct require_loader *table);
