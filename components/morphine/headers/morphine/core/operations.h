@@ -11,6 +11,7 @@
 #include "morphine/object/iterator.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
+#include "morphine/gc/safe.h"
 
 typedef enum {
     NORMAL,
@@ -110,11 +111,13 @@ static inline op_result_t interpreter_fun_iterator_next(
     if (likely(valueI_is_iterator(iterator))) {
         struct pair pair = iteratorI_next(U->I, valueI_as_iterator(iterator));
         struct table *table = tableI_create(U->I);
-        (*result) = valueI_object(table);
+        size_t rollback = gcI_safe_obj(U->I, objectI_cast(table));
 
         tableI_set(U->I, table, valueI_integer(0), pair.key);
         tableI_set(U->I, table, valueI_integer(1), pair.value);
 
+        (*result) = valueI_object(table);
+        gcI_reset_safe(U->I, rollback);
         return NORMAL;
     } else if (metatableI_test(U->I, iterator, MF_ITERATOR_NEXT, &mt_field)) {
         callstackI_continue(U, callstate);

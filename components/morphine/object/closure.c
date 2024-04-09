@@ -20,7 +20,7 @@ struct closure *closureI_create(morphine_instance_t I, struct value callable, si
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_CLOSURE);
 
-    gcI_safe_obj(I, objectI_cast(result));
+    size_t rollback = gcI_safe_obj(I, objectI_cast(result));
 
     result->values = allocI_vec(I, NULL, size, sizeof(struct closure));
     result->size = size;
@@ -29,7 +29,7 @@ struct closure *closureI_create(morphine_instance_t I, struct value callable, si
         result->values[i] = valueI_nil;
     }
 
-    gcI_reset_safe(I);
+    gcI_reset_safe(I, rollback);
 
     return result;
 }

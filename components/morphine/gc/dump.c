@@ -74,7 +74,7 @@ static void pool(morphine_instance_t I, struct object *pool) {
     FILE *out = I->platform.io.out;
     struct object *current = pool;
     while (current != NULL) {
-        fprintf(out, "  - ");
+        fprintf(out, "@   - ");
         object(I, current);
         fprintf(out, "\n");
         current = current->prev;
@@ -106,39 +106,40 @@ void gcI_dump(morphine_instance_t I) {
 
     FILE *out = I->platform.io.out;
 
-    fprintf(out, "Garbage collector dump\n");
-    fprintf(out, "Status:                 %s\n", status);
-    fprintf(out, "Stats:\n");
-    fprintf(out, "  - Debt:               %zu\n", I->G.stats.debt);
-    fprintf(out, "Bytes:\n");
-    fprintf(out, "  - Allocated:          %zu\n", I->G.bytes.allocated);
-    fprintf(out, "  - Previous allocated: %zu\n", I->G.bytes.prev_allocated);
-    fprintf(out, "  - Max allocated:      %zu\n", I->G.bytes.max_allocated);
-    fprintf(out, "Settings:\n");
-    fprintf(out, "  - Limit:              %zu\n", I->G.settings.limit_bytes);
-    fprintf(out, "  - Grow:               %zu\n", I->G.settings.grow);
-    fprintf(out, "  - Deal:               %zu\n", I->G.settings.deal);
-    fprintf(out, "Finalizer:\n");
-    fprintf(out, "  - Work:               %s\n", I->G.finalizer.work ? "yes" : "no");
-    fprintf(out, "  - Candidate:          ");
+    fprintf(out, "@ Garbage collector dump\n");
+    fprintf(out, "@ Status:                 %s\n", status);
+    fprintf(out, "@ Stats:\n");
+    fprintf(out, "@   - Debt:               %zu\n", I->G.stats.debt);
+    fprintf(out, "@ Bytes:\n");
+    fprintf(out, "@   - Allocated:          %zu\n", I->G.bytes.allocated);
+    fprintf(out, "@   - Previous allocated: %zu\n", I->G.bytes.prev_allocated);
+    fprintf(out, "@   - Max allocated:      %zu\n", I->G.bytes.max_allocated);
+    fprintf(out, "@ Settings:\n");
+    fprintf(out, "@   - Limit:              %zu\n", I->G.settings.limit_bytes);
+    fprintf(out, "@   - Grow:               %zu\n", I->G.settings.grow);
+    fprintf(out, "@   - Deal:               %zu\n", I->G.settings.deal);
+    fprintf(out, "@ Finalizer:\n");
+    fprintf(out, "@   - Work:               %s\n", I->G.finalizer.work ? "yes" : "no");
+    fprintf(out, "@   - Candidate:          ");
     object(I, I->G.finalizer.candidate);
     fprintf(out, "\n");
-    fprintf(out, "  - State:              ");
+    fprintf(out, "@   - State:              ");
     object(I, (struct object *) I->G.finalizer.coroutine);
     fprintf(out, "\n");
-    fprintf(out, "Safe:\n");
+    fprintf(out, "@ Safe:\n");
     for (size_t i = 0; i < sizeof(I->G.safe.stack) / sizeof(struct value); i++) {
-        fprintf(out, "  - Value:              ");
+        fprintf(out, "@   - Value:              ");
         value(I, I->G.safe.stack[i]);
+        fprintf(out, "\n");
     }
-    fprintf(out, "\n");
-    fprintf(out, "Pool 'allocated':\n");
+    fprintf(out, "@\n");
+    fprintf(out, "@ Pool 'allocated':\n");
     pool(I, I->G.pools.allocated);
-    fprintf(out, "Pool 'gray':\n");
+    fprintf(out, "@ Pool 'gray':\n");
     pool(I, I->G.pools.gray);
-    fprintf(out, "Pool 'white':\n");
+    fprintf(out, "@ Pool 'white':\n");
     pool(I, I->G.pools.white);
-    fprintf(out, "Pool 'finalize':\n");
+    fprintf(out, "@ Pool 'finalize':\n");
     pool(I, I->G.pools.finalize);
     fprintf(out, "\n");
 }

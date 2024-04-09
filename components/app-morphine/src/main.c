@@ -30,7 +30,9 @@ int main(int argc, char **argv) {
         pallocator,
         args.program_path,
         args.binary,
-        args.alloc_limit
+        args.alloc_limit,
+        args.argc,
+        args.args
     );
 
     uint64_t end_ms = millis();

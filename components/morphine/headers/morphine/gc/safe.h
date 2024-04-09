@@ -6,6 +6,7 @@
 
 #include "morphine/core/value.h"
 
-void gcI_safe(morphine_instance_t, struct value);
-void gcI_safe_obj(morphine_instance_t, struct object *);
-void gcI_reset_safe(morphine_instance_t);
+struct value *gcI_safe(morphine_instance_t, size_t *rollback);
+size_t gcI_safe_value(morphine_instance_t, struct value);
+size_t gcI_safe_obj(morphine_instance_t, struct object *);
+void gcI_reset_safe(morphine_instance_t, size_t rollback);

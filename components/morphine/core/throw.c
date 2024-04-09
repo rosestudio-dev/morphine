@@ -124,7 +124,7 @@ void throwI_handler(morphine_instance_t I) {
         coroutineI_kill_regardless(coroutine);
     }
 
-    gcI_reset_safe(I);
+    gcI_reset_safe(I, 0);
 }
 
 morphine_noret void throwI_error(morphine_instance_t I, const char *message) {

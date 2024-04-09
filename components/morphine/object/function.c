@@ -47,7 +47,7 @@ struct function *functionI_create(
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);
 
-    gcI_safe_obj(I, objectI_cast(result));
+    size_t rollback = gcI_safe_obj(I, objectI_cast(result));
 
     result->name = allocI_vec(I, NULL, name_len + 1, sizeof(char));
     result->name_len = name_len;
@@ -68,7 +68,7 @@ struct function *functionI_create(
         result->statics[i] = valueI_nil;
     }
 
-    gcI_reset_safe(I);
+    gcI_reset_safe(I, rollback);
 
     return result;
 }

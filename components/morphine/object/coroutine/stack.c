@@ -195,7 +195,7 @@ size_t stackI_space(morphine_coroutine_t U) {
 }
 
 void stackI_push(morphine_coroutine_t U, struct value value) {
-    gcI_safe(U->I, value);
+    size_t rollback = gcI_safe_value(U->I, value);
     stackI_raise(U, 1);
     if (callstackI_info(U) != NULL) {
         callstackI_info(U)->s.top.p++;
@@ -203,7 +203,7 @@ void stackI_push(morphine_coroutine_t U, struct value value) {
 
     struct value *stack_value = U->stack.allocated + U->stack.top - 1;
     (*stack_value) = value;
-    gcI_reset_safe(U->I);
+    gcI_reset_safe(U->I, rollback);
 }
 
 struct value stackI_peek(morphine_coroutine_t U, size_t offset) {

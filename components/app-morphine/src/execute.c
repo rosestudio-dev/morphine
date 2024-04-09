@@ -51,7 +51,9 @@ void execute(
     struct allocator *allocator,
     const char *path,
     bool binary,
-    size_t alloc_limit
+    size_t alloc_limit,
+    size_t argc,
+    char **args
 ) {
     if (setjmp(abort_jmp) != 0) {
         return;
@@ -87,6 +89,17 @@ void execute(
 
     morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
     morphine_coroutine_t U = mapi_coroutine(I);
+
+    mapi_push_env(U);
+    mapi_push_string(U, "args");
+    mapi_push_table(U);
+    for (size_t i = 0; i < argc; i++) {
+        mapi_push_size(U, i);
+        mapi_push_string(U, args[i]);
+
+        mapi_table_set(U);
+    }
+    mapi_table_set(U);
 
     load_program(U, path, binary);
     mapi_call(U, 0);

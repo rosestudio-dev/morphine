@@ -11,5 +11,7 @@ void execute(
     struct allocator *allocator,
     const char *path,
     bool binary,
-    size_t alloc_limit
+    size_t alloc_limit,
+    size_t argc,
+    char **args
 );

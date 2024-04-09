@@ -63,9 +63,7 @@ static inline void clear_params(struct callinfo *C, size_t count) {
 
 static void step_function(morphine_coroutine_t U, struct function *F) {
 #ifdef MORPHINE_ENABLE_JUMPTABLE
-
 #include "jumptable.h"
-
 #endif
 
     struct callinfo *C = callstackI_info(U);

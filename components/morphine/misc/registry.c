@@ -40,22 +40,22 @@ void registryI_set(morphine_coroutine_t U, struct value key, struct value value)
         throwI_error(I, "Attempt to set to registry for unsupported callable");
     }
 
-    gcI_safe(I, key);
-    gcI_safe(I, value);
+    size_t rollback = gcI_safe_value(I, key);
+    gcI_safe_value(I, value);
 
     bool has = false;
     struct value table = tableI_get(I, I->registry, registry_key, &has);
 
     if (!has) {
         table = valueI_object(tableI_create(I));
-        gcI_safe(I, table);
+        gcI_safe_value(I, table);
 
         tableI_set(I, I->registry, registry_key, table);
     }
 
     tableI_set(I, valueI_as_table_or_error(I, table), key, value);
 
-    gcI_reset_safe(I);
+    gcI_reset_safe(I, rollback);
 }
 
 struct value registryI_get(morphine_coroutine_t U, struct value key, bool *has) {

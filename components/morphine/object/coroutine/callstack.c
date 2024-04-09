@@ -161,7 +161,7 @@ void callstackI_call_unsafe(
     if (unlikely(metatableI_test(U->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(U->I);
         struct value args_table = valueI_object(table);
-        gcI_safe(U->I, args_table);
+        size_t rollback = gcI_safe_value(U->I, args_table);
 
         for (size_t i = 0; i < argc; i++) {
             struct value key = valueI_size2integer(U->I, i);
@@ -175,7 +175,7 @@ void callstackI_call_unsafe(
         stackI_call(U, mt_field, callable, 2, pop_size);
         stackI_set_args_unsafe(U, new_args, 2);
 
-        gcI_reset_safe(U->I);
+        gcI_reset_safe(U->I, rollback);
     } else {
         stackI_call(U, callable, self, argc, pop_size);
         stackI_set_args_unsafe(U, args, argc);
@@ -194,7 +194,7 @@ void callstackI_call_stack(
     if (unlikely(metatableI_test(U->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(U->I);
         struct value args_table = valueI_object(table);
-        gcI_safe(U->I, args_table);
+        size_t rollback = gcI_safe_value(U->I, args_table);
 
         for (size_t i = 0; i < argc; i++) {
             struct value key = valueI_size2integer(U->I, i);
@@ -208,7 +208,7 @@ void callstackI_call_stack(
         stackI_call(U, mt_field, callable, 2, pop_size);
         stackI_set_args_unsafe(U, new_args, 2);
 
-        gcI_reset_safe(U->I);
+        gcI_reset_safe(U->I, rollback);
     } else {
         struct callinfo *callinfo = callstackI_info(U);
         stackI_call(U, callable, self, argc, pop_size);
@@ -238,7 +238,7 @@ void callstackI_call_params(
     if (unlikely(metatableI_test(U->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(U->I);
         struct value args_table = valueI_object(table);
-        gcI_safe(U->I, args_table);
+        size_t rollback = gcI_safe_value(U->I, args_table);
 
         for (size_t i = 0; i < argc; i++) {
             struct value key = valueI_size2integer(U->I, i);
@@ -252,7 +252,7 @@ void callstackI_call_params(
         stackI_call(U, mt_field, callable, 2, pop_size);
         stackI_set_args_unsafe(U, new_args, 2);
 
-        gcI_reset_safe(U->I);
+        gcI_reset_safe(U->I, rollback);
     } else {
         stackI_call(U, callable, self, argc, pop_size);
 

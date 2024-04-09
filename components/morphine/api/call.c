@@ -65,7 +65,14 @@ MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, size_t index) {
 }
 
 MORPHINE_API void mapi_push_env(morphine_coroutine_t U) {
-    stackI_push(U, *callstackI_info_or_error(U)->s.env.p);
+    struct value env;
+    if (callstackI_info(U) != NULL) {
+        env = *callstackI_info(U)->s.env.p;
+    } else {
+        env = U->env;
+    }
+
+    stackI_push(U, env);
 }
 
 MORPHINE_API void mapi_push_self(morphine_coroutine_t U) {
