@@ -174,25 +174,8 @@ static void create(morphine_coroutine_t U) {
     nb_end
 }
 
-static void current(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
-            maux_checkargs(U, 1, "empty");
-            mapi_push_table(U);
-
-            mapi_push_stringf(U, "__coroutine");
-            mapi_push_current_coroutine(U);
-            mapi_table_set(U);
-
-            create_instance(U);
-
-            nb_return();
-    nb_end
-}
-
 static struct maux_construct_field table[] = {
     { "create",  create },
-    { "current", current },
     { NULL, NULL }
 };
 

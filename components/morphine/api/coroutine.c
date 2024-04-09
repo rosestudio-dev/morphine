@@ -20,10 +20,6 @@ MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U) {
     return coroutine;
 }
 
-MORPHINE_API void mapi_push_current_coroutine(morphine_coroutine_t U) {
-    stackI_push(U, valueI_object(U));
-}
-
 MORPHINE_API morphine_coroutine_t mapi_get_coroutine(morphine_coroutine_t U) {
     return valueI_as_coroutine_or_error(U->I, stackI_peek(U, 0));
 }

@@ -111,7 +111,6 @@ MORPHINE_API void mapi_userdata_link(morphine_coroutine_t, bool soft);
 MORPHINE_API bool mapi_userdata_unlink(morphine_coroutine_t, void *pointer);
 
 MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t);
-MORPHINE_API void mapi_push_current_coroutine(morphine_coroutine_t);
 MORPHINE_API morphine_coroutine_t mapi_get_coroutine(morphine_coroutine_t);
 MORPHINE_API void mapi_attach(morphine_coroutine_t);
 MORPHINE_API void mapi_coroutine_suspend(morphine_coroutine_t);
