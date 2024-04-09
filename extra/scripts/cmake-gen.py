@@ -20,8 +20,7 @@ if args.output == "":
 f = open(args.output, "w")
 
 f.write(
-    """
-cmake_minimum_required(VERSION 3.16)
+    """cmake_minimum_required(VERSION 3.16)
 project(morphine)
 
 include_directories(
