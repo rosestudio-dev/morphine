@@ -4,6 +4,7 @@ import java.nio.file.Files
 import java.nio.file.Path
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
+import kotlin.system.exitProcess
 import ru.unit.morphine.assembly.bytecode.BytecodeConverter
 import ru.unit.morphine.assembly.compiler.MorphineAssemble
 
@@ -106,6 +107,7 @@ private fun compile(
         when (result) {
             is MorphineAssemble.Result.Error -> {
                 println(result.message)
+                exitProcess(1)
             }
 
             is MorphineAssemble.Result.Success -> {
@@ -125,6 +127,8 @@ private fun compile(
         if (debug) {
             throw throwable
         }
+
+        exitProcess(1)
     }
 }
 
