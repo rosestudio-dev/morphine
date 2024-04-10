@@ -12,7 +12,7 @@
 int main(int argc, char **argv) {
     struct args args = parseargs(argc, argv);
 
-    if(args.version) {
+    if (args.version) {
         printf("Morphine version: %s\n", mapi_version());
         return 0;
     }
@@ -72,6 +72,7 @@ int main(int argc, char **argv) {
         printf("  call count: %zu\n", allocator.allocations_count);
 
         allocator_clear(&allocator);
+        allocator_destroy(&allocator);
     }
 
     return 0;
