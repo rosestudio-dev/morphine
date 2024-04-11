@@ -31,6 +31,7 @@ sealed interface Token {
         FUN,
         IF,
         ELSE,
+        ELIF,
         WHILE,
         DO,
         FOR,

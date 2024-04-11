@@ -213,21 +213,25 @@ class Parser(
         return YieldStatement(data(saved))
     }
 
-    private fun statementIf(): IfStatement {
+    private fun statementIf(elif: Boolean = false): IfStatement {
         val saved = position
 
-        consume(Token.SystemWord.IF)
+        if (elif) {
+            consume(Token.SystemWord.ELIF)
+        } else {
+            consume(Token.SystemWord.IF)
+        }
 
         consume(Token.Operator.LPAREN)
         val condition = expression()
         consume(Token.Operator.RPAREN)
 
-        val ifStatement = statementBlock(Token.SystemWord.ELSE)
+        val ifStatement = statementBlock(Token.SystemWord.ELSE, Token.SystemWord.ELIF)
 
-        val elseStatement = if (match(Token.SystemWord.ELSE)) {
-            statementBlock()
-        } else {
-            EmptyStatement(data(saved))
+        val elseStatement = when {
+            look(Token.SystemWord.ELIF) -> statementIf(elif = true)
+            match(Token.SystemWord.ELSE) -> statementBlock()
+            else -> EmptyStatement(data(saved))
         }
 
         return IfStatement(
