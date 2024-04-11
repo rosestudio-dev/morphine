@@ -2,9 +2,9 @@ package ru.unit.morphine.assembly.optimizer.strategy
 
 import ru.unit.morphine.assembly.bytecode.Instruction
 import ru.unit.morphine.assembly.bytecode.Value
+import ru.unit.morphine.assembly.bytecode.generated.abstract
 import ru.unit.morphine.assembly.optimizer.OptimizationStrategy
 import ru.unit.morphine.assembly.optimizer.tracer.Tracer
-import ru.unit.morphine.assembly.bytecode.generated.abstract
 
 class LinearBranchStrategy : OptimizationStrategy {
 
@@ -19,7 +19,7 @@ class LinearBranchStrategy : OptimizationStrategy {
             val traced = wrapper.getSourceValue(instruction.source)
 
             if (traced is Tracer.TracedValue.Constant) {
-                val constant = data.function.constants[traced.index]
+                val constant = data.function.constants[traced.constant]
 
                 return@map if (constant is Value.Boolean) {
                     val position = if (constant.value) {

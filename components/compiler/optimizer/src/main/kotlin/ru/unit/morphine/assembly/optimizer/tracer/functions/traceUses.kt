@@ -2,7 +2,6 @@ package ru.unit.morphine.assembly.optimizer.tracer.functions
 
 import ru.unit.morphine.assembly.bytecode.AbstractInstruction
 import ru.unit.morphine.assembly.bytecode.Argument
-import ru.unit.morphine.assembly.bytecode.Bytecode
 import ru.unit.morphine.assembly.optimizer.tracer.ControlFlowTree
 import ru.unit.morphine.assembly.optimizer.tracer.Tracer
 
@@ -37,7 +36,7 @@ private fun ControlFlowTree.propagation(): List<Tracer.Node> {
             dest.tracedUsesAfter = dest.tracedUsesAfter.mapIndexed { index, useAfter ->
                 val useBefore = wrapper.tracedUsesBefore[index]
 
-                if(useAfter.used) {
+                if (useAfter.used) {
                     useAfter
                 } else {
                     useBefore
@@ -55,9 +54,9 @@ private fun ControlFlowTree.propagation(): List<Tracer.Node> {
             dest.tracedUsesBefore = dest.tracedUsesBefore.mapIndexed { index, useBefore ->
                 val useAfter = dest.tracedUsesAfter[index]
 
-                if(useBefore.used) {
+                if (useBefore.used) {
                     useBefore
-                } else if(destinationSlot?.value == index) {
+                } else if (destinationSlot?.value == index) {
                     Tracer.TracedUse(sources.any { source -> source.value == index })
                 } else {
                     useAfter

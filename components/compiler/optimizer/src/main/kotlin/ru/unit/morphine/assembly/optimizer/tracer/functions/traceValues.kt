@@ -1,9 +1,7 @@
 package ru.unit.morphine.assembly.optimizer.tracer.functions
 
-import org.jgrapht.traverse.BreadthFirstIterator
 import ru.unit.morphine.assembly.bytecode.AbstractInstruction
 import ru.unit.morphine.assembly.bytecode.Instruction
-import ru.unit.morphine.assembly.bytecode.Bytecode
 import ru.unit.morphine.assembly.optimizer.tracer.ControlFlowTree
 import ru.unit.morphine.assembly.optimizer.tracer.Tracer
 
@@ -16,12 +14,17 @@ private class DataGen {
 
     private var id = 0
 
-    fun gen(): Tracer.TracedValue = Tracer.TracedValue.Data(id++)
+    fun genData(): Tracer.TracedValue = Tracer.TracedValue.Data(id++)
+
+    fun genConstant(constant: Int): Tracer.TracedValue = Tracer.TracedValue.Constant(
+        index = id++,
+        constant = constant
+    )
 }
 
 private fun ControlFlowTree.valuesCalc(dataGen: DataGen) {
     val values = (0 until data.function.slotsCount).map {
-        mutableMapOf(0 to dataGen.gen())
+        mutableMapOf(0 to dataGen.genData())
     }.toTypedArray()
 
     data.blocks.forEach { block ->
@@ -38,8 +41,8 @@ private fun ControlFlowTree.valuesCalc(dataGen: DataGen) {
                 val index = destination.value
 
                 val data = when (val instruction = node.abstract.instruction) {
-                    is Instruction.Load -> Tracer.TracedValue.Constant(instruction.constant.value)
-                    else -> dataGen.gen()
+                    is Instruction.Load -> dataGen.genConstant(instruction.constant.value)
+                    else -> dataGen.genData()
                 }
 
                 values[index][(node.tracedVersionsAfter[index] as Tracer.TracedVersion.Normal).version] = data

@@ -2,8 +2,8 @@ package ru.unit.morphine.assembly.optimizer.tracer
 
 import ru.unit.morphine.assembly.bytecode.AbstractInstruction
 import ru.unit.morphine.assembly.bytecode.Argument
-import ru.unit.morphine.assembly.bytecode.Instruction
 import ru.unit.morphine.assembly.bytecode.Bytecode
+import ru.unit.morphine.assembly.bytecode.Instruction
 import ru.unit.morphine.assembly.bytecode.Value
 import ru.unit.morphine.assembly.optimizer.tracer.functions.controlFlow
 import ru.unit.morphine.assembly.optimizer.tracer.functions.reconstructFunction
@@ -113,10 +113,11 @@ class Tracer(
         }
 
         data class Constant(
-            val index: Int
+            val index: Int,
+            val constant: Int
         ) : TracedValue {
 
-            override fun toString() = "c$index"
+            override fun toString() = "c$constant:$index"
         }
 
         data class Phi(val values: Set<TracedValue>) : TracedValue {

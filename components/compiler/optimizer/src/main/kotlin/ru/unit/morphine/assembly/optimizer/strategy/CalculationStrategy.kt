@@ -1,8 +1,5 @@
 package ru.unit.morphine.assembly.optimizer.strategy
 
-import ru.unit.morphine.assembly.bytecode.*
-import ru.unit.morphine.assembly.optimizer.OptimizationStrategy
-import ru.unit.morphine.assembly.optimizer.tracer.Tracer
 import ru.unit.morphine.assembly.bytecode.AbstractInstruction
 import ru.unit.morphine.assembly.bytecode.Argument
 import ru.unit.morphine.assembly.bytecode.Instruction
@@ -10,6 +7,8 @@ import ru.unit.morphine.assembly.bytecode.LineData
 import ru.unit.morphine.assembly.bytecode.Opcode
 import ru.unit.morphine.assembly.bytecode.Value
 import ru.unit.morphine.assembly.bytecode.generated.abstract
+import ru.unit.morphine.assembly.optimizer.OptimizationStrategy
+import ru.unit.morphine.assembly.optimizer.tracer.Tracer
 
 class CalculationStrategy : OptimizationStrategy {
 
@@ -61,7 +60,7 @@ class CalculationStrategy : OptimizationStrategy {
         constants: MutableList<Value>,
     ): AbstractInstruction {
         val valueA = when (val traced = wrapper.getSourceValue(sources[0])) {
-            is Tracer.TracedValue.Constant -> constants[traced.index]
+            is Tracer.TracedValue.Constant -> constants[traced.constant]
             is Tracer.TracedValue.Data,
             is Tracer.TracedValue.Phi -> return this
         }
@@ -107,13 +106,13 @@ class CalculationStrategy : OptimizationStrategy {
         constants: MutableList<Value>,
     ): AbstractInstruction {
         val valueA = when (val traced = wrapper.getSourceValue(sources[0])) {
-            is Tracer.TracedValue.Constant -> constants[traced.index]
+            is Tracer.TracedValue.Constant -> constants[traced.constant]
             is Tracer.TracedValue.Data,
             is Tracer.TracedValue.Phi -> return this
         }
 
         val valueB = when (val traced = wrapper.getSourceValue(sources[1])) {
-            is Tracer.TracedValue.Constant -> constants[traced.index]
+            is Tracer.TracedValue.Constant -> constants[traced.constant]
             is Tracer.TracedValue.Data,
             is Tracer.TracedValue.Phi -> return this
         }
@@ -135,13 +134,13 @@ class CalculationStrategy : OptimizationStrategy {
         constants: MutableList<Value>,
     ): AbstractInstruction {
         val valueA = when (val traced = wrapper.getSourceValue(sources[0])) {
-            is Tracer.TracedValue.Constant -> constants[traced.index]
+            is Tracer.TracedValue.Constant -> constants[traced.constant]
             is Tracer.TracedValue.Data,
             is Tracer.TracedValue.Phi -> return this
         }
 
         val valueB = when (val traced = wrapper.getSourceValue(sources[1])) {
-            is Tracer.TracedValue.Constant -> constants[traced.index]
+            is Tracer.TracedValue.Constant -> constants[traced.constant]
             is Tracer.TracedValue.Data,
             is Tracer.TracedValue.Phi -> return this
         }
