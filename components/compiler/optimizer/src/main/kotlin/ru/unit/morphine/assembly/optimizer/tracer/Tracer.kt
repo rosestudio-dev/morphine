@@ -4,12 +4,10 @@ import ru.unit.morphine.assembly.bytecode.AbstractInstruction
 import ru.unit.morphine.assembly.bytecode.Argument
 import ru.unit.morphine.assembly.bytecode.Bytecode
 import ru.unit.morphine.assembly.bytecode.Instruction
-import ru.unit.morphine.assembly.bytecode.Value
 import ru.unit.morphine.assembly.optimizer.tracer.functions.controlFlow
 import ru.unit.morphine.assembly.optimizer.tracer.functions.reconstructFunction
 import ru.unit.morphine.assembly.optimizer.tracer.functions.toData
 import ru.unit.morphine.assembly.optimizer.tracer.functions.traceDestinations
-import ru.unit.morphine.assembly.optimizer.tracer.functions.traceUses
 import ru.unit.morphine.assembly.optimizer.tracer.functions.traceValues
 import ru.unit.morphine.assembly.optimizer.tracer.functions.traceVersions
 
@@ -25,7 +23,6 @@ class Tracer(
         } else {
             data.controlFlow(debug).apply {
                 traceDestinations()
-                traceUses()
                 traceVersions()
                 traceValues()
             }.data
@@ -57,7 +54,7 @@ class Tracer(
                 is Instruction.Jump -> listOf(endNode.position.value)
                 is Instruction.JumpIf -> listOf(endNode.ifPosition.value, endNode.elsePosition.value)
                 is Instruction.Leave -> listOf(data.nodes.size)
-                else -> listOf(end + 1)
+                else -> listOf(end)
             }
 
             return positions.flatMap { pos ->
@@ -73,8 +70,6 @@ class Tracer(
         var tracedVersionsAfter: List<TracedVersion>,
         var tracedValuesBefore: List<TracedValue>,
         var tracedValuesAfter: List<TracedValue>,
-        var tracedUsesBefore: List<TracedUse>,
-        var tracedUsesAfter: List<TracedUse>,
         var destinations: Set<Int>
     ) {
         var isAvailable = true
@@ -84,9 +79,6 @@ class Tracer(
 
         fun getSourceValue(source: Argument.Slot) = tracedValuesBefore[source.value]
         fun getDestValue(source: Argument.Slot) = tracedValuesAfter[source.value]
-
-        fun getSourceUse(source: Argument.Slot) = tracedUsesBefore[source.value]
-        fun getDestUse(source: Argument.Slot) = tracedUsesAfter[source.value]
     }
 
     sealed interface TracedVersion {
@@ -123,37 +115,6 @@ class Tracer(
         data class Phi(val values: Set<TracedValue>) : TracedValue {
 
             override fun toString() = "(${values.joinToString()})"
-        }
-    }
-
-    enum class TracedType(val short: String) {
-        NIL("N"),
-        INTEGER("I"),
-        DECIMAL("D"),
-        BOOLEAN("B"),
-        STRING("S"),
-        FUNCTION("F"),
-        UNDEFINED("?");
-
-        companion object {
-
-            fun toType(value: Value) = when (value) {
-                is Value.Boolean -> BOOLEAN
-                is Value.Integer -> INTEGER
-                is Value.Function -> FUNCTION
-                Value.Nil -> NIL
-                is Value.Decimal -> DECIMAL
-                is Value.String -> STRING
-            }
-        }
-    }
-
-    data class TracedUse(val used: Boolean) {
-
-        override fun toString() = if (used) {
-            "#"
-        } else {
-            "."
         }
     }
 }

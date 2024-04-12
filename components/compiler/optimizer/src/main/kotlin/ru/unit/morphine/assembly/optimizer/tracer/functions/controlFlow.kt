@@ -1,13 +1,7 @@
 package ru.unit.morphine.assembly.optimizer.tracer.functions
 
-import org.jgrapht.graph.DefaultEdge
-import org.jgrapht.nio.DefaultAttribute
-import org.jgrapht.nio.dot.DOTExporter
 import ru.unit.morphine.assembly.optimizer.tracer.ControlFlowTree
 import ru.unit.morphine.assembly.optimizer.tracer.Tracer
-import java.io.StringWriter
-import java.nio.file.Files
-import java.nio.file.Path
 
 
 fun Tracer.Data.controlFlow(debug: Boolean): ControlFlowTree {

@@ -26,10 +26,6 @@ object Printer {
         println()
     }
 
-    fun ast(ast: Ast) {
-        println("Ast:")
-    }
-
     fun bytecode(bytecode: Bytecode, source: String) {
         bytecode.functions.forEach { function ->
             bytecodeFunction(source, bytecode, function)

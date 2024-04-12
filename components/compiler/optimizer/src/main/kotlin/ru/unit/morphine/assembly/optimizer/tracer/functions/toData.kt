@@ -15,8 +15,6 @@ fun Bytecode.Function.toData() = Tracer.Data(
             tracedVersionsAfter = emptyList(),
             tracedValuesBefore = emptyList(),
             tracedValuesAfter = emptyList(),
-            tracedUsesBefore = emptyList(),
-            tracedUsesAfter = emptyList(),
             destinations = emptySet(),
         )
     },

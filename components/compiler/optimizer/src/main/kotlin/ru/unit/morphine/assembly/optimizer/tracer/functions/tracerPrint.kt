@@ -12,27 +12,6 @@ fun Tracer.Data.tracerPrint(
     val result = buildString {
         append("Instructions:\n")
 
-        fun <T> List<T>.joinToStringUsable(
-            use: List<Tracer.TracedUse>,
-            transform: ((T) -> CharSequence)? = null
-        ): String {
-            return mapIndexed { index, t ->
-                when {
-                    !usedMask -> t.toString()
-
-                    index !in use.indices -> t.toString()
-
-                    use[index].used -> if (transform == null) {
-                        t.toString()
-                    } else {
-                        transform(t)
-                    }
-
-                    else -> "#"
-                }
-            }.joinToString()
-        }
-
         fun appendBeforeAfter(
             before: String,
             after: String,
@@ -82,29 +61,20 @@ fun Tracer.Data.tracerPrint(
         } ?: 0
 
         val sizeVersionsBefore = nodes.maxOfOrNull { wrapper ->
-            "[${wrapper.tracedVersionsBefore.joinToStringUsable(wrapper.tracedUsesBefore)}]".length
+            "[${wrapper.tracedVersionsBefore.joinToString()}]".length
         } ?: 0
 
         val sizeVersionsAfter = nodes.maxOfOrNull { wrapper ->
-            "[${wrapper.tracedVersionsAfter.joinToStringUsable(wrapper.tracedUsesAfter)}]".length
+            "[${wrapper.tracedVersionsAfter.joinToString()}]".length
         } ?: 0
 
 
         val sizeValuesBefore = nodes.maxOfOrNull { wrapper ->
-            "[${wrapper.tracedValuesBefore.joinToStringUsable(wrapper.tracedUsesBefore)}]".length
+            "[${wrapper.tracedValuesBefore.joinToString()}]".length
         } ?: 0
 
         val sizeValuesAfter = nodes.maxOfOrNull { wrapper ->
-            "[${wrapper.tracedValuesAfter.joinToStringUsable(wrapper.tracedUsesAfter)}]".length
-        } ?: 0
-
-
-        val sizeUsesBefore = nodes.maxOfOrNull { wrapper ->
-            "[${wrapper.tracedUsesBefore.joinToString()}]".length
-        } ?: 0
-
-        val sizeUsesAfter = nodes.maxOfOrNull { wrapper ->
-            "[${wrapper.tracedUsesAfter.joinToString()}]".length
+            "[${wrapper.tracedValuesAfter.joinToString()}]".length
         } ?: 0
 
         nodes.forEachIndexed { index, wrapper ->
@@ -145,14 +115,11 @@ fun Tracer.Data.tracerPrint(
                 else -> " "
             }
 
-            val versionsBefore = "[${wrapper.tracedVersionsBefore.joinToStringUsable(wrapper.tracedUsesBefore)}]"
-            val versionsAfter = "[${wrapper.tracedVersionsAfter.joinToStringUsable(wrapper.tracedUsesAfter)}]"
+            val versionsBefore = "[${wrapper.tracedVersionsBefore.joinToString()}]"
+            val versionsAfter = "[${wrapper.tracedVersionsAfter.joinToString()}]"
 
-            val valuesBefore = "[${wrapper.tracedValuesBefore.joinToStringUsable(wrapper.tracedUsesBefore)}]"
-            val valuesAfter = "[${wrapper.tracedValuesAfter.joinToStringUsable(wrapper.tracedUsesAfter)}]"
-
-            val usesBefore = "[${wrapper.tracedUsesBefore.joinToString()}]"
-            val usesAfter = "[${wrapper.tracedUsesAfter.joinToString()}]"
+            val valuesBefore = "[${wrapper.tracedValuesBefore.joinToString()}]"
+            val valuesAfter = "[${wrapper.tracedValuesAfter.joinToString()}]"
 
             append(
                 if (blockNewLine) {
@@ -188,10 +155,10 @@ fun Tracer.Data.tracerPrint(
             )
 
             appendBeforeAfter(
-                before = usesBefore,
-                after = usesAfter,
-                sizeBefore = sizeUsesBefore,
-                sizeAfter = sizeUsesAfter,
+                before = versionsBefore,
+                after = versionsAfter,
+                sizeBefore = sizeVersionsBefore,
+                sizeAfter = sizeVersionsAfter,
             )
 
             appendBeforeAfter(
@@ -199,13 +166,6 @@ fun Tracer.Data.tracerPrint(
                 after = valuesAfter,
                 sizeBefore = sizeValuesBefore,
                 sizeAfter = sizeValuesAfter,
-            )
-
-            appendBeforeAfter(
-                before = versionsBefore,
-                after = versionsAfter,
-                sizeBefore = sizeVersionsBefore,
-                sizeAfter = sizeVersionsAfter,
             )
 
             append("\n")

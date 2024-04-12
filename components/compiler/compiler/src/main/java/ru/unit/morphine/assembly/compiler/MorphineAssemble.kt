@@ -48,7 +48,6 @@ class MorphineAssemble(
 
         if (debug) {
             Printer.tokens(tokens)
-            Printer.ast(ast)
             Printer.bytecode(bytecode, text)
         }
 

@@ -1,7 +1,15 @@
 package ru.unit.morphine.assembly.optimizer
 
 import ru.unit.morphine.assembly.bytecode.Bytecode
-import ru.unit.morphine.assembly.optimizer.strategy.*
+import ru.unit.morphine.assembly.optimizer.strategy.CalculationStrategy
+import ru.unit.morphine.assembly.optimizer.strategy.ConstantZipperStrategy
+import ru.unit.morphine.assembly.optimizer.strategy.DestinationPropagationStrategy
+import ru.unit.morphine.assembly.optimizer.strategy.LinearBranchStrategy
+import ru.unit.morphine.assembly.optimizer.strategy.MeaninglessStrategy
+import ru.unit.morphine.assembly.optimizer.strategy.PositionPropagationStrategy
+import ru.unit.morphine.assembly.optimizer.strategy.SlotZipperStrategy
+import ru.unit.morphine.assembly.optimizer.strategy.SourcePropagationStrategy
+import ru.unit.morphine.assembly.optimizer.strategy.StubStrategy
 import ru.unit.morphine.assembly.optimizer.tracer.Tracer
 import ru.unit.morphine.assembly.optimizer.tracer.functions.tracerPrint
 
@@ -62,19 +70,18 @@ class Optimizer(
         strategies: List<OptimizationStrategy>,
         iteration: Int
     ) = strategies.fold(this) { current, strategy ->
+        if (debug) {
+            println("Strategy: ${strategy::class.simpleName}, iteration: $iteration")
+        }
+
         val data = tracer.trace(current)
         val out = strategy.optimize(data)
 
         if (debug) {
-            optimizePrint(data, out, strategy, iteration)
+            data.tracerPrint(out)
+            println()
         }
 
         tracer.reconstruct(out)
-    }
-
-    private fun optimizePrint(data: Tracer.Data, out: Tracer.Data, strategy: OptimizationStrategy, iteration: Int) {
-        println("Strategy: ${strategy::class.simpleName}, iteration: $iteration")
-        data.tracerPrint(out)
-        println()
     }
 }
