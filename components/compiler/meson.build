@@ -66,3 +66,14 @@ compiler_clib_jar = custom_target(
 
     install : false
 )
+
+summary(
+    {
+        'version' : version,
+        'sources' : [sources_kts, sources_kt],
+    },
+    section : 'Configuration',
+    bool_yn : true,
+    list_sep : ', '
+)
+
