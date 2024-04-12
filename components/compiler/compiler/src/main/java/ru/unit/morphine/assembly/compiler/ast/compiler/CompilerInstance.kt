@@ -630,83 +630,119 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
     }
 
     private fun BinaryExpression.eval() = codegenExpression {
-        val a = expressionA.evalWithResult()
-        val b = expressionB.evalWithResult()
+        fun produce(slot: Argument.Slot) {
+            val exitAnchorUUID = UUID.randomUUID()
+            val bAnchorUUID = UUID.randomUUID()
 
-        fun produce(slot: Argument.Slot) = when (type) {
-            BinaryExpression.Type.ADD -> Instruction.Add(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+            val a = expressionA.evalWithResult(slot)
 
-            BinaryExpression.Type.SUB -> Instruction.Sub(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+            when (type) {
+                BinaryExpression.Type.OR -> {
+                    instruction(
+                        Instruction.JumpIf(
+                            source = a,
+                            ifPosition = positionByAnchor(exitAnchorUUID),
+                            elsePosition = positionByAnchor(bAnchorUUID)
+                        )
+                    )
+                }
 
-            BinaryExpression.Type.MUL -> Instruction.Mul(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+                BinaryExpression.Type.AND -> {
+                    instruction(
+                        Instruction.JumpIf(
+                            source = a,
+                            ifPosition = positionByAnchor(bAnchorUUID),
+                            elsePosition = positionByAnchor(exitAnchorUUID)
+                        )
+                    )
+                }
 
-            BinaryExpression.Type.DIV -> Instruction.Div(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+                else -> Unit
+            }
 
-            BinaryExpression.Type.MOD -> Instruction.Mod(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+            anchor(bAnchorUUID)
 
-            BinaryExpression.Type.EQUALS -> Instruction.Equal(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+            val b = expressionB.evalWithResult()
 
-            BinaryExpression.Type.LESS -> Instruction.Less(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+            val binaryInstruction = when (type) {
+                BinaryExpression.Type.ADD -> Instruction.Add(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
 
-            BinaryExpression.Type.LESS_EQUALS -> Instruction.LessEqual(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+                BinaryExpression.Type.SUB -> Instruction.Sub(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
 
-            BinaryExpression.Type.OR -> Instruction.Or(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+                BinaryExpression.Type.MUL -> Instruction.Mul(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
 
-            BinaryExpression.Type.AND -> Instruction.And(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+                BinaryExpression.Type.DIV -> Instruction.Div(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
 
-            BinaryExpression.Type.CONCAT -> Instruction.Concat(
-                sourceLeft = a,
-                sourceRight = b,
-                destination = slot
-            )
+                BinaryExpression.Type.MOD -> Instruction.Mod(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
+
+                BinaryExpression.Type.EQUALS -> Instruction.Equal(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
+
+                BinaryExpression.Type.LESS -> Instruction.Less(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
+
+                BinaryExpression.Type.LESS_EQUALS -> Instruction.LessEqual(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
+
+                BinaryExpression.Type.OR -> Instruction.Or(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
+
+                BinaryExpression.Type.AND -> Instruction.And(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
+
+                BinaryExpression.Type.CONCAT -> Instruction.Concat(
+                    sourceLeft = a,
+                    sourceRight = b,
+                    destination = slot
+                )
+            }
+
+            instruction(binaryInstruction)
+
+            anchor(exitAnchorUUID)
         }
 
         result(
             withoutResult = {
-                instruction(produce(slot()))
+                produce(slot())
             },
             withResult = { resultSlot ->
-                instruction(produce(resultSlot))
+                produce(resultSlot)
             }
         )
     }

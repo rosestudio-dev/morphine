@@ -435,43 +435,35 @@ class Parser(
     }
 
     private fun expressionOr(): Expression {
-        var result = expressionAnd()
+        val result = expressionAnd()
 
-        while (true) {
-            if (match(Token.SystemWord.OR)) {
-                val saved = position - 1
-                result = BinaryExpression(
-                    type = BinaryExpression.Type.OR,
-                    expressionA = result,
-                    expressionB = expressionAnd(),
-                    data = data(saved)
-                )
-            } else {
-                break
-            }
+        return if (match(Token.SystemWord.OR)) {
+            val saved = position - 1
+            BinaryExpression(
+                type = BinaryExpression.Type.OR,
+                expressionA = result,
+                expressionB = expressionOr(),
+                data = data(saved)
+            )
+        } else {
+            result
         }
-
-        return result
     }
 
     private fun expressionAnd(): Expression {
-        var result = expressionEqual()
+        val result = expressionEqual()
 
-        while (true) {
-            if (match(Token.SystemWord.AND)) {
-                val saved = position - 1
-                result = BinaryExpression(
-                    type = BinaryExpression.Type.AND,
-                    expressionA = result,
-                    expressionB = expressionEqual(),
-                    data = data(saved)
-                )
-            } else {
-                break
-            }
+        return if (match(Token.SystemWord.AND)) {
+            val saved = position - 1
+            BinaryExpression(
+                type = BinaryExpression.Type.AND,
+                expressionA = result,
+                expressionB = expressionAnd(),
+                data = data(saved)
+            )
+        } else {
+            result
         }
-
-        return result
     }
 
     private fun expressionEqual(): Expression {
