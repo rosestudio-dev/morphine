@@ -153,6 +153,7 @@ class CalculationStrategy : OptimizationStrategy {
                     Opcode.MUL -> Value.Integer(valueA.value * valueB.value)
                     Opcode.DIV -> Value.Integer(valueA.value / valueB.value)
                     Opcode.MOD -> Value.Integer(valueA.value % valueB.value)
+                    Opcode.LESS -> Value.Boolean(valueA.value < valueB.value)
                     Opcode.LESS_EQUAL -> Value.Boolean(valueA.value <= valueB.value)
                     else -> return this
                 }

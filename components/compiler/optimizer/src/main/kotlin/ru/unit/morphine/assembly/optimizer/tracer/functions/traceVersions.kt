@@ -40,7 +40,36 @@ private fun ControlFlowTree.valuesCalc() {
     }
 }
 
+private fun ControlFlowTree.extractCalc(): Map<Tracer.Block, Set<Tracer.Block>> {
+    val iter = BreadthFirstIterator(dominatorTree.iDomGraph).apply {
+        isCrossComponentTraversal = false
+    }
+
+    val blocks = data.blocks.associateWith { block ->
+        if (dominatorTree.root == block) {
+            null
+        } else {
+            dominatorTree.getIDom(block)
+        } to mutableSetOf<Tracer.Block>()
+    }
+
+    while (iter.hasNext()) {
+        val block = iter.next()
+
+        val fronts = dominatorTree.getFronts(block)
+        fronts.forEach { front ->
+            blocks[front]!!.second.add(block)
+        }
+    }
+
+    return blocks.mapValues { (_, pair) ->
+        pair.second + (pair.first?.let(::setOf) ?: emptySet())
+    }
+}
+
 private fun ControlFlowTree.sourceCalc() {
+    val extractBlocks = extractCalc()
+
     val iter = BreadthFirstIterator(dominatorTree.iDomGraph).apply {
         isCrossComponentTraversal = false
     }
@@ -48,23 +77,14 @@ private fun ControlFlowTree.sourceCalc() {
     while (iter.hasNext()) {
         val block = iter.next()
 
-        val incomingEdges = graph.incomingEdgesOf(block).map { edge ->
-            graph.getEdgeSource(edge)
-        }
-
-        val dominator = dominatorTree.getIDom(block)
-        val fronts = dominatorTree.getFronts(block)
-
-        val parents = fronts + when {
-            block == data.blocks.first() -> setOf(null)
-            dominator in incomingEdges -> setOf(dominator)
-            else -> emptySet()
-        }
-
-        val variants = parents.map { idom ->
-            idom?.nodes(originalData)?.last()?.tracedVersionsAfter ?: List<Tracer.TracedVersion>(data.function.slotsCount) {
-                Tracer.TracedVersion.Normal(0)
-            }
+        val variants = extractBlocks[block]!!.map { front ->
+            front.nodes(originalData).last().tracedVersionsAfter
+        }.ifEmpty {
+            listOf(
+                List<Tracer.TracedVersion>(data.function.slotsCount) {
+                    Tracer.TracedVersion.Normal(0)
+                }
+            )
         }
 
         val slots = (0 until data.function.slotsCount).map { slot ->
@@ -72,12 +92,7 @@ private fun ControlFlowTree.sourceCalc() {
                 list[slot]
             }.flatMap { version ->
                 when (version) {
-                    is Tracer.TracedVersion.Normal -> if (version.version == -1) {
-                        emptyList()
-                    } else {
-                        listOf(version.version)
-                    }
-
+                    is Tracer.TracedVersion.Normal -> listOf(version.version)
                     is Tracer.TracedVersion.Phi -> version.versions.toList()
                 }
             }.sorted().toSet()

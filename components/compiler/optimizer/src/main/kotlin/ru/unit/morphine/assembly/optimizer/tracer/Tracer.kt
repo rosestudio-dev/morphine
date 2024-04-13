@@ -36,7 +36,7 @@ class Tracer(
         val blocks: List<Block>,
         val function: Bytecode.Function,
     ) {
-        var controlFlowTree: ControlFlowTree? = null
+        lateinit var controlFlowTree: ControlFlowTree
     }
 
     data class Block(
@@ -45,7 +45,7 @@ class Tracer(
         val end: Int,
     ) {
 
-        private val range = start until end
+        val range = start until end
 
         fun nodes(data: Data) = data.nodes.subList(start, end)
 

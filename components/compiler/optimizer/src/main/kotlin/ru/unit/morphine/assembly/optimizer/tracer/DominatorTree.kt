@@ -8,11 +8,11 @@ import ru.unit.morphine.assembly.optimizer.exception.OptimizerException
 
 class DominatorTree<T>(
     private val graph: AbstractBaseGraph<T, DefaultEdge>,
-    start: T
+    val root: T
 ) {
     val iDomGraph: DirectedAcyclicGraph<T, DefaultEdge>
 
-    private val nodePreOrder = start?.let { first ->
+    private val nodePreOrder = root?.let { first ->
         dfs(graph, first)
     } ?: emptyList()
 
@@ -53,22 +53,23 @@ class DominatorTree<T>(
         }
 
         idomMap.forEach { (dominated, _) ->
-            val subgraphVertexes = dfs(iDomGraph, dominated).toSet()
-
-            val fronts = subgraphVertexes.flatMap { vertex ->
-                graph.outgoingEdgesOf(vertex).mapNotNull { edge ->
-                    val target = graph.getEdgeTarget(edge)
-
-                    target
-                }
-            }.filter { front ->
-                val s = graph.outgoingEdgesOf(front).any { edge -> graph.getEdgeTarget(edge) == dominated }
-                front !in subgraphVertexes || s
-            }.toSet()
-
-            fronts.forEach { front ->
-                frontMap[front]!!.add(dominated)
+            val strictlyVertexes = iDomGraph.outgoingEdgesOf(dominated).flatMap { edge ->
+                dfs(iDomGraph, iDomGraph.getEdgeTarget(edge))
             }
+
+            val fronts = graph.vertexSet().filterNot { vertex ->
+                vertex in strictlyVertexes
+            }.filter { vertex ->
+                val ingoingVertexes = graph.incomingEdgesOf(vertex).map { edge ->
+                    graph.getEdgeSource(edge)
+                }
+
+                ingoingVertexes.any { ingoingVertex ->
+                    isDominates(dominated, ingoingVertex)
+                }
+            }
+
+            frontMap[dominated]!!.addAll(fronts)
         }
     }
 
