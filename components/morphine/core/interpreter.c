@@ -44,8 +44,8 @@
         } \
     morphinem_blk_end
 
-#define slot(C, a) ((C)->s.slots.p[(a).value])
-#define param(C, a) ((C)->s.params.p[(a)])
+#define slot(C, a) ((C)->s.slots[(a).value])
+#define param(C, a) ((C)->s.params[(a)])
 
 #define arg1 instruction.argument1
 #define arg2 instruction.argument2
@@ -99,22 +99,22 @@ sp_case(OPCODE_PARAM)
             }
 sp_case(OPCODE_ARG)
             {
-                slot(C, arg2) = C->s.args.p[arg1.value];
+                slot(C, arg2) = C->s.args[arg1.value];
                 sp_end();
             }
 sp_case(OPCODE_ENV)
             {
-                slot(C, arg1) = *C->s.env.p;
+                slot(C, arg1) = *C->s.env;
                 sp_end();
             }
 sp_case(OPCODE_SELF)
             {
-                slot(C, arg1) = *C->s.self.p;
+                slot(C, arg1) = *C->s.self;
                 sp_end();
             }
 sp_case(OPCODE_RECURSION)
             {
-                slot(C, arg1) = *C->s.callable.p;
+                slot(C, arg1) = *C->s.callable;
                 sp_end();
             }
 sp_case(OPCODE_TABLE)
@@ -207,12 +207,12 @@ sp_case(OPCODE_SET_STATIC)
             }
 sp_case(OPCODE_GET_CLOSURE)
             {
-                slot(C, arg2) = closureI_get(U->I, valueI_as_closure_or_error(U->I, *C->s.callable.p), arg1.value);
+                slot(C, arg2) = closureI_get(U->I, valueI_as_closure_or_error(U->I, *C->s.callable), arg1.value);
                 sp_end();
             }
 sp_case(OPCODE_SET_CLOSURE)
             {
-                closureI_set(U->I, valueI_as_closure_or_error(U->I, *C->s.callable.p), arg1.value, slot(C, arg2));
+                closureI_set(U->I, valueI_as_closure_or_error(U->I, *C->s.callable), arg1.value, slot(C, arg2));
                 sp_end();
             }
 sp_case(OPCODE_CLOSURE)
@@ -487,7 +487,7 @@ static inline void step(morphine_coroutine_t U) {
 
     U->I->E.throw.context_coroutine = U;
 
-    struct value source = *callinfo->s.source.p;
+    struct value source = *callinfo->s.source;
 
     if (likely(valueI_is_function(source))) {
         callinfo->exit = false;

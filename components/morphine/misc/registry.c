@@ -29,7 +29,7 @@ void registryI_set_key(morphine_instance_t I, struct value callable, struct valu
 
 void registryI_set(morphine_coroutine_t U, struct value key, struct value value) {
     morphine_instance_t I = U->I;
-    struct value source = *callstackI_info_or_error(U)->s.source.p;
+    struct value source = *callstackI_info_or_error(U)->s.source;
 
     struct value registry_key;
     if (valueI_is_function(source)) {
@@ -59,7 +59,7 @@ void registryI_set(morphine_coroutine_t U, struct value key, struct value value)
 }
 
 struct value registryI_get(morphine_coroutine_t U, struct value key, bool *has) {
-    struct value source = *callstackI_info_or_error(U)->s.source.p;
+    struct value source = *callstackI_info_or_error(U)->s.source;
 
     struct value registry_key;
     if (valueI_is_function(source)) {
@@ -80,7 +80,7 @@ struct value registryI_get(morphine_coroutine_t U, struct value key, bool *has) 
 }
 
 void registryI_clear(morphine_coroutine_t U) {
-    struct value source = *callstackI_info_or_error(U)->s.source.p;
+    struct value source = *callstackI_info_or_error(U)->s.source;
 
     struct value registry_key;
     if (valueI_is_function(source)) {

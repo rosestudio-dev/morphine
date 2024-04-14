@@ -35,7 +35,7 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
 
         fprintf(file, "    ");
 
-        struct value callable = *callinfo->s.source.p;
+        struct value callable = *callinfo->s.source;
 
         if (valueI_is_function(callable)) {
             struct function *function = valueI_as_function(callable);
@@ -112,9 +112,9 @@ void throwI_handler(morphine_instance_t I) {
 
         // set error value
         if (throw->is_message) {
-            *callinfo->s.thrown.p = valueI_object(stringI_create(I, throw->error.message));
+            *callinfo->s.thrown = valueI_object(stringI_create(I, throw->error.message));
         } else {
-            *callinfo->s.thrown.p = throw->error.value;
+            *callinfo->s.thrown = throw->error.value;
         }
 
         size_t stack_size = stackI_space(coroutine);

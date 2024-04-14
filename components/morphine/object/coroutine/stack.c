@@ -8,39 +8,22 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 
-static inline void callstack_save(struct coroutine *U, struct value *stack) {
-    struct callinfo *current = U->callstack.callinfo;
-    while (current != NULL) {
-        stackI_ptr_save(stack, current->s.callable);
-        stackI_ptr_save(stack, current->s.source);
-        stackI_ptr_save(stack, current->s.env);
-        stackI_ptr_save(stack, current->s.self);
-        stackI_ptr_save(stack, current->s.result);
-        stackI_ptr_save(stack, current->s.thrown);
-        stackI_ptr_save(stack, current->s.args);
-        stackI_ptr_save(stack, current->s.slots);
-        stackI_ptr_save(stack, current->s.params);
-        stackI_ptr_save(stack, current->s.space);
-        stackI_ptr_save(stack, current->s.top);
-
-        current = current->prev;
-    }
-}
-
 static inline void callstack_recover(struct coroutine *U, struct value *stack) {
     struct callinfo *current = U->callstack.callinfo;
     while (current != NULL) {
-        stackI_ptr_recover(stack, current->s.callable);
-        stackI_ptr_recover(stack, current->s.source);
-        stackI_ptr_recover(stack, current->s.env);
-        stackI_ptr_recover(stack, current->s.self);
-        stackI_ptr_recover(stack, current->s.result);
-        stackI_ptr_recover(stack, current->s.thrown);
-        stackI_ptr_recover(stack, current->s.args);
-        stackI_ptr_recover(stack, current->s.slots);
-        stackI_ptr_recover(stack, current->s.params);
-        stackI_ptr_recover(stack, current->s.space);
-        stackI_ptr_recover(stack, current->s.top);
+#define stackI_ptr_recover(ptr) ((ptr) = U->stack.allocated + ((size_t) ((ptr) - stack)))
+        stackI_ptr_recover(current->s.callable);
+        stackI_ptr_recover(current->s.source);
+        stackI_ptr_recover(current->s.env);
+        stackI_ptr_recover(current->s.self);
+        stackI_ptr_recover(current->s.result);
+        stackI_ptr_recover(current->s.thrown);
+        stackI_ptr_recover(current->s.args);
+        stackI_ptr_recover(current->s.slots);
+        stackI_ptr_recover(current->s.params);
+        stackI_ptr_recover(current->s.space);
+        stackI_ptr_recover(current->s.top);
+#undef stackI_ptr_recover
 
         current = current->prev;
     }
@@ -55,7 +38,7 @@ static inline struct value *stack_peek(morphine_coroutine_t U, struct callinfo *
         p = U->stack.allocated + U->stack.space_top;
     } else {
         space_size = stackI_callinfo_space(U, callinfo);
-        p = callinfo->s.top.p;
+        p = callinfo->s.top;
     }
 
     if (offset >= space_size) {
@@ -79,7 +62,7 @@ static struct value *stack_vector(morphine_coroutine_t U, size_t offset, size_t 
         p = U->stack.allocated + U->stack.space_top;
     } else {
         space_size = stackI_callinfo_space(U, callinfo);
-        p = callinfo->s.top.p;
+        p = callinfo->s.top;
     }
 
     if (offset + size > space_size) {
@@ -138,8 +121,7 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
 
         struct value *saved = stack->allocated;
         stack->allocated = allocI_vec(I, saved, new_size, sizeof(struct value));
-        callstack_save(U, saved);
-        callstack_recover(U, stack->allocated);
+        callstack_recover(U, saved);
 
         stack->size = new_size;
     }
@@ -174,8 +156,7 @@ void stackI_shrink(morphine_coroutine_t U) {
     U->stack.allocated = allocI_vec(
         U->I, saved, size, sizeof(struct value)
     );
-    callstack_save(U, saved);
-    callstack_recover(U, U->stack.allocated);
+    callstack_recover(U, saved);
 
     U->stack.size = size;
 }
@@ -205,7 +186,7 @@ void stackI_push(morphine_coroutine_t U, struct value value) {
     size_t rollback = gcI_safe_value(U->I, value);
     stackI_raise(U, 1);
     if (callstackI_info(U) != NULL) {
-        callstackI_info(U)->s.top.p++;
+        callstackI_info(U)->s.top++;
     } else {
         U->stack.space_top++;
     }
@@ -241,7 +222,7 @@ void stackI_pop(morphine_coroutine_t U, size_t count) {
             throwI_error(U->I, "Cannot pop from space");
         }
 
-        callinfo->s.top = stackI_ptr(stackI_reduce(U, count));
+        callinfo->s.top = stackI_reduce(U, count);
     }
 }
 
@@ -272,5 +253,5 @@ size_t stackI_callinfo_space(morphine_coroutine_t U, struct callinfo *callinfo) 
         return U->stack.space_top;
     }
 
-    return (size_t) (callinfo->s.top.p - callinfo->s.space.p);
+    return (size_t) (callinfo->s.top - callinfo->s.space);
 }

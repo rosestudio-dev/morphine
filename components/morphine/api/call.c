@@ -61,13 +61,13 @@ MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, size_t index) {
         throwI_error(U->I, "Argument index out of bounce");
     }
 
-    stackI_push(U, callinfo->s.args.p[index]);
+    stackI_push(U, callinfo->s.args[index]);
 }
 
 MORPHINE_API void mapi_push_env(morphine_coroutine_t U) {
     struct value env;
     if (callstackI_info(U) != NULL) {
-        env = *callstackI_info(U)->s.env.p;
+        env = *callstackI_info(U)->s.env;
     } else {
         env = U->env;
     }
@@ -76,10 +76,10 @@ MORPHINE_API void mapi_push_env(morphine_coroutine_t U) {
 }
 
 MORPHINE_API void mapi_push_self(morphine_coroutine_t U) {
-    stackI_push(U, *callstackI_info_or_error(U)->s.self.p);
+    stackI_push(U, *callstackI_info_or_error(U)->s.self);
 }
 
 MORPHINE_API void mapi_change_env(morphine_coroutine_t U) {
     struct value env = stackI_peek(U, 0);
-    *callstackI_info_or_error(U)->s.env.p = env;
+    *callstackI_info_or_error(U)->s.env = env;
 }

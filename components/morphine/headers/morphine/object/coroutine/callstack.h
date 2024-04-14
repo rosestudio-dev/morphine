@@ -6,35 +6,26 @@
 
 #include "morphine/platform.h"
 
-#define stackI_ptr(ptr) ((stackI_ptr) { .p = (ptr) })
-#define stackI_ptr_save(a, ptr) (ptr) = (stackI_ptr) { .diff = (size_t) ((ptr).p - (a)) }
-#define stackI_ptr_recover(a, ptr) (ptr) = (stackI_ptr) { .p = (a) + (ptr).diff }
-
 #define callstackI_info(U) ((U)->callstack.callinfo)
 #define callstackI_info_or_error(U) ({ morphine_coroutine_t _U = (U); struct callinfo *c = callstackI_info(_U); if(unlikely(c == NULL)) throwI_error(_U->I, "Require callable"); c; })
-
-typedef union {
-    struct value *p;
-    size_t diff;
-} stackI_ptr;
 
 struct callinfo {
     struct {
         union {
-            stackI_ptr base;
-            stackI_ptr callable;
+            struct value *base;
+            struct value *callable;
         };
 
-        stackI_ptr source;
-        stackI_ptr env;
-        stackI_ptr self;
-        stackI_ptr result;
-        stackI_ptr thrown;
-        stackI_ptr args;
-        stackI_ptr slots;
-        stackI_ptr params;
-        stackI_ptr space;
-        stackI_ptr top;
+        struct value *source;
+        struct value *env;
+        struct value *self;
+        struct value *result;
+        struct value *thrown;
+        struct value *args;
+        struct value *slots;
+        struct value *params;
+        struct value *space;
+        struct value *top;
     } s;
 
     size_t pop_size;

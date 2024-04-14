@@ -57,7 +57,7 @@ static inline void stackI_call(
 
     struct value env;
     if (callstackI_info(U) != NULL) {
-        env = *callstackI_info(U)->s.env.p;
+        env = *callstackI_info(U)->s.env;
     } else {
         env = U->env;
     }
@@ -79,17 +79,17 @@ static inline void stackI_call(
     struct value *base = stackI_raise(U, raise_size);
 
     (*callinfo) = (struct callinfo) {
-        .s.base = stackI_ptr(base),
-        .s.source = stackI_ptr(base + 1),
-        .s.env = stackI_ptr(base + 2),
-        .s.self = stackI_ptr(base + 3),
-        .s.result = stackI_ptr(base + 4),
-        .s.thrown = stackI_ptr(base + 5),
-        .s.args = stackI_ptr(base + 6),
-        .s.slots = stackI_ptr(base + 6 + argc),
-        .s.params = stackI_ptr(base + 6 + argc + slots_count),
-        .s.space = stackI_ptr(U->stack.allocated + U->stack.top),
-        .s.top = stackI_ptr(U->stack.allocated + U->stack.top),
+        .s.base = base,
+        .s.source = (base + 1),
+        .s.env = (base + 2),
+        .s.self = (base + 3),
+        .s.result = (base + 4),
+        .s.thrown = (base + 5),
+        .s.args = (base + 6),
+        .s.slots = (base + 6 + argc),
+        .s.params = (base + 6 + argc + slots_count),
+        .s.space = (U->stack.allocated + U->stack.top),
+        .s.top = (U->stack.allocated + U->stack.top),
         .pop_size = pop_size,
         .arguments_count = argc,
         .pc.position = 0,
@@ -102,10 +102,10 @@ static inline void stackI_call(
 
     // init callinfo stack region
 
-    *callinfo->s.callable.p = callable;
-    *callinfo->s.source.p = source;
-    *callinfo->s.env.p = env;
-    *callinfo->s.self.p = self;
+    *callinfo->s.callable = callable;
+    *callinfo->s.source = source;
+    *callinfo->s.env = env;
+    *callinfo->s.self = self;
 
     // add callinfo
 
@@ -128,7 +128,7 @@ static inline void stackI_set_args_unsafe(morphine_coroutine_t U, struct value *
     struct callinfo *callinfo = checkargs(U, argc);
 
     for (size_t i = 0; i < argc; i++) {
-        callinfo->s.args.p[i] = args[i];
+        callinfo->s.args[i] = args[i];
     }
 }
 
@@ -223,7 +223,7 @@ void callstackI_call_stack(
 
         for (size_t i = 0; i < argc; i++) {
             struct value arg = stackI_callinfo_peek(U, callinfo, argc - i - 1 + offset);
-            callstackI_info(U)->s.args.p[i] = arg;
+            callstackI_info(U)->s.args[i] = arg;
         }
     }
 }
@@ -236,7 +236,7 @@ void callstackI_call_params(
     size_t pop_size
 ) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
-    size_t params_count = valueI_as_function_or_error(U->I, *(callinfo->s.source.p))->params_count;
+    size_t params_count = valueI_as_function_or_error(U->I, *(callinfo->s.source))->params_count;
 
     if (params_count < argc) {
         throwI_error(U->I, "Arguments count is greater than params count");
@@ -250,7 +250,7 @@ void callstackI_call_params(
 
         for (size_t i = 0; i < argc; i++) {
             struct value key = valueI_size2integer(U->I, i);
-            struct value arg = callinfo->s.params.p[i];
+            struct value arg = callinfo->s.params[i];
 
             tableI_set(U->I, table, key, arg);
         }
@@ -265,8 +265,8 @@ void callstackI_call_params(
         stackI_call(U, callable, self, argc, pop_size);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value arg = callinfo->s.params.p[i];
-            callstackI_info(U)->s.args.p[i] = arg;
+            struct value arg = callinfo->s.params[i];
+            callstackI_info(U)->s.args[i] = arg;
         }
     }
 }
@@ -275,7 +275,7 @@ void callstackI_pop(morphine_coroutine_t U) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
     size_t pop_size = callinfo->pop_size;
 
-    stackI_reduce(U, (size_t) (callinfo->s.top.p - callinfo->s.base.p));
+    stackI_reduce(U, (size_t) (callinfo->s.top - callinfo->s.base));
 
     callstackI_info(U) = callinfo->prev;
     U->callstack.size--;
@@ -318,14 +318,14 @@ repeat:;
 }
 
 struct value callstackI_result(morphine_coroutine_t U) {
-    return *callstackI_info_or_error(U)->s.result.p;
+    return *callstackI_info_or_error(U)->s.result;
 }
 
 void callstackI_return(morphine_coroutine_t U, struct value value) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
 
     if (callinfo->prev != NULL) {
-        *callinfo->prev->s.result.p = value;
+        *callinfo->prev->s.result = value;
     }
 
     callinfo->exit = true;
