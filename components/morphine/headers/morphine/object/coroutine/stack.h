@@ -12,6 +12,8 @@ struct stack {
     size_t top;
     size_t size;
 
+    size_t space_top;
+
     struct {
         size_t limit;
         size_t grow;

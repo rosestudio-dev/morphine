@@ -51,8 +51,8 @@ static inline struct value *stack_peek(morphine_coroutine_t U, struct callinfo *
     size_t space_size;
 
     if (callinfo == NULL) {
-        space_size = U->stack.top;
-        p = U->stack.allocated + U->stack.top;
+        space_size = U->stack.space_top;
+        p = U->stack.allocated + U->stack.space_top;
     } else {
         space_size = stackI_callinfo_space(U, callinfo);
         p = callinfo->s.top.p;
@@ -75,8 +75,8 @@ static struct value *stack_vector(morphine_coroutine_t U, size_t offset, size_t 
 
     struct callinfo *callinfo = callstackI_info(U);
     if (callinfo == NULL) {
-        space_size = U->stack.top;
-        p = U->stack.allocated + U->stack.top;
+        space_size = U->stack.space_top;
+        p = U->stack.allocated + U->stack.space_top;
     } else {
         space_size = stackI_callinfo_space(U, callinfo);
         p = callinfo->s.top.p;
@@ -102,6 +102,7 @@ struct stack stackI_prototype(morphine_instance_t I, size_t limit, size_t grow) 
         .allocated = NULL,
         .size = 0,
         .top = 0,
+        .space_top = 0,
         .settings.grow = grow,
         .settings.limit = limit,
     };
@@ -199,6 +200,8 @@ void stackI_push(morphine_coroutine_t U, struct value value) {
     stackI_raise(U, 1);
     if (callstackI_info(U) != NULL) {
         callstackI_info(U)->s.top.p++;
+    } else {
+        U->stack.space_top++;
     }
 
     struct value *stack_value = U->stack.allocated + U->stack.top - 1;
@@ -216,6 +219,13 @@ void stackI_pop(morphine_coroutine_t U, size_t count) {
     }
 
     if (callstackI_info(U) == NULL) {
+        size_t size = U->stack.space_top;
+
+        if (count > size) {
+            throwI_error(U->I, "Cannot pop from space");
+        }
+
+        U->stack.space_top -= count;
         stackI_reduce(U, count);
     } else {
         struct callinfo *callinfo = callstackI_info(U);
@@ -253,7 +263,7 @@ struct value stackI_callinfo_peek(morphine_coroutine_t U, struct callinfo *calli
 
 size_t stackI_callinfo_space(morphine_coroutine_t U, struct callinfo *callinfo) {
     if (callinfo == NULL) {
-        return U->stack.top;
+        return U->stack.space_top;
     }
 
     return (size_t) (callinfo->s.top.p - callinfo->s.space.p);
