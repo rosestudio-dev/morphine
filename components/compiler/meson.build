@@ -1,6 +1,7 @@
 project('compiler')
 
 version = get_option('version')
+versioncode = get_option('versioncode')
 
 prog_python = find_program('python', required : true)
 
@@ -26,6 +27,7 @@ gradle_options = [
     '--project-dir',
     meson.current_source_dir(),
     '-DprojectVersion=' + version,
+    '-DprojectVersionCode=' + versioncode,
     '-DjarOutputDir=' + meson.current_build_dir()
 ]
 
@@ -70,6 +72,7 @@ compiler_clib_jar = custom_target(
 summary(
     {
         'version' : version,
+        'version_code' : versioncode,
         'sources' : [sources_kts, sources_kt],
     },
     section : 'Configuration',

@@ -7,3 +7,7 @@
 MORPHINE_API const char *mapi_version(void) {
     return MORPHINE_VERSION;
 }
+
+MORPHINE_API int mapi_version_code(void) {
+    return MORPHINE_VERSION_CODE;
+}

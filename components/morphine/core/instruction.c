@@ -4,6 +4,61 @@
 
 #include "morphine/core/instruction.h"
 
+const uint8_t instructionI_opcode_args[OPCODES_COUNT] = {
+    0, // OPCODE_YIELD
+    2, // OPCODE_LOAD
+    2, // OPCODE_MOVE
+    2, // OPCODE_PARAM
+    2, // OPCODE_ARG
+
+    1, // OPCODE_ENV
+    1, // OPCODE_SELF
+    1, // OPCODE_RECURSION
+
+    1, // OPCODE_TABLE
+    3, // OPCODE_GET
+    3, // OPCODE_SET
+
+    2, // OPCODE_ITERATOR
+    1, // OPCODE_ITERATOR_INIT
+    2, // OPCODE_ITERATOR_HAS
+    2, // OPCODE_ITERATOR_NEXT
+
+    1, // OPCODE_JUMP
+    3, // OPCODE_JUMP_IF
+
+    2, // OPCODE_GET_STATIC
+    2, // OPCODE_SET_STATIC
+
+    2, // OPCODE_GET_CLOSURE
+    2, // OPCODE_SET_CLOSURE
+
+    3, // OPCODE_CLOSURE
+    2, // OPCODE_CALL
+    3, // OPCODE_SCALL
+    1, // OPCODE_LEAVE
+    1, // OPCODE_RESULT
+
+    3, // OPCODE_ADD
+    3, // OPCODE_SUB
+    3, // OPCODE_MUL
+    3, // OPCODE_DIV
+    3, // OPCODE_MOD
+    3, // OPCODE_EQUAL
+    3, // OPCODE_LESS
+    3, // OPCODE_LESS_EQUAL,
+    3, // OPCODE_AND
+    3, // OPCODE_OR
+    3, // OPCODE_CONCAT
+
+    2, // OPCODE_TYPE
+    2, // OPCODE_NEGATIVE
+    2, // OPCODE_NOT
+    2, // OPCODE_REF
+    2, // OPCODE_DEREF
+    2, // OPCODE_LENGTH
+};
+
 bool instructionI_validate(
     instruction_t instruction,
     size_t arguments_count,
@@ -13,19 +68,18 @@ bool instructionI_validate(
     size_t statics_count,
     size_t constants_count
 ) {
-#define arg_type(a, t) if(instruction.a.type != (t)) goto error;
-#define arg_type_count(a, t, s) if(instruction.a.type != (t) || instruction.a.value >= (s)) goto error;
-#define arg_type_size(a, t, s) if(instruction.a.type != (t) || instruction.a.value > (s)) goto error;
+#define arg_type_count(a, s) if(instruction.a.value >= (s)) goto error;
+#define arg_type_size(a, s) if(instruction.a.value > (s)) goto error;
 
-#define arg_position(a) arg_type(a, ARGUMENT_TYPE_POSITION)
-#define arg_closure(a) arg_type_count(a, ARGUMENT_TYPE_CLOSURE, closures_count)
-#define arg_static(a) arg_type_count(a, ARGUMENT_TYPE_STATIC, statics_count)
-#define arg_slot(a) arg_type_count(a, ARGUMENT_TYPE_SLOT, slots_count)
-#define arg_constant(a) arg_type_count(a, ARGUMENT_TYPE_CONSTANT, constants_count)
-#define arg_param(a) arg_type_count(a, ARGUMENT_TYPE_PARAM, params_count)
-#define arg_argument(a) arg_type_count(a, ARGUMENT_TYPE_ARG, arguments_count)
-#define arg_params_count(a) arg_type_size(a, ARGUMENT_TYPE_COUNT, params_count)
-#define arg_undefined(a) arg_type(a, ARGUMENT_TYPE_UNDEFINED)
+#define arg_position(a)
+#define arg_closure(a) arg_type_count(a, closures_count)
+#define arg_static(a) arg_type_count(a, statics_count)
+#define arg_slot(a) arg_type_count(a, slots_count)
+#define arg_constant(a) arg_type_count(a, constants_count)
+#define arg_param(a) arg_type_count(a, params_count)
+#define arg_argument(a) arg_type_count(a, arguments_count)
+#define arg_params_count(a) arg_type_size(a, params_count)
+#define arg_undefined(a)
 
     switch (instruction.opcode) {
         case OPCODE_YIELD: {

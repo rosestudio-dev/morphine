@@ -5,6 +5,7 @@ project(
 
 installdir = get_option('installdir')
 version = get_option('version')
+versioncode = get_option('versioncode')
 sanitize = get_option('sanitize')
 
 prog_python = find_program('python', required : true)
@@ -67,7 +68,8 @@ warning_flags = [
 common_flags = [
     '-fno-common',
     '-fwrapv',
-    '-DMORPHINE_VERSION="' + version + '"'
+    '-DMORPHINE_VERSION="' + version + '"',
+    '-DMORPHINE_VERSION_CODE=' + versioncode
 ]
 
 sanitize_flags = [
@@ -148,6 +150,8 @@ if installdir != 'undefined'
             'headers',
             '-v',
             version,
+            '-c',
+            versioncode,
             '-o',
             '@OUTPUT@'
         ],
@@ -162,6 +166,7 @@ endif
 summary(
     {
         'version' : version,
+        'version_code' : versioncode,
         'install' : installdir != 'undefined',
         'install-dir' : installdir,
         'sanitize' : sanitize,

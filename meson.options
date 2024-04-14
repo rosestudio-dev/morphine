@@ -1,2 +1,3 @@
 option('version', type : 'string', value : 'undefined')
+option('versioncode', type : 'string', value : '0')
 option('installdir', type : 'string', value : 'undefined')

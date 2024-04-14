@@ -16,3 +16,4 @@ const char *dlibcompiler_geterror(morphine_coroutine_t, struct compiler_instance
 int dlibcompiler_getbytecodesize(morphine_coroutine_t, struct compiler_instance *);
 const uint8_t *dlibcompiler_getbytecodevector(morphine_coroutine_t, struct compiler_instance *);
 const char *dlibcompiler_version(morphine_coroutine_t, struct compiler_instance *);
+int dlibcompiler_versioncode(morphine_coroutine_t, struct compiler_instance *);

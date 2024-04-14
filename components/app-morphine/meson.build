@@ -4,6 +4,7 @@ project(
 )
 
 version = get_option('version')
+versioncode = get_option('versioncode')
 installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
@@ -69,6 +70,7 @@ executable(
 summary(
     {
         'version' : version,
+        'version_code' : versioncode,
         'install' : installdir != 'undefined',
         'install-dir' : installdir,
         'sanitize' : sanitize,

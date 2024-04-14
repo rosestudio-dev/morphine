@@ -7,6 +7,7 @@ parser.add_argument('-i', '--publicincludes', default='')
 parser.add_argument('-p', '--privateincludes', default='')
 parser.add_argument('-o', '--output', default='')
 parser.add_argument('-v', '--version', default='')
+parser.add_argument('-c', '--versioncode', default='')
 args = parser.parse_args()
 
 sources = args.sources.split(":")
@@ -55,11 +56,19 @@ for i in public_includes:
 f.write(
     """)
 
-target_compile_definitions(morphine PUBLIC MORPHINE_VERSION=\""""
+target_compile_definitions(
+    morphine PUBLIC
+    MORPHINE_VERSION=\""""
 )
 f.write(args.version)
 f.write(
-    """\")
+    """\"
+    MORPHINE_VERSION_CODE="""
+)
+f.write(args.versioncode)
+f.write(
+    """
+)
 """
 )
 

@@ -27,6 +27,18 @@ static uint8_t get_u8(struct data *data) {
     return byte;
 }
 
+static uint16_t get_u16(struct data *data) {
+    union {
+        uint8_t raw[2];
+        uint16_t result;
+    } buffer;
+
+    buffer.raw[1] = get_u8(data);
+    buffer.raw[0] = get_u8(data);
+
+    return buffer.result;
+}
+
 static uint32_t get_u32(struct data *data) {
     char type = (char) get_u8(data);
 
@@ -71,9 +83,15 @@ static uint64_t get_u64(struct data *data) {
         uint64_t result;
     } buffer;
 
-    for (int i = 0; i < 8; i++) {
-        buffer.raw[7 - i] = get_u8(data);
-    }
+    buffer.raw[7] = get_u8(data);
+    buffer.raw[6] = get_u8(data);
+    buffer.raw[5] = get_u8(data);
+    buffer.raw[4] = get_u8(data);
+
+    buffer.raw[3] = get_u8(data);
+    buffer.raw[2] = get_u8(data);
+    buffer.raw[1] = get_u8(data);
+    buffer.raw[0] = get_u8(data);
 
     return buffer.result;
 }
@@ -127,89 +145,21 @@ static struct uuid get_uuid(struct data *data) {
     };
 }
 
-static instruction_t get_instruction(struct data *data) {
-    instruction_t instruction;
-
-    instruction.line = get_u32(data);
-    instruction.opcode = get_u8(data);
-    size_t args_count = get_u8(data);
-
-    if (args_count > 3) {
-        process_error(data->state, "Instruction arguments corrupted");
-    }
-
-    argument_t *args = &instruction.argument1;
-
-    for (size_t i = 0; i < args_count; i++) {
-        char type = (char) get_u8(data);
-        uint32_t value = get_u32(data);
-
-        args[i].value = value;
-
-        switch (type) {
-            case 'c': {
-                args[i].type = ARGUMENT_TYPE_CONSTANT;
-                break;
-            }
-            case 's': {
-                args[i].type = ARGUMENT_TYPE_SLOT;
-                break;
-            }
-            case 'o': {
-                args[i].type = ARGUMENT_TYPE_COUNT;
-                break;
-            }
-            case 'p': {
-                args[i].type = ARGUMENT_TYPE_PARAM;
-                break;
-            }
-            case 'i': {
-                args[i].type = ARGUMENT_TYPE_POSITION;
-                break;
-            }
-            case 'l': {
-                args[i].type = ARGUMENT_TYPE_CLOSURE;
-                break;
-            }
-            case 't': {
-                args[i].type = ARGUMENT_TYPE_STATIC;
-                break;
-            }
-            case 'a': {
-                args[i].type = ARGUMENT_TYPE_ARG;
-                break;
-            }
-
-            default:
-                process_error(data->state, "Unsupported argument tag");
-        }
-    }
-
-    for (size_t i = args_count; i < 3; i++) {
-        args[i] = (argument_t) {
-            .value = 0,
-            .type = ARGUMENT_TYPE_UNDEFINED
-        };
-    }
-
-    return instruction;
-}
-
 static struct function *get_function(struct data *data) {
     struct uuid uuid = get_uuid(data);
-    size_t name_chars_count = get_u32(data);
-    size_t arguments_count = get_u32(data);
-    size_t slots_count = get_u32(data);
-    size_t params_count = get_u32(data);
-    size_t closures_count = get_u32(data);
-    size_t statics_count = get_u32(data);
-    size_t constants_count = get_u32(data);
-    size_t instructions_count = get_u32(data);
+    size_t name_len = get_u16(data);
+    size_t arguments_count = get_u16(data);
+    size_t slots_count = get_u16(data);
+    size_t params_count = get_u16(data);
+    size_t closures_count = get_u16(data);
+    size_t statics_count = get_u16(data);
+    size_t constants_count = get_u16(data);
+    size_t instructions_count = get_u16(data);
 
     struct function *function = functionI_create(
         data->U->I,
         uuid,
-        name_chars_count,
+        name_len,
         constants_count,
         instructions_count,
         statics_count,
@@ -221,65 +171,96 @@ static struct function *get_function(struct data *data) {
 
     stackI_push(data->U, valueI_object(function));
 
-    for (size_t i = 0; i < instructions_count; i++) {
-        function->instructions[i] = get_instruction(data);
-    }
-
-    functionI_validate(data->U->I, function);
-
     return function;
 }
 
-static struct value get_constant(struct data *data) {
-    char type = (char) get_u8(data);
+static void load_instructions(struct data *data, struct function *function) {
+    for (size_t i = 0; i < function->instructions_count; i++) {
+        instruction_t instruction = {
+            .line = 0,
+            .opcode = get_u8(data),
+            .argument1.value = 0,
+            .argument2.value = 0,
+            .argument3.value = 0,
+        };
 
-    switch (type) {
-        case 'b': {
-            return valueI_boolean(get_u8(data));
-        }
-        case 'i': {
-            return valueI_integer((ml_integer) get_u32(data));
-        }
-        case 'f': {
-            struct uuid uuid = get_uuid(data);
-
-            struct function *found = NULL;
-            for (size_t i = 0; i < data->functions.count; i++) {
-                if (uuidI_equal(data->functions.vector[i]->uuid, uuid)) {
-                    found = data->functions.vector[i];
-                    break;
-                }
-            }
-
-            if (found == NULL) {
-                process_error(data->state, "Function constant corrupted");
-            }
-
-            return valueI_object(found);
-        }
-        case 'd': {
-            return valueI_decimal((ml_decimal) get_double(data));
-        }
-        case 's': {
-            return get_string(data);
-        }
-        case 'n': {
-            return valueI_nil;
+        if (!instructionI_is_valid_opcode(instruction.opcode)) {
+            process_error(data->state, "Unsupported opcode");
         }
 
-        default: {
-            process_error(data->state, "Unsupported constant tag");
+        argument_t *args = &instruction.argument1;
+        size_t count = instructionI_opcode_args[instruction.opcode];
+        for (size_t c = 0; c < count; c++) {
+            args[c].value = get_u16(data);
         }
+
+        function->instructions[i] = instruction;
+    }
+
+    functionI_validate(data->U->I, function);
+}
+
+static void load_lines(struct data *data, struct function *function) {
+    for (size_t i = 0; i < function->instructions_count; i++) {
+        function->instructions[i].line = get_u32(data);
     }
 }
 
 static void load_constants(struct data *data, struct function *function) {
     for (size_t i = 0; i < function->constants_count; i++) {
+        char type = (char) get_u8(data);
+
+        struct value constant = valueI_nil;
+        switch (type) {
+            case 'b': {
+                constant = valueI_boolean(get_u8(data));
+                break;
+            }
+            case 'i': {
+                constant = valueI_integer((ml_integer) get_u32(data));
+                break;
+            }
+            case 'f': {
+                struct uuid uuid = get_uuid(data);
+
+                struct function *found = NULL;
+                for (size_t c = 0; c < data->functions.count; c++) {
+                    if (uuidI_equal(data->functions.vector[c]->uuid, uuid)) {
+                        found = data->functions.vector[c];
+                        break;
+                    }
+                }
+
+                if (found == NULL) {
+                    process_error(data->state, "Function constant corrupted");
+                }
+
+                constant = valueI_object(found);
+                break;
+            }
+            case 'd': {
+                constant = valueI_decimal((ml_decimal) get_double(data));
+                break;
+            }
+            case 's': {
+                constant = get_string(data);
+                break;
+            }
+            case 'n': {
+                constant = valueI_nil;
+                break;
+            }
+
+            default: {
+                process_error(data->state, "Unsupported constant tag");
+            }
+        }
+
         functionI_constant_set(
             data->U->I,
             function,
             i,
-            get_constant(data)
+            constant
         );
     }
 }
@@ -329,6 +310,14 @@ static struct uuid load(struct data *data) {
     }
 
     for (size_t i = 0; i < functions_count; i++) {
+        load_instructions(data, functions[i]);
+    }
+
+    for (size_t i = 0; i < functions_count; i++) {
+        load_lines(data, functions[i]);
+    }
+
+    for (size_t i = 0; i < functions_count; i++) {
         load_constants(data, functions[i]);
     }
 
@@ -341,7 +330,7 @@ static struct uuid load(struct data *data) {
     return main_uuid;
 }
 
-static struct function *resolve(struct data *data, struct uuid main_uuid) {
+static struct function *get_main(struct data *data, struct uuid main_uuid) {
     struct function *main = NULL;
 
     for (size_t i = 0; i < data->functions.count; i++) {
@@ -368,5 +357,5 @@ struct function *binary(morphine_coroutine_t U, struct process_state *state) {
     };
 
     struct uuid main_uuid = load(&data);
-    return resolve(&data, main_uuid);
+    return get_main(&data, main_uuid);
 }

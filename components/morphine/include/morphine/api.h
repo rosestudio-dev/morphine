@@ -9,6 +9,7 @@
 #include "platform.h"
 
 MORPHINE_API const char *mapi_version(void);
+MORPHINE_API int mapi_version_code(void);
 
 MORPHINE_API morphine_instance_t mapi_open(struct platform, struct settings, void *data);
 MORPHINE_API void *mapi_instance_data(morphine_instance_t);

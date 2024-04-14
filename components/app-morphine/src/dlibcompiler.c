@@ -28,6 +28,7 @@ struct compiler_instance {
         libcompiler_getbytecodesize_fn_t getbytecodesize;
         libcompiler_getbytecodevector_fn_t getbytecodevector;
         libcompiler_version_fn_t version;
+        libcompiler_versioncode_fn_t versioncode;
     } methods;
 };
 
@@ -74,6 +75,7 @@ static void graal_init(morphine_coroutine_t U, struct compiler_instance *instanc
     instance->methods.getbytecodesize = safedlsym(U, instance->dlib, "libcompiler_getbytecodesize");
     instance->methods.getbytecodevector = safedlsym(U, instance->dlib, "libcompiler_getbytecodevector");
     instance->methods.version = safedlsym(U, instance->dlib, "libcompiler_version");
+    instance->methods.versioncode = safedlsym(U, instance->dlib, "libcompiler_versioncode");
 
     if (graal_create_isolate(NULL, &instance->vars.isolate, &instance->vars.thread) != 0) {
         mapi_errorf(U, "Cannot initialize compiler");
@@ -92,7 +94,8 @@ static void check_version(morphine_coroutine_t U, struct compiler_instance *inst
     check_graal_inited(U, instance);
 
     const char *version = instance->methods.version(instance->vars.thread);
-    if (version == NULL || strcmp(mapi_version(), version) != 0) {
+    int code = instance->methods.versioncode(instance->vars.thread);
+    if (version == NULL || strcmp(mapi_version(), version) != 0 || code != mapi_version_code()) {
         mapi_errorf(U, "Unsupported compiler version");
     }
 }
@@ -136,4 +139,9 @@ const uint8_t *dlibcompiler_getbytecodevector(morphine_coroutine_t U, struct com
 const char *dlibcompiler_version(morphine_coroutine_t U, struct compiler_instance *instance) {
     check_graal_inited(U, instance);
     return instance->methods.version(instance->vars.thread);
+}
+
+int dlibcompiler_versioncode(morphine_coroutine_t U, struct compiler_instance *instance) {
+    check_graal_inited(U, instance);
+    return instance->methods.versioncode(instance->vars.thread);
 }

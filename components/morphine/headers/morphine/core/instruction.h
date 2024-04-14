@@ -66,24 +66,13 @@ typedef enum {
     OPCODE_LENGTH,
 } opcode_t;
 
-typedef enum {
-    ARGUMENT_TYPE_SLOT,
-    ARGUMENT_TYPE_CONSTANT,
-    ARGUMENT_TYPE_COUNT,
-    ARGUMENT_TYPE_PARAM,
-    ARGUMENT_TYPE_ARG,
-    ARGUMENT_TYPE_POSITION,
-    ARGUMENT_TYPE_CLOSURE,
-    ARGUMENT_TYPE_STATIC,
-    ARGUMENT_TYPE_UNDEFINED,
-} argument_type_t;
+extern const uint8_t instructionI_opcode_args[OPCODES_COUNT];
 
 typedef struct {
-    uint32_t value;
-    argument_type_t type;
+    uint16_t value;
 } argument_t;
 
-typedef struct {
+typedef struct instruction_t {
     uint32_t line;
     opcode_t opcode;
     argument_t argument1;
@@ -100,3 +89,7 @@ bool instructionI_validate(
     size_t statics_count,
     size_t constants_count
 );
+
+static inline bool instructionI_is_valid_opcode(opcode_t opcode) {
+    return OPCODES_START <= opcode && opcode < OPCODES_COUNT;
+}
