@@ -125,7 +125,7 @@ static void create_instance(morphine_coroutine_t U) {
 static void start(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            maux_checkargs(U, 1, "self:table");
+            maux_checkargs(U, 1, "self:table,any...");
             mapi_push_table(U);
 
             mapi_push_stringf(U, "__coroutine");
