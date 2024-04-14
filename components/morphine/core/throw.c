@@ -17,11 +17,12 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
     FILE *file = U->I->platform.io.stacktrace;
 
     fprintf(file, "morphine error (in coroutine %p): %s\n", U, message);
-    fprintf(file, "Tracing callstack:\n");
+    fprintf(file, "tracing callstack:\n");
 
     size_t callstack_size = U->callstack.size;
     size_t callstack_index = 0;
-    while (callstackI_info(U) != NULL) {
+    struct callinfo *callinfo = callstackI_info(U);
+    while (callinfo != NULL) {
         if (callstack_size >= 30) {
             if (callstack_index == 10) {
                 fprintf(file, "    ... (skipped %zu)\n", callstack_size - 20);
@@ -34,12 +35,12 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
 
         fprintf(file, "    ");
 
-        struct value callable = *callstackI_info(U)->s.source.p;
+        struct value callable = *callinfo->s.source.p;
 
         if (valueI_is_function(callable)) {
             struct function *function = valueI_as_function(callable);
 
-            size_t position = callstackI_info(U)->pc.position;
+            size_t position = callinfo->pc.position;
             uint32_t line = 0;
             if (position < function->instructions_count) {
                 line = function->instructions[position].line;
@@ -52,7 +53,7 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
             fprintf(
                 file,
                 "[s: %zu] native %s (%p)\n",
-                callstackI_info(U)->pc.state,
+                callinfo->pc.state,
                 native->name,
                 native->function
             );
@@ -60,7 +61,7 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
 
 next:
         callstack_index++;
-        callstackI_pop(U);
+        callinfo = callinfo->prev;
     }
 }
 
@@ -97,6 +98,8 @@ void throwI_handler(morphine_instance_t I) {
         }
     }
 
+    callstackI_fix_uninit(coroutine);
+
     if (callinfo != NULL) {
         // set state
         callinfo->pc.state = callinfo->catch.state;
@@ -121,6 +124,11 @@ void throwI_handler(morphine_instance_t I) {
         }
     } else {
         throwI_stacktrace(coroutine, throwI_message(I));
+
+        while (callstackI_info(coroutine) != NULL) {
+            callstackI_pop(coroutine);
+        }
+
         coroutineI_kill_regardless(coroutine);
     }
 

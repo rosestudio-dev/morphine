@@ -68,13 +68,15 @@ static inline void stackI_call(
         throwI_error(I, "Cannot pop values after call");
     }
 
-    size_t raise_size = 6 + argc + slots_count + params_count;
-    struct value *base = stackI_raise(U, raise_size);
-
     struct callinfo *callinfo = gcI_hot_callinfo(I);
     if (callinfo == NULL) {
         callinfo = allocI_uni(I, NULL, sizeof(struct callinfo));
     }
+
+    U->callstack.uninit_callinfo = callinfo;
+
+    size_t raise_size = 6 + argc + slots_count + params_count;
+    struct value *base = stackI_raise(U, raise_size);
 
     (*callinfo) = (struct callinfo) {
         .s.base = stackI_ptr(base),
@@ -98,15 +100,18 @@ static inline void stackI_call(
         .prev = callstackI_info(U)
     };
 
-    callstackI_info(U) = callinfo;
-    U->callstack.size++;
-
     // init callinfo stack region
 
     *callinfo->s.callable.p = callable;
     *callinfo->s.source.p = source;
     *callinfo->s.env.p = env;
     *callinfo->s.self.p = self;
+
+    // add callinfo
+
+    callstackI_info(U) = callinfo;
+    U->callstack.size++;
+    U->callstack.uninit_callinfo = NULL;
 }
 
 static inline struct callinfo *checkargs(morphine_coroutine_t U, size_t argc) {
@@ -130,6 +135,7 @@ static inline void stackI_set_args_unsafe(morphine_coroutine_t U, struct value *
 struct callstack callstackI_prototype(void) {
     return (struct callstack) {
         .callinfo = NULL,
+        .uninit_callinfo = NULL,
         .size = 0,
     };
 }
@@ -141,6 +147,8 @@ void callstackI_destruct(morphine_instance_t I, struct callstack *callstack) {
         callstackI_callinfo_free(I, callinfo);
         callinfo = prev;
     }
+
+    callstackI_callinfo_free(I, callstack->uninit_callinfo);
     callstack->callinfo = NULL;
     callstack->size = 0;
 }
@@ -278,6 +286,13 @@ void callstackI_pop(morphine_coroutine_t U) {
 
     if (callstackI_info(U) == NULL) {
         coroutineI_kill(U);
+    }
+}
+
+void callstackI_fix_uninit(morphine_coroutine_t U) {
+    if (U->callstack.uninit_callinfo != NULL) {
+        gcI_dispose_callinfo(U->I, U->callstack.uninit_callinfo);
+        U->callstack.uninit_callinfo = NULL;
     }
 }
 

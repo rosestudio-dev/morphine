@@ -15,12 +15,14 @@ morphine_coroutine_t coroutineI_custom_create(
     size_t stack_limit,
     size_t stack_grow
 ) {
+    struct stack stack = stackI_prototype(I, stack_limit, stack_grow);
+
     morphine_coroutine_t result = allocI_uni(I, NULL, sizeof(struct coroutine));
 
     (*result) = (struct coroutine) {
         .status = COROUTINE_STATUS_CREATED,
         .priority = 1,
-        .stack = stackI_prototype(I, stack_limit, stack_grow),
+        .stack = stack,
         .callstack = callstackI_prototype(),
         .env = env,
         .prev = NULL,
@@ -71,9 +73,11 @@ void coroutineI_attach(morphine_coroutine_t U) {
             U->prev = I->E.candidates;
             I->E.candidates = U;
             U->status = COROUTINE_STATUS_ATTACHED;
-            break;
+            return;
         }
     }
+
+    throwI_panic(U->I, "Unknown coroutine status");
 }
 
 void coroutineI_suspend(morphine_coroutine_t U) {
@@ -81,7 +85,7 @@ void coroutineI_suspend(morphine_coroutine_t U) {
         case COROUTINE_STATUS_ATTACHED:
         case COROUTINE_STATUS_RUNNING:
             U->status = COROUTINE_STATUS_SUSPENDED;
-            break;
+            return;
         case COROUTINE_STATUS_SUSPENDED:
             throwI_error(U->I, "Coroutine is suspended");
         case COROUTINE_STATUS_DEAD:
@@ -91,6 +95,8 @@ void coroutineI_suspend(morphine_coroutine_t U) {
         case COROUTINE_STATUS_CREATED:
             throwI_error(U->I, "Coroutine isn't attached");
     }
+
+    throwI_panic(U->I, "Unknown coroutine status");
 }
 
 void coroutineI_resume(morphine_coroutine_t U) {
@@ -100,7 +106,7 @@ void coroutineI_resume(morphine_coroutine_t U) {
             throwI_error(U->I, "Coroutine is running");
         case COROUTINE_STATUS_SUSPENDED:
             U->status = COROUTINE_STATUS_RUNNING;
-            break;
+            return;
         case COROUTINE_STATUS_DEAD:
             throwI_error(U->I, "Coroutine is dead");
         case COROUTINE_STATUS_DETACHED:
@@ -108,6 +114,8 @@ void coroutineI_resume(morphine_coroutine_t U) {
         case COROUTINE_STATUS_CREATED:
             throwI_error(U->I, "Coroutine isn't attached");
     }
+
+    throwI_panic(U->I, "Unknown coroutine status");
 }
 
 void coroutineI_kill(morphine_coroutine_t U) {
@@ -116,7 +124,7 @@ void coroutineI_kill(morphine_coroutine_t U) {
         case COROUTINE_STATUS_RUNNING:
         case COROUTINE_STATUS_SUSPENDED:
             U->status = COROUTINE_STATUS_DEAD;
-            break;
+            return;
         case COROUTINE_STATUS_DEAD:
             throwI_error(U->I, "Coroutine is dead");
         case COROUTINE_STATUS_DETACHED:
@@ -124,6 +132,8 @@ void coroutineI_kill(morphine_coroutine_t U) {
         case COROUTINE_STATUS_CREATED:
             throwI_error(U->I, "Coroutine isn't attached");
     }
+
+    throwI_panic(U->I, "Unknown coroutine status");
 }
 
 void coroutineI_kill_regardless(morphine_coroutine_t U) {
@@ -133,11 +143,13 @@ void coroutineI_kill_regardless(morphine_coroutine_t U) {
         case COROUTINE_STATUS_RUNNING:
         case COROUTINE_STATUS_SUSPENDED:
             U->status = COROUTINE_STATUS_DEAD;
-            break;
+            return;
         case COROUTINE_STATUS_DEAD:
         case COROUTINE_STATUS_DETACHED:
-            break;
+            return;
     }
+
+    throwI_panic(U->I, "Unknown coroutine status");
 }
 
 bool coroutineI_isalive(morphine_coroutine_t U) {
@@ -152,7 +164,7 @@ bool coroutineI_isalive(morphine_coroutine_t U) {
             return false;
     }
 
-    throwI_panic(U->I, "Unknown status");
+    throwI_panic(U->I, "Unknown coroutine status");
 }
 
 const char *coroutineI_status2string(morphine_coroutine_t U, enum coroutine_status status) {
@@ -171,7 +183,7 @@ const char *coroutineI_status2string(morphine_coroutine_t U, enum coroutine_stat
             return "created";
     }
 
-    throwI_panic(U->I, "Unknown status");
+    throwI_panic(U->I, "Unknown coroutine status");
 }
 
 enum coroutine_status coroutineI_string2status(morphine_coroutine_t U, const char *name) {
@@ -181,5 +193,5 @@ enum coroutine_status coroutineI_string2status(morphine_coroutine_t U, const cha
         }
     }
 
-    throwI_error(U->I, "Unknown status");
+    throwI_error(U->I, "Unknown coroutine status");
 }

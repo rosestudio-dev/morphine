@@ -8,39 +8,39 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 
-static inline void callstack_save(struct coroutine *U) {
+static inline void callstack_save(struct coroutine *U, struct value *stack) {
     struct callinfo *current = U->callstack.callinfo;
     while (current != NULL) {
-        stackI_ptr_save(U->stack.allocated, current->s.callable);
-        stackI_ptr_save(U->stack.allocated, current->s.source);
-        stackI_ptr_save(U->stack.allocated, current->s.env);
-        stackI_ptr_save(U->stack.allocated, current->s.self);
-        stackI_ptr_save(U->stack.allocated, current->s.result);
-        stackI_ptr_save(U->stack.allocated, current->s.thrown);
-        stackI_ptr_save(U->stack.allocated, current->s.args);
-        stackI_ptr_save(U->stack.allocated, current->s.slots);
-        stackI_ptr_save(U->stack.allocated, current->s.params);
-        stackI_ptr_save(U->stack.allocated, current->s.space);
-        stackI_ptr_save(U->stack.allocated, current->s.top);
+        stackI_ptr_save(stack, current->s.callable);
+        stackI_ptr_save(stack, current->s.source);
+        stackI_ptr_save(stack, current->s.env);
+        stackI_ptr_save(stack, current->s.self);
+        stackI_ptr_save(stack, current->s.result);
+        stackI_ptr_save(stack, current->s.thrown);
+        stackI_ptr_save(stack, current->s.args);
+        stackI_ptr_save(stack, current->s.slots);
+        stackI_ptr_save(stack, current->s.params);
+        stackI_ptr_save(stack, current->s.space);
+        stackI_ptr_save(stack, current->s.top);
 
         current = current->prev;
     }
 }
 
-static inline void callstack_recover(struct coroutine *U) {
+static inline void callstack_recover(struct coroutine *U, struct value *stack) {
     struct callinfo *current = U->callstack.callinfo;
     while (current != NULL) {
-        stackI_ptr_recover(U->stack.allocated, current->s.callable);
-        stackI_ptr_recover(U->stack.allocated, current->s.source);
-        stackI_ptr_recover(U->stack.allocated, current->s.env);
-        stackI_ptr_recover(U->stack.allocated, current->s.self);
-        stackI_ptr_recover(U->stack.allocated, current->s.result);
-        stackI_ptr_recover(U->stack.allocated, current->s.thrown);
-        stackI_ptr_recover(U->stack.allocated, current->s.args);
-        stackI_ptr_recover(U->stack.allocated, current->s.slots);
-        stackI_ptr_recover(U->stack.allocated, current->s.params);
-        stackI_ptr_recover(U->stack.allocated, current->s.space);
-        stackI_ptr_recover(U->stack.allocated, current->s.top);
+        stackI_ptr_recover(stack, current->s.callable);
+        stackI_ptr_recover(stack, current->s.source);
+        stackI_ptr_recover(stack, current->s.env);
+        stackI_ptr_recover(stack, current->s.self);
+        stackI_ptr_recover(stack, current->s.result);
+        stackI_ptr_recover(stack, current->s.thrown);
+        stackI_ptr_recover(stack, current->s.args);
+        stackI_ptr_recover(stack, current->s.slots);
+        stackI_ptr_recover(stack, current->s.params);
+        stackI_ptr_recover(stack, current->s.space);
+        stackI_ptr_recover(stack, current->s.top);
 
         current = current->prev;
     }
@@ -91,11 +91,11 @@ static struct value *stack_vector(morphine_coroutine_t U, size_t offset, size_t 
 
 struct stack stackI_prototype(morphine_instance_t I, size_t limit, size_t grow) {
     if (grow == 0) {
-        throwI_panic(I, "Stack grow size is zero");
+        throwI_error(I, "Stack grow size is zero");
     }
 
     if (limit == 0) {
-        throwI_panic(I, "Stack limit is zero");
+        throwI_error(I, "Stack limit is zero");
     }
 
     return (struct stack) {
@@ -136,9 +136,10 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
             throwI_error(I, "Stack overflow");
         }
 
-        callstack_save(U);
-        stack->allocated = allocI_vec(I, stack->allocated, new_size, sizeof(struct value));
-        callstack_recover(U);
+        struct value *saved = stack->allocated;
+        stack->allocated = allocI_vec(I, saved, new_size, sizeof(struct value));
+        callstack_save(U, saved);
+        callstack_recover(U, stack->allocated);
 
         stack->size = new_size;
     }
@@ -163,13 +164,18 @@ struct value *stackI_reduce(morphine_coroutine_t U, size_t size) {
 }
 
 void stackI_shrink(morphine_coroutine_t U) {
-    size_t size = U->stack.top;
+    size_t size = U->stack.top + U->stack.settings.grow;
 
-    callstack_save(U);
+    if (U->stack.size <= size) {
+        return;
+    }
+
+    struct value *saved = U->stack.allocated;
     U->stack.allocated = allocI_vec(
-        U->I, U->stack.allocated, size, sizeof(struct value)
+        U->I, saved, size, sizeof(struct value)
     );
-    callstack_recover(U);
+    callstack_save(U, saved);
+    callstack_recover(U, U->stack.allocated);
 
     U->stack.size = size;
 }

@@ -572,7 +572,7 @@ static inline void execute(morphine_instance_t I) {
             current = I->E.coroutines;
 
             if (unlikely(current == NULL)) {
-                gcI_full(I);
+                gcI_full(I, 0);
             }
 
             I->E.circle++;

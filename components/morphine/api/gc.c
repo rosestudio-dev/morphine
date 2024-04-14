@@ -9,11 +9,11 @@
 #include "morphine/gc/status.h"
 
 MORPHINE_API void mapi_gc_full(morphine_instance_t I) {
-    gcI_full(I);
+    gcI_full(I, 0);
 }
 
 MORPHINE_API void mapi_gc_work(morphine_instance_t I) {
-    gcI_work(I);
+    gcI_work(I, 0);
 }
 
 MORPHINE_API void mapi_gc_force(morphine_instance_t I) {

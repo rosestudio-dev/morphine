@@ -13,19 +13,20 @@ struct metadata {
 
 static inline void change_allocated_size(morphine_instance_t I, size_t grow_size, bool plus) {
     size_t alloc = I->G.bytes.allocated;
+
     if (plus) {
         if ((SIZE_MAX - alloc) >= grow_size) {
             I->G.bytes.allocated += grow_size;
-            return;
+        } else {
+            throwI_panic(I, "Allocation size overflow");
         }
     } else {
         if (alloc >= grow_size) {
             I->G.bytes.allocated -= grow_size;
-            return;
+        } else {
+            throwI_panic(I, "Allocation size corrupted");
         }
     }
-
-    throwI_panic(I, "Allocation size was corrupted");
 }
 
 static inline void calculate_max_alloc_size(morphine_instance_t I) {
@@ -64,16 +65,18 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
 
     struct metadata *result;
     if (likely(p == NULL)) {
-        change_allocated_size(I, nsize, true);
-        gcI_work(I);
+        gcI_work(I, nsize);
 
+        change_allocated_size(I, nsize, true);
         result = I->platform.functions.malloc(nsize);
     } else {
         struct metadata *metadata = p - sizeof(struct metadata);
 
         if (nsize > metadata->size) {
-            change_allocated_size(I, nsize - metadata->size, true);
-            gcI_work(I);
+            size_t reserved = nsize - metadata->size;
+            gcI_work(I, reserved);
+
+            change_allocated_size(I, reserved, true);
         } else {
             change_allocated_size(I, metadata->size - nsize, false);
         }

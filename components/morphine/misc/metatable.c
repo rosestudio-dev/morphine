@@ -86,7 +86,13 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
     }
 }
 
-bool metatableI_test(morphine_instance_t I, struct value source, enum metatable_field field, struct value *result) {
+bool metatableI_test(
+    morphine_instance_t I, struct value source, enum metatable_field field, struct value *result
+) {
+    if (MFS_START > field || field >= MFS_COUNT) {
+        throwI_panic(I, "Unsupported meta field");
+    }
+
     struct table *metatable = get_metatable(I, source);
     struct value field_name = valueI_object(I->metatable.names[field]);
 

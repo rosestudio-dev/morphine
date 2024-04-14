@@ -13,7 +13,7 @@ struct closure *closureI_create(morphine_instance_t I, struct value callable, si
     struct closure *result = allocI_uni(I, NULL, sizeof(struct closure));
 
     (*result) = (struct closure) {
-        .size = size,
+        .size = 0,
         .callable = callable,
         .values = NULL
     };

@@ -60,6 +60,7 @@ struct callinfo {
 struct callstack {
     size_t size;
     struct callinfo *callinfo;
+    struct callinfo *uninit_callinfo;
 };
 
 struct callstack callstackI_prototype(void);
@@ -93,6 +94,7 @@ void callstackI_call_params(
 );
 
 void callstackI_pop(morphine_coroutine_t);
+void callstackI_fix_uninit(morphine_coroutine_t);
 
 struct value callstackI_extract_callable(morphine_instance_t, struct value callable);
 

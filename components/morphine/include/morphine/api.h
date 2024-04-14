@@ -40,8 +40,6 @@ MORPHINE_API void mapi_change_env(morphine_coroutine_t);
 
 MORPHINE_API morphine_noret void mapi_errorf(morphine_coroutine_t, const char *, ...);
 MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t, const char *);
-MORPHINE_API morphine_noret void mapi_panicf(morphine_coroutine_t, const char *, ...);
-MORPHINE_API morphine_noret void mapi_panic(morphine_coroutine_t, const char *);
 MORPHINE_API void mapi_catchable(morphine_coroutine_t, size_t callstate);
 MORPHINE_API void mapi_push_thrown(morphine_coroutine_t);
 MORPHINE_API const char *mapi_get_panic_message(morphine_instance_t);

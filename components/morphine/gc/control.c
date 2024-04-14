@@ -8,8 +8,13 @@
 #include "morphine/core/throw.h"
 #include "stages.h"
 
-static inline bool gc_need(morphine_instance_t I) {
-    size_t alloc_bytes = I->G.bytes.allocated;
+static inline bool gc_need(morphine_instance_t I, size_t reserved) {
+    if (reserved > (SIZE_MAX - I->G.bytes.allocated)) {
+        return true;
+    }
+
+    size_t alloc_bytes = I->G.bytes.allocated + reserved;
+
     size_t prev = I->G.bytes.prev_allocated;
 
     size_t prevdiv = (prev / 100);
@@ -22,20 +27,20 @@ static inline bool gc_need(morphine_instance_t I) {
     return start || (alloc_bytes >= I->G.settings.limit_bytes);
 }
 
-static inline void ofm_check(morphine_instance_t I) {
-    if (I->G.bytes.allocated >= I->G.settings.limit_bytes) {
-        throwI_panic(I, "Out of memory");
+static inline void ofm_check(morphine_instance_t I, size_t reserved) {
+    if (reserved > (SIZE_MAX - I->G.bytes.allocated) || (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
+        throwI_error(I, "Out of memory");
     }
 }
 
-static inline void step(morphine_instance_t I) {
+static inline void step(morphine_instance_t I, size_t reserved) {
+    if (reserved > (SIZE_MAX - I->G.bytes.allocated) || (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
+        gcI_full(I, reserved);
+        return;
+    }
+
     bool throw_inited = I->E.throw.inited;
     I->E.throw.inited = false;
-
-    if (I->G.bytes.allocated >= I->G.settings.limit_bytes) {
-        gcI_full(I);
-        goto exit;
-    }
 
     while (true) {
         switch (I->G.status) {
@@ -99,23 +104,26 @@ void gcI_force(morphine_instance_t I) {
     }
 }
 
-void gcI_work(morphine_instance_t I) {
+void gcI_work(morphine_instance_t I, size_t reserved) {
     if (!I->G.enabled) {
-        ofm_check(I);
+        ofm_check(I, reserved);
         return;
     }
 
     if (I->G.status != GC_STATUS_IDLE) {
-        step(I);
+        step(I, reserved);
         return;
     }
 
-    if (gc_need(I)) {
-        step(I);
+    if (gc_need(I, reserved)) {
+        step(I, reserved);
     }
 }
 
-void gcI_full(morphine_instance_t I) {
+void gcI_full(morphine_instance_t I, size_t reserved) {
+    bool throw_inited = I->E.throw.inited;
+    I->E.throw.inited = false;
+
     if (I->G.pools.white != NULL) {
         I->G.pools.white->prev = I->G.pools.allocated;
         I->G.pools.allocated = I->G.pools.white;
@@ -134,7 +142,10 @@ void gcI_full(morphine_instance_t I) {
     }
 
     gcstageI_sweep(I);
-    ofm_check(I);
 
     I->G.status = GC_STATUS_IDLE;
+
+    I->E.throw.inited = throw_inited;
+
+    ofm_check(I, reserved);
 }

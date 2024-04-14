@@ -26,24 +26,6 @@ MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t U, const char *
     }
 }
 
-MORPHINE_API morphine_noret void mapi_panicf(morphine_coroutine_t U, const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    struct string *result = stringI_createva(U->I, str, args);
-    va_end(args);
-
-    throwI_panicv(U->I, valueI_object(result));
-}
-
-MORPHINE_API morphine_noret void mapi_panic(morphine_coroutine_t U, const char *message) {
-    if (message == NULL) {
-        struct value value = stackI_peek(U, 0);
-        throwI_panicv(U->I, value);
-    } else {
-        throwI_panic(U->I, message);
-    }
-}
-
 MORPHINE_API void mapi_catchable(morphine_coroutine_t U, size_t callstate) {
     throwI_catchable(U, callstate);
 }

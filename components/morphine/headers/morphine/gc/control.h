@@ -10,5 +10,5 @@ void gcI_enable(morphine_instance_t);
 void gcI_disable(morphine_instance_t);
 void gcI_force(morphine_instance_t);
 
-void gcI_work(morphine_instance_t);
-void gcI_full(morphine_instance_t);
+void gcI_work(morphine_instance_t, size_t reserved);
+void gcI_full(morphine_instance_t, size_t reserved);
