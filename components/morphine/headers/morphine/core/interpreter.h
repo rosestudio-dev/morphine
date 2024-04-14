@@ -9,7 +9,8 @@
 
 struct interpreter {
     morphine_coroutine_t coroutines;
-    morphine_coroutine_t candidates;
+    morphine_coroutine_t running;
+    morphine_coroutine_t next;
 
     uint16_t circle;
     struct throw throw;

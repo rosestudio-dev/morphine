@@ -15,11 +15,14 @@ void gcstageI_record(morphine_instance_t I) {
             current = current->prev;
         }
 
-        morphine_coroutine_t candidate = I->E.candidates;
-        while (candidate != NULL) {
-            mark_object(objectI_cast(candidate));
-            mark_internal(I, objectI_cast(candidate));
-            candidate = candidate->prev;
+        if(I->E.running != NULL) {
+            mark_object(objectI_cast(I->E.running));
+            mark_internal(I, objectI_cast(I->E.running));
+        }
+
+        if(I->E.next != NULL) {
+            mark_object(objectI_cast(I->E.next));
+            mark_internal(I, objectI_cast(I->E.next));
         }
 
         if (I->G.finalizer.coroutine != NULL) {

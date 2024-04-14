@@ -129,7 +129,7 @@ void throwI_handler(morphine_instance_t I) {
             callstackI_pop(coroutine);
         }
 
-        coroutineI_kill_regardless(coroutine);
+        coroutineI_kill(coroutine);
     }
 
     gcI_reset_safe(I, 0);

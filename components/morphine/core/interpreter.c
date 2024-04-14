@@ -63,7 +63,9 @@ static inline void clear_params(struct callinfo *C, size_t count) {
 
 static void step_function(morphine_coroutine_t U, struct function *F) {
 #ifdef MORPHINE_ENABLE_JUMPTABLE
+
 #include "jumptable.h"
+
 #endif
 
     struct callinfo *C = callstackI_info(U);
@@ -207,12 +209,20 @@ sp_case(OPCODE_SET_STATIC)
             }
 sp_case(OPCODE_GET_CLOSURE)
             {
-                slot(C, arg2) = closureI_get(U->I, valueI_as_closure_or_error(U->I, *C->s.callable), arg1.value);
+                slot(C, arg2) = closureI_get(
+                    U->I,
+                    valueI_as_closure_or_error(U->I, *C->s.callable),
+                    arg1.value
+                );
                 sp_end();
             }
 sp_case(OPCODE_SET_CLOSURE)
             {
-                closureI_set(U->I, valueI_as_closure_or_error(U->I, *C->s.callable), arg1.value, slot(C, arg2));
+                closureI_set(
+                    U->I,
+                    valueI_as_closure_or_error(U->I, *C->s.callable),
+                    arg1.value,
+                    slot(C, arg2));
                 sp_end();
             }
 sp_case(OPCODE_CLOSURE)
@@ -481,7 +491,7 @@ static inline void step(morphine_coroutine_t U) {
     struct callinfo *callinfo = callstackI_info(U);
 
     if (unlikely(callinfo == NULL)) {
-        U->status = COROUTINE_STATUS_DEAD;
+        coroutineI_kill(U);
         return;
     }
 
@@ -507,76 +517,43 @@ static inline void step(morphine_coroutine_t U) {
     U->I->E.throw.context_coroutine = NULL;
 }
 
-static inline void attach_candidates(morphine_instance_t I) {
-    if (unlikely(I->E.candidates != NULL)) {
-        morphine_coroutine_t coroutine = I->E.candidates;
-
-        if (coroutine->status == COROUTINE_STATUS_ATTACHED) {
-            coroutine->status = COROUTINE_STATUS_RUNNING;
-        } else {
-            throwI_panic(I, "Unexpected candidate coroutine status");
-        }
-
-        I->E.candidates = coroutine->prev;
-        coroutine->prev = I->E.coroutines;
-        I->E.coroutines = coroutine;
-    }
-}
-
 static inline void execute(morphine_instance_t I) {
-    attach_candidates(I);
-
-    morphine_coroutine_t last = NULL;
-    morphine_coroutine_t current = I->E.coroutines;
-
+    struct interpreter *E = &I->E;
     for (;;) {
-        if (unlikely(I->G.finalizer.work && I->G.finalizer.coroutine != NULL)) {
+        if (unlikely(I->G.finalizer.work)) {
             step(I->G.finalizer.coroutine);
-
-            if (current == NULL) {
-                attach_candidates(I);
-
-                if (I->E.coroutines == NULL) {
-                    continue;
-                }
-
-                current = I->E.coroutines;
-            }
-        } else if (unlikely(current == NULL)) {
-            break;
         }
 
-        bool is_current_circle = (I->E.circle % current->priority) == 0;
+        if (unlikely(E->coroutines == NULL)) {
+            E->running = NULL;
+            E->next = NULL;
+            gcI_full(I, 0);
 
-        if (likely(is_current_circle && (current->status == COROUTINE_STATUS_RUNNING))) {
-            step(current);
-        }
-
-        if (unlikely(current->status == COROUTINE_STATUS_DEAD)) {
-            if (last == NULL) {
-                I->E.coroutines = current->prev;
+            if (I->G.finalizer.work) {
+                continue;
             } else {
-                last->prev = current->prev;
+                break;
             }
-            current->status = COROUTINE_STATUS_DETACHED;
+        }
+
+        if (likely(E->running == NULL)) {
+            E->running = E->coroutines;
+            E->next = E->running->prev;
+            E->circle++;
         } else {
-            last = current;
+            E->next = E->running->prev;
         }
 
-        current = current->prev;
+        morphine_coroutine_t coroutine = E->running;
 
-        if (likely(current == NULL)) {
-            attach_candidates(I);
+        bool is_current_circle = (E->circle % coroutine->priority) == 0;
 
-            last = NULL;
-            current = I->E.coroutines;
-
-            if (unlikely(current == NULL)) {
-                gcI_full(I, 0);
-            }
-
-            I->E.circle++;
+        if (likely(is_current_circle && (coroutine->status == COROUTINE_STATUS_RUNNING))) {
+            step(coroutine);
         }
+
+        E->running = E->next;
+        E->next = NULL;
     }
 }
 
@@ -595,7 +572,7 @@ void interpreterI_run(morphine_instance_t I) {
 struct interpreter interpreterI_prototype(void) {
     return (struct interpreter) {
         .coroutines = NULL,
-        .candidates = NULL,
+        .running = NULL,
         .circle = 0,
         .throw = throwI_prototype(),
     };
