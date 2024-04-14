@@ -1,5 +1,6 @@
 package ru.unit.morphine.assembly.bytecode.processor
 
+import com.google.devtools.ksp.symbol.KSFile
 import com.squareup.kotlinpoet.ClassName
 import kotlin.reflect.KClass
 
@@ -8,6 +9,7 @@ data class Model(
     val instruction: ClassName,
     val destination: String?,
     val sources: List<String>,
+    val file: KSFile
 ) {
 
     sealed interface Type<T : Annotation> {

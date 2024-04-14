@@ -1,5 +1,6 @@
 package ru.unit.morphine.assembly.bytecode.processor
 
+import com.google.devtools.ksp.processing.Dependencies
 import com.google.devtools.ksp.processing.Resolver
 import com.google.devtools.ksp.processing.SymbolProcessor
 import com.google.devtools.ksp.processing.SymbolProcessorEnvironment
@@ -46,16 +47,14 @@ class AnnotationProcessor(
 
             file.writeTo(
                 codeGenerator = environment.codeGenerator,
-                aggregating = false,
+                dependencies = Dependencies(
+                    aggregating = true,
+                    *models.map(Model::file).toTypedArray()
+                )
             )
         }
 
-        val annotations =
-            consumeAnnotations + controlAnnotations + movementAnnotations + processingAnnotations + producerAnnotations
-
-        return annotations.filterNot { annotation ->
-            annotation.validate()
-        }.toList()
+        return emptyList()
     }
 
     private fun Resolver.findAnnotations(

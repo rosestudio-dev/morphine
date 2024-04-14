@@ -1,6 +1,7 @@
 package ru.unit.morphine.assembly.compiler
 
 import ru.unit.morphine.assembly.bytecode.Bytecode
+import ru.unit.morphine.assembly.bytecode.BytecodeConverter
 import ru.unit.morphine.assembly.compiler.ast.compiler.exception.CompilerException
 import ru.unit.morphine.assembly.compiler.lexer.Lexer
 import ru.unit.morphine.assembly.compiler.lexer.exception.LexerException
@@ -18,11 +19,21 @@ class MorphineAssemble(
     fun assemble() = runCatching {
         Result.Success(unsafeAssemble())
     }.getOrElse { throwable ->
+        parseThrowable(throwable)
+    }
+
+    fun compile() = runCatching {
+        Result.Success(unsafeCompile())
+    }.getOrElse { throwable ->
+        parseThrowable(throwable)
+    }
+
+    private fun <T> parseThrowable(throwable: Throwable): Result.Error<T> {
         if (debug) {
             throw throwable
         }
 
-        when (throwable) {
+        return when (throwable) {
             is LexerException -> Result.Error("Lexer: " + (throwable.message ?: "No message"))
             is ParseException -> {
                 val message = throwable.message ?: "No message"
@@ -36,9 +47,12 @@ class MorphineAssemble(
             }
 
             is CompilerException -> Result.Error("Compiler: ${throwable.messageWithLineData}")
+            is BytecodeConverter.ConvertException -> Result.Error("Binary: ${throwable.message}")
             else -> Result.Error("Internal undefined exception")
         }
     }
+
+    private fun unsafeCompile() = BytecodeConverter().convert(unsafeAssemble())
 
     private fun unsafeAssemble(): Bytecode {
         val tokens = Lexer(text).tokenize()
@@ -58,9 +72,9 @@ class MorphineAssemble(
         return optimized
     }
 
-    sealed interface Result {
+    sealed interface Result<T> {
 
-        data class Success(val bytecode: Bytecode) : Result
-        data class Error(val message: String) : Result
+        data class Success<T>(val data: T) : Result<T>
+        data class Error<T>(val message: String) : Result<T>
     }
 }

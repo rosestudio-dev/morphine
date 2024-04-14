@@ -4,8 +4,7 @@ import org.graalvm.nativeimage.IsolateThread
 import org.graalvm.nativeimage.c.function.CEntryPoint
 import org.graalvm.nativeimage.c.type.CCharPointer
 import org.graalvm.nativeimage.c.type.CTypeConversion
-import ru.unit.morphine.assembly.bytecode.Bytecode
-import ru.unit.morphine.assembly.bytecode.BytecodeConverter
+import ru.unit.morphine.assembly.clibrary.clibrary.BuildConfig
 import ru.unit.morphine.assembly.compiler.MorphineAssemble
 
 object CLibrary {
@@ -24,13 +23,12 @@ object CLibrary {
             optimize = optimize,
             print = false,
             debug = false
-        ).assemble()
+        ).compile()
 
         assembleResult = when (result) {
             is MorphineAssemble.Result.Error -> Result.Error(result.message)
             is MorphineAssemble.Result.Success -> Result.Success(
-                binary = BytecodeConverter().convert(result.bytecode),
-                bytecode = result.bytecode
+                binary = result.data
             )
         }
 
@@ -55,15 +53,17 @@ object CLibrary {
 
     @JvmStatic
     @CEntryPoint(name = "libcompiler_version")
-    private fun version(thread: IsolateThread) = CTypeConversion.toCString(
-        this::class.java.`package`.implementationVersion
-    ).get()
+    private fun version(thread: IsolateThread) =
+        CTypeConversion.toCString(BuildConfig.version).get()
+
+    @JvmStatic
+    @CEntryPoint(name = "libcompiler_versioncode")
+    private fun versionCode(thread: IsolateThread) = BuildConfig.versionCode
 
     private sealed interface Result {
 
         data class Success(
-            val binary: List<Byte>,
-            val bytecode: Bytecode
+            val binary: List<Byte>
         ) : Result
 
         data class Error(

@@ -1,6 +1,7 @@
 plugins {
     application
     kotlin("jvm")
+    id("com.github.gmazzo.buildconfig")
 }
 
 group = "ru.unit.morphine.assembly.cli.compiler"
@@ -11,6 +12,11 @@ repositories {
 
 application {
     mainClass.set("ru.unit.morphine.assembly.cli.compiler.MainKt")
+}
+
+buildConfig {
+    buildConfigField("version", rootProject.ext.get("version").toString())
+    buildConfigField("versionCode", rootProject.ext.get("versionCode").toString().toInt())
 }
 
 tasks.jar {

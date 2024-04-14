@@ -2,10 +2,10 @@ package ru.unit.morphine.assembly.cli.compiler
 
 import java.nio.file.Files
 import java.nio.file.Path
+import kotlin.system.exitProcess
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
-import kotlin.system.exitProcess
-import ru.unit.morphine.assembly.bytecode.BytecodeConverter
+import ru.unit.morphine.assembly.cli.compiler.compiler.BuildConfig
 import ru.unit.morphine.assembly.compiler.MorphineAssemble
 
 fun main(args: Array<String>) {
@@ -65,7 +65,7 @@ fun main(args: Array<String>) {
 
     if (version.value == true) {
         printNTD = false
-        println("Compiler version: ${MorphineAssemble::class.java.`package`.implementationVersion}")
+        println("Compiler version: ${BuildConfig.version}")
     }
 
     if (!path.value.isNullOrBlank()) {
@@ -102,7 +102,7 @@ private fun compile(
             optimize = optimizer,
             print = disassembly,
             debug = debug
-        ).assemble()
+        ).compile()
 
         when (result) {
             is MorphineAssemble.Result.Error -> {
@@ -111,7 +111,7 @@ private fun compile(
             }
 
             is MorphineAssemble.Result.Success -> {
-                val out = BytecodeConverter().convert(result.bytecode).toByteArray()
+                val out = result.data.toByteArray()
 
                 if (!output.isNullOrBlank()) {
                     Files.write(Path.of(output), out)

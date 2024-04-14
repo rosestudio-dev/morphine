@@ -1,7 +1,7 @@
 package ru.unit.morphine.assembly.bytecode
 
 import java.nio.ByteBuffer
-import java.util.*
+import java.util.UUID
 
 class BytecodeConverter {
 
@@ -13,119 +13,92 @@ class BytecodeConverter {
         const val FORMAT_TAG = "morphine-bout"
     }
 
-    fun convert(bytecode: Bytecode) = listOf(
-        FORMAT_TAG.toByteArray().toList(),
-        bytecode.mainFunction.convert(),
-        bytecode.functions.convert()
-    ).flatten().crc32Modifier()
+    fun convert(bytecode: Bytecode) = (header() + bytecode(bytecode)).crc32Modifier()
 
-    @OptIn(ExperimentalUnsignedTypes::class)
-    private fun List<Byte>.crc32Modifier() = run {
-        var crc = INITIAL
-        val table = crc32Table()
-
-        val array = this@crc32Modifier.toByteArray()
-
-        array.forEach { byte ->
-            crc = table[crc.xor(byte.toUInt().and(0x000000FFU)).toInt().and(0xFF)].xor(crc.shr(8))
-        }
-
-        val result = crc.xor(XOROUT)
-
-        this@crc32Modifier + result.toInt().convert()
+    private fun header() = bytesBuilder(FORMAT_TAG.length) {
+        put(FORMAT_TAG.toByteArray())
     }
 
-    private fun List<Bytecode.Function>.convert(): List<Byte> = listOf(
-        size.convert(),
-        flatMap { function ->
-            function.convert()
-        },
-        flatMap { function ->
-            function.convertConstants()
-        },
-        flatMap { function ->
-            function.convertName()
+    private fun bytecode(bytecode: Bytecode): List<Byte> {
+        val uuid = bytecode.mainFunction.convert()
+        val size = bytecode.functions.size.convert()
+        val functions = bytecode.functions.flatMap(::function)
+        val instructions = bytecode.functions.flatMap(::instructions)
+        val lines = bytecode.functions.flatMap(::lines)
+        val constants = bytecode.functions.flatMap(::constants)
+        val names = bytecode.functions.flatMap { function ->
+            function.name.convert(needLen = false)
         }
+
+        return uuid + size + functions + instructions + lines + constants + names
+    }
+
+    private fun function(function: Bytecode.Function) = listOf(
+        function.uuid.convert(),
+        function.name.length.convertAsShort("Name of function too long"),
+        function.argumentsCount.convertAsShort("Count of arguments too big"),
+        function.slotsCount.convertAsShort("Count of slots too big"),
+        function.paramsCount.convertAsShort("Count of params too big"),
+        function.closuresCount.convertAsShort("Count of closures too big"),
+        function.staticsCount.convertAsShort("Count of statics too big"),
+        function.constants.size.convertAsShort("Count of constants too big"),
+        function.instructions.size.convertAsShort("Count of instructions too big"),
     ).flatten()
 
-    private fun Bytecode.Function.convert(): List<Byte> = listOf(
-        uuid.convert(),
-        name.length.convert(),
-        argumentsCount.convert(),
-        slotsCount.convert(),
-        paramsCount.convert(),
-        closuresCount.convert(),
-        staticsCount.convert(),
-        constants.size.convert(),
-        instructions.size.convert(),
-        instructions.flatMap { instruction ->
-            instruction.convert()
+    private fun instructions(function: Bytecode.Function) =
+        function.instructions.flatMap { instruction ->
+            val opcode = instruction.opcode.ordinal.toByte().convert()
+            val arguments = instruction.orderedArguments.flatMap { argument ->
+                argument.value.convertAsShort("Argument value too big")
+            }
+
+            opcode + arguments
         }
-    ).flatten()
 
-    private fun Instruction.convert() = listOf(
-        (lineData?.line ?: 0).convert(),
-        opcode.ordinal.toByte().convert(),
-        orderedArguments.size.toByte().convert(),
-        orderedArguments.flatMap { argument ->
-            argument.convert()
+    private fun lines(function: Bytecode.Function) =
+        function.instructions.flatMap { instruction ->
+            (instruction.lineData?.line ?: 0).convert()
         }
-    ).flatten()
 
-    private fun Argument.convert() = when (this) {
-        is Argument.Constant -> 'c'.convert()
-        is Argument.Slot -> 's'.convert()
-        is Argument.Count -> 'o'.convert()
-        is Argument.Arg -> 'a'.convert()
-        is Argument.Param -> 'p'.convert()
-        is Argument.Position -> 'i'.convert()
-        is Argument.Closure -> 'l'.convert()
-        is Argument.Static -> 't'.convert()
-    } + value.convert()
-
-    private fun Bytecode.Function.convertName(): List<Byte> = name.map { value ->
-        value.convert()
-    }.flatten()
-
-    private fun Bytecode.Function.convertConstants(): List<Byte> = constants.map { value ->
-        value.convert()
-    }.flatten()
-
-    private fun Value.convert() = when (this) {
-        is Value.Boolean -> listOf(
-            'b'.convert(),
-            listOf(
-                if (value) {
-                    1.toByte()
-                } else {
-                    0.toByte()
-                }
+    private fun constants(
+        function: Bytecode.Function
+    ) = function.constants.flatMap { constant ->
+        when (constant) {
+            is Value.Boolean -> listOf(
+                'b'.convert(),
+                listOf(
+                    if (constant.value) {
+                        1.toByte()
+                    } else {
+                        0.toByte()
+                    }
+                )
             )
-        )
 
-        is Value.Integer -> listOf(
-            'i'.convert(),
-            value.convert()
-        )
+            is Value.Integer -> listOf(
+                'i'.convert(),
+                constant.value.convert()
+            )
 
-        is Value.Function -> listOf(
-            'f'.convert(),
-            value.convert()
-        )
+            is Value.Function -> listOf(
+                'f'.convert(),
+                constant.value.convert()
+            )
 
-        is Value.Decimal -> listOf(
-            'd'.convert(),
-            value.convert()
-        )
+            is Value.Decimal -> listOf(
+                'd'.convert(),
+                constant.value.convert()
+            )
 
-        is Value.String -> listOf(
-            's'.convert(),
-            value.convert()
-        )
+            is Value.String -> listOf(
+                's'.convert(),
+                constant.value.convert(needLen = true)
+            )
 
-        Value.Nil -> listOf(
-            'n'.convert()
-        )
+            Value.Nil -> listOf(
+                'n'.convert()
+            )
+        }
     }.flatten()
 
     private fun UUID.convert() = bytesBuilder(16) {
@@ -135,6 +108,14 @@ class BytecodeConverter {
 
     private fun Double.convert() = bytesBuilder(8) {
         putDouble(this@convert)
+    }
+
+    private fun Int.convertAsShort(error: String? = null) = bytesBuilder(2) {
+        if (error != null && this@convertAsShort > UShort.MAX_VALUE.toInt()) {
+            throw ConvertException(error)
+        } else {
+            putShort(this@convertAsShort.toShort())
+        }
     }
 
     private fun Int.convert(): List<Byte> {
@@ -172,15 +153,19 @@ class BytecodeConverter {
 
             3 -> 'b'.convert() + bytes[3]
             4 -> 'z'.convert()
-            else -> throw ConvertException()
+            else -> throw ConvertException("Int len too big")
         }
     }
 
-    private fun String.convert() = this@convert.toByteArray().let { bytes ->
-        val len = bytes.size.convert().toByteArray()
+    private fun String.convert(needLen: Boolean) = this@convert.toByteArray().let { bytes ->
+        val len = if (needLen) {
+            bytes.size.convert().toByteArray()
+        } else {
+            null
+        }
 
-        bytesBuilder(len.size + bytes.size) {
-            put(len)
+        bytesBuilder((len?.size ?: 0) + bytes.size) {
+            len?.let { put(len) }
             put(bytes)
         }
     }
@@ -199,6 +184,22 @@ class BytecodeConverter {
     ) = ByteBuffer.allocate(size).apply {
         body()
     }.array().toList()
+
+    @OptIn(ExperimentalUnsignedTypes::class)
+    private fun List<Byte>.crc32Modifier() = run {
+        var crc = INITIAL
+        val table = crc32Table()
+
+        val array = this@crc32Modifier.toByteArray()
+
+        array.forEach { byte ->
+            crc = table[crc.xor(byte.toUInt().and(0x000000FFU)).toInt().and(0xFF)].xor(crc.shr(8))
+        }
+
+        val result = crc.xor(XOROUT)
+
+        this@crc32Modifier + result.toInt().convert()
+    }
 
     @OptIn(ExperimentalUnsignedTypes::class)
     private fun crc32Table(): UIntArray {
@@ -229,5 +230,5 @@ class BytecodeConverter {
         println("static const uint32_t TABLE[256] = { ${crc32Table().joinToString { "0x${it.toString(16)}" }} };")
     }
 
-    class ConvertException : Exception()
+    class ConvertException(override val message: String) : Exception()
 }

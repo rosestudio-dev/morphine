@@ -34,6 +34,7 @@ class Visitor<T : Annotation> : KSEmptyVisitor<Model.Type<T>, Model>() {
             instruction = classDeclaration.toClassName(),
             destination = slots.filter { declaration -> declaration == "destination" }.singleOrNull(),
             sources = slots.filterNot { declaration -> declaration == "destination" }.toList(),
+            file = classDeclaration.accept(FileVisitor(), Unit)!!
         )
     }
 }
