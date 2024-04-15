@@ -11,6 +11,7 @@ struct native {
 
     morphine_native_t function;
     char *name;
+    size_t name_len;
 
     struct value registry_key;
 };

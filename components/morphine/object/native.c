@@ -28,6 +28,7 @@ struct native *nativeI_create(morphine_instance_t I, const char *name, morphine_
     (*result) = (struct native) {
         .function = function,
         .name = ((void *) result) + sizeof(struct native),
+        .name_len = name_len,
         .registry_key = valueI_nil
     };
 

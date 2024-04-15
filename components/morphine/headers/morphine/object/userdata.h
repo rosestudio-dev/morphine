@@ -16,12 +16,15 @@ struct userdata {
     struct object header;
 
     char *name;
+    size_t name_len;
+
     void *data;
 
     morphine_userdata_mark_t mark;
     morphine_userdata_free_t free;
 
     struct {
+        size_t size;
         struct link *pool;
     } links;
 

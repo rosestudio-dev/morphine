@@ -30,9 +30,11 @@ struct userdata *userdataI_create(
 
     (*result) = (struct userdata) {
         .name = ((void *) result) + sizeof(struct userdata),
+        .name_len = name_len,
         .data = p,
         .free = free,
         .mark = mark,
+        .links.size = 0,
         .links.pool = NULL,
         .metatable = NULL,
     };
@@ -90,6 +92,7 @@ void userdataI_link(morphine_instance_t I, struct userdata *userdata, struct use
         .prev = userdata->links.pool
     };
 
+    userdata->links.size ++;
     userdata->links.pool = link;
 }
 
@@ -105,6 +108,7 @@ bool userdataI_unlink(morphine_instance_t I, struct userdata *userdata, void *po
         struct link *prev = current->prev;
 
         if (current->userdata->data == pointer) {
+            userdata->links.size --;
             allocI_free(I, current);
             found = true;
         } else {
