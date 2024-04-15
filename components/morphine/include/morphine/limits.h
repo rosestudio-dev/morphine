@@ -35,5 +35,8 @@ typedef uint32_t ml_size;
 #define MLIMIT_FUNCTION_NAME   1024
 #define MLIMIT_USERDATA_NAME   1024
 
-_Static_assert(sizeof(ml_size) <= sizeof(size_t), "ml_size incompatible with system");
+// checks
+
+_Static_assert(sizeof(ml_size) <= sizeof(size_t), "ml_size incompatible with arch");
 _Static_assert(sizeof(ml_size) <= sizeof(ml_integer), "ml_size incompatible with ml_integer");
+_Static_assert(sizeof(size_t) <= sizeof(intmax_t) && 4 <= sizeof(size_t), "incompatible arch");
