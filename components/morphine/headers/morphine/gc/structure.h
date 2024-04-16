@@ -10,6 +10,7 @@ typedef enum {
     GC_STATUS_IDLE,
     GC_STATUS_PREPARE,
     GC_STATUS_INCREMENT,
+    GC_STATUS_RESOLVE,
     GC_STATUS_SWEEP,
 } gc_status_t;
 
@@ -34,6 +35,7 @@ struct garbage_collector {
         struct object *allocated;
         struct object *gray;
         struct object *white;
+        struct object *sweep;
 
         struct object *finalize;
     } pools;

@@ -18,6 +18,8 @@ const char *gcI_status(morphine_instance_t I) {
             return "prepare";
         case GC_STATUS_INCREMENT:
             return "increment";
+        case GC_STATUS_RESOLVE:
+            return "resolve";
         case GC_STATUS_SWEEP:
             return "sweep";
     }

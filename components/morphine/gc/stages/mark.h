@@ -14,6 +14,7 @@
 #include "morphine/object/native.h"
 #include "morphine/core/throw.h"
 #include "morphine/object/iterator.h"
+#include "size.h"
 
 static inline bool mark_unmarked_object(struct object *object) {
     if (object->flags.mark) {
@@ -51,9 +52,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 current = current->ll.prev;
             }
 
-            return sizeof(struct table) +
-                   table->hashmap.buckets.count * sizeof(struct bucket) +
-                   table->hashmap.hashing.size * sizeof(struct bucket *);
+            return size_table(table);
         }
         case OBJ_TYPE_CLOSURE: {
             struct closure *closure = cast(struct closure *, obj);
@@ -63,8 +62,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_value(closure->values[i]);
             }
 
-            return sizeof(struct closure) +
-                   closure->size * sizeof(struct value);
+            return size_closure(closure);
         }
         case OBJ_TYPE_FUNCTION: {
             struct function *function = cast(struct function *, obj);
@@ -79,11 +77,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             mark_value(function->registry_key);
 
-            return sizeof(struct function) +
-                   (function->name_len + 1) * sizeof(char) +
-                   function->instructions_count * sizeof(instruction_t) +
-                   function->statics_count * sizeof(struct value) +
-                   function->constants_count * sizeof(struct value);
+            return size_function(function);
         }
         case OBJ_TYPE_USERDATA: {
             struct userdata *userdata = cast(struct userdata *, obj);
@@ -102,9 +96,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 userdata->mark(I, userdata->data);
             }
 
-            return sizeof(struct userdata) +
-                   (userdata->name_len + 1) * sizeof(char) +
-                   userdata->links.size * sizeof(struct link);
+            return size_userdata(userdata);
         }
         case OBJ_TYPE_COROUTINE: {
             morphine_coroutine_t coroutine = cast(morphine_coroutine_t, obj);
@@ -114,16 +106,13 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_value(coroutine->stack.allocated[i]);
             }
 
-            return sizeof(struct coroutine) +
-                   coroutine->stack.size * sizeof(struct value) +
-                   coroutine->callstack.size * sizeof(struct callstack);
+            return size_coroutine(coroutine);
         }
         case OBJ_TYPE_NATIVE: {
             struct native *native = cast(struct native *, obj);
             mark_value(native->registry_key);
 
-            return sizeof(struct native) +
-                   (native->name_len + 1) * sizeof(char);
+            return size_native(native);
         }
         case OBJ_TYPE_ITERATOR: {
             struct iterator *iterator = cast(struct iterator *, obj);
@@ -131,14 +120,13 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             mark_object(objectI_cast(iterator->iterable));
             mark_value(iterator->next.key);
 
-            return sizeof(struct iterator);
+            return size_iterator(iterator);
         }
         case OBJ_TYPE_STRING: {
-            struct string *string = cast(struct string *, obj);
-            return sizeof(struct string) + (string->size + 1) * sizeof(char);
+            return size_string(cast(struct string *, obj));
         }
         case OBJ_TYPE_REFERENCE: {
-            return sizeof(struct reference);
+            return size_reference(cast(struct reference *, obj));
         }
     }
 

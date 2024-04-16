@@ -58,17 +58,23 @@ static inline void step(morphine_instance_t I, size_t reserved) {
             break;
         }
         case GC_STATUS_INCREMENT: {
-            if (!gcstageI_increment(I, false)) {
+            if (likely(gcstageI_increment(I, false))) {
                 break;
-            } else {
-                I->G.status = GC_STATUS_SWEEP;
-                goto sweep;
             }
+
+            I->G.status = GC_STATUS_RESOLVE;
+            goto resolve;
+        }
+        case GC_STATUS_RESOLVE: {
+resolve:
+            gcstageI_resolve(I);
+            I->G.status = GC_STATUS_SWEEP;
+            break;
         }
         case GC_STATUS_SWEEP: {
-sweep:
-            gcstageI_sweep(I);
-            I->G.status = GC_STATUS_IDLE;
+            if (unlikely(!gcstageI_sweep(I, false))) {
+                I->G.status = GC_STATUS_IDLE;
+            }
             break;
         }
     }
@@ -76,38 +82,28 @@ sweep:
     I->E.throw.inited = throw_inited;
 }
 
+static inline void recover_pool(morphine_instance_t I, struct object **pool) {
+    if (*pool != NULL) {
+        struct object *end = NULL;
+        struct object *current = *pool;
+        while (current != NULL) {
+            end = current;
+            current = current->prev;
+        }
+
+        if (end != NULL) {
+            end->prev = I->G.pools.allocated;
+            I->G.pools.allocated = *pool;
+        }
+
+        *pool = NULL;
+    }
+}
+
 static void recover_pools(morphine_instance_t I) {
-    if (I->G.pools.white != NULL) {
-        struct object *end = NULL;
-        struct object *current = I->G.pools.white;
-        while (current != NULL) {
-            end = current;
-            current = current->prev;
-        }
-
-        if (end != NULL) {
-            end->prev = I->G.pools.allocated;
-            I->G.pools.allocated = I->G.pools.white;
-        }
-
-        I->G.pools.white = NULL;
-    }
-
-    if (I->G.pools.gray != NULL) {
-        struct object *end = NULL;
-        struct object *current = I->G.pools.gray;
-        while (current != NULL) {
-            end = current;
-            current = current->prev;
-        }
-
-        if (end != NULL) {
-            end->prev = I->G.pools.allocated;
-            I->G.pools.allocated = I->G.pools.gray;
-        }
-
-        I->G.pools.gray = NULL;
-    }
+    recover_pool(I, &I->G.pools.sweep);
+    recover_pool(I, &I->G.pools.white);
+    recover_pool(I, &I->G.pools.gray);
 }
 
 void gcI_enable(morphine_instance_t I) {
@@ -146,8 +142,9 @@ void gcI_full(morphine_instance_t I, size_t reserved) {
 
     recover_pools(I);
     gcstageI_prepare(I);
-    while (!gcstageI_increment(I, true)) { }
-    gcstageI_sweep(I);
+    while (gcstageI_increment(I, true)) { }
+    gcstageI_resolve(I);
+    while (gcstageI_sweep(I, true)) { }
 
     I->G.status = GC_STATUS_IDLE;
     I->E.throw.inited = throw_inited;

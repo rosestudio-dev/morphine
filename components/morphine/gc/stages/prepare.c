@@ -7,7 +7,7 @@
 #include "morphine/core/throw.h"
 
 void gcstageI_prepare(morphine_instance_t I) {
-    if (unlikely(I->G.pools.gray != NULL || I->G.pools.white != NULL)) {
+    if (unlikely(I->G.pools.gray != NULL || I->G.pools.white != NULL || I->G.pools.sweep != NULL)) {
         throwI_panic(I, "Corrupted gc pools");
     }
 

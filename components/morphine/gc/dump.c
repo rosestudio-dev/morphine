@@ -93,6 +93,9 @@ void gcI_dump(morphine_instance_t I) {
         case GC_STATUS_INCREMENT:
             status = "increment";
             break;
+        case GC_STATUS_RESOLVE:
+            status = "resolve";
+            break;
         case GC_STATUS_SWEEP:
             status = "sweep";
             break;
@@ -134,6 +137,8 @@ void gcI_dump(morphine_instance_t I) {
     pool(I, I->G.pools.gray);
     fprintf(out, "@ Pool 'white':\n");
     pool(I, I->G.pools.white);
+    fprintf(out, "@ Pool 'sweep':\n");
+    pool(I, I->G.pools.sweep);
     fprintf(out, "@ Pool 'finalize':\n");
     pool(I, I->G.pools.finalize);
     fprintf(out, "\n");

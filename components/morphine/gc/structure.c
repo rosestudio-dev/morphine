@@ -32,6 +32,7 @@ struct garbage_collector gcI_prototype(struct gc_settings settings, size_t inite
         .pools.allocated = NULL,
         .pools.gray = NULL,
         .pools.white = NULL,
+        .pools.sweep = NULL,
         .pools.finalize = NULL,
 
         .finalizer.candidate = NULL,
@@ -56,6 +57,7 @@ void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {
     free_objects(I, G.pools.allocated);
     free_objects(I, G.pools.gray);
     free_objects(I, G.pools.white);
+    free_objects(I, G.pools.sweep);
     free_objects(I, G.pools.finalize);
 
     if (G.finalizer.candidate != NULL) {

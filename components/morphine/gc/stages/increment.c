@@ -48,19 +48,18 @@ static inline bool move_gray(morphine_instance_t I) {
     return moved;
 }
 
-static inline bool debt_check(morphine_instance_t I, size_t checked) {
-    uintmax_t conv = (uintmax_t) I->G.stats.debt;
+static inline size_t debt_calc(morphine_instance_t I) {
+    size_t conv = (uintmax_t) I->G.stats.debt;
     if (unlikely(conv == 0)) {
         conv = 1;
     }
 
-    uintmax_t percent = I->G.settings.deal / 10;
-    if (unlikely(conv > UINTMAX_MAX / percent)) {
-        return true;
+    size_t percent = I->G.settings.deal / 10;
+    if (unlikely(conv > SIZE_MAX / percent)) {
+        return SIZE_MAX;
     }
 
-    uintmax_t value = (conv * percent) / 10;
-    return value >= (uintmax_t) checked;
+    return (conv * percent) / 10;
 }
 
 static inline bool pause(morphine_instance_t I) {
@@ -89,29 +88,24 @@ bool gcstageI_increment(morphine_instance_t I, bool full) {
         I->G.stats.prev_allocated = I->G.bytes.allocated;
 
         if (pause(I)) {
-            return false;
+            return true;
         }
     }
 
     size_t checked = 0;
     size_t record_checked = gcstageI_record(I);
+    size_t expected = debt_calc(I);
 
 retry:
     {
         struct object *current = I->G.pools.gray;
-        while (current != NULL && (full || debt_check(I, checked))) {
+        while (current != NULL && (full || (expected >= checked))) {
             struct object *prev = current->prev;
 
             current->prev = I->G.pools.white;
             I->G.pools.white = current;
 
             checked += mark_internal(I, current);
-
-            size_t temp = checked;
-            checked++;
-            if (unlikely(temp > checked)) {
-                checked = SIZE_MAX;
-            }
 
             current = prev;
         }
@@ -121,7 +115,7 @@ retry:
 
     bool has_gray = move_gray(I);
 
-    if (has_gray && (full || debt_check(I, checked))) {
+    if (has_gray && (full || (expected >= checked))) {
         goto retry;
     }
 
@@ -131,5 +125,5 @@ retry:
         I->G.stats.debt = 0;
     }
 
-    return I->G.pools.gray == NULL;
+    return I->G.pools.gray != NULL;
 }
