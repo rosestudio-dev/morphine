@@ -44,6 +44,10 @@ MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t I) {
     return I->G.bytes.max_allocated;
 }
 
+MORPHINE_API void mapi_gc_reset_max_allocated(morphine_instance_t I) {
+    I->G.bytes.max_allocated = I->G.bytes.allocated;
+}
+
 MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
     return I->G.bytes.allocated;
 }

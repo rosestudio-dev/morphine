@@ -178,6 +178,15 @@ static void getmaxallocated(morphine_coroutine_t U) {
     nb_end
 }
 
+static void resetmaxallocated(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_checkargs(U, 1, "empty");
+            mapi_gc_reset_max_allocated(mapi_instance(U));
+            nb_leave();
+    nb_end
+}
+
 static void getallocated(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
@@ -212,8 +221,9 @@ static struct maux_construct_field table[] = {
     { "changefinalizerstackgrow",  changefinalizerstackgrow },
     { "changestacklimit",          changestacklimit },
     { "changestackgrow",           changestackgrow },
-    { "getmaxallocated",           getmaxallocated },
     { "getallocated",              getallocated },
+    { "getmaxallocated",           getmaxallocated },
+    { "resetmaxallocated",         resetmaxallocated },
     { NULL, NULL }
 };
 
