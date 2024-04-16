@@ -6,41 +6,40 @@
 #include "mark.h"
 #include "morphine/core/instance.h"
 
-size_t gcstageI_record(morphine_instance_t I) {
-    size_t checked = 0;
+void gcstageI_record(morphine_instance_t I) {
     {
         morphine_coroutine_t current = I->E.coroutines;
         while (current != NULL) {
             mark_object(objectI_cast(current));
-            checked += mark_internal(I, objectI_cast(current));
+            mark_internal(I, objectI_cast(current));
             current = current->prev;
         }
 
-        if(I->E.running != NULL) {
+        if (I->E.running != NULL) {
             mark_object(objectI_cast(I->E.running));
-            checked += mark_internal(I, objectI_cast(I->E.running));
+            mark_internal(I, objectI_cast(I->E.running));
         }
 
-        if(I->E.next != NULL) {
+        if (I->E.next != NULL) {
             mark_object(objectI_cast(I->E.next));
-            checked += mark_internal(I, objectI_cast(I->E.next));
+            mark_internal(I, objectI_cast(I->E.next));
         }
 
         if (I->G.finalizer.coroutine != NULL) {
             mark_object(objectI_cast(I->G.finalizer.coroutine));
-            checked += mark_internal(I, objectI_cast(I->G.finalizer.coroutine));
+            mark_internal(I, objectI_cast(I->G.finalizer.coroutine));
         }
     }
 
     {
         struct object *current = I->G.pools.finalize;
         while (current != NULL) {
-            checked += mark_internal(I, current);
+            mark_internal(I, current);
             current = current->prev;
         }
 
         if (I->G.finalizer.candidate != NULL) {
-            checked += mark_internal(I, I->G.finalizer.candidate);
+            mark_internal(I, I->G.finalizer.candidate);
         }
     }
 
@@ -74,6 +73,4 @@ size_t gcstageI_record(morphine_instance_t I) {
             mark_value(I->G.safe.stack[i]);
         }
     }
-
-    return checked;
 }

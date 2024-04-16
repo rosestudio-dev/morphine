@@ -12,21 +12,17 @@
 #include "morphine/object/reference.h"
 #include "morphine/object/string.h"
 #include "morphine/object/native.h"
-#include "morphine/core/throw.h"
 #include "morphine/object/iterator.h"
+#include "morphine/core/throw.h"
 #include "size.h"
 
-static inline bool mark_unmarked_object(struct object *object) {
+static inline bool mark_object(struct object *object) {
     if (object->flags.mark) {
         return false;
     }
 
     object->flags.mark = true;
     return true;
-}
-
-static inline void mark_object(struct object *object) {
-    object->flags.mark = true;
 }
 
 static inline void mark_value(struct value value) {

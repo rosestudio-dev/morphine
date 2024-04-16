@@ -104,7 +104,7 @@ static inline void step(morphine_instance_t I, size_t reserved) {
             }
 
             size_t debt = debt_calc(I);
-            if (likely(gcstageI_increment(I, false, debt))) {
+            if (likely(gcstageI_increment(I, debt))) {
                 break;
             }
 
@@ -123,7 +123,7 @@ resolve:
             }
 
             size_t debt = debt_calc(I);
-            if (unlikely(!gcstageI_sweep(I, false, debt))) {
+            if (unlikely(!gcstageI_sweep(I, debt))) {
                 I->G.status = GC_STATUS_IDLE;
             }
             break;
@@ -193,9 +193,9 @@ void gcI_full(morphine_instance_t I, size_t reserved) {
 
     recover_pools(I);
     gcstageI_prepare(I);
-    while (gcstageI_increment(I, true, 0)) { }
+    while (gcstageI_increment(I, SIZE_MAX)) { }
     gcstageI_resolve(I);
-    while (gcstageI_sweep(I, true, 0)) { }
+    while (gcstageI_sweep(I, SIZE_MAX)) { }
 
     I->G.status = GC_STATUS_IDLE;
     I->E.throw.inited = throw_inited;

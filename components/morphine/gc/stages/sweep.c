@@ -7,12 +7,12 @@
 #include "morphine/core/instance.h"
 #include "morphine/object/reference.h"
 
-bool gcstageI_sweep(morphine_instance_t I, bool full, size_t debt) {
+bool gcstageI_sweep(morphine_instance_t I, size_t debt) {
     size_t checked = 0;
 
     {
         struct object *current = I->G.pools.sweep;
-        while (current != NULL && (full || (debt >= checked))) {
+        while (current != NULL && debt >= checked) {
             struct object *prev = current->prev;
 
             size_t size = size_obj(I, current);
@@ -25,10 +25,11 @@ bool gcstageI_sweep(morphine_instance_t I, bool full, size_t debt) {
             objectI_free(I, current);
             current = prev;
         }
+
         I->G.pools.sweep = current;
     }
 
-    if (I->G.pools.sweep == NULL) {
+    if (unlikely(I->G.pools.sweep == NULL)) {
         if (I->G.bytes.allocated > I->G.settings.threshold) {
             I->G.stats.prev_allocated = I->G.bytes.allocated;
         } else {
@@ -38,7 +39,7 @@ bool gcstageI_sweep(morphine_instance_t I, bool full, size_t debt) {
         return false;
     }
 
-    if (I->G.stats.debt >= checked) {
+    if (I->G.stats.debt > checked) {
         I->G.stats.debt -= checked;
     } else {
         I->G.stats.debt = 0;

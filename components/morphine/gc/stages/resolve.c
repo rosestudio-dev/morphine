@@ -54,7 +54,7 @@ static inline void shrink(morphine_instance_t I) {
 
 void gcstageI_resolve(morphine_instance_t I) {
     if (gcstageI_finalize(I)) {
-        while (gcstageI_increment(I, true, 0)) { }
+        while (gcstageI_increment(I, SIZE_MAX)) { }
     }
 
     resolve_refs(I);

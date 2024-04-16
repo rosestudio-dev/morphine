@@ -11,7 +11,7 @@ static inline bool resolve_userdata(struct userdata *userdata) {
     bool marked = false;
     while (current != NULL) {
         if (!current->soft) {
-            marked = marked || mark_unmarked_object(objectI_cast(current->userdata));
+            marked = marked || mark_object(objectI_cast(current->userdata));
         }
 
         current = current->prev;
@@ -48,14 +48,15 @@ static inline bool move_gray(morphine_instance_t I) {
     return moved;
 }
 
-bool gcstageI_increment(morphine_instance_t I, bool full, size_t debt) {
+bool gcstageI_increment(morphine_instance_t I, size_t debt) {
+    gcstageI_record(I);
+
     size_t checked = 0;
-    size_t record_checked = gcstageI_record(I);
 
 retry:
     {
         struct object *current = I->G.pools.gray;
-        while (current != NULL && (full || (debt >= checked))) {
+        while (current != NULL && debt >= checked) {
             struct object *prev = current->prev;
 
             current->prev = I->G.pools.white;
@@ -76,12 +77,12 @@ retry:
 
     bool has_gray = move_gray(I);
 
-    if (has_gray && (full || (debt >= checked))) {
+    if (has_gray && debt >= checked) {
         goto retry;
     }
 
-    if (I->G.stats.debt >= checked + record_checked) {
-        I->G.stats.debt -= checked + record_checked;
+    if (I->G.stats.debt > checked) {
+        I->G.stats.debt -= checked;
     } else {
         I->G.stats.debt = 0;
     }

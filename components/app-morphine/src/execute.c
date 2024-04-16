@@ -63,7 +63,7 @@ void execute(
         .gc.limit_bytes = alloc_limit,
         .gc.threshold = 8192,
         .gc.grow = 150,
-        .gc.deal = 200,
+        .gc.deal = 400,
         .gc.pause = 13,
         .finalizer.stack_limit = 256,
         .finalizer.stack_grow = 32,
