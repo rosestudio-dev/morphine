@@ -21,13 +21,14 @@ morphine_instance_t instanceI_open(struct platform platform, struct settings set
     *I = (struct instance) {
         .platform = platform,
         .settings = settings,
-        .G = gcI_prototype(settings.gc, sizeof(struct instance)),
         .E = interpreterI_prototype(),
         .require_loader_table = NULL,
         .data = data,
         .env = NULL,
         .registry = NULL,
     };
+
+    gcI_prototype(I, sizeof(struct instance));
 
     initI_instance(I);
 

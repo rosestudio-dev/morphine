@@ -19,7 +19,13 @@ struct garbage_collector {
 
     bool enabled;
 
-    struct gc_settings settings;
+    struct {
+        size_t limit;
+        size_t threshold;
+        uint16_t grow;
+        uint16_t deal;
+        size_t pause;
+    } settings;
 
     struct {
         size_t debt;
@@ -54,5 +60,5 @@ struct garbage_collector {
     struct callinfo *callinfo_trash;
 };
 
-struct garbage_collector gcI_prototype(struct gc_settings, size_t inited_bytes);
+void gcI_prototype(morphine_instance_t, size_t inited_bytes);
 void gcI_destruct(morphine_instance_t, struct garbage_collector);

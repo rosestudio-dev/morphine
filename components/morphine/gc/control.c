@@ -26,29 +26,18 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
     }
 
     uintmax_t percent = (percent_a * 10) / percent_b;
-    bool start = percent >= (I->G.settings.grow / 10);
-    return start || (alloc_bytes >= I->G.settings.limit_bytes);
+    bool start = percent >= I->G.settings.grow;
+    return start || (alloc_bytes >= I->G.settings.limit);
 }
 
 static inline void ofm_check(morphine_instance_t I, size_t reserved) {
     if (reserved > (SIZE_MAX - I->G.bytes.allocated) ||
-        (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
+        (I->G.bytes.allocated + reserved) >= I->G.settings.limit) {
         throwI_error(I, "Out of memory");
     }
 }
 
 static inline bool pause(morphine_instance_t I) {
-    uint32_t size = ((uint32_t) 1) << I->G.settings.pause;
-    if (unlikely(I->G.settings.pause == 0)) {
-        size = 0;
-    } else if (unlikely(I->G.settings.pause > 31)) {
-        size = ((uint32_t) 1) << 31;
-    }
-
-    return I->G.stats.debt <= size;
-}
-
-static inline bool update_debt(morphine_instance_t I) {
     if (likely(I->G.bytes.allocated > I->G.stats.prev_allocated)) {
         size_t debt = I->G.bytes.allocated - I->G.stats.prev_allocated;
 
@@ -61,7 +50,7 @@ static inline bool update_debt(morphine_instance_t I) {
 
     I->G.stats.prev_allocated = I->G.bytes.allocated;
 
-    return pause(I);
+    return I->G.stats.debt <= I->G.settings.pause;
 }
 
 static inline size_t debt_calc(morphine_instance_t I) {
@@ -70,7 +59,7 @@ static inline size_t debt_calc(morphine_instance_t I) {
         conv = 1;
     }
 
-    size_t percent = I->G.settings.deal / 10;
+    size_t percent = I->G.settings.deal;
     if (unlikely(conv > SIZE_MAX / percent)) {
         return SIZE_MAX;
     }
@@ -80,7 +69,7 @@ static inline size_t debt_calc(morphine_instance_t I) {
 
 static inline void step(morphine_instance_t I, size_t reserved) {
     if (reserved > (SIZE_MAX - I->G.bytes.allocated) ||
-        (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
+        (I->G.bytes.allocated + reserved) >= I->G.settings.limit) {
         gcI_full(I, reserved);
         return;
     }
@@ -99,7 +88,7 @@ static inline void step(morphine_instance_t I, size_t reserved) {
             break;
         }
         case GC_STATUS_INCREMENT: {
-            if (likely(update_debt(I))) {
+            if (likely(pause(I))) {
                 break;
             }
 
@@ -118,7 +107,7 @@ resolve:
             break;
         }
         case GC_STATUS_SWEEP: {
-            if (likely(update_debt(I))) {
+            if (likely(pause(I))) {
                 break;
             }
 
@@ -155,6 +144,42 @@ static void recover_pools(morphine_instance_t I) {
     recover_pool(I, &I->G.pools.sweep);
     recover_pool(I, &I->G.pools.white);
     recover_pool(I, &I->G.pools.gray);
+}
+
+void gcI_change_limit(morphine_instance_t I, size_t value) {
+    I->G.settings.limit = value;
+}
+
+void gcI_change_threshold(morphine_instance_t I, size_t value) {
+    I->G.settings.threshold = value;
+}
+
+void gcI_change_grow(morphine_instance_t I, uint16_t value) {
+    if(value <= 100) {
+        throwI_error(I, "GC grow must be greater than 100");
+    }
+
+    I->G.settings.grow = value / 10;
+}
+
+void gcI_change_deal(morphine_instance_t I, uint16_t value) {
+    if(value <= 100) {
+        throwI_error(I, "GC deal must be greater than 100");
+    }
+
+    I->G.settings.deal = value / 10;
+}
+
+void gcI_change_pause(morphine_instance_t I, uint8_t value) {
+    if(value > 31) {
+        throwI_error(I, "GC pause must be less than 32");
+    }
+
+    I->G.settings.pause = ((uint32_t) 1) << value;
+}
+
+void gcI_reset_max_allocated(morphine_instance_t I) {
+    I->G.bytes.max_allocated = 0;
 }
 
 void gcI_enable(morphine_instance_t I) {

@@ -45,7 +45,7 @@ MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t I) {
 }
 
 MORPHINE_API void mapi_gc_reset_max_allocated(morphine_instance_t I) {
-    I->G.bytes.max_allocated = I->G.bytes.allocated;
+    gcI_reset_max_allocated(I);
 }
 
 MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
@@ -53,19 +53,19 @@ MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
 }
 
 MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t I, size_t value) {
-    I->G.settings.threshold = value;
+    gcI_change_threshold(I, value);
 }
 
 MORPHINE_API void mapi_gc_change_grow(morphine_instance_t I, uint16_t value) {
-    I->G.settings.grow = value;
+    gcI_change_grow(I, value);
 }
 
 MORPHINE_API void mapi_gc_change_deal(morphine_instance_t I, uint16_t value) {
-    I->G.settings.deal = value;
+    gcI_change_deal(I, value);
 }
 
 MORPHINE_API void mapi_gc_change_pause(morphine_instance_t I, uint8_t value) {
-    I->G.settings.pause = value;
+    gcI_change_pause(I, value);
 }
 
 MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value) {

@@ -3,6 +3,8 @@
 //
 
 #include "morphine/gc/structure.h"
+#include "morphine/gc/control.h"
+#include "morphine/core/instance.h"
 #include "morphine/object/coroutine/callstack.h"
 #include "morphine/object.h"
 
@@ -16,12 +18,16 @@ static void free_objects(morphine_instance_t I, struct object *pool) {
     }
 }
 
-struct garbage_collector gcI_prototype(struct gc_settings settings, size_t inited_bytes) {
-    struct garbage_collector G = {
+void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
+    I->G = (struct garbage_collector) {
         .status = GC_STATUS_IDLE,
         .enabled = false,
 
-        .settings = settings,
+        .settings.limit = 0,     // bytes
+        .settings.threshold = 0, // bytes
+        .settings.grow = 0,      // percentage / 10
+        .settings.deal = 0,      // percentage / 10
+        .settings.pause = 0,     // 2^n bytes
 
         .stats.debt = 0,
         .stats.prev_allocated = 0,
@@ -44,13 +50,17 @@ struct garbage_collector gcI_prototype(struct gc_settings settings, size_t inite
         .callinfo_trash = NULL,
     };
 
-    size_t size = sizeof(G.safe.stack) / sizeof(struct value);
+    size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
 
     for (size_t i = 0; i < size; i++) {
-        G.safe.stack[i] = valueI_nil;
+        I->G.safe.stack[i] = valueI_nil;
     }
 
-    return G;
+    gcI_change_limit(I, I->settings.gc.limit_bytes);
+    gcI_change_threshold(I, I->settings.gc.threshold);
+    gcI_change_grow(I, I->settings.gc.grow);
+    gcI_change_deal(I, I->settings.gc.deal);
+    gcI_change_pause(I, I->settings.gc.pause);
 }
 
 void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {

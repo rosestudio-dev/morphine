@@ -112,10 +112,10 @@ void gcI_dump(morphine_instance_t I) {
     fprintf(out, "@   - Allocated:          %zu\n", I->G.bytes.allocated);
     fprintf(out, "@   - Max allocated:      %zu\n", I->G.bytes.max_allocated);
     fprintf(out, "@ Settings:\n");
-    fprintf(out, "@   - Limit:              %zu\n", I->G.settings.limit_bytes);
-    fprintf(out, "@   - Grow:               %"PRIu16"\n", I->G.settings.grow);
-    fprintf(out, "@   - Deal:               %"PRIu16"\n", I->G.settings.deal);
-    fprintf(out, "@   - Pause:              %"PRIu8"\n", I->G.settings.pause);
+    fprintf(out, "@   - Limit:              %zu\n", I->G.settings.limit);
+    fprintf(out, "@   - Grow:               %"PRIu16"\n", I->G.settings.grow * 10);
+    fprintf(out, "@   - Deal:               %"PRIu16"\n", I->G.settings.deal * 10);
+    fprintf(out, "@   - Pause:              %zu\n", I->G.settings.pause);
     fprintf(out, "@ Finalizer:\n");
     fprintf(out, "@   - Work:               %s\n", I->G.finalizer.work ? "yes" : "no");
     fprintf(out, "@   - Candidate:          ");
