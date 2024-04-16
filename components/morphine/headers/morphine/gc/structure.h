@@ -10,8 +10,6 @@ typedef enum {
     GC_STATUS_IDLE,
     GC_STATUS_PREPARE,
     GC_STATUS_INCREMENT,
-    GC_STATUS_FINALIZE_PREPARE,
-    GC_STATUS_FINALIZE_INCREMENT,
     GC_STATUS_SWEEP,
 } gc_status_t;
 
@@ -24,11 +22,11 @@ struct garbage_collector {
 
     struct {
         size_t debt;
+        size_t prev_allocated;
     } stats;
 
     struct {
         size_t allocated;
-        size_t prev_allocated;
         size_t max_allocated;
     } bytes;
 

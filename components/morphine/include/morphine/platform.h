@@ -42,8 +42,9 @@ struct platform {
 struct gc_settings {
     size_t limit_bytes;
     size_t threshold;
-    size_t grow;
-    size_t deal;
+    uint16_t grow;
+    uint16_t deal;
+    uint8_t pause;
 };
 
 struct coroutine_settings {

@@ -52,12 +52,16 @@ MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t I, size_t value) 
     I->G.settings.threshold = value;
 }
 
-MORPHINE_API void mapi_gc_change_grow(morphine_instance_t I, size_t value) {
+MORPHINE_API void mapi_gc_change_grow(morphine_instance_t I, uint16_t value) {
     I->G.settings.grow = value;
 }
 
-MORPHINE_API void mapi_gc_change_deal(morphine_instance_t I, size_t value) {
+MORPHINE_API void mapi_gc_change_deal(morphine_instance_t I, uint16_t value) {
     I->G.settings.deal = value;
+}
+
+MORPHINE_API void mapi_gc_change_pause(morphine_instance_t I, uint8_t value) {
+    I->G.settings.pause = value;
 }
 
 MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value) {

@@ -53,6 +53,10 @@ static inline void shrink(morphine_instance_t I) {
 }
 
 void gcstageI_sweep(morphine_instance_t I) {
+    if (gcstageI_finalize(I)) {
+        while (!gcstageI_increment(I, true)) { }
+    }
+
     struct garbage_collector *G = &I->G;
 
     resolve_refs(I);
@@ -72,8 +76,8 @@ void gcstageI_sweep(morphine_instance_t I) {
     shrink(I);
 
     if (G->bytes.allocated > G->settings.threshold) {
-        G->bytes.prev_allocated = G->bytes.allocated;
+        G->stats.prev_allocated = G->bytes.allocated;
     } else {
-        G->bytes.prev_allocated = G->settings.threshold;
+        G->stats.prev_allocated = G->settings.threshold;
     }
 }

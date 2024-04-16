@@ -39,4 +39,4 @@ typedef uint32_t ml_size;
 
 _Static_assert(sizeof(ml_size) <= sizeof(size_t), "ml_size incompatible with arch");
 _Static_assert(sizeof(ml_size) <= sizeof(ml_integer), "ml_size incompatible with ml_integer");
-_Static_assert(sizeof(size_t) <= sizeof(intmax_t) && 4 <= sizeof(size_t), "incompatible arch");
+_Static_assert(sizeof(size_t) <= sizeof(uintmax_t) && 4 <= sizeof(size_t), "incompatible arch");

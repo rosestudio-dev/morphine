@@ -20,7 +20,7 @@ static inline bool resolve_userdata(struct userdata *userdata) {
     return marked;
 }
 
-static inline bool movegray(morphine_instance_t I) {
+static inline bool move_gray(morphine_instance_t I) {
     struct object *current = I->G.pools.allocated;
     struct object *pool = NULL;
     bool moved = false;
@@ -48,20 +48,64 @@ static inline bool movegray(morphine_instance_t I) {
     return moved;
 }
 
-bool gcstageI_increment(morphine_instance_t I) {
+static inline bool debt_check(morphine_instance_t I, size_t checked) {
+    uintmax_t conv = (uintmax_t) I->G.stats.debt;
+    if (unlikely(conv == 0)) {
+        conv = 1;
+    }
+
+    uintmax_t percent = I->G.settings.deal / 10;
+    if (unlikely(conv > UINTMAX_MAX / percent)) {
+        return true;
+    }
+
+    uintmax_t value = (conv * percent) / 10;
+    return value >= (uintmax_t) checked;
+}
+
+static inline bool pause(morphine_instance_t I) {
+    uint32_t size = ((uint32_t) 1) << I->G.settings.pause;
+    if (unlikely(I->G.settings.pause == 0)) {
+        size = 0;
+    } else if (unlikely(I->G.settings.pause > 31)) {
+        size = ((uint32_t) 1) << 31;
+    }
+
+    return I->G.stats.debt <= size;
+}
+
+bool gcstageI_increment(morphine_instance_t I, bool full) {
+    if (likely(!full)) {
+        if (I->G.bytes.allocated > I->G.stats.prev_allocated) {
+            size_t debt = I->G.bytes.allocated - I->G.stats.prev_allocated;
+
+            if (likely(debt <= SIZE_MAX - I->G.stats.debt)) {
+                I->G.stats.debt += debt;
+            } else {
+                I->G.stats.debt = SIZE_MAX;
+            }
+        }
+
+        I->G.stats.prev_allocated = I->G.bytes.allocated;
+
+        if (pause(I)) {
+            return false;
+        }
+    }
+
     size_t checked = 0;
-    gcstageI_record(I);
+    size_t record_checked = gcstageI_record(I);
+
 retry:
     {
-        struct object *pool = I->G.pools.gray;
-        struct object *current = pool;
-        while (current != NULL) {
+        struct object *current = I->G.pools.gray;
+        while (current != NULL && (full || debt_check(I, checked))) {
             struct object *prev = current->prev;
 
             current->prev = I->G.pools.white;
             I->G.pools.white = current;
 
-            mark_internal(I, current);
+            checked += mark_internal(I, current);
 
             size_t temp = checked;
             checked++;
@@ -72,27 +116,20 @@ retry:
             current = prev;
         }
 
-        I->G.pools.gray = NULL;
+        I->G.pools.gray = current;
     }
 
-    bool has_gray = movegray(I);
+    bool has_gray = move_gray(I);
 
-    if (has_gray) {
-        size_t debtdiv = (I->G.stats.debt / 100);
-        if (unlikely(debtdiv == 0)) {
-            debtdiv = 1;
-        }
-
-        size_t percent = checked / debtdiv;
-
-        if (percent < I->G.settings.deal) {
-            goto retry;
-        }
+    if (has_gray && (full || debt_check(I, checked))) {
+        goto retry;
     }
 
-    if (I->G.stats.debt >= checked) {
-        I->G.stats.debt -= checked;
+    if (I->G.stats.debt >= checked + record_checked) {
+        I->G.stats.debt -= checked + record_checked;
+    } else {
+        I->G.stats.debt = 0;
     }
 
-    return !has_gray;
+    return I->G.pools.gray == NULL;
 }

@@ -24,10 +24,10 @@ struct garbage_collector gcI_prototype(struct gc_settings settings, size_t inite
         .settings = settings,
 
         .stats.debt = 0,
+        .stats.prev_allocated = 0,
 
         .bytes.allocated = inited_bytes,
         .bytes.max_allocated = inited_bytes,
-        .bytes.prev_allocated = 0,
 
         .pools.allocated = NULL,
         .pools.gray = NULL,

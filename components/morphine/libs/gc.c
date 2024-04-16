@@ -98,7 +98,7 @@ static void changedeal(morphine_coroutine_t U) {
             maux_checkargs(U, 1, "integer");
             mapi_push_arg(U, 0);
             size_t value = mapi_get_size(U);
-            mapi_gc_change_deal(mapi_instance(U), value);
+            mapi_gc_change_deal(mapi_instance(U), value > UINT16_MAX ? UINT16_MAX : (uint16_t) value);
             nb_leave();
     nb_end
 }
@@ -109,7 +109,18 @@ static void changegrow(morphine_coroutine_t U) {
             maux_checkargs(U, 1, "integer");
             mapi_push_arg(U, 0);
             size_t value = mapi_get_size(U);
-            mapi_gc_change_grow(mapi_instance(U), value);
+            mapi_gc_change_grow(mapi_instance(U), value > UINT16_MAX ? UINT16_MAX : (uint16_t) value);
+            nb_leave();
+    nb_end
+}
+
+static void changepause(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_checkargs(U, 1, "integer");
+            mapi_push_arg(U, 0);
+            size_t value = mapi_get_size(U);
+            mapi_gc_change_pause(mapi_instance(U), value > UINT8_MAX ? UINT8_MAX : (uint8_t) value);
             nb_leave();
     nb_end
 }
@@ -196,6 +207,7 @@ static struct maux_construct_field table[] = {
     { "changethreshold",           changethreshold },
     { "changedeal",                changedeal },
     { "changegrow",                changegrow },
+    { "changepause",               changepause },
     { "changefinalizerstacklimit", changefinalizerstacklimit },
     { "changefinalizerstackgrow",  changefinalizerstackgrow },
     { "changestacklimit",          changestacklimit },

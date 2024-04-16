@@ -56,6 +56,8 @@ for i in public_includes:
 f.write(
     """)
 
+target_link_libraries(morphine PRIVATE m)
+
 target_compile_definitions(
     morphine PUBLIC
     MORPHINE_VERSION=\""""

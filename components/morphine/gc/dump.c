@@ -93,12 +93,6 @@ void gcI_dump(morphine_instance_t I) {
         case GC_STATUS_INCREMENT:
             status = "increment";
             break;
-        case GC_STATUS_FINALIZE_PREPARE:
-            status = "finalize_prepare";
-            break;
-        case GC_STATUS_FINALIZE_INCREMENT:
-            status = "finalize_increment";
-            break;
         case GC_STATUS_SWEEP:
             status = "sweep";
             break;
@@ -110,14 +104,15 @@ void gcI_dump(morphine_instance_t I) {
     fprintf(out, "@ Status:                 %s\n", status);
     fprintf(out, "@ Stats:\n");
     fprintf(out, "@   - Debt:               %zu\n", I->G.stats.debt);
+    fprintf(out, "@   - Previous allocated: %zu\n", I->G.stats.prev_allocated);
     fprintf(out, "@ Bytes:\n");
     fprintf(out, "@   - Allocated:          %zu\n", I->G.bytes.allocated);
-    fprintf(out, "@   - Previous allocated: %zu\n", I->G.bytes.prev_allocated);
     fprintf(out, "@   - Max allocated:      %zu\n", I->G.bytes.max_allocated);
     fprintf(out, "@ Settings:\n");
     fprintf(out, "@   - Limit:              %zu\n", I->G.settings.limit_bytes);
-    fprintf(out, "@   - Grow:               %zu\n", I->G.settings.grow);
-    fprintf(out, "@   - Deal:               %zu\n", I->G.settings.deal);
+    fprintf(out, "@   - Grow:               %"PRIu16"\n", I->G.settings.grow);
+    fprintf(out, "@   - Deal:               %"PRIu16"\n", I->G.settings.deal);
+    fprintf(out, "@   - Pause:              %"PRIu8"\n", I->G.settings.pause);
     fprintf(out, "@ Finalizer:\n");
     fprintf(out, "@   - Work:               %s\n", I->G.finalizer.work ? "yes" : "no");
     fprintf(out, "@   - Candidate:          ");

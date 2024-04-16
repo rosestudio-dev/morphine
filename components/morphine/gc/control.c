@@ -15,26 +15,31 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
 
     size_t alloc_bytes = I->G.bytes.allocated + reserved;
 
-    size_t prev = I->G.bytes.prev_allocated;
-
-    size_t prevdiv = (prev / 100);
-    if (unlikely(prevdiv == 0)) {
-        prevdiv = 1;
+    uintmax_t percent_a = (uintmax_t) alloc_bytes;
+    if (unlikely(percent_a > UINTMAX_MAX / 10)) {
+        return true;
     }
 
-    size_t percent = alloc_bytes / prevdiv;
-    bool start = percent >= I->G.settings.grow;
+    uintmax_t percent_b = (uintmax_t) I->G.stats.prev_allocated;
+    if (unlikely(percent_b == 0)) {
+        percent_b = 1;
+    }
+
+    uintmax_t percent = (percent_a * 10) / percent_b;
+    bool start = percent >= (I->G.settings.grow / 10);
     return start || (alloc_bytes >= I->G.settings.limit_bytes);
 }
 
 static inline void ofm_check(morphine_instance_t I, size_t reserved) {
-    if (reserved > (SIZE_MAX - I->G.bytes.allocated) || (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
+    if (reserved > (SIZE_MAX - I->G.bytes.allocated) ||
+        (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
         throwI_error(I, "Out of memory");
     }
 }
 
 static inline void step(morphine_instance_t I, size_t reserved) {
-    if (reserved > (SIZE_MAX - I->G.bytes.allocated) || (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
+    if (reserved > (SIZE_MAX - I->G.bytes.allocated) ||
+        (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
         gcI_full(I, reserved);
         return;
     }
@@ -42,52 +47,67 @@ static inline void step(morphine_instance_t I, size_t reserved) {
     bool throw_inited = I->E.throw.inited;
     I->E.throw.inited = false;
 
-    while (true) {
-        switch (I->G.status) {
-            case GC_STATUS_IDLE: {
-                I->G.status = GC_STATUS_PREPARE;
+    switch (I->G.status) {
+        case GC_STATUS_IDLE: {
+            I->G.status = GC_STATUS_PREPARE;
+            break;
+        }
+        case GC_STATUS_PREPARE: {
+            gcstageI_prepare(I);
+            I->G.status = GC_STATUS_INCREMENT;
+            break;
+        }
+        case GC_STATUS_INCREMENT: {
+            if (!gcstageI_increment(I, false)) {
                 break;
+            } else {
+                I->G.status = GC_STATUS_SWEEP;
+                goto sweep;
             }
-            case GC_STATUS_PREPARE: {
-                gcstageI_prepare(I);
-                I->G.status = GC_STATUS_INCREMENT;
-                goto exit;
-            }
-            case GC_STATUS_INCREMENT: {
-                if (gcstageI_increment(I)) {
-                    I->G.status = GC_STATUS_FINALIZE_PREPARE;
-                    break;
-                } else {
-                    goto exit;
-                }
-            }
-            case GC_STATUS_FINALIZE_PREPARE: {
-                if (gcstageI_finalize(I)) {
-                    I->G.status = GC_STATUS_FINALIZE_INCREMENT;
-                    goto exit;
-                } else {
-                    I->G.status = GC_STATUS_SWEEP;
-                    break;
-                }
-            }
-            case GC_STATUS_FINALIZE_INCREMENT: {
-                if (gcstageI_increment(I)) {
-                    I->G.status = GC_STATUS_SWEEP;
-                    break;
-                } else {
-                    goto exit;
-                }
-            }
-            case GC_STATUS_SWEEP: {
-                gcstageI_sweep(I);
-                I->G.status = GC_STATUS_IDLE;
-                goto exit;
-            }
+        }
+        case GC_STATUS_SWEEP: {
+sweep:
+            gcstageI_sweep(I);
+            I->G.status = GC_STATUS_IDLE;
+            break;
         }
     }
 
-exit:
     I->E.throw.inited = throw_inited;
+}
+
+static void recover_pools(morphine_instance_t I) {
+    if (I->G.pools.white != NULL) {
+        struct object *end = NULL;
+        struct object *current = I->G.pools.white;
+        while (current != NULL) {
+            end = current;
+            current = current->prev;
+        }
+
+        if (end != NULL) {
+            end->prev = I->G.pools.allocated;
+            I->G.pools.allocated = I->G.pools.white;
+        }
+
+        I->G.pools.white = NULL;
+    }
+
+    if (I->G.pools.gray != NULL) {
+        struct object *end = NULL;
+        struct object *current = I->G.pools.gray;
+        while (current != NULL) {
+            end = current;
+            current = current->prev;
+        }
+
+        if (end != NULL) {
+            end->prev = I->G.pools.allocated;
+            I->G.pools.allocated = I->G.pools.gray;
+        }
+
+        I->G.pools.gray = NULL;
+    }
 }
 
 void gcI_enable(morphine_instance_t I) {
@@ -124,27 +144,12 @@ void gcI_full(morphine_instance_t I, size_t reserved) {
     bool throw_inited = I->E.throw.inited;
     I->E.throw.inited = false;
 
-    if (I->G.pools.white != NULL) {
-        I->G.pools.white->prev = I->G.pools.allocated;
-        I->G.pools.allocated = I->G.pools.white;
-    }
-
-    if (I->G.pools.gray != NULL) {
-        I->G.pools.gray->prev = I->G.pools.allocated;
-        I->G.pools.allocated = I->G.pools.gray;
-    }
-
+    recover_pools(I);
     gcstageI_prepare(I);
-    while (!gcstageI_increment(I)) { }
-
-    if (gcstageI_finalize(I)) {
-        while (!gcstageI_increment(I)) { }
-    }
-
+    while (!gcstageI_increment(I, true)) { }
     gcstageI_sweep(I);
 
     I->G.status = GC_STATUS_IDLE;
-
     I->E.throw.inited = throw_inited;
 
     ofm_check(I, reserved);
