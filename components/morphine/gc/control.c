@@ -37,6 +37,47 @@ static inline void ofm_check(morphine_instance_t I, size_t reserved) {
     }
 }
 
+static inline bool pause(morphine_instance_t I) {
+    uint32_t size = ((uint32_t) 1) << I->G.settings.pause;
+    if (unlikely(I->G.settings.pause == 0)) {
+        size = 0;
+    } else if (unlikely(I->G.settings.pause > 31)) {
+        size = ((uint32_t) 1) << 31;
+    }
+
+    return I->G.stats.debt <= size;
+}
+
+static inline bool update_debt(morphine_instance_t I) {
+    if (likely(I->G.bytes.allocated > I->G.stats.prev_allocated)) {
+        size_t debt = I->G.bytes.allocated - I->G.stats.prev_allocated;
+
+        if (likely(debt <= SIZE_MAX - I->G.stats.debt)) {
+            I->G.stats.debt += debt;
+        } else {
+            I->G.stats.debt = SIZE_MAX;
+        }
+    }
+
+    I->G.stats.prev_allocated = I->G.bytes.allocated;
+
+    return pause(I);
+}
+
+static inline size_t debt_calc(morphine_instance_t I) {
+    size_t conv = (uintmax_t) I->G.stats.debt;
+    if (unlikely(conv == 0)) {
+        conv = 1;
+    }
+
+    size_t percent = I->G.settings.deal / 10;
+    if (unlikely(conv > SIZE_MAX / percent)) {
+        return SIZE_MAX;
+    }
+
+    return (conv * percent) / 10;
+}
+
 static inline void step(morphine_instance_t I, size_t reserved) {
     if (reserved > (SIZE_MAX - I->G.bytes.allocated) ||
         (I->G.bytes.allocated + reserved) >= I->G.settings.limit_bytes) {
@@ -58,7 +99,12 @@ static inline void step(morphine_instance_t I, size_t reserved) {
             break;
         }
         case GC_STATUS_INCREMENT: {
-            if (likely(gcstageI_increment(I, false))) {
+            if (likely(update_debt(I))) {
+                break;
+            }
+
+            size_t debt = debt_calc(I);
+            if (likely(gcstageI_increment(I, false, debt))) {
                 break;
             }
 
@@ -72,7 +118,12 @@ resolve:
             break;
         }
         case GC_STATUS_SWEEP: {
-            if (unlikely(!gcstageI_sweep(I, false))) {
+            if (likely(update_debt(I))) {
+                break;
+            }
+
+            size_t debt = debt_calc(I);
+            if (unlikely(!gcstageI_sweep(I, false, debt))) {
                 I->G.status = GC_STATUS_IDLE;
             }
             break;
@@ -142,9 +193,9 @@ void gcI_full(morphine_instance_t I, size_t reserved) {
 
     recover_pools(I);
     gcstageI_prepare(I);
-    while (gcstageI_increment(I, true)) { }
+    while (gcstageI_increment(I, true, 0)) { }
     gcstageI_resolve(I);
-    while (gcstageI_sweep(I, true)) { }
+    while (gcstageI_sweep(I, true, 0)) { }
 
     I->G.status = GC_STATUS_IDLE;
     I->E.throw.inited = throw_inited;

@@ -7,58 +7,21 @@
 #include "morphine/core/instance.h"
 #include "morphine/object/reference.h"
 
-static inline size_t debt_calc(morphine_instance_t I) {
-    size_t conv = (uintmax_t) I->G.stats.debt;
-    if (unlikely(conv == 0)) {
-        conv = 1;
-    }
-
-    size_t percent = I->G.settings.deal / 10;
-    if (unlikely(conv > SIZE_MAX / percent)) {
-        return SIZE_MAX;
-    }
-
-    return (conv * percent) / 10;
-}
-
-static inline bool pause(morphine_instance_t I) {
-    uint32_t size = ((uint32_t) 1) << I->G.settings.pause;
-    if (unlikely(I->G.settings.pause == 0)) {
-        size = 0;
-    } else if (unlikely(I->G.settings.pause > 31)) {
-        size = ((uint32_t) 1) << 31;
-    }
-
-    return I->G.stats.debt <= size;
-}
-
-bool gcstageI_sweep(morphine_instance_t I, bool full) {
-    if (likely(!full)) {
-        if (I->G.bytes.allocated > I->G.stats.prev_allocated) {
-            size_t debt = I->G.bytes.allocated - I->G.stats.prev_allocated;
-
-            if (likely(debt <= SIZE_MAX - I->G.stats.debt)) {
-                I->G.stats.debt += debt;
-            } else {
-                I->G.stats.debt = SIZE_MAX;
-            }
-        }
-
-        I->G.stats.prev_allocated = I->G.bytes.allocated;
-
-        if (pause(I)) {
-            return true;
-        }
-    }
-
+bool gcstageI_sweep(morphine_instance_t I, bool full, size_t debt) {
     size_t checked = 0;
-    size_t expected = debt_calc(I);
 
     {
         struct object *current = I->G.pools.sweep;
-        while (current != NULL && (full || (expected >= checked))) {
+        while (current != NULL && (full || (debt >= checked))) {
             struct object *prev = current->prev;
-            checked += size_obj(I, current);
+
+            size_t size = size_obj(I, current);
+            if (unlikely(size > SIZE_MAX - checked)) {
+                checked = SIZE_MAX;
+            } else {
+                checked += size;
+            }
+
             objectI_free(I, current);
             current = prev;
         }
