@@ -88,6 +88,7 @@ struct stack stackI_prototype(morphine_instance_t I, size_t limit, size_t grow) 
         .space_top = 0,
         .settings.grow = grow,
         .settings.limit = limit,
+        .control.allow_shrinking = true
     };
 }
 
@@ -120,7 +121,9 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
         }
 
         struct value *saved = stack->allocated;
+        U->stack.control.allow_shrinking = false;
         stack->allocated = allocI_vec(I, saved, new_size, sizeof(struct value));
+        U->stack.control.allow_shrinking = true;
         callstack_recover(U, saved);
 
         stack->size = new_size;
@@ -148,7 +151,7 @@ struct value *stackI_reduce(morphine_coroutine_t U, size_t size) {
 void stackI_shrink(morphine_coroutine_t U) {
     size_t size = U->stack.top + U->stack.settings.grow;
 
-    if (U->stack.size <= size) {
+    if (!U->stack.control.allow_shrinking || U->stack.size <= size) {
         return;
     }
 

@@ -18,6 +18,10 @@ struct stack {
         size_t limit;
         size_t grow;
     } settings;
+
+    struct {
+        bool allow_shrinking;
+    } control;
 };
 
 struct stack stackI_prototype(morphine_instance_t, size_t limit, size_t grow);
