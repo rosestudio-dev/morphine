@@ -58,7 +58,6 @@ static void finalizer(morphine_coroutine_t U) {
 
         if (candidate != NULL) {
             give_away(I, candidate);
-            return;
         }
 
         return;

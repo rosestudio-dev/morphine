@@ -115,6 +115,7 @@ void throwI_handler(morphine_instance_t I) {
             *callinfo->s.thrown = valueI_object(stringI_create(I, throw->error.message));
         } else {
             *callinfo->s.thrown = throw->error.value;
+            throw->error.value = valueI_nil;
         }
 
         size_t stack_size = stackI_space(coroutine);
@@ -185,6 +186,7 @@ const char *throwI_message(morphine_instance_t I) {
     }
 
     struct string *string = valueI_safe_as_string(throw->error.value, NULL);
+    throw->error.value = valueI_nil;
 
     if (string == NULL) {
         return "(Unsupported error value)";
