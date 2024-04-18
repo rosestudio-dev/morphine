@@ -33,6 +33,8 @@ struct compiler_instance {
 };
 
 static void userdata_free(morphine_instance_t I, void *p) {
+    (void) (I);
+
     struct compiler_instance *instance = p;
 
     if (instance->inited.graal) {
@@ -42,8 +44,6 @@ static void userdata_free(morphine_instance_t I, void *p) {
     if (instance->inited.dlib) {
         dlclose(instance->dlib);
     }
-
-    mapi_allocator_free(I, instance);
 }
 
 
@@ -101,13 +101,16 @@ static void check_version(morphine_coroutine_t U, struct compiler_instance *inst
 }
 
 struct compiler_instance *dlibcompiler_userdata(morphine_coroutine_t U, const char *path) {
-    struct compiler_instance *instance = mapi_allocator_uni(mapi_instance(U), NULL, sizeof(struct compiler_instance));
+    struct compiler_instance *instance = mapi_push_userdata(
+        U, "dlibcompiler",
+        sizeof(struct compiler_instance),
+        NULL, userdata_free
+    );
+
     (*instance) = (struct compiler_instance) {
         .inited.dlib = false,
         .inited.graal = false
     };
-
-    mapi_push_userdata(U, "dlibcompiler", instance, NULL, userdata_free);
 
     dlib_open(U, instance, path);
     graal_init(U, instance);
@@ -116,7 +119,9 @@ struct compiler_instance *dlibcompiler_userdata(morphine_coroutine_t U, const ch
     return instance;
 }
 
-bool dlibcompiler_assemble(morphine_coroutine_t U, struct compiler_instance *instance, char *text, bool optimize) {
+bool dlibcompiler_assemble(
+    morphine_coroutine_t U, struct compiler_instance *instance, char *text, bool optimize
+) {
     check_graal_inited(U, instance);
     return instance->methods.assemble(instance->vars.thread, text, optimize);
 }

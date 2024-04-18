@@ -298,12 +298,17 @@ static struct uuid load(struct data *data) {
     struct uuid main_uuid = get_uuid(data);
     size_t functions_count = get_u32(data);
 
-    struct function **functions = allocI_uni(data->U->I, NULL, functions_count * sizeof(struct function *));
+    struct userdata *userdata = userdataI_create_vec(
+        data->U->I, "functions",
+        functions_count, sizeof(struct function *),
+        NULL, NULL
+    );
+
+    stackI_push(data->U, valueI_object(userdata));
+
+    struct function **functions = userdata->data;
     data->functions.count = functions_count;
     data->functions.vector = functions;
-
-    struct userdata *userdata = userdataI_create(data->U->I, "functions", functions, NULL, allocI_free);
-    stackI_push(data->U, valueI_object(userdata));
 
     for (size_t i = 0; i < functions_count; i++) {
         functions[i] = get_function(data);

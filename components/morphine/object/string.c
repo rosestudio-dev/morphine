@@ -86,7 +86,7 @@ void stringI_free(morphine_instance_t I, struct string *string) {
 
 struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
     if (a == NULL || b == NULL) {
-        throwI_error(I, "Reference is null");
+        throwI_error(I, "String is null");
     }
 
     char *buffer;

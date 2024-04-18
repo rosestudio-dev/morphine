@@ -4,20 +4,26 @@
 
 #include "userdata/tbcfile.h"
 
+struct file {
+    FILE *file;
+};
+
 static void tbc_file_free(morphine_instance_t I, void *p) {
     (void) I;
 
-    fclose(p);
+    struct file *file = p;
+    if (file->file != NULL) {
+        fclose(file->file);
+    }
 }
 
 FILE *userdata_tbc_file(morphine_coroutine_t U, const char *path, const char *mode) {
-    FILE *file = fopen(path, mode);
+    struct file *file = mapi_push_userdata(U, "tbc_file", sizeof(struct file), NULL, tbc_file_free);
+    file->file = fopen(path, mode);
 
-    if (file == NULL) {
+    if (file->file == NULL) {
         mapi_errorf(U, "Cannot open file %s", path);
     }
 
-    mapi_push_userdata(U, "tbc_file", file, NULL, tbc_file_free);
-
-    return file;
+    return file->file;
 }

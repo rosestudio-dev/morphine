@@ -349,8 +349,7 @@ static void tolowercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (strlen > 0) {
-                char *result = mapi_allocator_vec(mapi_instance(U), NULL, strlen, sizeof(char));
-                mapi_push_userdata(U, "tempstring", result, NULL, mapi_allocator_free);
+                char *result = mapi_push_userdata_vec(U, "tempstring", strlen, sizeof(char), NULL, NULL);
 
                 for (size_t i = 0; i < strlen; i++) {
                     result[i] = (char) tolower(string[i]);
@@ -386,8 +385,7 @@ static void touppercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (strlen > 0) {
-                char *result = mapi_allocator_vec(mapi_instance(U), NULL, strlen, sizeof(char));
-                mapi_push_userdata(U, "tempstring", result, NULL, mapi_allocator_free);
+                char *result = mapi_push_userdata_vec(U, "tempstring", strlen, sizeof(char), NULL, NULL);
 
                 for (size_t i = 0; i < strlen; i++) {
                     result[i] = (char) toupper(string[i]);

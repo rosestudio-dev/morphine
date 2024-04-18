@@ -10,15 +10,15 @@ struct process_state {
     morphine_coroutine_t U;
     jmp_buf jump;
     void *data;
-    morphine_loader_read_t read;
+    morphine_read_t read;
     const char *message;
 };
 
 struct function *process(
     morphine_coroutine_t U,
-    morphine_loader_init_t init,
-    morphine_loader_read_t read,
-    morphine_loader_finish_t finish,
+    morphine_init_t init,
+    morphine_read_t read,
+    morphine_finish_t finish,
     void *args,
     function_loader_t loader
 ) {

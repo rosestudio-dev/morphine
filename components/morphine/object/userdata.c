@@ -7,13 +7,11 @@
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/gc/safe.h"
 
-struct userdata *userdataI_create(
+static struct userdata *create(
     morphine_instance_t I,
-    const char *name,
-    void *p,
-    morphine_userdata_mark_t mark,
-    morphine_userdata_free_t free
+    const char *name
 ) {
     if (name == NULL) {
         throwI_error(I, "Userdata name is null");
@@ -31,9 +29,10 @@ struct userdata *userdataI_create(
     (*result) = (struct userdata) {
         .name = ((void *) result) + sizeof(struct userdata),
         .name_len = name_len,
-        .data = p,
-        .free = free,
-        .mark = mark,
+        .size = 0,
+        .data = NULL,
+        .free = NULL,
+        .mark = NULL,
         .metatable = NULL,
     };
 
@@ -45,10 +44,72 @@ struct userdata *userdataI_create(
     return result;
 }
 
+struct userdata *userdataI_create(
+    morphine_instance_t I,
+    const char *name,
+    size_t size,
+    morphine_mark_t mark,
+    morphine_free_t free
+) {
+    struct userdata *userdata = create(I, name);
+
+    size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
+
+    userdata->data = allocI_uni(I, NULL, size);
+    userdata->size = size;
+    userdata->free = free;
+    userdata->mark = mark;
+
+    gcI_reset_safe(I, rollback);
+
+    return userdata;
+}
+
+struct userdata *userdataI_create_vec(
+    morphine_instance_t I,
+    const char *name,
+    size_t count,
+    size_t size,
+    morphine_mark_t mark,
+    morphine_free_t free
+) {
+    struct userdata *userdata = create(I, name);
+
+    size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
+
+    userdata->data = allocI_vec(I, NULL, count, size);
+    userdata->size = size;
+    userdata->free = free;
+    userdata->mark = mark;
+
+    gcI_reset_safe(I, rollback);
+
+    return userdata;
+}
+
 void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
     if (userdata->free != NULL) {
         userdata->free(I, userdata->data);
     }
 
+    allocI_free(I, userdata->data);
     allocI_free(I, userdata);
+}
+
+void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t size) {
+    if (userdata == NULL) {
+        throwI_error(I, "Userdata is null");
+    }
+
+    userdata->data = allocI_uni(I, userdata->data, size);
+    userdata->size = size;
+}
+
+void userdataI_resize_vec(morphine_instance_t I, struct userdata *userdata, size_t count, size_t size) {
+    if (userdata == NULL) {
+        throwI_error(I, "Userdata is null");
+    }
+
+    userdata->data = allocI_vec(I, userdata->data, count, size);
+    userdata->size = size;
 }

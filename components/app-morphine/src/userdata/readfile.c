@@ -19,11 +19,14 @@ static void readfile_free(morphine_instance_t I, void *p) {
     }
 
     mapi_allocator_free(I, readfile->data);
-    mapi_allocator_free(I, readfile);
 }
 
 void *userdata_readfile(morphine_coroutine_t U, const char *path) {
-    struct readfile *readfile = mapi_allocator_uni(mapi_instance(U), NULL, sizeof(struct readfile));
+    struct readfile *readfile = mapi_push_userdata(
+        U, "readfile",
+        sizeof(struct readfile),
+        NULL, readfile_free
+    );
 
     (*readfile) = (struct readfile) {
         .data = NULL,
@@ -32,11 +35,8 @@ void *userdata_readfile(morphine_coroutine_t U, const char *path) {
     };
 
     if (readfile->file == NULL) {
-        mapi_allocator_free(mapi_instance(U), readfile);
         mapi_errorf(U, "Cannot open file %s", path);
     }
-
-    mapi_push_userdata(U, "readfile", readfile, NULL, readfile_free);
 
     // get size
 

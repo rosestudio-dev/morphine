@@ -8,8 +8,8 @@
 
 struct function *loaderI_load(
     morphine_coroutine_t,
-    morphine_loader_init_t,
-    morphine_loader_read_t,
-    morphine_loader_finish_t,
+    morphine_init_t,
+    morphine_read_t,
+    morphine_finish_t,
     void *
 );

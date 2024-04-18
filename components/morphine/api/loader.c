@@ -52,9 +52,9 @@ MORPHINE_API void mapi_rload(morphine_coroutine_t U, size_t size, const uint8_t 
 
 MORPHINE_API void mapi_load(
     morphine_coroutine_t U,
-    morphine_loader_init_t init,
-    morphine_loader_read_t read,
-    morphine_loader_finish_t finish,
+    morphine_init_t init,
+    morphine_read_t read,
+    morphine_finish_t finish,
     void *args
 ) {
     struct function *result = loaderI_load(U, init, read, finish, args);

@@ -17,12 +17,12 @@ typedef uint8_t priority_t;
 
 typedef void (*morphine_native_t)(morphine_coroutine_t);
 
-typedef void (*morphine_userdata_mark_t)(morphine_instance_t, void *);
-typedef void (*morphine_userdata_free_t)(morphine_instance_t, void *);
+typedef void (*morphine_mark_t)(morphine_instance_t, void *);
+typedef void (*morphine_free_t)(morphine_instance_t, void *);
 
-typedef void *(*morphine_loader_init_t)(morphine_coroutine_t, void *args);
-typedef uint8_t (*morphine_loader_read_t)(morphine_coroutine_t, void *data, const char **error);
-typedef void (*morphine_loader_finish_t)(morphine_coroutine_t, void *data);
+typedef void *(*morphine_init_t)(morphine_coroutine_t, void *args);
+typedef uint8_t (*morphine_read_t)(morphine_coroutine_t, void *data, const char **error);
+typedef void (*morphine_finish_t)(morphine_coroutine_t, void *data);
 
 struct platform {
     struct {

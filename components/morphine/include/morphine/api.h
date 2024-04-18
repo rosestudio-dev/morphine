@@ -47,9 +47,9 @@ MORPHINE_API const char *mapi_get_panic_message(morphine_instance_t);
 MORPHINE_API void mapi_rload(morphine_coroutine_t, size_t size, const uint8_t *vector);
 MORPHINE_API void mapi_load(
     morphine_coroutine_t,
-    morphine_loader_init_t init,
-    morphine_loader_read_t read,
-    morphine_loader_finish_t finish,
+    morphine_init_t init,
+    morphine_read_t read,
+    morphine_finish_t finish,
     void *args
 );
 
@@ -97,13 +97,20 @@ MORPHINE_API void mapi_push_native(morphine_coroutine_t, const char *name, morph
 MORPHINE_API const char *mapi_native_name(morphine_coroutine_t);
 MORPHINE_API morphine_native_t mapi_native_function(morphine_coroutine_t);
 
-MORPHINE_API void mapi_push_userdata(
-    morphine_coroutine_t,
-    const char *type,
-    void *pointer,
-    morphine_userdata_mark_t mark,
-    morphine_userdata_free_t free
+MORPHINE_API void *mapi_push_userdata(
+    morphine_coroutine_t, const char *type,
+    size_t size,
+    morphine_mark_t mark,
+    morphine_free_t free
 );
+MORPHINE_API void *mapi_push_userdata_vec(
+    morphine_coroutine_t, const char *type,
+    size_t count, size_t size,
+    morphine_mark_t mark,
+    morphine_free_t free
+);
+MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t U, size_t size);
+MORPHINE_API void *mapi_userdata_resize_vec(morphine_coroutine_t U, size_t count, size_t size);
 MORPHINE_API const char *mapi_userdata_type(morphine_coroutine_t);
 MORPHINE_API void *mapi_userdata_pointer(morphine_coroutine_t);
 
