@@ -106,8 +106,6 @@ MORPHINE_API void mapi_push_userdata(
 );
 MORPHINE_API const char *mapi_userdata_type(morphine_coroutine_t);
 MORPHINE_API void *mapi_userdata_pointer(morphine_coroutine_t);
-MORPHINE_API void mapi_userdata_link(morphine_coroutine_t, bool soft);
-MORPHINE_API bool mapi_userdata_unlink(morphine_coroutine_t, void *pointer);
 
 MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t);
 MORPHINE_API morphine_coroutine_t mapi_get_coroutine(morphine_coroutine_t);

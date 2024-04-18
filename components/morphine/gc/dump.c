@@ -9,6 +9,21 @@
 #include "morphine/object/native.h"
 #include "morphine/object/userdata.h"
 
+static const char *color(enum obj_color color) {
+    switch (color) {
+        case OBJ_COLOR_BLACK:
+            return "B";
+        case OBJ_COLOR_GREY:
+            return "G";
+        case OBJ_COLOR_WHITE:
+            return "W";
+        case OBJ_COLOR_RED:
+            return "R";
+    }
+
+    return "?";
+}
+
 static void object(morphine_instance_t I, struct object *obj) {
     FILE *out = I->platform.io.out;
     if (obj == NULL) {
@@ -16,8 +31,8 @@ static void object(morphine_instance_t I, struct object *obj) {
     } else if (obj->type == OBJ_TYPE_STRING) {
         fprintf(
             out, "(%s%s) %s %p '%s'",
-            obj->flags.mark ? "+" : "-",
-            obj->flags.finalized ? "l" : "f",
+            color(obj->color),
+            obj->flags.finalized ? "F" : " ",
             valueI_type2string(I, valueI_object(obj).type),
             obj,
             ((struct string *) obj)->chars
@@ -25,8 +40,8 @@ static void object(morphine_instance_t I, struct object *obj) {
     } else if (obj->type == OBJ_TYPE_FUNCTION) {
         fprintf(
             out, "(%s%s) %s %p '%s'",
-            obj->flags.mark ? "+" : "-",
-            obj->flags.finalized ? "l" : "f",
+            color(obj->color),
+            obj->flags.finalized ? "F" : " ",
             valueI_type2string(I, valueI_object(obj).type),
             obj,
             ((struct function *) obj)->name
@@ -34,8 +49,8 @@ static void object(morphine_instance_t I, struct object *obj) {
     } else if (obj->type == OBJ_TYPE_NATIVE) {
         fprintf(
             out, "(%s%s) %s %p '%s'",
-            obj->flags.mark ? "+" : "-",
-            obj->flags.finalized ? "l" : "f",
+            color(obj->color),
+            obj->flags.finalized ? "F" : " ",
             valueI_type2string(I, valueI_object(obj).type),
             obj,
             ((struct native *) obj)->name
@@ -43,8 +58,8 @@ static void object(morphine_instance_t I, struct object *obj) {
     } else if (obj->type == OBJ_TYPE_USERDATA) {
         fprintf(
             out, "(%s%s) %s %p '%s'",
-            obj->flags.mark ? "+" : "-",
-            obj->flags.finalized ? "l" : "f",
+            color(obj->color),
+            obj->flags.finalized ? "F" : " ",
             valueI_type2string(I, valueI_object(obj).type),
             obj,
             ((struct userdata *) obj)->name
@@ -52,8 +67,8 @@ static void object(morphine_instance_t I, struct object *obj) {
     } else {
         fprintf(
             out, "(%s%s) %s %p",
-            obj->flags.mark ? "+" : "-",
-            obj->flags.finalized ? "l" : "f",
+            color(obj->color),
+            obj->flags.finalized ? "F" : " ",
             valueI_type2string(I, valueI_object(obj).type),
             obj
         );
@@ -133,10 +148,10 @@ void gcI_dump(morphine_instance_t I) {
     fprintf(out, "@\n");
     fprintf(out, "@ Pool 'allocated':\n");
     pool(I, I->G.pools.allocated);
-    fprintf(out, "@ Pool 'gray':\n");
-    pool(I, I->G.pools.gray);
-    fprintf(out, "@ Pool 'white':\n");
-    pool(I, I->G.pools.white);
+    fprintf(out, "@ Pool 'grey':\n");
+    pool(I, I->G.pools.grey);
+    fprintf(out, "@ Pool 'black':\n");
+    pool(I, I->G.pools.black);
     fprintf(out, "@ Pool 'sweep':\n");
     pool(I, I->G.pools.sweep);
     fprintf(out, "@ Pool 'finalize':\n");

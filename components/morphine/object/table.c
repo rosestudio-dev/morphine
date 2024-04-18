@@ -180,8 +180,8 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
         throwI_error(I, "Table is null");
     }
 
-    gcI_barrier(table, key);
-    gcI_barrier(table, value);
+    gcI_barrier(I, table, key);
+    gcI_barrier(I, table, value);
 
     struct hashmap *hashmap = &table->hashmap;
 

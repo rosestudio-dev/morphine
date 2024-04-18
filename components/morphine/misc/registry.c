@@ -19,11 +19,11 @@ void registryI_set_key(morphine_instance_t I, struct value callable, struct valu
     if (valueI_is_function(source)) {
         struct function *function = valueI_as_function(source);
         function->registry_key = key;
-        gcI_barrier(function, key);
+        gcI_barrier(I, function, key);
     } else if (valueI_is_native(source)) {
         struct native *native = valueI_as_native(source);
         native->registry_key = key;
-        gcI_barrier(native, key);
+        gcI_barrier(I, native, key);
     }
 }
 

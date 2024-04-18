@@ -39,8 +39,8 @@ struct garbage_collector {
 
     struct {
         struct object *allocated;
-        struct object *gray;
-        struct object *white;
+        struct object *grey;
+        struct object *black;
         struct object *sweep;
 
         struct object *finalize;
@@ -57,7 +57,9 @@ struct garbage_collector {
         struct value stack[8];
     } safe;
 
-    struct callinfo *callinfo_trash;
+    struct {
+        struct callinfo *callinfo;
+    } trash;
 };
 
 void gcI_prototype(morphine_instance_t, size_t inited_bytes);

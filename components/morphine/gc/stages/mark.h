@@ -1,33 +1,23 @@
 //
-// Created by whyiskra on 3/23/24.
+// Created by why-iskra on 18.04.2024.
 //
 
 #pragma once
 
-#include "morphine/object/coroutine.h"
-#include "morphine/object/table.h"
-#include "morphine/object/closure.h"
-#include "morphine/object/userdata.h"
-#include "morphine/object/function.h"
-#include "morphine/object/reference.h"
-#include "morphine/object/string.h"
-#include "morphine/object/native.h"
-#include "morphine/object/iterator.h"
-#include "morphine/core/throw.h"
 #include "size.h"
+#include "morphine/gc/pools.h"
 
-static inline bool mark_object(struct object *object) {
-    if (object->flags.mark) {
-        return false;
+static inline void mark_object(morphine_instance_t I, struct object *object) {
+    if (object->color == OBJ_COLOR_WHITE) {
+        object->color = OBJ_COLOR_GREY;
+        gcI_pools_remove(object, &I->G.pools.allocated);
+        gcI_pools_insert(object, &I->G.pools.grey);
     }
-
-    object->flags.mark = true;
-    return true;
 }
 
-static inline void mark_value(struct value value) {
+static inline void mark_value(morphine_instance_t I, struct value value) {
     if (valueI_is_object(value)) {
-        mark_object(valueI_as_object(value));
+        mark_object(I, valueI_as_object(value));
     }
 }
 
@@ -37,13 +27,13 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             struct table *table = cast(struct table *, obj);
 
             if (table->metatable != NULL) {
-                mark_object(objectI_cast(table->metatable));
+                mark_object(I, objectI_cast(table->metatable));
             }
 
             struct bucket *current = table->hashmap.buckets.head;
             while (current != NULL) {
-                mark_value(current->pair.key);
-                mark_value(current->pair.value);
+                mark_value(I, current->pair.key);
+                mark_value(I, current->pair.value);
 
                 current = current->ll.prev;
             }
@@ -53,9 +43,9 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_CLOSURE: {
             struct closure *closure = cast(struct closure *, obj);
 
-            mark_value(closure->callable);
+            mark_value(I, closure->callable);
             for (size_t i = 0; i < closure->size; i++) {
-                mark_value(closure->values[i]);
+                mark_value(I, closure->values[i]);
             }
 
             return size_closure(closure);
@@ -64,14 +54,14 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             struct function *function = cast(struct function *, obj);
 
             for (size_t i = 0; i < function->constants_count; i++) {
-                mark_value(function->constants[i]);
+                mark_value(I, function->constants[i]);
             }
 
             for (size_t i = 0; i < function->statics_count; i++) {
-                mark_value(function->statics[i]);
+                mark_value(I, function->statics[i]);
             }
 
-            mark_value(function->registry_key);
+            mark_value(I, function->registry_key);
 
             return size_function(function);
         }
@@ -79,13 +69,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             struct userdata *userdata = cast(struct userdata *, obj);
 
             if (userdata->metatable != NULL) {
-                mark_object(objectI_cast(userdata->metatable));
-            }
-
-            struct link *current = userdata->links.pool;
-            while (current != NULL) {
-                mark_object(objectI_cast(current->userdata));
-                current = current->prev;
+                mark_object(I, objectI_cast(userdata->metatable));
             }
 
             if (userdata->mark != NULL) {
@@ -97,24 +81,24 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_COROUTINE: {
             morphine_coroutine_t coroutine = cast(morphine_coroutine_t, obj);
 
-            mark_value(coroutine->env);
+            mark_value(I, coroutine->env);
             for (size_t i = 0; i < coroutine->stack.top; i++) {
-                mark_value(coroutine->stack.allocated[i]);
+                mark_value(I, coroutine->stack.allocated[i]);
             }
 
             return size_coroutine(coroutine);
         }
         case OBJ_TYPE_NATIVE: {
             struct native *native = cast(struct native *, obj);
-            mark_value(native->registry_key);
+            mark_value(I, native->registry_key);
 
             return size_native(native);
         }
         case OBJ_TYPE_ITERATOR: {
             struct iterator *iterator = cast(struct iterator *, obj);
 
-            mark_object(objectI_cast(iterator->iterable));
-            mark_value(iterator->next.key);
+            mark_object(I, objectI_cast(iterator->iterable));
+            mark_value(I, iterator->next.key);
 
             return size_iterator(iterator);
         }

@@ -34,8 +34,6 @@ struct userdata *userdataI_create(
         .data = p,
         .free = free,
         .mark = mark,
-        .links.size = 0,
-        .links.pool = NULL,
         .metatable = NULL,
     };
 
@@ -52,74 +50,5 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
         userdata->free(I, userdata->data);
     }
 
-    struct link *current = userdata->links.pool;
-    while (current != NULL) {
-        struct link *prev = current->prev;
-
-        allocI_free(I, current);
-
-        current = prev;
-    }
-
     allocI_free(I, userdata);
-}
-
-void userdataI_link(morphine_instance_t I, struct userdata *userdata, struct userdata *linking, bool soft) {
-    if (userdata == NULL) {
-        throwI_error(I, "Userdata is null");
-    }
-
-    if (linking == NULL) {
-        throwI_error(I, "Linking userdata is null");
-    }
-
-    gcI_objbarrier(userdata, linking);
-
-    struct link *current = userdata->links.pool;
-    while (current != NULL) {
-        if (current->userdata == linking) {
-            return;
-        }
-
-        current = current->prev;
-    }
-
-    struct link *link = allocI_uni(I, NULL, sizeof(struct link));
-
-    (*link) = (struct link) {
-        .userdata = linking,
-        .soft = soft,
-        .prev = userdata->links.pool
-    };
-
-    userdata->links.size ++;
-    userdata->links.pool = link;
-}
-
-bool userdataI_unlink(morphine_instance_t I, struct userdata *userdata, void *pointer) {
-    if (userdata == NULL) {
-        throwI_error(I, "Userdata is null");
-    }
-
-    struct link *current = userdata->links.pool;
-    struct link *pool = NULL;
-    bool found = false;
-    while (current != NULL) {
-        struct link *prev = current->prev;
-
-        if (current->userdata->data == pointer) {
-            userdata->links.size --;
-            allocI_free(I, current);
-            found = true;
-        } else {
-            current->prev = pool;
-            pool = current;
-        }
-
-        current = prev;
-    }
-
-    userdata->links.pool = pool;
-
-    return found;
 }

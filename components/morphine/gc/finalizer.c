@@ -6,6 +6,17 @@
 #include "morphine/core/instance.h"
 #include "morphine/object/native.h"
 #include "morphine/object/coroutine.h"
+#include "morphine/gc/pools.h"
+
+static void give_away(morphine_instance_t I, struct object *candidate) {
+    if (I->G.status == GC_STATUS_INCREMENT) {
+        candidate->color = OBJ_COLOR_GREY;
+        gcI_pools_insert(candidate, &I->G.pools.grey);
+    } else {
+        candidate->color = OBJ_COLOR_WHITE;
+        gcI_pools_insert(candidate, &I->G.pools.allocated);
+    }
+}
 
 static void finalizer(morphine_coroutine_t U) {
     morphine_instance_t I = U->I;
@@ -19,11 +30,10 @@ static void finalizer(morphine_coroutine_t U) {
             return;
         }
 
-        I->G.pools.finalize = candidate->prev;
+        gcI_pools_remove(candidate, &I->G.pools.finalize);
 
-        if (candidate->flags.mark || candidate->flags.finalized) {
-            candidate->prev = I->G.pools.allocated;
-            I->G.pools.allocated = candidate;
+        if (candidate->flags.finalized) {
+            give_away(I, candidate);
             return;
         }
 
@@ -47,8 +57,8 @@ static void finalizer(morphine_coroutine_t U) {
         I->G.finalizer.candidate = NULL;
 
         if (candidate != NULL) {
-            candidate->prev = I->G.pools.allocated;
-            I->G.pools.allocated = candidate;
+            give_away(I, candidate);
+            return;
         }
 
         return;

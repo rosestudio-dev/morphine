@@ -27,6 +27,9 @@ bool gcstageI_sweep(morphine_instance_t I, size_t debt) {
         }
 
         I->G.pools.sweep = current;
+        if (current != NULL) {
+            current->next = NULL;
+        }
     }
 
     if (unlikely(I->G.pools.sweep == NULL)) {

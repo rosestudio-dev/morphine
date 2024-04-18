@@ -36,8 +36,8 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
         .bytes.max_allocated = inited_bytes,
 
         .pools.allocated = NULL,
-        .pools.gray = NULL,
-        .pools.white = NULL,
+        .pools.grey = NULL,
+        .pools.black = NULL,
         .pools.sweep = NULL,
         .pools.finalize = NULL,
 
@@ -47,7 +47,7 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
 
         .safe.index = 0,
 
-        .callinfo_trash = NULL,
+        .trash.callinfo = NULL,
     };
 
     size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
@@ -65,8 +65,8 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
 
 void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {
     free_objects(I, G.pools.allocated);
-    free_objects(I, G.pools.gray);
-    free_objects(I, G.pools.white);
+    free_objects(I, G.pools.grey);
+    free_objects(I, G.pools.black);
     free_objects(I, G.pools.sweep);
     free_objects(I, G.pools.finalize);
 
@@ -74,7 +74,7 @@ void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {
         objectI_free(I, G.finalizer.candidate);
     }
 
-    struct callinfo *current = G.callinfo_trash;
+    struct callinfo *current = G.trash.callinfo;
     while (current != NULL) {
         struct callinfo *prev = current->prev;
         callstackI_callinfo_free(I, current);

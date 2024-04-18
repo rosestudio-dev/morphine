@@ -60,6 +60,6 @@ void closureI_set(morphine_instance_t I, struct closure *closure, size_t index, 
         throwI_error(I, "Closure index was out of bounce");
     }
 
-    gcI_barrier(closure, value);
+    gcI_barrier(I, closure, value);
     closure->values[index] = value;
 }

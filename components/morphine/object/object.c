@@ -14,16 +14,16 @@
 #include "morphine/object/iterator.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
+#include "morphine/gc/pools.h"
 
 void objectI_init(morphine_instance_t I, struct object *object, enum obj_type type) {
     *object = (struct object) {
         .type = type,
-        .flags.mark = false,
         .flags.finalized = false,
-        .prev = I->G.pools.allocated
+        .color = OBJ_COLOR_WHITE
     };
 
-    I->G.pools.allocated = object;
+    gcI_pools_insert(object, &I->G.pools.allocated);
 }
 
 void objectI_free(morphine_instance_t I, struct object *object) {

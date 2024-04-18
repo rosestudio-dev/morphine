@@ -132,7 +132,13 @@ static inline void recover_pool(morphine_instance_t I, struct object **pool) {
         }
 
         if (end != NULL) {
-            end->prev = I->G.pools.allocated;
+            struct object *allocated = I->G.pools.allocated;
+
+            if (allocated != NULL) {
+                allocated->next = end;
+            }
+            end->prev = allocated;
+
             I->G.pools.allocated = *pool;
         }
 
@@ -142,8 +148,8 @@ static inline void recover_pool(morphine_instance_t I, struct object **pool) {
 
 static void recover_pools(morphine_instance_t I) {
     recover_pool(I, &I->G.pools.sweep);
-    recover_pool(I, &I->G.pools.white);
-    recover_pool(I, &I->G.pools.gray);
+    recover_pool(I, &I->G.pools.black);
+    recover_pool(I, &I->G.pools.grey);
 }
 
 void gcI_change_limit(morphine_instance_t I, size_t value) {
@@ -155,7 +161,7 @@ void gcI_change_threshold(morphine_instance_t I, size_t value) {
 }
 
 void gcI_change_grow(morphine_instance_t I, uint16_t value) {
-    if(value <= 100) {
+    if (value <= 100) {
         throwI_error(I, "GC grow must be greater than 100");
     }
 
@@ -163,7 +169,7 @@ void gcI_change_grow(morphine_instance_t I, uint16_t value) {
 }
 
 void gcI_change_deal(morphine_instance_t I, uint16_t value) {
-    if(value <= 100) {
+    if (value <= 100) {
         throwI_error(I, "GC deal must be greater than 100");
     }
 
@@ -171,7 +177,7 @@ void gcI_change_deal(morphine_instance_t I, uint16_t value) {
 }
 
 void gcI_change_pause(morphine_instance_t I, uint8_t value) {
-    if(value > 31) {
+    if (value > 31) {
         throwI_error(I, "GC pause must be less than 32");
     }
 

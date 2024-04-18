@@ -4,63 +4,91 @@
 
 #include "../stages.h"
 #include "mark.h"
-#include "morphine/core/instance.h"
 
-static inline bool resolve_userdata(struct userdata *userdata) {
-    struct link *current = userdata->links.pool;
-    bool marked = false;
-    while (current != NULL) {
-        if (!current->soft) {
-            marked = marked || mark_object(objectI_cast(current->userdata));
+static inline size_t record(morphine_instance_t I) {
+    size_t checked = 0;
+
+    {
+        morphine_coroutine_t current = I->E.coroutines;
+        while (current != NULL) {
+            mark_object(I, objectI_cast(current));
+            checked += mark_internal(I, objectI_cast(current));
+            current = current->prev;
         }
 
-        current = current->prev;
+        if (I->E.running != NULL) {
+            mark_object(I, objectI_cast(I->E.running));
+            checked += mark_internal(I, objectI_cast(I->E.running));
+        }
+
+        if (I->E.next != NULL) {
+            mark_object(I, objectI_cast(I->E.next));
+            checked += mark_internal(I, objectI_cast(I->E.next));
+        }
+
+        if (I->G.finalizer.coroutine != NULL) {
+            mark_object(I, objectI_cast(I->G.finalizer.coroutine));
+            checked += mark_internal(I, objectI_cast(I->G.finalizer.coroutine));
+        }
     }
 
-    return marked;
-}
-
-static inline bool move_gray(morphine_instance_t I) {
-    struct object *current = I->G.pools.allocated;
-    struct object *pool = NULL;
-    bool moved = false;
-    while (current != NULL) {
-        struct object *prev = current->prev;
-
-        if (unlikely(current->type == OBJ_TYPE_USERDATA)) {
-            moved = moved || resolve_userdata((struct userdata *) current);
+    {
+        struct object *current = I->G.pools.finalize;
+        while (current != NULL) {
+            checked += mark_internal(I, current);
+            current = current->prev;
         }
 
-        if (current->flags.mark) {
-            current->prev = I->G.pools.gray;
-            I->G.pools.gray = current;
-            moved = true;
-        } else {
-            current->prev = pool;
-            pool = current;
+        if (I->G.finalizer.candidate != NULL) {
+            checked += mark_internal(I, I->G.finalizer.candidate);
         }
-
-        current = prev;
     }
 
-    I->G.pools.allocated = pool;
+    for (enum metatable_field mf = MFS_START; mf < MFS_COUNT; mf++) {
+        mark_object(I, objectI_cast(I->metatable.names[mf]));
+    }
 
-    return moved;
+    for (enum value_type type = VALUE_TYPES_START; type < VALUE_TYPES_COUNT; type++) {
+        struct table *table = I->metatable.defaults[type];
+        if (table != NULL) {
+            mark_object(I, objectI_cast(table));
+        }
+    }
+
+    if (!I->E.throw.is_message) {
+        mark_value(I, I->E.throw.error.value);
+    }
+
+    if (I->env != NULL) {
+        mark_object(I, objectI_cast(I->env));
+    }
+
+    if (I->registry != NULL) {
+        mark_object(I, objectI_cast(I->registry));
+    }
+
+    {
+        size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
+
+        for (size_t i = 0; i < size; i++) {
+            mark_value(I, I->G.safe.stack[i]);
+        }
+    }
+
+    return checked;
 }
 
 bool gcstageI_increment(morphine_instance_t I, size_t debt) {
-    gcstageI_record(I);
+    size_t checked = record(I);
 
-    size_t checked = 0;
-
-retry:
     {
-        struct object *current = I->G.pools.gray;
-        while (current != NULL && debt >= checked) {
+        struct object *current = I->G.pools.grey;
+        while (current != NULL) {
             struct object *prev = current->prev;
 
-            current->prev = I->G.pools.white;
-            I->G.pools.white = current;
+            current->color = OBJ_COLOR_BLACK;
+            gcI_pools_remove(current, &I->G.pools.grey);
+            gcI_pools_insert(current, &I->G.pools.black);
 
             size_t size = mark_internal(I, current);
             if (unlikely(size > SIZE_MAX - checked)) {
@@ -70,15 +98,11 @@ retry:
             }
 
             current = prev;
+
+            if (unlikely(debt < checked)) {
+                break;
+            }
         }
-
-        I->G.pools.gray = current;
-    }
-
-    bool has_gray = move_gray(I);
-
-    if (has_gray && debt >= checked) {
-        goto retry;
     }
 
     if (I->G.stats.debt > checked) {
@@ -87,5 +111,5 @@ retry:
         I->G.stats.debt = 0;
     }
 
-    return I->G.pools.gray != NULL;
+    return I->G.pools.grey != NULL;
 }

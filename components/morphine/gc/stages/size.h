@@ -37,8 +37,7 @@ static inline size_t size_function(struct function *function) {
 
 static inline size_t size_userdata(struct userdata *userdata) {
     return sizeof(struct userdata) +
-           (userdata->name_len + 1) * sizeof(char) +
-           userdata->links.size * sizeof(struct link);
+           (userdata->name_len + 1) * sizeof(char);
 }
 
 static inline size_t size_coroutine(struct coroutine *coroutine) {

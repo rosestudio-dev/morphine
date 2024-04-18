@@ -18,7 +18,7 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
         struct table *table = valueI_safe_as_table(value, NULL);
         if (table != NULL) {
             if (metatable != NULL) {
-                gcI_objbarrier(table, metatable);
+                gcI_objbarrier(I, table, metatable);
             }
             table->metatable = metatable;
             return;
@@ -29,7 +29,7 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
         struct userdata *userdata = valueI_safe_as_userdata(value, NULL);
         if (userdata != NULL) {
             if (metatable != NULL) {
-                gcI_objbarrier(userdata, metatable);
+                gcI_objbarrier(I, userdata, metatable);
             }
             userdata->metatable = metatable;
             return;

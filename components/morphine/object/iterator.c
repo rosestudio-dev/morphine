@@ -41,7 +41,7 @@ void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
         &iterator->next.has
     );
 
-    gcI_barrier(iterator, iterator->next.key);
+    gcI_barrier(I, iterator, iterator->next.key);
 }
 
 bool iteratorI_has(morphine_instance_t I, struct iterator *iterator) {
@@ -63,7 +63,7 @@ struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
         &iterator->next.has
     );
 
-    gcI_barrier(iterator, iterator->next.key);
+    gcI_barrier(I, iterator, iterator->next.key);
 
     return result;
 }

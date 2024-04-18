@@ -6,15 +6,16 @@
 #include "morphine/core/instance.h"
 
 void gcI_dispose_callinfo(morphine_instance_t I, struct callinfo *callinfo) {
-    callinfo->prev = I->G.callinfo_trash;
-    I->G.callinfo_trash = callinfo;
+    callinfo->prev = I->G.trash.callinfo;
+    I->G.trash.callinfo = callinfo;
 }
 
 struct callinfo *gcI_hot_callinfo(morphine_instance_t I) {
-    struct callinfo *callinfo = I->G.callinfo_trash;
+    struct callinfo *callinfo = I->G.trash.callinfo;
 
     if (callinfo != NULL) {
-        I->G.callinfo_trash = callinfo->prev;
+        I->G.trash.callinfo = callinfo->prev;
+        callinfo->prev = NULL;
     }
 
     return callinfo;

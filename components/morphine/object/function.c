@@ -129,7 +129,7 @@ void functionI_static_set(
         throwI_error(I, "Static index was out of bounce");
     }
 
-    gcI_barrier(function, value);
+    gcI_barrier(I, function, value);
     function->statics[index] = value;
 }
 
@@ -160,6 +160,6 @@ void functionI_constant_set(
         throwI_error(I, "Constant index was out of bounce");
     }
 
-    gcI_barrier(function, value);
+    gcI_barrier(I, function, value);
     function->constants[index] = value;
 }
