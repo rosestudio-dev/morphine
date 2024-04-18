@@ -11,9 +11,9 @@
 #define objectI_cast(x) cast(struct object *, (x))
 
 enum obj_color {
-    OBJ_COLOR_BLACK = 0,
+    OBJ_COLOR_WHITE = 0,
     OBJ_COLOR_GREY = 1,
-    OBJ_COLOR_WHITE = 2,
+    OBJ_COLOR_BLACK = 2,
     OBJ_COLOR_RED = 3,
 };
 
