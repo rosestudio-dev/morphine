@@ -6,7 +6,7 @@
 
 #include "morphine/platform.h"
 #include "morphine/utils/likely.h"
-#include "morphine/object.h"
+#include "morphine/gc/object.h"
 
 // region create
 

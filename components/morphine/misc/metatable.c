@@ -3,7 +3,6 @@
 //
 
 #include "morphine/misc/metatable.h"
-#include "morphine/object.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/string.h"

@@ -5,7 +5,7 @@
 #pragma once
 
 #include <stdarg.h>
-#include "morphine/object.h"
+#include "morphine/gc/object.h"
 
 struct string {
     struct object header;

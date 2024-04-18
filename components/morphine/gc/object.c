@@ -2,7 +2,7 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include "morphine/object.h"
+#include "morphine/gc/object.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
