@@ -32,7 +32,6 @@ static struct userdata *create(
         .size = 0,
         .data = NULL,
         .free = NULL,
-        .mark = NULL,
         .metatable = NULL,
     };
 
@@ -48,7 +47,6 @@ struct userdata *userdataI_create(
     morphine_instance_t I,
     const char *name,
     size_t size,
-    morphine_mark_t mark,
     morphine_free_t free
 ) {
     struct userdata *userdata = create(I, name);
@@ -58,7 +56,6 @@ struct userdata *userdataI_create(
     userdata->data = allocI_uni(I, NULL, size);
     userdata->size = size;
     userdata->free = free;
-    userdata->mark = mark;
 
     gcI_reset_safe(I, rollback);
 
@@ -70,7 +67,6 @@ struct userdata *userdataI_create_vec(
     const char *name,
     size_t count,
     size_t size,
-    morphine_mark_t mark,
     morphine_free_t free
 ) {
     struct userdata *userdata = create(I, name);
@@ -80,7 +76,6 @@ struct userdata *userdataI_create_vec(
     userdata->data = allocI_vec(I, NULL, count, size);
     userdata->size = size;
     userdata->free = free;
-    userdata->mark = mark;
 
     gcI_reset_safe(I, rollback);
 

@@ -101,15 +101,11 @@ MORPHINE_API morphine_native_t mapi_native_function(morphine_coroutine_t);
 
 MORPHINE_API void *mapi_push_userdata(
     morphine_coroutine_t, const char *type,
-    size_t size,
-    morphine_mark_t mark,
-    morphine_free_t free
+    size_t size, morphine_free_t free
 );
 MORPHINE_API void *mapi_push_userdata_vec(
     morphine_coroutine_t, const char *type,
-    size_t count, size_t size,
-    morphine_mark_t mark,
-    morphine_free_t free
+    size_t count, size_t size, morphine_free_t free
 );
 MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t U, size_t size);
 MORPHINE_API void *mapi_userdata_resize_vec(morphine_coroutine_t U, size_t count, size_t size);

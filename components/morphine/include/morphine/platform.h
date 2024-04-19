@@ -17,7 +17,6 @@ typedef uint8_t priority_t;
 
 typedef void (*morphine_native_t)(morphine_coroutine_t);
 
-typedef void (*morphine_mark_t)(morphine_instance_t, void *);
 typedef void (*morphine_free_t)(morphine_instance_t, void *);
 
 typedef void *(*morphine_init_t)(morphine_coroutine_t, void *args);

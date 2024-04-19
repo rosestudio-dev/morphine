@@ -15,7 +15,6 @@ struct userdata {
     size_t size;
     void *data;
 
-    morphine_mark_t mark;
     morphine_free_t free;
 
     struct table *metatable;
@@ -24,14 +23,12 @@ struct userdata {
 struct userdata *userdataI_create(
     morphine_instance_t, const char *name,
     size_t size,
-    morphine_mark_t mark,
     morphine_free_t free
 );
 
 struct userdata *userdataI_create_vec(
     morphine_instance_t, const char *name,
     size_t count, size_t size,
-    morphine_mark_t mark,
     morphine_free_t free
 );
 

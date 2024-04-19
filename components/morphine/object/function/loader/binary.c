@@ -299,9 +299,7 @@ static struct uuid load(struct data *data) {
     size_t functions_count = get_u32(data);
 
     struct userdata *userdata = userdataI_create_vec(
-        data->U->I, "functions",
-        functions_count, sizeof(struct function *),
-        NULL, NULL
+        data->U->I, "functions", functions_count, sizeof(struct function *), NULL
     );
 
     stackI_push(data->U, valueI_object(userdata));

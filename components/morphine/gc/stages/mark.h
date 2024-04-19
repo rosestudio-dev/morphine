@@ -72,10 +72,6 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_object(I, objectI_cast(userdata->metatable));
             }
 
-            if (userdata->mark != NULL) {
-                userdata->mark(I, userdata->data);
-            }
-
             return size_userdata(userdata);
         }
         case OBJ_TYPE_COROUTINE: {

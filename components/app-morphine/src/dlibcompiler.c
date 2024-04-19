@@ -46,7 +46,6 @@ static void userdata_free(morphine_instance_t I, void *p) {
     }
 }
 
-
 static void *safedlsym(morphine_coroutine_t U, void *dlib, const char *name) {
     void *result = dlsym(dlib, name);
     if (result == NULL) {
@@ -102,9 +101,7 @@ static void check_version(morphine_coroutine_t U, struct compiler_instance *inst
 
 struct compiler_instance *dlibcompiler_userdata(morphine_coroutine_t U, const char *path) {
     struct compiler_instance *instance = mapi_push_userdata(
-        U, "dlibcompiler",
-        sizeof(struct compiler_instance),
-        NULL, userdata_free
+        U, "dlibcompiler", sizeof(struct compiler_instance), userdata_free
     );
 
     (*instance) = (struct compiler_instance) {

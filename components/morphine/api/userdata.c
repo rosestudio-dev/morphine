@@ -11,10 +11,9 @@ MORPHINE_API void *mapi_push_userdata(
     morphine_coroutine_t U,
     const char *type,
     size_t size,
-    morphine_mark_t mark,
     morphine_free_t free
 ) {
-    struct userdata *userdata = userdataI_create(U->I, type, size, mark, free);
+    struct userdata *userdata = userdataI_create(U->I, type, size, free);
     stackI_push(U, valueI_object(userdata));
     return userdata->data;
 }
@@ -24,10 +23,9 @@ MORPHINE_API void *mapi_push_userdata_vec(
     const char *type,
     size_t count,
     size_t size,
-    morphine_mark_t mark,
     morphine_free_t free
 ) {
-    struct userdata *userdata = userdataI_create_vec(U->I, type, count, size, mark, free);
+    struct userdata *userdata = userdataI_create_vec(U->I, type, count, size, free);
     stackI_push(U, valueI_object(userdata));
     return userdata->data;
 }
