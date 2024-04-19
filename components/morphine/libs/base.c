@@ -88,7 +88,7 @@ static void setdefaultmetatable(morphine_coroutine_t U) {
         nb_init
             maux_checkargs(U, 1, "any,table");
             mapi_push_arg(U, 0);
-            const char *type = mapi_get_string(U);
+            const char *type = mapi_type(U);
             mapi_pop(U, 1);
             mapi_push_arg(U, 1);
             mapi_set_default_metatable(U, type);
@@ -101,7 +101,7 @@ static void getdefaultmetatable(morphine_coroutine_t U) {
         nb_init
             maux_checkargs(U, 1, "any");
             mapi_push_arg(U, 0);
-            const char *type = mapi_get_string(U);
+            const char *type = mapi_type(U);
             mapi_pop(U, 1);
             mapi_get_default_metatable(U, type);
             nb_return();
@@ -149,7 +149,7 @@ static void pcall(morphine_coroutine_t U) {
             mapi_push_result(U);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "thrown");
+            mapi_push_stringf(U, "error");
             mapi_push_nil(U);
             mapi_table_set(U);
 
@@ -161,7 +161,7 @@ static void pcall(morphine_coroutine_t U) {
             mapi_push_nil(U);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "thrown");
+            mapi_push_stringf(U, "error");
             mapi_push_thrown(U);
             mapi_table_set(U);
 
@@ -191,7 +191,7 @@ static void pscall(morphine_coroutine_t U) {
             mapi_push_result(U);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "thrown");
+            mapi_push_stringf(U, "error");
             mapi_push_nil(U);
             mapi_table_set(U);
 
@@ -203,7 +203,7 @@ static void pscall(morphine_coroutine_t U) {
             mapi_push_nil(U);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "thrown");
+            mapi_push_stringf(U, "error");
             mapi_push_thrown(U);
             mapi_table_set(U);
 

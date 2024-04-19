@@ -2,6 +2,7 @@
 // Created by whyiskra on 25.12.23.
 //
 
+#include <string.h>
 #include "morphine/api.h"
 #include "morphine/core/value.h"
 #include "morphine/object/coroutine.h"
@@ -57,8 +58,30 @@ MORPHINE_API const char *mapi_type(morphine_coroutine_t U) {
     return valueI_type2string(U->I, stackI_peek(U, 0).type);
 }
 
-MORPHINE_API bool mapi_checktype(morphine_coroutine_t U, const char *name) {
-    return valueI_string2type(U->I, name) == stackI_peek(U, 0).type;
+MORPHINE_API bool mapi_is(morphine_coroutine_t U, const char *type) {
+    if (strcmp(type, "callable") == 0) {
+        return mapi_is_callable(U);
+    }
+
+    if (strcmp(type, "meta") == 0) {
+        return mapi_is_metatype(U);
+    }
+
+    return mapi_is_type(U, type);
+}
+
+MORPHINE_API bool mapi_is_type(morphine_coroutine_t U, const char *type) {
+    return valueI_string2type(U->I, type) == stackI_peek(U, 0).type;
+}
+
+MORPHINE_API bool mapi_is_callable(morphine_coroutine_t U) {
+    struct value value = stackI_peek(U, 0);
+    return callstackI_is_callable(U->I, value);
+}
+
+MORPHINE_API bool mapi_is_metatype(morphine_coroutine_t U) {
+    struct value value = stackI_peek(U, 0);
+    return valueI_is_table(value) || valueI_is_userdata(value);
 }
 
 MORPHINE_API void mapi_to_integer(morphine_coroutine_t U) {
@@ -83,9 +106,4 @@ MORPHINE_API void mapi_to_string(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
     struct value result = valueI_value2string(U->I, value);
     stackI_replace(U, 0, result);
-}
-
-MORPHINE_API bool mapi_is_callable(morphine_coroutine_t U) {
-    struct value value = stackI_peek(U, 0);
-    return !valueI_is_nil(callstackI_extract_callable(U->I, value));
 }

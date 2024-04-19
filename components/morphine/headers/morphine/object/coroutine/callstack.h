@@ -88,6 +88,7 @@ void callstackI_pop(morphine_coroutine_t);
 void callstackI_fix_uninit(morphine_coroutine_t);
 
 struct value callstackI_extract_callable(morphine_instance_t, struct value callable);
+bool callstackI_is_callable(morphine_instance_t I, struct value callable);
 
 struct value callstackI_result(morphine_coroutine_t);
 void callstackI_return(morphine_coroutine_t, struct value);

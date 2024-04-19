@@ -70,10 +70,12 @@ MORPHINE_API void mapi_to_integer(morphine_coroutine_t);
 MORPHINE_API void mapi_to_decimal(morphine_coroutine_t);
 MORPHINE_API void mapi_to_boolean(morphine_coroutine_t);
 MORPHINE_API void mapi_to_string(morphine_coroutine_t);
-MORPHINE_API bool mapi_is_callable(morphine_coroutine_t);
 
 MORPHINE_API const char *mapi_type(morphine_coroutine_t);
-MORPHINE_API bool mapi_checktype(morphine_coroutine_t, const char *name);
+MORPHINE_API bool mapi_is(morphine_coroutine_t, const char *type);
+MORPHINE_API bool mapi_is_type(morphine_coroutine_t, const char *type);
+MORPHINE_API bool mapi_is_callable(morphine_coroutine_t);
+MORPHINE_API bool mapi_is_metatype(morphine_coroutine_t);
 
 MORPHINE_API void mapi_push_string(morphine_coroutine_t, const char *str);
 MORPHINE_API void mapi_push_stringn(morphine_coroutine_t, const char *str, size_t size);
@@ -155,7 +157,6 @@ MORPHINE_API void mapi_set_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_get_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_set_default_metatable(morphine_coroutine_t, const char *type);
 MORPHINE_API void mapi_get_default_metatable(morphine_coroutine_t, const char *type);
-MORPHINE_API bool mapi_is_metatype(morphine_coroutine_t);
 
 MORPHINE_API void mapi_rotate(morphine_coroutine_t, size_t count);
 MORPHINE_API void mapi_pop(morphine_coroutine_t, size_t size);

@@ -40,7 +40,7 @@ MORPHINE_AUX void maux_construct_call(
         table++;
     }
 
-    mapi_errorf(U, "Function %s wasn't found in table", name);
+    mapi_errorf(U, "Function %s wasn't found in construct table", name);
 
 found:;
     mapi_push_native(U, table->name, table->value);

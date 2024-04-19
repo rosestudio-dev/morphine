@@ -317,6 +317,27 @@ repeat:;
     throwI_error(I, "Cannot extract callable value");
 }
 
+bool callstackI_is_callable(morphine_instance_t I, struct value callable) {
+    size_t counter = 0;
+repeat:;
+    if (counter > 1000000) {
+        throwI_error(I, "Possible recursion while checking callable");
+    }
+
+    struct closure *closure = valueI_safe_as_closure(callable, NULL);
+    if (closure != NULL) {
+        callable = closure->callable;
+        counter++;
+        goto repeat;
+    }
+
+    if (valueI_is_native(callable) || valueI_is_function(callable)) {
+        return true;
+    }
+
+    return false;
+}
+
 struct value callstackI_result(morphine_coroutine_t U) {
     return *callstackI_info_or_error(U)->s.result;
 }
