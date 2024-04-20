@@ -9,6 +9,7 @@ hero:
       text: Why Morphine?
     - theme: alt
       text: Quickstart
+      link: /quickstart
     - theme: alt
       text: GitHub
       link: https://github.com/rosestudio-dev/morphine-lang
