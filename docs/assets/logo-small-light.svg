@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg id="uuid-a329ad56-0041-40bf-9ed7-0374cb9f1eba" data-name="Слой 1" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512">
+  <defs>
+    <style>
+      .uuid-55ac2ea0-2a06-4e35-be30-40d5f25772a2 {
+        fill: #1d172b;
+      }
+
+      .uuid-55ac2ea0-2a06-4e35-be30-40d5f25772a2, .uuid-cf3ac60f-21c7-435c-a0b6-69667d74aa5d {
+        stroke-width: 0px;
+      }
+
+      .uuid-cf3ac60f-21c7-435c-a0b6-69667d74aa5d {
+        fill: #140d1d;
+        opacity: .33;
+      }
+    </style>
+  </defs>
+  <rect class="uuid-cf3ac60f-21c7-435c-a0b6-69667d74aa5d" x="128" y="128" width="256" height="256" rx="128" ry="128"/>
+  <polygon class="uuid-55ac2ea0-2a06-4e35-be30-40d5f25772a2" points="106.3 411.02 106.3 101.7 161.39 101.7 252.91 308.05 259.69 308.05 350.8 101.7 406.3 101.7 406.3 411.02 106.3 411.02"/>
+</svg>
