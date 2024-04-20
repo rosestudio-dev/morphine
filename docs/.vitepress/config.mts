@@ -3,6 +3,7 @@ import {defineConfig} from 'vitepress'
 export default defineConfig({
     base: '/morphine-lang/',
     title: "Morphine Language",
+    lastUpdated: true,
     themeConfig: {
         logo: {
             light: '/assets/logo-small-light.svg',
@@ -29,6 +30,14 @@ export default defineConfig({
         }
     },
     head: [
+        [
+            'link',
+            {rel: 'icon', type: 'image/svg+xml', href: 'assets/logo-small-dark.svg', media: '(prefers-color-scheme:dark)'}
+        ],
+        [
+            'link',
+            {rel: 'icon', type: 'image/svg+xml', href: 'assets/logo-small-light.svg', media: '(prefers-color-scheme:light)'}
+        ],
         [
             'link',
             {rel: 'preconnect', href: 'https://fonts.googleapis.com'}
