@@ -1,6 +1,6 @@
 # Morphine Programming Language
-![logo](docs/morphine-logo-light.png#gh-light-mode-only)
-![logo](docs/morphine-logo-dark.png#gh-dark-mode-only)
+![logo](extra/images/morphine-logo-light.png#gh-light-mode-only)
+![logo](extra/images/morphine-logo-dark.png#gh-dark-mode-only)
 Morphine is an open-source, embedded programming language developed by [why-iskra](https://github.com/why-iskra).
 
 > [!CAUTION]
