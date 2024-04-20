@@ -27,6 +27,10 @@ features:
     details: No threads. No multicore CPUs. Only coroutines. It can be used in single-threaded systems thanks to cooperative multitasking.
 ---
 
+::: danger Caution!
+The product is in the alpha version state. There may be bugs. In the next releases, something may change.
+:::
+
 <style>
 #feature-icon-path {
     fill: var(--vp-c-brand-1);
