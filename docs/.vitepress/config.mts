@@ -1,6 +1,7 @@
 import {defineConfig} from 'vitepress'
 
 export default defineConfig({
+    base: '/morphine-lang/',
     title: "Morphine Language",
     themeConfig: {
         logo: {
