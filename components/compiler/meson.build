@@ -2,8 +2,13 @@ project('compiler')
 
 version = get_option('version')
 versioncode = get_option('versioncode')
+installdir = get_option('installdir')
 
+prog_nativeimage = find_program('native-image')
+prog_gradle = find_program('gradle')
 prog_python = find_program('python', required : true)
+
+# Sources
 
 sources_kts = run_command(
     prog_python,
@@ -21,7 +26,8 @@ sources_kt = run_command(
     check : true
 ).stdout().strip().split('\n')
 
-gradle = find_program('gradle')
+# Options
+
 gradle_options = [
     '--no-daemon',
     '--project-dir',
@@ -41,12 +47,19 @@ if get_option('localgradle').enabled()
     ]
 endif
 
+nativeimage_options = [
+    '--no-server',
+    '--no-fallback',
+]
+
+# Targets
+
 compiler_cli_jar = custom_target(
     'compiler-cli-jar',
     output : ['cli-' + version + '.jar'],
     console : true,
     command : [
-        gradle,
+        prog_gradle,
         gradle_options,
         ':cli:compiler:jar'
     ],
@@ -60,7 +73,7 @@ compiler_clib_jar = custom_target(
     output : ['clib-' + version + '.jar'],
     console : true,
     command : [
-        gradle,
+        prog_gradle,
         gradle_options,
         ':clibrary:jar'
     ],
@@ -68,6 +81,64 @@ compiler_clib_jar = custom_target(
 
     install : false
 )
+
+dlibcompiler = custom_target(
+    'dlib-compiler',
+    input : [compiler_clib_jar],
+    output : [
+        'libcompiler.so',
+        'libcompiler.h',
+        'libcompiler_dynamic.h',
+        'graal_isolate.h',
+        'graal_isolate_dynamic.h'
+    ],
+    depends : [compiler_clib_jar],
+    console : true,
+    command : [
+        prog_nativeimage,
+        nativeimage_options,
+        '--shared',
+        '-H:Name=libcompiler',
+        '-jar',
+        '@INPUT@',
+        '-o',
+        '@OUTDIR@' / 'libcompiler'
+    ],
+
+    install : installdir != 'undefined',
+    install_dir : [
+        installdir/'libs',
+        installdir/'include'/'compiler',
+        installdir/'include'/'compiler',
+        installdir/'include'/'compiler',
+        installdir/'include'/'compiler',
+    ]
+)
+
+# Dependencies
+
+dlibcompiler_headers = []
+dlibcompiler_shared = []
+
+foreach s : dlibcompiler.to_list()
+    if s.full_path().endswith('.h')
+        dlibcompiler_headers += s
+    else
+        dlibcompiler_shared += s
+    endif
+endforeach
+
+dlibcompiler_headers_dep = declare_dependency(
+    sources : dlibcompiler_headers,
+    version : get_option('version')
+)
+
+dlibcompiler_shared_dep = declare_dependency(
+    sources : dlibcompiler_shared,
+    version : get_option('version')
+)
+
+# Misc
 
 summary(
     {

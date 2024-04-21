@@ -9,7 +9,7 @@ installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
 morphine = subproject('morphine').get_variable('morphine_dep')
-dlibcompiler_headers = subproject('dlib-compiler').get_variable('dlibcompiler_headers_dep')
+dlibcompiler_headers = subproject('compiler').get_variable('dlibcompiler_headers_dep')
 
 sources = run_command(
     'python',
