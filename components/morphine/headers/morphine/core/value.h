@@ -116,8 +116,15 @@
 // endregion
 
 #define valueI_integer2namedsize(I, x, name) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((ml_size) _i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to "name, _i); ((ml_size) _i);})
+#define valueI_csize2namedsize(I, x, name) ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to "name, _s); ((ml_size) _s);})
+#define valueI_csize2namedinteger(I, x, name) ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to "name, _s); valueI_integer((ml_integer) _s);})
 
-#define valueI_size2integer(I, x) ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to integer", _s); valueI_integer((ml_integer) _s);})
+#define valueI_csize2integer(I, x) valueI_csize2namedinteger(I, x, "integer")
+#define valueI_csize2indexinteger(I, x) valueI_csize2namedinteger(I, x, "index")
+
+#define valueI_csize2size(I, x) valueI_csize2namedsize(I, x, "size")
+#define valueI_csize2index(I, x) valueI_csize2namedsize(I, x, "index")
+
 #define valueI_integer2size(I, x) valueI_integer2namedsize(I, x, "size")
 #define valueI_integer2index(I, x) valueI_integer2namedsize(I, x, "index")
 

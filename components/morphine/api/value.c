@@ -18,7 +18,11 @@ MORPHINE_API void mapi_push_integer(morphine_coroutine_t U, ml_integer value) {
 }
 
 MORPHINE_API void mapi_push_size(morphine_coroutine_t U, size_t value) {
-    stackI_push(U, valueI_size2integer(U->I, value));
+    stackI_push(U, valueI_csize2integer(U->I, value));
+}
+
+MORPHINE_API void mapi_push_index(morphine_coroutine_t U, size_t value) {
+    stackI_push(U, valueI_csize2indexinteger(U->I, value));
 }
 
 MORPHINE_API void mapi_push_decimal(morphine_coroutine_t U, ml_decimal value) {
@@ -120,4 +124,12 @@ MORPHINE_API void mapi_to_string(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
     struct value result = valueI_value2string(U->I, value);
     stackI_replace(U, 0, result);
+}
+
+MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t U, size_t value) {
+    return valueI_csize2size(U->I, value);
+}
+
+MORPHINE_API ml_size mapi_csize2index(morphine_coroutine_t U, size_t value) {
+    return valueI_csize2index(U->I, value);
 }

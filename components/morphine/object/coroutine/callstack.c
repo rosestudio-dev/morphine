@@ -172,7 +172,7 @@ void callstackI_call_unsafe(
         size_t rollback = gcI_safe_value(U->I, args_table);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_size2integer(U->I, i);
+            struct value key = valueI_csize2integer(U->I, i);
             struct value arg = args[i];
 
             tableI_set(U->I, table, key, arg);
@@ -205,7 +205,7 @@ void callstackI_call_stack(
         size_t rollback = gcI_safe_value(U->I, args_table);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_size2integer(U->I, i);
+            struct value key = valueI_csize2integer(U->I, i);
             struct value arg = stackI_peek(U, argc - i - 1 + offset);
 
             tableI_set(U->I, table, key, arg);
@@ -249,7 +249,7 @@ void callstackI_call_params(
         size_t rollback = gcI_safe_value(U->I, args_table);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_size2integer(U->I, i);
+            struct value key = valueI_csize2integer(U->I, i);
             struct value arg = callinfo->s.params[i];
 
             tableI_set(U->I, table, key, arg);

@@ -79,14 +79,13 @@ static void tochararray(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             const char *string = mapi_get_string(U);
-            size_t len = mapi_string_len(U);
+            ml_size len = mapi_string_len(U);
 
-            mapi_push_table(U);
+            mapi_push_vector(U, len);
 
-            for (size_t i = 0; i < len; i++) {
-                mapi_push_size(U, i);
+            for (ml_size i = 0; i < len; i++) {
                 mapi_push_stringf(U, "%c", string[i]);
-                mapi_table_set(U);
+                mapi_vector_set(U, i);
             }
 
             nb_return();
@@ -431,7 +430,8 @@ static void split(morphine_coroutine_t U) {
 
             mapi_pop(U, 2);
 
-            mapi_push_table(U);
+            mapi_push_vector(U, 1);
+            mapi_vector_mode_fixed(U, false);
             if (strlen < seplen) {
                 nb_return();
             }
@@ -440,9 +440,8 @@ static void split(morphine_coroutine_t U) {
             size_t start = 0;
 
             if (seplen == 0) {
-                mapi_push_size(U, count);
                 mapi_push_string(U, "");
-                mapi_table_set(U);
+                mapi_vector_push(U);
                 count++;
             }
 
@@ -454,13 +453,13 @@ static void split(morphine_coroutine_t U) {
                 if (seplen == 0) {
                     mapi_push_size(U, count);
                     mapi_push_stringn(U, string + start, 1);
-                    mapi_table_set(U);
+                    mapi_vector_push(U);
                     count++;
                     start++;
                 } else if (memcmp(string + i, separator, seplen) == 0) {
                     mapi_push_size(U, count);
                     mapi_push_stringn(U, string + start, i - start);
-                    mapi_table_set(U);
+                    mapi_vector_push(U);
 
                     count++;
                     start = i + seplen;
@@ -474,7 +473,7 @@ static void split(morphine_coroutine_t U) {
             } else {
                 mapi_push_string(U, "");
             }
-            mapi_table_set(U);
+            mapi_vector_push(U);
 
             nb_return();
     nb_end

@@ -25,4 +25,7 @@ MORPHINE_AUX void maux_table_lock(morphine_coroutine_t U) {
     mapi_table_set(U);
 
     mapi_set_metatable(U);
+    mapi_table_mode_fixed(U, true);
+    mapi_table_mode_mutable(U, false);
+    mapi_table_mode_lock(U);
 }

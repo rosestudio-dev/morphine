@@ -724,17 +724,17 @@ static inline op_result_t interpreter_fun_length(
     }
 
     if (valueI_is_string(a)) {
-        (*result) = valueI_size2integer(U->I, valueI_as_string(a)->size);
+        (*result) = valueI_csize2integer(U->I, valueI_as_string(a)->size);
         return NORMAL;
     }
 
     if (valueI_is_table(a)) {
-        (*result) = valueI_size2integer(U->I, tableI_size(U->I, valueI_as_table(a)));
+        (*result) = valueI_csize2integer(U->I, tableI_size(U->I, valueI_as_table(a)));
         return NORMAL;
     }
 
     if (valueI_is_vector(a)) {
-        (*result) = valueI_size2integer(U->I, valueI_as_vector(a)->size.accessible);
+        (*result) = valueI_csize2integer(U->I, valueI_as_vector(a)->size.accessible);
         return NORMAL;
     }
 

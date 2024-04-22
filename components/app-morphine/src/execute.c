@@ -91,14 +91,14 @@ void execute(
     morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
     morphine_coroutine_t U = mapi_coroutine(I);
 
+    ml_size argc_size = mapi_csize2size(U, argc);
+
     mapi_push_env(U);
     mapi_push_string(U, "args");
-    mapi_push_table(U);
-    for (size_t i = 0; i < argc; i++) {
-        mapi_push_size(U, i);
+    mapi_push_vector(U, argc_size);
+    for (ml_size i = 0; i < argc_size; i++) {
         mapi_push_string(U, args[i]);
-
-        mapi_table_set(U);
+        mapi_vector_set(U, i);
     }
     mapi_table_set(U);
 

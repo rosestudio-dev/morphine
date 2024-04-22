@@ -302,10 +302,10 @@ struct pair vectorI_next(
     }
 
     if (has_next) {
-        (*key) = valueI_size2integer(I, index + 1);
+        (*key) = valueI_csize2integer(I, index + 1);
     } else {
         (*key) = valueI_nil;
     }
 
-    return valueI_pair(valueI_size2integer(I, index), vector->values[index]);
+    return valueI_pair(valueI_csize2integer(I, index), vector->values[index]);
 }
