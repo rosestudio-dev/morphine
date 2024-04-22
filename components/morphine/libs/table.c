@@ -59,8 +59,10 @@ static void remove_(morphine_coroutine_t U) {
             size_t variant = maux_checkargs(U, 2, "self:table,any", "table,any");
             if (variant == 0) {
                 mapi_push_self(U);
+                mapi_push_arg(U, 0);
             } else {
                 mapi_push_arg(U, 0);
+                mapi_push_arg(U, 1);
             }
 
             mapi_table_remove(U);
@@ -68,7 +70,7 @@ static void remove_(morphine_coroutine_t U) {
     nb_end
 }
 
-static void setmutable(morphine_coroutine_t U) {
+static void mutable(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             size_t variant = maux_checkargs(U, 2, "self:table,boolean", "table,boolean");
@@ -88,7 +90,7 @@ static void setmutable(morphine_coroutine_t U) {
     nb_end
 }
 
-static void setfixed(morphine_coroutine_t U) {
+static void fixed(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             size_t variant = maux_checkargs(U, 2, "self:table,boolean", "table,boolean");
@@ -229,17 +231,17 @@ static void tostr(morphine_coroutine_t U) {
 }
 
 static struct maux_construct_field table[] = {
-    { "clear",      clear },
-    { "copy",       copy },
-    { "has",        has },
-    { "remove",     remove_ },
-    { "setmutable", setmutable },
-    { "setfixed",   setfixed },
-    { "lock",       lock },
-    { "isfixed",    isfixed },
-    { "ismutable",  ismutable },
-    { "islocked",   islocked },
-    { "tostr",      tostr },
+    { "clear",     clear },
+    { "copy",      copy },
+    { "has",       has },
+    { "remove",    remove_ },
+    { "mutable",   mutable },
+    { "fixed",     fixed },
+    { "lock",      lock },
+    { "isfixed",   isfixed },
+    { "ismutable", ismutable },
+    { "islocked",  islocked },
+    { "tostr",     tostr },
     { NULL, NULL }
 };
 

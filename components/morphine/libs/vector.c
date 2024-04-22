@@ -201,7 +201,7 @@ static void frontpop(morphine_coroutine_t U) {
     nb_end
 }
 
-static void setmutable(morphine_coroutine_t U) {
+static void mutable(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             size_t variant = maux_checkargs(U, 2, "self:vector,boolean", "vector,boolean");
@@ -221,7 +221,7 @@ static void setmutable(morphine_coroutine_t U) {
     nb_end
 }
 
-static void setfixed(morphine_coroutine_t U) {
+static void fixed(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             size_t variant = maux_checkargs(U, 2, "self:vector,boolean", "vector,boolean");
@@ -354,24 +354,24 @@ static void tostr(morphine_coroutine_t U) {
 }
 
 static struct maux_construct_field table[] = {
-    { "clear",      clear },
-    { "copy",       copy },
-    { "resize",     resize },
-    { "add",        add },
-    { "remove",     remove_ },
-    { "push",       push },
-    { "peek",       peek },
-    { "pop",        pop },
-    { "frontpush",  frontpush },
-    { "frontpeek",  frontpeek },
-    { "frontpop",   frontpop },
-    { "setmutable", setmutable },
-    { "setfixed",   setfixed },
-    { "lock",       lock },
-    { "isfixed",    isfixed },
-    { "ismutable",  ismutable },
-    { "islocked",   islocked },
-    { "tostr",      tostr },
+    { "clear",     clear },
+    { "copy",      copy },
+    { "resize",    resize },
+    { "add",       add },
+    { "remove",    remove_ },
+    { "push",      push },
+    { "peek",      peek },
+    { "pop",       pop },
+    { "frontpush", frontpush },
+    { "frontpeek", frontpeek },
+    { "frontpop",  frontpop },
+    { "mutable",   mutable },
+    { "fixed",     fixed },
+    { "lock",      lock },
+    { "isfixed",   isfixed },
+    { "ismutable", ismutable },
+    { "islocked",  islocked },
+    { "tostr",     tostr },
     { NULL, NULL }
 };
 

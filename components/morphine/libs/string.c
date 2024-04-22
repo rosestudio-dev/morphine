@@ -65,7 +65,7 @@ static void substring(morphine_coroutine_t U) {
     nb_end
 }
 
-static void tochararray(morphine_coroutine_t U) {
+static void chars(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             size_t variant = maux_checkargs(U, 2, "self:string", "string");
@@ -75,8 +75,6 @@ static void tochararray(morphine_coroutine_t U) {
             } else {
                 mapi_push_arg(U, 0);
             }
-
-            mapi_pop(U, 1);
 
             const char *string = mapi_get_string(U);
             ml_size len = mapi_string_len(U);
@@ -430,19 +428,17 @@ static void split(morphine_coroutine_t U) {
 
             mapi_pop(U, 2);
 
-            mapi_push_vector(U, 1);
+            mapi_push_vector(U, 0);
             mapi_vector_mode_fixed(U, false);
             if (strlen < seplen) {
                 nb_return();
             }
 
-            size_t count = 0;
             size_t start = 0;
 
             if (seplen == 0) {
                 mapi_push_string(U, "");
                 mapi_vector_push(U);
-                count++;
             }
 
             for (size_t i = 0; i < strlen; i++) {
@@ -451,23 +447,18 @@ static void split(morphine_coroutine_t U) {
                 }
 
                 if (seplen == 0) {
-                    mapi_push_size(U, count);
                     mapi_push_stringn(U, string + start, 1);
                     mapi_vector_push(U);
-                    count++;
                     start++;
                 } else if (memcmp(string + i, separator, seplen) == 0) {
-                    mapi_push_size(U, count);
                     mapi_push_stringn(U, string + start, i - start);
                     mapi_vector_push(U);
 
-                    count++;
                     start = i + seplen;
                     i += seplen - 1;
                 }
             }
 
-            mapi_push_size(U, count);
             if (strlen >= start) {
                 mapi_push_stringn(U, string + start, strlen - start);
             } else {
@@ -1127,7 +1118,7 @@ static struct maux_construct_field table[] = {
     { "toupper",      touppercase },
     { "repeat",       repeat },
 
-    { "tochararray",  tochararray },
+    { "chars",        chars },
     { "codeat",       codeat },
     { "charat",       charat },
 
