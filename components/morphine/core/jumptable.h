@@ -20,6 +20,7 @@ static const void *const sp_dispatch_tab[OPCODES_COUNT] = {
     &&OL_OPCODE_ENV,
     &&OL_OPCODE_SELF,
     &&OL_OPCODE_RECURSION,
+    &&OL_OPCODE_VECTOR,
     &&OL_OPCODE_TABLE,
     &&OL_OPCODE_GET,
     &&OL_OPCODE_SET,

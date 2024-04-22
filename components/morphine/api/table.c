@@ -12,6 +12,46 @@ MORPHINE_API void mapi_push_table(morphine_coroutine_t U) {
     stackI_push(U, valueI_object(tableI_create(U->I)));
 }
 
+MORPHINE_API void mapi_table_copy(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    stackI_push(U, valueI_object(tableI_copy(U->I, table)));
+}
+
+MORPHINE_API void mapi_table_clear(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    tableI_clear(U->I, table);
+}
+
+MORPHINE_API void mapi_table_mode_mutable(morphine_coroutine_t U, bool is_mutable) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    tableI_mode_mutable(U->I, table, is_mutable);
+}
+
+MORPHINE_API void mapi_table_mode_fixed(morphine_coroutine_t U, bool is_fixed) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    tableI_mode_fixed(U->I, table, is_fixed);
+}
+
+MORPHINE_API void mapi_table_mode_lock(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    tableI_mode_lock(U->I, table);
+}
+
+MORPHINE_API bool mapi_table_mode_is_mutable(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    return table->mode.mutable;
+}
+
+MORPHINE_API bool mapi_table_mode_is_fixed(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    return table->mode.fixed;
+}
+
+MORPHINE_API bool mapi_table_mode_is_locked(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    return table->mode.locked;
+}
+
 MORPHINE_API void mapi_table_set(morphine_coroutine_t U) {
     struct value table = stackI_peek(U, 2);
     struct value key = stackI_peek(U, 1);

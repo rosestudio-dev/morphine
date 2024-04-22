@@ -22,7 +22,7 @@ struct closure *closureI_create(morphine_instance_t I, struct value callable, si
 
     size_t rollback = gcI_safe_obj(I, objectI_cast(result));
 
-    result->values = allocI_vec(I, NULL, size, sizeof(struct closure));
+    result->values = allocI_vec(I, NULL, size, sizeof(struct value));
     result->size = size;
 
     for (size_t i = 0; i < size; i++) {

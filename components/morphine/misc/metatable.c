@@ -76,10 +76,10 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
     struct value field_name = valueI_object(I->metatable.names[MF_MASK]);
 
     bool has = false;
-    struct value lock_value = tableI_get(I, metatable, field_name, &has);
+    struct value mask_value = tableI_get(I, metatable, field_name, &has);
 
     if (has) {
-        return lock_value;
+        return mask_value;
     } else {
         return valueI_object(metatable);
     }

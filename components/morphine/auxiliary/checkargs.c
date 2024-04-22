@@ -31,11 +31,18 @@ static bool check_type(
         return is_callable;
     }
 
-    if (expected_type_len == 4 && memcmp(expected_type, "meta", 4) == 0) {
-        bool is_callable = mapi_is_metatype(U);
+    if (expected_type_len == 8 && memcmp(expected_type, "iterable", 8) == 0) {
+        bool is_iterable = mapi_is_iterable(U);
         mapi_pop(U, 1);
 
-        return is_callable;
+        return is_iterable;
+    }
+
+    if (expected_type_len == 4 && memcmp(expected_type, "meta", 4) == 0) {
+        bool is_metatype = mapi_is_metatype(U);
+        mapi_pop(U, 1);
+
+        return is_metatype;
     }
 
     const char *type = mapi_type(U);

@@ -48,22 +48,30 @@ struct table {
 
     struct table *metatable;
 
+    struct {
+        bool fixed;
+        bool mutable;
+        bool locked;
+    } mode;
+
     struct hashmap hashmap;
 };
 
 struct table *tableI_create(morphine_instance_t);
 void tableI_free(morphine_instance_t, struct table *);
 
+
+void tableI_mode_fixed(morphine_instance_t, struct table *, bool is_fixed);
+void tableI_mode_mutable(morphine_instance_t, struct table *, bool is_mutable);
+void tableI_mode_lock(morphine_instance_t, struct table *);
+
 ml_size tableI_size(morphine_instance_t, struct table *);
 void tableI_set(morphine_instance_t, struct table *, struct value key, struct value value);
 struct value tableI_get(morphine_instance_t, struct table *, struct value key, bool *has);
 bool tableI_remove(morphine_instance_t, struct table *, struct value key);
+
 void tableI_clear(morphine_instance_t, struct table *);
+struct table *tableI_copy(morphine_instance_t, struct table *);
 
 struct value tableI_first(morphine_instance_t, struct table *, bool *has);
-struct pair tableI_next(
-    morphine_instance_t,
-    struct table *,
-    struct value *key,
-    bool *next
-);
+struct pair tableI_next(morphine_instance_t, struct table *, struct value *key, bool *next);

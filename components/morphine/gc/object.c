@@ -12,6 +12,7 @@
 #include "morphine/object/reference.h"
 #include "morphine/object/native.h"
 #include "morphine/object/iterator.h"
+#include "morphine/object/vector.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 #include "morphine/gc/pools.h"
@@ -36,6 +37,9 @@ void objectI_free(morphine_instance_t I, struct object *object) {
             return;
         case OBJ_TYPE_TABLE:
             tableI_free(I, cast(struct table *, object));
+            return;
+        case OBJ_TYPE_VECTOR:
+            vectorI_free(I, cast(struct vector *, object));
             return;
         case OBJ_TYPE_CLOSURE:
             closureI_free(I, cast(struct closure *, object));

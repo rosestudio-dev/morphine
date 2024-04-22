@@ -39,6 +39,7 @@ static uint64_t hashcode(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_STRING:
         case VALUE_TYPE_TABLE:
+        case VALUE_TYPE_VECTOR:
         case VALUE_TYPE_CLOSURE:
         case VALUE_TYPE_COROUTINE:
         case VALUE_TYPE_FUNCTION:
@@ -74,6 +75,7 @@ static inline int compare(morphine_instance_t I, struct value a, struct value b)
         }
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_TABLE:
+        case VALUE_TYPE_VECTOR:
         case VALUE_TYPE_CLOSURE:
         case VALUE_TYPE_COROUTINE:
         case VALUE_TYPE_FUNCTION:
@@ -456,7 +458,7 @@ static void redblacktree_init(struct tree *tree) {
         .right = NIL_LEAF(tree),
         .parent = NIL_LEAF(tree),
         .color = BUCKET_COLOR_BLACK,
-        .pair = (struct pair) { valueI_nil, valueI_nil },
+        .pair = valueI_pair(valueI_nil, valueI_nil),
     };
 
     tree->root = (struct bucket) {
@@ -464,7 +466,7 @@ static void redblacktree_init(struct tree *tree) {
         .right = NIL_LEAF(tree),
         .parent = NIL_LEAF(tree),
         .color = BUCKET_COLOR_BLACK,
-        .pair = (struct pair) { valueI_nil, valueI_nil },
+        .pair = valueI_pair(valueI_nil, valueI_nil),
     };
 }
 
@@ -536,6 +538,10 @@ struct table *tableI_create(morphine_instance_t I) {
     (*result) = (struct table) {
         .metatable = NULL,
 
+        .mode.fixed = false,
+        .mode.mutable = true,
+        .mode.locked = false,
+
         .hashmap.buckets.head = NULL,
         .hashmap.buckets.tail = NULL,
         .hashmap.buckets.count = 0,
@@ -562,6 +568,38 @@ void tableI_free(morphine_instance_t I, struct table *table) {
     allocI_free(I, table);
 }
 
+void tableI_mode_fixed(morphine_instance_t I, struct table *table, bool is_fixed) {
+    if (table == NULL) {
+        throwI_error(I, "Table is null");
+    }
+
+    if (table->mode.locked) {
+        throwI_error(I, "Table is locked");
+    }
+
+    table->mode.fixed = is_fixed;
+}
+
+void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mutable) {
+    if (table == NULL) {
+        throwI_error(I, "Table is null");
+    }
+
+    if (table->mode.locked) {
+        throwI_error(I, "Table is locked");
+    }
+
+    table->mode.mutable = is_mutable;
+}
+
+void tableI_mode_lock(morphine_instance_t I, struct table *table) {
+    if (table == NULL) {
+        throwI_error(I, "Table is null");
+    }
+
+    table->mode.locked = true;
+}
+
 ml_size tableI_size(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_error(I, "Table is null");
@@ -573,6 +611,10 @@ ml_size tableI_size(morphine_instance_t I, struct table *table) {
 void tableI_set(morphine_instance_t I, struct table *table, struct value key, struct value value) {
     if (table == NULL) {
         throwI_error(I, "Table is null");
+    }
+
+    if (!table->mode.mutable) {
+        throwI_error(I, "Table is immutable");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -602,6 +644,10 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
         return;
     }
 
+    if (table->mode.fixed) {
+        throwI_error(I, "Table is fixed");
+    }
+
     if (unlikely(hashmap->buckets.count > MLIMIT_SIZE_MAX - 1)) {
         throwI_error(I, "Table size too big");
     }
@@ -613,7 +659,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     bool first = redblacktree_insert_second(
         I,
         tree,
-        (struct pair) { .key = key, .value = value },
+        valueI_pair(key, value),
         current,
         parent
     );
@@ -648,6 +694,14 @@ bool tableI_remove(morphine_instance_t I, struct table *table, struct value key)
         throwI_error(I, "Table is null");
     }
 
+    if (table->mode.fixed) {
+        throwI_error(I, "Table is fixed");
+    }
+
+    if (!table->mode.mutable) {
+        throwI_error(I, "Table is immutable");
+    }
+
     struct hashmap *hashmap = &table->hashmap;
 
     if (hashmap->hashing.size == 0) {
@@ -675,6 +729,14 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
         throwI_error(I, "Table is null");
     }
 
+    if (table->mode.fixed) {
+        throwI_error(I, "Table is fixed");
+    }
+
+    if (!table->mode.mutable) {
+        throwI_error(I, "Table is immutable");
+    }
+
     struct bucket *current = table->hashmap.buckets.head;
     while (current != NULL) {
         struct bucket *prev = current->ll.prev;
@@ -693,6 +755,29 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
         .buckets.tail = NULL,
         .buckets.count = 0
     };
+}
+
+struct table *tableI_copy(morphine_instance_t I, struct table *table) {
+    if (table == NULL) {
+        throwI_error(I, "Table is null");
+    }
+
+    struct table *result = tableI_create(I);
+    result->mode.mutable = table->mode.mutable;
+    result->mode.fixed = table->mode.fixed;
+
+    size_t rollback = gcI_safe_obj(I, objectI_cast(result));
+
+    struct bucket *current = table->hashmap.buckets.tail;
+    while (current != NULL) {
+        tableI_set(I, result, current->pair.key, current->pair.value);
+
+        current = current->ll.next;
+    }
+
+    gcI_reset_safe(I, rollback);
+
+    return result;
 }
 
 struct value tableI_first(morphine_instance_t I, struct table *table, bool *has) {
@@ -714,12 +799,7 @@ struct value tableI_first(morphine_instance_t I, struct table *table, bool *has)
     return bucket->pair.key;
 }
 
-struct pair tableI_next(
-    morphine_instance_t I,
-    struct table *table,
-    struct value *key,
-    bool *next
-) {
+struct pair tableI_next(morphine_instance_t I, struct table *table, struct value *key, bool *next) {
     if (table == NULL) {
         throwI_error(I, "Table is null");
     }

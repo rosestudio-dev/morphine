@@ -40,6 +40,15 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             return size_table(table);
         }
+        case OBJ_TYPE_VECTOR: {
+            struct vector *vector = cast(struct vector *, obj);
+
+            for (size_t i = 0; i < vector->size.accessible; i++) {
+                mark_value(I, vector->values[i]);
+            }
+
+            return size_vector(vector);
+        }
         case OBJ_TYPE_CLOSURE: {
             struct closure *closure = cast(struct closure *, obj);
 
@@ -93,7 +102,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_ITERATOR: {
             struct iterator *iterator = cast(struct iterator *, obj);
 
-            mark_object(I, objectI_cast(iterator->iterable));
+            mark_object(I, objectI_cast(iterator->iterable.object));
             mark_value(I, iterator->next.key);
 
             return size_iterator(iterator);

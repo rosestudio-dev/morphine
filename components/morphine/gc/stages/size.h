@@ -12,19 +12,25 @@
 #include "morphine/object/reference.h"
 #include "morphine/object/string.h"
 #include "morphine/object/native.h"
-#include "morphine/core/throw.h"
 #include "morphine/object/iterator.h"
+#include "morphine/object/vector.h"
+#include "morphine/core/throw.h"
 #include "morphine/utils/unused.h"
 
 static inline size_t size_table(struct table *table) {
     return sizeof(struct table) +
-           table->hashmap.buckets.count * sizeof(struct bucket) +
+           ((size_t) table->hashmap.buckets.count) * sizeof(struct bucket) +
            table->hashmap.hashing.size * sizeof(struct tree);
 }
 
 static inline size_t size_closure(struct closure *closure) {
     return sizeof(struct closure) +
            closure->size * sizeof(struct value);
+}
+
+static inline size_t size_vector(struct vector *vector) {
+    return sizeof(struct vector) +
+           ((size_t) vector->size.real) * sizeof(struct value);
 }
 
 static inline size_t size_function(struct function *function) {
@@ -58,7 +64,7 @@ static inline size_t size_iterator(struct iterator *iterator) {
 }
 
 static inline size_t size_string(struct string *string) {
-    return sizeof(struct string) + (string->size + 1) * sizeof(char);
+    return sizeof(struct string) + (((size_t) string->size) + 1) * sizeof(char);
 }
 
 static inline size_t size_reference(struct reference *reference) {
@@ -70,6 +76,9 @@ static inline size_t size_obj(morphine_instance_t I, struct object *obj) {
     switch (obj->type) {
         case OBJ_TYPE_TABLE: {
             return size_table(cast(struct table *, obj));
+        }
+        case OBJ_TYPE_VECTOR: {
+            return size_vector(cast(struct vector *, obj));
         }
         case OBJ_TYPE_CLOSURE: {
             return size_closure(cast(struct closure *, obj));

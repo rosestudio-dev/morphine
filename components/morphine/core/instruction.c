@@ -15,6 +15,7 @@ const uint8_t instructionI_opcode_args[OPCODES_COUNT] = {
     1, // OPCODE_SELF
     1, // OPCODE_RECURSION
 
+    2, // OPCODE_VECTOR
     1, // OPCODE_TABLE
     3, // OPCODE_GET
     3, // OPCODE_SET
@@ -79,6 +80,7 @@ bool instructionI_validate(
 #define arg_param(a) arg_type_count(a, params_count)
 #define arg_argument(a) arg_type_count(a, arguments_count)
 #define arg_params_count(a) arg_type_size(a, params_count)
+#define arg_count(a)
 #define arg_undefined(a)
 
     switch (instruction.opcode) {
@@ -142,6 +144,12 @@ bool instructionI_validate(
         case OPCODE_CALL: {
             arg_slot(argument1)
             arg_params_count(argument2)
+            arg_undefined(argument3)
+            return true;
+        }
+        case OPCODE_VECTOR: {
+            arg_slot(argument1)
+            arg_count(argument2)
             arg_undefined(argument3)
             return true;
         }

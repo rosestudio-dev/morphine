@@ -10,6 +10,7 @@
 #include "morphine/object/reference.h"
 #include "morphine/object/iterator.h"
 #include "morphine/object/coroutine.h"
+#include "morphine/object/vector.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/safe.h"
 
@@ -155,6 +156,10 @@ static inline op_result_t interpreter_fun_get(
         }
 
         return NORMAL;
+    } else if(valueI_is_vector(container)) {
+        ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
+        (*result) = vectorI_get(U->I, valueI_as_vector(container), index);
+        return NORMAL;
     } else if (metatableI_test(U->I, container, MF_GET, &mt_field)) {
         struct value new_args[] = { key };
         callstackI_continue(U, callstate);
@@ -162,7 +167,7 @@ static inline op_result_t interpreter_fun_get(
         return CALLED;
     }
 
-    throwI_error(U->I, "Get supports only table");
+    throwI_error(U->I, "Get supports only table or vector");
 }
 
 static inline op_result_t interpreter_fun_set(
@@ -179,7 +184,11 @@ static inline op_result_t interpreter_fun_set(
     }
 
     struct value mt_field;
-    if (metatableI_test(U->I, container, MF_SET, &mt_field)) {
+    if(valueI_is_vector(container)) {
+        ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
+        vectorI_set(U->I, valueI_as_vector(container), index, value);
+        return NORMAL;
+    } else if (metatableI_test(U->I, container, MF_SET, &mt_field)) {
         struct value new_args[] = { key, value };
         callstackI_continue(U, callstate);
         callstackI_call_unsafe(U, mt_field, container, new_args, 2, pop_size);
@@ -720,7 +729,12 @@ static inline op_result_t interpreter_fun_length(
     }
 
     if (valueI_is_table(a)) {
-        (*result) = valueI_size2integer(U->I, tableI_size(U->I, valueI_as_table_or_error(U->I, a)));
+        (*result) = valueI_size2integer(U->I, tableI_size(U->I, valueI_as_table(a)));
+        return NORMAL;
+    }
+
+    if (valueI_is_vector(a)) {
+        (*result) = valueI_size2integer(U->I, valueI_as_vector(a)->size.accessible);
         return NORMAL;
     }
 
@@ -731,5 +745,5 @@ static inline op_result_t interpreter_fun_length(
         return CALLED;
     }
 
-    throwI_error(U->I, "Length supports only string or table");
+    throwI_error(U->I, "Length supports only string, table or vector");
 }

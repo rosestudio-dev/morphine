@@ -34,6 +34,7 @@
 #define valueI_is_userdata(x)  valueI_is(USERDATA, x)
 #define valueI_is_string(x)    valueI_is(STRING, x)
 #define valueI_is_table(x)     valueI_is(TABLE, x)
+#define valueI_is_vector(x)    valueI_is(VECTOR, x)
 #define valueI_is_closure(x)   valueI_is(CLOSURE, x)
 #define valueI_is_coroutine(x) valueI_is(COROUTINE, x)
 #define valueI_is_function(x)  valueI_is(FUNCTION, x)
@@ -57,6 +58,7 @@
 #define valueI_as_userdata(x)  valueI_as(object.userdata, x)
 #define valueI_as_string(x)    valueI_as(object.string, x)
 #define valueI_as_table(x)     valueI_as(object.table, x)
+#define valueI_as_vector(x)    valueI_as(object.vector, x)
 #define valueI_as_closure(x)   valueI_as(object.closure, x)
 #define valueI_as_coroutine(x) valueI_as(object.coroutine, x)
 #define valueI_as_function(x)  valueI_as(object.function, x)
@@ -79,6 +81,7 @@
 #define valueI_safe_as_userdata(x, o)  valueI_safe_as(userdata, x, o)
 #define valueI_safe_as_string(x, o)    valueI_safe_as(string, x, o)
 #define valueI_safe_as_table(x, o)     valueI_safe_as(table, x, o)
+#define valueI_safe_as_vector(x, o)    valueI_safe_as(vector, x, o)
 #define valueI_safe_as_closure(x, o)   valueI_safe_as(closure, x, o)
 #define valueI_safe_as_coroutine(x, o) valueI_safe_as(coroutine, x, o)
 #define valueI_safe_as_function(x, o)  valueI_safe_as(function, x, o)
@@ -101,6 +104,7 @@
 #define valueI_as_userdata_or_error(I, x)  valueI_as_or_error(I, userdata, x)
 #define valueI_as_string_or_error(I, x)    valueI_as_or_error(I, string, x)
 #define valueI_as_table_or_error(I, x)     valueI_as_or_error(I, table, x)
+#define valueI_as_vector_or_error(I, x)    valueI_as_or_error(I, vector, x)
 #define valueI_as_closure_or_error(I, x)   valueI_as_or_error(I, closure, x)
 #define valueI_as_coroutine_or_error(I, x) valueI_as_or_error(I, coroutine, x)
 #define valueI_as_function_or_error(I, x)  valueI_as_or_error(I, function, x)
@@ -111,8 +115,11 @@
 
 // endregion
 
+#define valueI_integer2namedsize(I, x, name) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((ml_size) _i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to "name, _i); ((ml_size) _i);})
+
 #define valueI_size2integer(I, x) ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to integer", _s); valueI_integer((ml_integer) _s);})
-#define valueI_integer2size(I, x) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((ml_size) _i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to size", _i); ((ml_size) _i);})
+#define valueI_integer2size(I, x) valueI_integer2namedsize(I, x, "size")
+#define valueI_integer2index(I, x) valueI_integer2namedsize(I, x, "index")
 
 #define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
 
@@ -134,6 +141,7 @@ struct value {
             struct coroutine *coroutine;
             struct string *string;
             struct table *table;
+            struct vector *vector;
             struct userdata *userdata;
             struct iterator *iterator;
         } object;

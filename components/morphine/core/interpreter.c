@@ -119,6 +119,11 @@ sp_case(OPCODE_RECURSION)
                 slot(C, arg1) = *C->s.callable;
                 sp_end();
             }
+sp_case(OPCODE_VECTOR)
+            {
+                slot(C, arg1) = valueI_object(vectorI_create(U->I, arg2.value));
+                sp_end();
+            }
 sp_case(OPCODE_TABLE)
             {
                 slot(C, arg1) = valueI_object(tableI_create(U->I));

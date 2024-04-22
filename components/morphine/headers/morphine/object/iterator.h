@@ -6,10 +6,20 @@
 
 #include "morphine/core/value.h"
 
+enum iterator_type {
+    ITERATOR_TYPE_TABLE,
+    ITERATOR_TYPE_VECTOR,
+};
+
 struct iterator {
     struct object header;
 
-    struct table *iterable;
+    enum iterator_type type;
+    union {
+        struct object *object;
+        struct table *table;
+        struct vector *vector;
+    } iterable;
 
     struct {
         bool has;

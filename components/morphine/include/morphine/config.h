@@ -36,3 +36,4 @@
 // compile-time parameters
 
 #define TABLE_GROW_PERCENTAGE 80
+#define VECTOR_AMORTIZATION 24

@@ -22,6 +22,7 @@ typedef enum {
     OPCODE_SELF,            // [dest (slot)]                                                 move self to (dest)
     OPCODE_RECURSION,       // [dest (slot)]                                                 move callable to (dest)
 
+    OPCODE_VECTOR,          // [dest (slot), size (num)]                                     create vector in (dest) with (size)
     OPCODE_TABLE,           // [dest (slot)]                                                 create table in (dest)
     OPCODE_GET,             // [container (slot), key (slot), dest (slot)]                   get from (container) by (key) to (dest)
     OPCODE_SET,             // [container (slot), key (slot), src (slot)]                    set (src) to (container) by (key)

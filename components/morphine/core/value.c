@@ -36,6 +36,7 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
         }
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_TABLE:
+        case VALUE_TYPE_VECTOR:
         case VALUE_TYPE_CLOSURE:
         case VALUE_TYPE_COROUTINE:
         case VALUE_TYPE_FUNCTION:
@@ -66,6 +67,8 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
             );
         case VALUE_TYPE_TABLE:
             return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
+        case VALUE_TYPE_VECTOR:
+            return valueI_object(stringI_createf(I, "[object:vector:%p]", value.object.vector));
         case VALUE_TYPE_ITERATOR:
             return valueI_object(stringI_createf(I, "[object:iterator:%p]", value.object.iterator));
         case VALUE_TYPE_CLOSURE:
@@ -178,6 +181,8 @@ const char *valueI_type2string(morphine_instance_t I, enum value_type type) {
             return "userdata";
         case VALUE_TYPE_TABLE:
             return "table";
+        case VALUE_TYPE_VECTOR:
+            return "vector";
         case VALUE_TYPE_CLOSURE:
             return "closure";
         case VALUE_TYPE_COROUTINE:
