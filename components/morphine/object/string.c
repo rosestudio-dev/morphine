@@ -8,6 +8,15 @@
 #include <stdio.h>
 #include <string.h>
 
+static inline uint64_t hash(size_t size, const char *str) {
+    uint64_t h = 0;
+    for (ml_size i = 0; i < size; i++) {
+        h = 31 * h + (uint64_t) str[i];
+    }
+
+    return h;
+}
+
 static struct string *create(morphine_instance_t I, size_t size, char **buffer) {
     bool check1 = size > MLIMIT_SIZE_MAX - 1;
     bool check2 = (size + 1) > SIZE_MAX / sizeof(char);
@@ -23,7 +32,9 @@ static struct string *create(morphine_instance_t I, size_t size, char **buffer) 
 
     (*result) = (struct string) {
         .size = (ml_size) size,
-        .chars = str_p
+        .chars = str_p,
+        .hash.calculated = false,
+        .hash.value = 0
     };
 
     memset(str_p, 0, (size + 1) * sizeof(char));
@@ -42,8 +53,9 @@ struct string *stringI_createn(morphine_instance_t I, size_t size, char **buffer
 }
 
 struct string *stringI_create(morphine_instance_t I, const char *str) {
+    size_t size = strlen(str);
     char *buffer = NULL;
-    struct string *result = create(I, strlen(str), &buffer);
+    struct string *result = create(I, size, &buffer);
     strcpy(buffer, str);
 
     return result;
@@ -93,6 +105,23 @@ struct string *stringI_concat(morphine_instance_t I, struct string *a, struct st
     struct string *result = create(I, a->size + b->size, &buffer);
     memcpy(buffer, a->chars, a->size);
     memcpy(buffer + a->size, b->chars, b->size);
+
+    return result;
+}
+
+uint64_t stringI_hash(morphine_instance_t I, struct string *string) {
+    if (string == NULL) {
+        throwI_error(I, "String is null");
+    }
+
+    if (likely(string->hash.calculated)) {
+        return string->hash.value;
+    }
+
+    uint64_t result = hash(string->size, string->chars);
+
+    string->hash.calculated = true;
+    string->hash.value = result;
 
     return result;
 }

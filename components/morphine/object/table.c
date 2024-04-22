@@ -2,7 +2,7 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include <memory.h>
+#include <string.h>
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
 #include "morphine/object/coroutine.h"
@@ -22,12 +22,7 @@
 static uint64_t hashcode(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
-        uint64_t h = 0;
-        for (ml_size i = 0; i < str->size; i++) {
-            h = 31 * h + (str->chars[i] & 0xff);
-        }
-
-        return h;
+        return stringI_hash(I, str);
     }
 
     switch (value.type) {
@@ -132,9 +127,12 @@ static inline struct bucket *redblacktree_find(morphine_instance_t I, struct tre
     struct bucket *current = FIRST(tree);
     while (current != NIL_LEAF(tree)) {
         int cmp = compare(I, key, current->pair.key);
+
         if (cmp == 0) {
             return current;
-        } else if (cmp < 0) {
+        }
+
+        if (cmp < 0) {
             current = current->left;
         } else {
             current = current->right;
@@ -422,7 +420,10 @@ static struct bucket *redblacktree_delete(morphine_instance_t I, struct tree *tr
         target = redblacktree_successor(tree, bucket);
     }
 
-    struct bucket *child = (target->left == NIL_LEAF(tree)) ? target->right : target->left;
+    struct bucket *child = target->left;
+    if (child == NIL_LEAF(tree)) {
+        child = target->right;
+    }
 
     if (target->color == BUCKET_COLOR_BLACK) {
         if (child->color == BUCKET_COLOR_RED) {

@@ -12,6 +12,11 @@ struct string {
 
     ml_size size;
     const char *chars;
+
+    struct {
+        bool calculated;
+        uint64_t value;
+    } hash;
 };
 
 struct string *stringI_createva(morphine_instance_t, const char *str, va_list args);
@@ -22,3 +27,4 @@ struct string *stringI_create(morphine_instance_t, const char *);
 void stringI_free(morphine_instance_t, struct string *);
 
 struct string *stringI_concat(morphine_instance_t, struct string *, struct string *);
+uint64_t stringI_hash(morphine_instance_t, struct string *);
