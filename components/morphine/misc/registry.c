@@ -91,5 +91,5 @@ void registryI_clear(morphine_coroutine_t U) {
         throwI_error(U->I, "Attempt to clear registry for unsupported callable");
     }
 
-    tableI_remove(U->I, U->I->registry, registry_key);
+    tableI_remove(U->I, U->I->registry, registry_key, NULL);
 }

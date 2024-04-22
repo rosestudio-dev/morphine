@@ -73,6 +73,17 @@ MORPHINE_API bool mapi_table_get(morphine_coroutine_t U) {
     return has;
 }
 
+MORPHINE_API bool mapi_table_remove(morphine_coroutine_t U) {
+    struct value table = stackI_peek(U, 1);
+    struct value value = stackI_peek(U, 0);
+
+    bool has = false;
+    struct value result = tableI_remove(U->I, valueI_as_table_or_error(U->I, table), value, &has);
+    stackI_replace(U, 0, result);
+
+    return has;
+}
+
 MORPHINE_API void mapi_table_getoe(morphine_coroutine_t U) {
     struct value table = stackI_peek(U, 1);
     struct value value = stackI_peek(U, 0);
@@ -84,6 +95,20 @@ MORPHINE_API void mapi_table_getoe(morphine_coroutine_t U) {
         stackI_replace(U, 0, result);
     } else {
         throwI_errorf(U->I, "Cannot get value from table by %s", valueI_value2string(U->I, value));
+    }
+}
+
+MORPHINE_API void mapi_table_removeoe(morphine_coroutine_t U) {
+    struct value table = stackI_peek(U, 1);
+    struct value value = stackI_peek(U, 0);
+
+    bool has = false;
+    struct value result = tableI_remove(U->I, valueI_as_table_or_error(U->I, table), value, &has);
+
+    if (has) {
+        stackI_replace(U, 0, result);
+    } else {
+        throwI_errorf(U->I, "Cannot remove from table by %s", valueI_value2string(U->I, value));
     }
 }
 

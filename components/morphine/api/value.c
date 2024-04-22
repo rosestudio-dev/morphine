@@ -42,6 +42,11 @@ MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t U) {
     return valueI_integer2size(U->I, integer);
 }
 
+MORPHINE_API ml_size mapi_get_index(morphine_coroutine_t U) {
+    ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
+    return valueI_integer2index(U->I, integer);
+}
+
 MORPHINE_API ml_decimal mapi_get_decimal(morphine_coroutine_t U) {
     return valueI_as_decimal_or_error(U->I, stackI_peek(U, 0));
 }

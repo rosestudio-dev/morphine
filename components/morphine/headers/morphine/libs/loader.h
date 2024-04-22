@@ -13,4 +13,5 @@ void mlib_coroutine_loader(morphine_coroutine_t);
 void mlib_math_loader(morphine_coroutine_t);
 void mlib_string_loader(morphine_coroutine_t);
 void mlib_table_loader(morphine_coroutine_t);
+void mlib_vector_loader(morphine_coroutine_t);
 void mlib_registry_loader(morphine_coroutine_t);

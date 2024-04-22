@@ -689,7 +689,7 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
     }
 }
 
-bool tableI_remove(morphine_instance_t I, struct table *table, struct value key) {
+struct value tableI_remove(morphine_instance_t I, struct table *table, struct value key, bool *has) {
     if (table == NULL) {
         throwI_error(I, "Table is null");
     }
@@ -705,7 +705,11 @@ bool tableI_remove(morphine_instance_t I, struct table *table, struct value key)
     struct hashmap *hashmap = &table->hashmap;
 
     if (hashmap->hashing.size == 0) {
-        return false;
+        if (has != NULL) {
+            *has = false;
+        }
+
+        return valueI_nil;
     }
 
     uint64_t hash = hashcode(I, key);
@@ -714,14 +718,23 @@ bool tableI_remove(morphine_instance_t I, struct table *table, struct value key)
     struct tree *tree = hashmap->hashing.trees + index;
     struct bucket *bucket = redblacktree_delete(I, tree, key);
     if (bucket == NULL) {
-        return false;
+        if (has != NULL) {
+            *has = false;
+        }
+
+        return valueI_nil;
     }
 
+    struct value value = bucket->pair.value;
     remove_bucket(table, bucket);
     allocI_free(I, bucket);
     hashmap->buckets.count--;
 
-    return true;
+    if (has != NULL) {
+        *has = true;
+    }
+
+    return value;
 }
 
 void tableI_clear(morphine_instance_t I, struct table *table) {

@@ -68,7 +68,7 @@ void tableI_mode_lock(morphine_instance_t, struct table *);
 ml_size tableI_size(morphine_instance_t, struct table *);
 void tableI_set(morphine_instance_t, struct table *, struct value key, struct value value);
 struct value tableI_get(morphine_instance_t, struct table *, struct value key, bool *has);
-bool tableI_remove(morphine_instance_t, struct table *, struct value key);
+struct value tableI_remove(morphine_instance_t, struct table *, struct value key, bool *has);
 
 void tableI_clear(morphine_instance_t, struct table *);
 struct table *tableI_copy(morphine_instance_t, struct table *);

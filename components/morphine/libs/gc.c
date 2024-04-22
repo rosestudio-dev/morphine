@@ -228,9 +228,9 @@ static struct maux_construct_field table[] = {
 };
 
 void mlib_gc_loader(morphine_coroutine_t U) {
-    maux_construct(U, table);
+    maux_construct(U, table, "gc.");
 }
 
 MORPHINE_LIB void mlib_gc_call(morphine_coroutine_t U, const char *name, size_t argc) {
-    maux_construct_call(U, table, name, argc);
+    maux_construct_call(U, table, "gc.", name, argc);
 }

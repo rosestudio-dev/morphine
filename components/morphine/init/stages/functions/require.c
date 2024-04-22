@@ -16,6 +16,7 @@ static struct require_loader table[] = {
     { "math",      mlib_math_loader },
     { "string",    mlib_string_loader },
     { "table",     mlib_table_loader },
+    { "vector",    mlib_vector_loader },
     { "value",     mlib_value_loader },
     { "registry",  mlib_registry_loader },
     { NULL, NULL }

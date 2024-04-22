@@ -381,7 +381,7 @@ static struct maux_construct_field table[] = {
 };
 
 void mlib_math_loader(morphine_coroutine_t U) {
-    maux_construct(U, table);
+    maux_construct(U, table, "math.");
 
     mapi_push_stringf(U, "pi");
     mapi_push_decimal(U, PI_CONST);
@@ -401,5 +401,5 @@ void mlib_math_loader(morphine_coroutine_t U) {
 }
 
 MORPHINE_LIB void mlib_math_call(morphine_coroutine_t U, const char *name, size_t argc) {
-    maux_construct_call(U, table, name, argc);
+    maux_construct_call(U, table, "math.", name, argc);
 }
