@@ -19,7 +19,7 @@
 static inline size_t size_table(struct table *table) {
     return sizeof(struct table) +
            table->hashmap.buckets.count * sizeof(struct bucket) +
-           table->hashmap.hashing.size * sizeof(struct bucket *);
+           table->hashmap.hashing.size * sizeof(struct tree);
 }
 
 static inline size_t size_closure(struct closure *closure) {

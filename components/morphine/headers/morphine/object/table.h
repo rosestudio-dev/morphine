@@ -19,6 +19,10 @@ struct bucket {
     struct pair pair;
 };
 
+struct tree {
+    struct bucket *root;
+};
+
 struct hashmap {
     struct {
         struct bucket *head;
@@ -27,7 +31,7 @@ struct hashmap {
     } buckets;
 
     struct {
-        struct bucket **trees;
+        struct tree *trees;
         size_t used;
         size_t size;
     } hashing;

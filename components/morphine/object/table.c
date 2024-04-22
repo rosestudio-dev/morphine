@@ -10,7 +10,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 
-static inline uint64_t hashcode(morphine_instance_t I, struct value value) {
+static uint64_t hashcode(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         uint64_t h = 0;
@@ -80,8 +80,9 @@ static inline void remove_bucket(struct table *table, struct bucket *bucket) {
     }
 }
 
-static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
-    if (hashmap->hashing.used < hashmap->hashing.size || hashmap->hashing.size >= (SIZE_MAX / 2)) {
+static void resize(morphine_instance_t I, struct hashmap *hashmap) {
+    bool need = hashmap->hashing.size > 0 && ((hashmap->hashing.used * 10) / hashmap->hashing.size) < 8;
+    if (need || hashmap->hashing.size >= 262140) {
         return;
     }
 
@@ -97,7 +98,9 @@ static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
     hashmap->hashing.size = new_size;
 
     for (size_t i = 0; i < new_size; i++) {
-        hashmap->hashing.trees[i] = NULL;
+        hashmap->hashing.trees[i] = (struct tree) {
+            .root = NULL
+        };
     }
 
     struct bucket *current = hashmap->buckets.head;
@@ -105,8 +108,8 @@ static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
         uint64_t hash = hashcode(I, current->pair.key);
         size_t index = hash % new_size;
 
-        current->tree.prev = hashmap->hashing.trees[index];
-        hashmap->hashing.trees[index] = current;
+        current->tree.prev = hashmap->hashing.trees[index].root;
+        hashmap->hashing.trees[index].root = current;
 
         current = current->ll.prev;
     }
@@ -120,9 +123,9 @@ static inline struct bucket *get(morphine_instance_t I, struct hashmap *hashmap,
     uint64_t hash = hashcode(I, key);
     size_t index = hash % hashmap->hashing.size;
 
-    struct bucket *buckets = hashmap->hashing.trees[index];
-    if (buckets != NULL) {
-        struct bucket *current = buckets;
+    struct tree *tree = hashmap->hashing.trees + index;
+    if (tree->root != NULL) {
+        struct bucket *current = tree->root;
         while (current != NULL) {
             if (valueI_equal(I, current->pair.key, key)) {
                 return current;
@@ -190,9 +193,9 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     uint64_t hash = hashcode(I, key);
     size_t index = hash % hashmap->hashing.size;
 
-    struct bucket *buckets = hashmap->hashing.trees[index];
-    if (buckets != NULL) {
-        struct bucket *current = buckets;
+    struct tree *tree = hashmap->hashing.trees + index;
+    if (tree->root != NULL) {
+        struct bucket *current = tree->root;
         while (current != NULL) {
             if (valueI_equal(I, current->pair.key, key)) {
                 current->pair.value = value;
@@ -212,17 +215,17 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     (*bucket) = (struct bucket) {
         .pair.key = key,
         .pair.value = value,
-        .tree.prev = buckets
+        .tree.prev = tree->root
     };
 
     insert_bucket(table, bucket);
     hashmap->buckets.count++;
 
-//    if (hashmap->hashing.trees[index] == NULL) {
+    if (tree->root == NULL) {
         hashmap->hashing.used++;
-//    }
+    }
 
-    hashmap->hashing.trees[index] = bucket;
+    tree->root = bucket;
 }
 
 struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
@@ -259,27 +262,31 @@ bool tableI_remove(morphine_instance_t I, struct table *table, struct value key)
     uint64_t hash = hashcode(I, key);
     size_t index = hash % hashmap->hashing.size;
 
-    struct bucket *buckets = hashmap->hashing.trees[index];
-    if (buckets != NULL) {
+    struct tree *tree = hashmap->hashing.trees + index;
+    if (tree->root != NULL) {
         struct bucket *last = NULL;
-        struct bucket *current = buckets;
+        struct bucket *current = tree->root;
         while (current != NULL) {
             if (valueI_equal(I, current->pair.key, key)) {
-                if (last == NULL) {
-                    hashmap->hashing.trees[index] = current->tree.prev;
-                } else {
-                    last->tree.prev = current->tree.prev;
-                }
-
-                remove_bucket(table, current);
-                allocI_free(I, current);
-                hashmap->buckets.count--;
-
-                return true;
+                break;
             }
 
             last = current;
             current = current->tree.prev;
+        }
+
+        if(current != NULL) {
+            if (last == NULL) {
+                tree->root = current->tree.prev;
+            } else {
+                last->tree.prev = current->tree.prev;
+            }
+
+            remove_bucket(table, current);
+            allocI_free(I, current);
+            hashmap->buckets.count--;
+
+            return true;
         }
     }
 
