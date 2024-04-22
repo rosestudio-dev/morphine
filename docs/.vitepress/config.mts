@@ -26,7 +26,7 @@ export default defineConfig({
 
         footer: {
             message: 'Released under the MIT License.',
-            copyright: 'Copyright © 2024-present why-iskra'
+            copyright: 'Copyright © 2024-present <a href="https://github.com/why-iskra">why-iskra</a>'
         }
     },
     head: [
