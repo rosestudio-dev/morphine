@@ -6,21 +6,27 @@
 
 #include "morphine/core/value.h"
 
+enum bucket_color {
+    BUCKET_COLOR_BLACK,
+    BUCKET_COLOR_RED,
+};
+
 struct bucket {
     struct {
         struct bucket *prev;
         struct bucket *next;
     } ll;
 
-    struct {
-        struct bucket *prev;
-    } tree;
-
+    struct bucket *left;
+    struct bucket *right;
+    struct bucket *parent;
+    enum bucket_color color;
     struct pair pair;
 };
 
 struct tree {
-    struct bucket *root;
+    struct bucket nil_leaf;
+    struct bucket root;
 };
 
 struct hashmap {

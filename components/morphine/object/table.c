@@ -9,6 +9,15 @@
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/gc/safe.h"
+
+#define ROOT(tree) (&(tree)->root)
+#define NIL_LEAF(tree) (&(tree)->nil_leaf)
+#define FIRST(tree) ((tree)->root.left)
+
+#define COMPARE_NUM(a, b) ((a) == (b) ? 0 : ((a) > (b) ? 1 : -1))
+
+// compare & hash
 
 static uint64_t hashcode(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
@@ -47,6 +56,43 @@ static uint64_t hashcode(morphine_instance_t I, struct value value) {
     throwI_panic(I, "Unknown value type");
 }
 
+static inline int compare(morphine_instance_t I, struct value a, struct value b) {
+    if (likely(a.type != b.type)) {
+        return COMPARE_NUM(a.type, b.type);
+    }
+
+    switch (a.type) {
+        case VALUE_TYPE_NIL:
+            return 0;
+        case VALUE_TYPE_INTEGER:
+            return COMPARE_NUM(a.integer, b.integer);
+        case VALUE_TYPE_DECIMAL:
+            return COMPARE_NUM(a.decimal, b.decimal);
+        case VALUE_TYPE_BOOLEAN:
+            return COMPARE_NUM(a.boolean, b.boolean);
+        case VALUE_TYPE_RAW:
+            return COMPARE_NUM(a.raw, b.raw);
+        case VALUE_TYPE_STRING: {
+            struct string *str_a = valueI_as_string(a);
+            struct string *str_b = valueI_as_string(b);
+            return strcmp(str_a->chars, str_b->chars);
+        }
+        case VALUE_TYPE_USERDATA:
+        case VALUE_TYPE_TABLE:
+        case VALUE_TYPE_CLOSURE:
+        case VALUE_TYPE_COROUTINE:
+        case VALUE_TYPE_FUNCTION:
+        case VALUE_TYPE_NATIVE:
+        case VALUE_TYPE_REFERENCE:
+        case VALUE_TYPE_ITERATOR:
+            return COMPARE_NUM(a.object.header, b.object.header);
+    }
+
+    throwI_panic(I, "Unsupported type");
+}
+
+// linked list of buckets
+
 static inline void insert_bucket(struct table *table, struct bucket *bucket) {
     struct bucket **head = &table->hashmap.buckets.head;
 
@@ -80,9 +126,352 @@ static inline void remove_bucket(struct table *table, struct bucket *bucket) {
     }
 }
 
+// red-black tree
+
+static inline struct bucket *redblacktree_find(morphine_instance_t I, struct tree *tree, struct value key) {
+    struct bucket *current = FIRST(tree);
+    while (current != NIL_LEAF(tree)) {
+        int cmp = compare(I, key, current->pair.key);
+        if (cmp == 0) {
+            return current;
+        } else if (cmp < 0) {
+            current = current->left;
+        } else {
+            current = current->right;
+        }
+    }
+
+    return NULL;
+}
+
+static struct bucket *redblacktree_successor(struct tree *tree, struct bucket *bucket) {
+    struct bucket *current = bucket->right;
+
+    if (current != NIL_LEAF(tree)) {
+        while (current->left != NIL_LEAF(tree)) {
+            current = current->left;
+        }
+    } else {
+        current = bucket->parent;
+        while (bucket == current->right) {
+            bucket = current;
+
+            current = current->parent;
+        }
+
+        if (current == ROOT(tree)) {
+            current = NULL;
+        }
+    }
+
+    return current;
+}
+
+static inline void redblacktree_rotate_left(struct tree *tree, struct bucket *x) {
+    struct bucket *y = x->right;
+
+    x->right = y->left;
+    if (x->right != NIL_LEAF(tree)) {
+        x->right->parent = x;
+    }
+
+    y->parent = x->parent;
+    if (x == x->parent->left) {
+        x->parent->left = y;
+    } else {
+        x->parent->right = y;
+    }
+
+    y->left = x;
+    x->parent = y;
+}
+
+static inline void redblacktree_rotate_right(struct tree *tree, struct bucket *x) {
+    struct bucket *y = x->left;
+
+    x->left = y->right;
+    if (x->left != NIL_LEAF(tree)) {
+        x->left->parent = x;
+    }
+
+    y->parent = x->parent;
+    if (x == x->parent->left) {
+        x->parent->left = y;
+    } else {
+        x->parent->right = y;
+    }
+
+    y->right = x;
+    x->parent = y;
+}
+
+static void redblacktree_insert_repair(struct tree *tree, struct bucket *current) {
+    struct bucket *uncle;
+
+    do {
+        if (current->parent == current->parent->parent->left) {
+            uncle = current->parent->parent->right;
+            if (uncle->color == BUCKET_COLOR_RED) {
+                current->parent->color = BUCKET_COLOR_BLACK;
+                uncle->color = BUCKET_COLOR_BLACK;
+
+                current = current->parent->parent;
+                current->color = BUCKET_COLOR_RED;
+            } else {
+                if (current == current->parent->right) {
+                    current = current->parent;
+                    redblacktree_rotate_left(tree, current);
+                }
+
+                current->parent->color = BUCKET_COLOR_BLACK;
+                current->parent->parent->color = BUCKET_COLOR_RED;
+                redblacktree_rotate_right(tree, current->parent->parent);
+            }
+        } else {
+            uncle = current->parent->parent->left;
+            if (uncle->color == BUCKET_COLOR_RED) {
+                current->parent->color = BUCKET_COLOR_BLACK;
+                uncle->color = BUCKET_COLOR_BLACK;
+
+                current = current->parent->parent;
+                current->color = BUCKET_COLOR_RED;
+            } else {
+                if (current == current->parent->left) {
+                    current = current->parent;
+                    redblacktree_rotate_right(tree, current);
+                }
+
+                current->parent->color = BUCKET_COLOR_BLACK;
+                current->parent->parent->color = BUCKET_COLOR_RED;
+                redblacktree_rotate_left(tree, current->parent->parent);
+            }
+        }
+    } while (current->parent->color == BUCKET_COLOR_RED);
+}
+
+static inline bool redblacktree_insert_first(
+    morphine_instance_t I,
+    struct tree *tree,
+    struct value key,
+    struct bucket **current,
+    struct bucket **parent
+) {
+    *current = FIRST(tree);
+    *parent = ROOT(tree);
+
+    while (*current != NIL_LEAF(tree)) {
+        int cmp = compare(I, key, (*current)->pair.key);
+
+        if (cmp == 0) {
+            return true;
+        }
+
+        (*parent) = (*current);
+
+        if (cmp < 0) {
+            (*current) = (*current)->left;
+        } else {
+            (*current) = (*current)->right;
+        }
+    }
+
+    return false;
+}
+
+static inline bool redblacktree_insert_second(
+    morphine_instance_t I,
+    struct tree *tree,
+    struct pair pair,
+    struct bucket *current,
+    struct bucket *parent
+) {
+    current->left = NIL_LEAF(tree);
+    current->right = NIL_LEAF(tree);
+    current->parent = parent;
+    current->color = BUCKET_COLOR_RED;
+    current->pair = pair;
+
+    int cmp = compare(I, pair.key, parent->pair.key);
+    if (parent == ROOT(tree) || cmp < 0) {
+        parent->left = current;
+    } else {
+        parent->right = current;
+    }
+
+    if (current->parent->color == BUCKET_COLOR_RED) {
+        redblacktree_insert_repair(tree, current);
+    }
+
+    FIRST(tree)->color = BUCKET_COLOR_BLACK;
+
+    return parent == ROOT(tree);
+}
+
+static void delete_repair(struct tree *tree, struct bucket *current) {
+    struct bucket *sibling;
+
+    do {
+        if (current == current->parent->left) {
+            sibling = current->parent->right;
+
+            if (sibling->color == BUCKET_COLOR_RED) {
+                sibling->color = BUCKET_COLOR_BLACK;
+                current->parent->color = BUCKET_COLOR_RED;
+
+                redblacktree_rotate_left(tree, current->parent);
+                sibling = current->parent->right;
+            }
+
+            if (sibling->right->color == BUCKET_COLOR_BLACK && sibling->left->color == BUCKET_COLOR_BLACK) {
+                sibling->color = BUCKET_COLOR_RED;
+                if (current->parent->color == BUCKET_COLOR_RED) {
+                    current->parent->color = BUCKET_COLOR_BLACK;
+                    break;
+                } else {
+                    current = current->parent;
+                }
+            } else {
+                if (sibling->right->color == BUCKET_COLOR_BLACK) {
+                    sibling->left->color = BUCKET_COLOR_BLACK;
+                    sibling->color = BUCKET_COLOR_RED;
+
+                    redblacktree_rotate_right(tree, sibling);
+                    sibling = current->parent->right;
+                }
+
+                sibling->color = current->parent->color;
+                current->parent->color = BUCKET_COLOR_BLACK;
+
+                sibling->right->color = BUCKET_COLOR_BLACK;
+                redblacktree_rotate_left(tree, current->parent);
+                break;
+            }
+        } else {
+            sibling = current->parent->left;
+
+            if (sibling->color == BUCKET_COLOR_RED) {
+                sibling->color = BUCKET_COLOR_BLACK;
+                current->parent->color = BUCKET_COLOR_RED;
+
+                redblacktree_rotate_right(tree, current->parent);
+                sibling = current->parent->left;
+            }
+
+            if (sibling->right->color == BUCKET_COLOR_BLACK && sibling->left->color == BUCKET_COLOR_BLACK) {
+                sibling->color = BUCKET_COLOR_RED;
+                if (current->parent->color == BUCKET_COLOR_RED) {
+                    current->parent->color = BUCKET_COLOR_BLACK;
+                    break;
+                } else {
+                    current = current->parent;
+                }
+            } else {
+                if (sibling->left->color == BUCKET_COLOR_BLACK) {
+                    sibling->right->color = BUCKET_COLOR_BLACK;
+                    sibling->color = BUCKET_COLOR_RED;
+
+                    redblacktree_rotate_left(tree, sibling);
+                    sibling = current->parent->left;
+                }
+
+                sibling->color = current->parent->color;
+                current->parent->color = BUCKET_COLOR_BLACK;
+
+                sibling->left->color = BUCKET_COLOR_BLACK;
+                redblacktree_rotate_right(tree, current->parent);
+                break;
+            }
+        }
+    } while (current != FIRST(tree));
+}
+
+static inline void swap(struct tree *tree, struct bucket *bucket, struct bucket *remove) {
+    if (bucket->parent->left == bucket) {
+        bucket->parent->left = remove;
+    }
+
+    if (bucket->parent->right == bucket) {
+        bucket->parent->right = remove;
+    }
+
+    if (bucket->left != NIL_LEAF(tree) && bucket->left->parent == bucket) {
+        bucket->left->parent = remove;
+    }
+
+    if (bucket->right != NIL_LEAF(tree) && bucket->right->parent == bucket) {
+        bucket->right->parent = remove;
+    }
+
+    remove->parent = bucket->parent;
+    remove->left = bucket->left;
+    remove->right = bucket->right;
+    remove->color = bucket->color;
+}
+
+static struct bucket *redblacktree_delete(morphine_instance_t I, struct tree *tree, struct value key) {
+    struct bucket *bucket = redblacktree_find(I, tree, key);
+
+    if (bucket == NULL) {
+        return NULL;
+    }
+
+    struct bucket *target;
+    if (bucket->left == NIL_LEAF(tree) || bucket->right == NIL_LEAF(tree)) {
+        target = bucket;
+    } else {
+        target = redblacktree_successor(tree, bucket);
+    }
+
+    struct bucket *child = (target->left == NIL_LEAF(tree)) ? target->right : target->left;
+
+    if (target->color == BUCKET_COLOR_BLACK) {
+        if (child->color == BUCKET_COLOR_RED) {
+            child->color = BUCKET_COLOR_BLACK;
+        } else if (target != FIRST(tree)) {
+            delete_repair(tree, target);
+        }
+    }
+
+    if (child != NIL_LEAF(tree)) {
+        child->parent = target->parent;
+    }
+
+    if (target == target->parent->left) {
+        target->parent->left = child;
+    } else {
+        target->parent->right = child;
+    }
+
+    if (bucket != target) {
+        swap(tree, bucket, target);
+    }
+
+    return bucket;
+}
+
+static void redblacktree_init(struct tree *tree) {
+    tree->nil_leaf = (struct bucket) {
+        .left = NIL_LEAF(tree),
+        .right = NIL_LEAF(tree),
+        .parent = NIL_LEAF(tree),
+        .color = BUCKET_COLOR_BLACK,
+        .pair = (struct pair) { valueI_nil, valueI_nil },
+    };
+
+    tree->root = (struct bucket) {
+        .left = NIL_LEAF(tree),
+        .right = NIL_LEAF(tree),
+        .parent = NIL_LEAF(tree),
+        .color = BUCKET_COLOR_BLACK,
+        .pair = (struct pair) { valueI_nil, valueI_nil },
+    };
+}
+
+// table
+
 static void resize(morphine_instance_t I, struct hashmap *hashmap) {
     bool need = hashmap->hashing.size > 0 && ((hashmap->hashing.used * 10) / hashmap->hashing.size) < 8;
-    if (need || hashmap->hashing.size >= 262140) {
+    if (likely(need || hashmap->hashing.size >= 131070)) {
         return;
     }
 
@@ -92,15 +481,13 @@ static void resize(morphine_instance_t I, struct hashmap *hashmap) {
     }
 
     hashmap->hashing.trees = allocI_vec(
-        I, hashmap->hashing.trees, new_size, sizeof(struct bucket *)
+        I, hashmap->hashing.trees, new_size, sizeof(struct tree)
     );
 
     hashmap->hashing.size = new_size;
 
     for (size_t i = 0; i < new_size; i++) {
-        hashmap->hashing.trees[i] = (struct tree) {
-            .root = NULL
-        };
+        redblacktree_init(hashmap->hashing.trees + i);
     }
 
     struct bucket *current = hashmap->buckets.head;
@@ -108,8 +495,22 @@ static void resize(morphine_instance_t I, struct hashmap *hashmap) {
         uint64_t hash = hashcode(I, current->pair.key);
         size_t index = hash % new_size;
 
-        current->tree.prev = hashmap->hashing.trees[index].root;
-        hashmap->hashing.trees[index].root = current;
+        struct tree *tree = hashmap->hashing.trees + index;
+
+        struct bucket *tree_current;
+        struct bucket *tree_parent;
+
+        if (redblacktree_insert_first(I, tree, current->pair.key, &tree_current, &tree_parent)) {
+            throwI_error(I, "Duplicate while resizing");
+        } else {
+            redblacktree_insert_second(
+                I,
+                tree,
+                current->pair,
+                current,
+                tree_parent
+            );
+        }
 
         current = current->ll.prev;
     }
@@ -124,18 +525,7 @@ static inline struct bucket *get(morphine_instance_t I, struct hashmap *hashmap,
     size_t index = hash % hashmap->hashing.size;
 
     struct tree *tree = hashmap->hashing.trees + index;
-    if (tree->root != NULL) {
-        struct bucket *current = tree->root;
-        while (current != NULL) {
-            if (valueI_equal(I, current->pair.key, key)) {
-                return current;
-            }
-
-            current = current->tree.prev;
-        }
-    }
-
-    return NULL;
+    return redblacktree_find(I, tree, key);
 }
 
 struct table *tableI_create(morphine_instance_t I) {
@@ -183,49 +573,52 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
         throwI_error(I, "Table is null");
     }
 
-    gcI_barrier(I, table, key);
-    gcI_barrier(I, table, value);
-
     struct hashmap *hashmap = &table->hashmap;
 
-    resize(I, hashmap);
+    {
+        size_t rollback = gcI_safe_value(I, key);
+        gcI_safe_value(I, value);
+
+        resize(I, hashmap);
+
+        gcI_reset_safe(I, rollback);
+    }
+
+    gcI_barrier(I, table, key);
+    gcI_barrier(I, table, value);
 
     uint64_t hash = hashcode(I, key);
     size_t index = hash % hashmap->hashing.size;
 
     struct tree *tree = hashmap->hashing.trees + index;
-    if (tree->root != NULL) {
-        struct bucket *current = tree->root;
-        while (current != NULL) {
-            if (valueI_equal(I, current->pair.key, key)) {
-                current->pair.value = value;
-                return;
-            }
 
-            current = current->tree.prev;
-        }
+    struct bucket *current;
+    struct bucket *parent;
+
+    if (unlikely(redblacktree_insert_first(I, tree, key, &current, &parent))) {
+        current->pair.value = value;
+        return;
     }
 
-    if (unlikely(hashmap->buckets.count + 1 > MLIMIT_SIZE_MAX)) {
+    if (unlikely(hashmap->buckets.count > MLIMIT_SIZE_MAX - 1)) {
         throwI_error(I, "Table size too big");
     }
 
-    struct bucket *bucket = allocI_uni(I, NULL, sizeof(struct bucket));
-
-    (*bucket) = (struct bucket) {
-        .pair.key = key,
-        .pair.value = value,
-        .tree.prev = tree->root
-    };
-
-    insert_bucket(table, bucket);
+    current = allocI_uni(I, NULL, sizeof(struct bucket));
+    insert_bucket(table, current);
     hashmap->buckets.count++;
 
-    if (tree->root == NULL) {
+    bool first = redblacktree_insert_second(
+        I,
+        tree,
+        (struct pair) { .key = key, .value = value },
+        current,
+        parent
+    );
+
+    if (likely(first)) {
         hashmap->hashing.used++;
     }
-
-    tree->root = bucket;
 }
 
 struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
@@ -241,7 +634,7 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
         (*has) = (found != NULL);
     }
 
-    if (found == NULL) {
+    if (unlikely(found == NULL)) {
         return valueI_nil;
     } else {
         return found->pair.value;
@@ -263,34 +656,16 @@ bool tableI_remove(morphine_instance_t I, struct table *table, struct value key)
     size_t index = hash % hashmap->hashing.size;
 
     struct tree *tree = hashmap->hashing.trees + index;
-    if (tree->root != NULL) {
-        struct bucket *last = NULL;
-        struct bucket *current = tree->root;
-        while (current != NULL) {
-            if (valueI_equal(I, current->pair.key, key)) {
-                break;
-            }
-
-            last = current;
-            current = current->tree.prev;
-        }
-
-        if(current != NULL) {
-            if (last == NULL) {
-                tree->root = current->tree.prev;
-            } else {
-                last->tree.prev = current->tree.prev;
-            }
-
-            remove_bucket(table, current);
-            allocI_free(I, current);
-            hashmap->buckets.count--;
-
-            return true;
-        }
+    struct bucket *bucket = redblacktree_delete(I, tree, key);
+    if (bucket == NULL) {
+        return false;
     }
 
-    return false;
+    remove_bucket(table, bucket);
+    allocI_free(I, bucket);
+    hashmap->buckets.count--;
+
+    return true;
 }
 
 void tableI_clear(morphine_instance_t I, struct table *table) {

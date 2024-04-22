@@ -285,6 +285,29 @@ static void delete_repair(struct rbtree *rbtree, struct rbnode *current) {
     } while (current != RB_FIRST(rbtree));
 }
 
+static void swap(struct rbtree *rbtree, struct rbnode *node, struct rbnode *remove) {
+    if (node->parent->left == node) {
+        node->parent->left = remove;
+    }
+
+    if (node->parent->right == node) {
+        node->parent->right = remove;
+    }
+
+    if (node->left != RB_NIL(rbtree) && node->left->parent == node) {
+        node->left->parent = remove;
+    }
+
+    if (node->right != RB_NIL(rbtree) && node->right->parent == node) {
+        node->right->parent = remove;
+    }
+
+    remove->parent = node->parent;
+    remove->left = node->left;
+    remove->right = node->right;
+    remove->color = node->color;
+}
+
 static struct allocated delete(struct rbtree *rbtree, void *pointer) {
     struct rbnode *node = find(rbtree, pointer);
 
@@ -302,7 +325,6 @@ static struct allocated delete(struct rbtree *rbtree, void *pointer) {
         target = node;
     } else {
         target = successor(rbtree, node);
-        node->allocated = target->allocated;
     }
 
     struct rbnode *child = (target->left == RB_NIL(rbtree)) ? target->right : target->left;
@@ -325,7 +347,12 @@ static struct allocated delete(struct rbtree *rbtree, void *pointer) {
         target->parent->right = child;
     }
 
-    free(target);
+    if(node != target) {
+        swap(rbtree, node, target);
+    }
+
+    free(node);
+
     return data;
 }
 

@@ -25,6 +25,8 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
             return a.decimal == b.decimal;
         case VALUE_TYPE_BOOLEAN:
             return a.boolean == b.boolean;
+        case VALUE_TYPE_RAW:
+            return a.raw == b.raw;
         case VALUE_TYPE_STRING: {
             struct string *str_a = valueI_as_string(a);
             struct string *str_b = valueI_as_string(b);
@@ -40,7 +42,6 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
         case VALUE_TYPE_ITERATOR:
-        case VALUE_TYPE_RAW:
             return a.object.header == b.object.header;
     }
 
