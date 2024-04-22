@@ -112,6 +112,19 @@ sealed interface Instruction {
     }
 
     @Producer
+    data class Vector(
+        val destination: Argument.Slot,
+        val count: Argument.Count,
+        override var lineData: LineData? = null
+    ) : Instruction {
+        override val opcode = Opcode.VECTOR
+
+        override val orderedArguments = listOf(destination, count)
+
+        override val description = "create vector in $destination with size $count"
+    }
+
+    @Producer
     data class Table(
         val destination: Argument.Slot,
         override var lineData: LineData? = null

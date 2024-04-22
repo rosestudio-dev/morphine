@@ -32,6 +32,7 @@ import ru.unit.morphine.assembly.compiler.ast.node.TableExpression
 import ru.unit.morphine.assembly.compiler.ast.node.UnaryExpression
 import ru.unit.morphine.assembly.compiler.ast.node.ValueExpression
 import ru.unit.morphine.assembly.compiler.ast.node.VariableAccessible
+import ru.unit.morphine.assembly.compiler.ast.node.VectorExpression
 import ru.unit.morphine.assembly.compiler.ast.node.WhileStatement
 import ru.unit.morphine.assembly.compiler.ast.node.YieldStatement
 import ru.unit.morphine.assembly.compiler.lexer.Token
@@ -863,6 +864,7 @@ class Parser(
         look(Token.SystemWord.SELF) -> expressionSelf()
         look(Token.SystemWord.FUN) -> expressionFunction()
         look(Token.Operator.LBRACE) -> expressionTable()
+        look(Token.Operator.LBRACKET) -> expressionVector()
         look(Token.SystemWord.IF) -> statementIf()
         look(Token.SystemWord.DO) -> expressionBlock()
         match(Token.Operator.LPAREN) -> expression().also { consume(Token.Operator.RPAREN) }
@@ -954,6 +956,23 @@ class Parser(
         }
 
         return TableExpression(
+            elements = elements,
+            data = data(saved)
+        )
+    }
+
+    private fun expressionVector(): Expression {
+        val saved = position
+
+        val elements = arguments(
+            determinator = Token.Operator.COMMA,
+            open = Token.Operator.LBRACKET,
+            close = Token.Operator.RBRACKET
+        ) {
+            expression()
+        }
+
+        return VectorExpression(
             elements = elements,
             data = data(saved)
         )

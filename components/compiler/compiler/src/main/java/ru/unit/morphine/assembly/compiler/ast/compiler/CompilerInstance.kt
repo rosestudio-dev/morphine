@@ -33,6 +33,7 @@ import ru.unit.morphine.assembly.compiler.ast.node.TableExpression
 import ru.unit.morphine.assembly.compiler.ast.node.UnaryExpression
 import ru.unit.morphine.assembly.compiler.ast.node.ValueExpression
 import ru.unit.morphine.assembly.compiler.ast.node.VariableAccessible
+import ru.unit.morphine.assembly.compiler.ast.node.VectorExpression
 import ru.unit.morphine.assembly.compiler.ast.node.WhileStatement
 import ru.unit.morphine.assembly.compiler.ast.node.YieldStatement
 
@@ -53,6 +54,7 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         is TableExpression -> expression.eval()
         is UnaryExpression -> expression.eval()
         is ValueExpression -> expression.eval()
+        is VectorExpression -> expression.eval()
     }
 
     override fun set(accessible: Accessible, slot: Argument.Slot) = when (accessible) {
@@ -578,6 +580,44 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
             withoutResult = {
                 elements.forEach { (key, value) ->
                     key.eval()
+                    value.eval()
+                }
+            }
+        )
+    }
+
+    private fun VectorExpression.eval() = codegenExpression {
+        result(
+            withResult = { resultSlot ->
+                instruction(
+                    Instruction.Vector(
+                        destination = resultSlot,
+                        count = Argument.Count(elements.size)
+                    )
+                )
+
+                val keySlot = slot()
+                val valueSlot = slot()
+                elements.forEachIndexed { index, value ->
+                    instruction(
+                        Instruction.Load(
+                            constant = constant(Value.Integer(index)),
+                            destination = keySlot
+                        )
+                    )
+                    value.evalWithResult(valueSlot)
+
+                    instruction(
+                        Instruction.Set(
+                            source = valueSlot,
+                            keySource = keySlot,
+                            container = resultSlot
+                        )
+                    )
+                }
+            },
+            withoutResult = {
+                elements.forEach { value ->
                     value.eval()
                 }
             }

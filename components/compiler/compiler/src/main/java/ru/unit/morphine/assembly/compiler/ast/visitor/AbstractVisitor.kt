@@ -25,6 +25,7 @@ import ru.unit.morphine.assembly.compiler.ast.node.TableExpression
 import ru.unit.morphine.assembly.compiler.ast.node.UnaryExpression
 import ru.unit.morphine.assembly.compiler.ast.node.ValueExpression
 import ru.unit.morphine.assembly.compiler.ast.node.VariableAccessible
+import ru.unit.morphine.assembly.compiler.ast.node.VectorExpression
 import ru.unit.morphine.assembly.compiler.ast.node.Visitor
 import ru.unit.morphine.assembly.compiler.ast.node.WhileStatement
 import ru.unit.morphine.assembly.compiler.ast.node.YieldStatement
@@ -58,6 +59,7 @@ abstract class AbstractVisitor : Visitor {
         is IteratorStatement -> visit(node)
         is AccessAccessible -> visit(node)
         is VariableAccessible -> visit(node)
+        is VectorExpression -> visit(node)
     }
 
     abstract fun visit(node: BinaryExpression)
@@ -86,4 +88,5 @@ abstract class AbstractVisitor : Visitor {
     abstract fun visit(node: IteratorStatement)
     abstract fun visit(node: AccessAccessible)
     abstract fun visit(node: VariableAccessible)
+    abstract fun visit(node: VectorExpression)
 }

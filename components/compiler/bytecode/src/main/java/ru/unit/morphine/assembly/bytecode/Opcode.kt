@@ -11,6 +11,7 @@ enum class Opcode {
     SELF,            // [dest (slot)]                                                 move self to (dest)
     RECURSION,       // [dest (slot)]                                                 move callable to (dest)
 
+    VECTOR,          // [dest (slot), size (num)]                                     create vector in (dest) with (size)
     TABLE,           // [dest (slot)]                                                 create table in (dest)
     GET,             // [container (slot), key (slot), dest (slot)]                   get from (container) by (key) to (dest)
     SET,             // [container (slot), key (slot), src (slot)]                    set (src) to (container) by (key)

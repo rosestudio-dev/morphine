@@ -26,6 +26,7 @@ import ru.unit.morphine.assembly.compiler.ast.node.TableExpression
 import ru.unit.morphine.assembly.compiler.ast.node.UnaryExpression
 import ru.unit.morphine.assembly.compiler.ast.node.ValueExpression
 import ru.unit.morphine.assembly.compiler.ast.node.VariableAccessible
+import ru.unit.morphine.assembly.compiler.ast.node.VectorExpression
 import ru.unit.morphine.assembly.compiler.ast.node.WhileStatement
 import ru.unit.morphine.assembly.compiler.ast.node.YieldStatement
 
@@ -159,6 +160,10 @@ abstract class SimpleVisitor : AbstractVisitor() {
     }
 
     override fun visit(node: VariableAccessible) = Unit
+
+    override fun visit(node: VectorExpression) {
+        node.elements.accept()
+    }
 
     private fun Node.accept() = accept(this@SimpleVisitor)
     private fun List<Node>.accept() = forEach { node -> node.accept(this@SimpleVisitor) }
