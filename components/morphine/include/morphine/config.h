@@ -32,3 +32,7 @@
 // attrs
 
 #define morphine_noret __attribute__((noreturn))
+
+// compile-time parameters
+
+#define TABLE_GROW_PERCENTAGE 80

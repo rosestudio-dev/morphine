@@ -471,7 +471,8 @@ static void redblacktree_init(struct tree *tree) {
 // table
 
 static void resize(morphine_instance_t I, struct hashmap *hashmap) {
-    bool need = hashmap->hashing.size > 0 && ((hashmap->hashing.used * 10) / hashmap->hashing.size) < 8;
+    bool need = hashmap->hashing.size > 0 &&
+                ((hashmap->hashing.used * 10) / hashmap->hashing.size) < (TABLE_GROW_PERCENTAGE / 10);
     if (likely(need || hashmap->hashing.size >= 131070)) {
         return;
     }
