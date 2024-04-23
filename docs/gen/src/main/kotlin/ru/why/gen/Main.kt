@@ -41,11 +41,20 @@ private const val PATH_PATTERN = "path:\\S+"
 
 private fun watch(file: File, outputBase: File, base: File) {
     val text = Files.readString(file.toPath())
-    val regex = "$OPEN_TAG_PATTERN\n$PATH_PATTERN?\n(.|\\s)*?$CLOSE_TAG_PATTERN".toRegex(RegexOption.MULTILINE)
+    val regex = "$OPEN_TAG_PATTERN(.|\\s)*?$PATH_PATTERN?(.|\\s)*?$CLOSE_TAG_PATTERN".toRegex(RegexOption.MULTILINE)
 
     val regions = mutableMapOf<String, List<Region>>()
     regex.findAll(text).forEach { matchResult ->
-        val (path, region) = region(matchResult.value)
+        val prefix = prefix(
+            text = text,
+            first = matchResult.range.first
+        )
+
+        val (path, region) = region(
+            found = matchResult.value,
+            prefix = prefix
+        )
+
         regions[path] = (regions[path] ?: listOf()) + region
     }
 
@@ -71,8 +80,16 @@ private fun watch(file: File, outputBase: File, base: File) {
     }
 }
 
-private fun region(found: String): Pair<String, Region> {
-    val lines = found.lines()
+private fun prefix(text: String, first: Int): String {
+    val newLineIndex = (first downTo 0).find { index ->
+        text[index] in "\n\r"
+    } ?: -1
+
+    return text.substring(newLineIndex + 1, first)
+}
+
+private fun region(found: String, prefix: String): Pair<String, Region> {
+    val lines = found.lines().map { line -> line.removePrefix(prefix) }
 
     val tagOpen = lines.first()
     val tagClose = lines.last()
