@@ -53,5 +53,8 @@ export default defineConfig({
                 rel: 'stylesheet'
             }
         ]
-    ]
+    ],
+    rewrites: {
+        'generated/:path(.*)': ':path'
+    }
 })

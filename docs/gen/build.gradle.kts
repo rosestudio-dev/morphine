@@ -16,7 +16,3 @@ dependencies {
 application {
     mainClass.set("ru.why.gen.MainKt")
 }
-
-kotlin {
-    jvmToolchain(21)
-}
