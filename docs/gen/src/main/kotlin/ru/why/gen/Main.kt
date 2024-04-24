@@ -35,27 +35,28 @@ private fun walking(searchBase: File, outputBase: File, extensions: List<String>
     }
 }
 
-private const val OPEN_TAG_PATTERN = "\\{\\{docs (header|append)}}"
-private const val CLOSE_TAG_PATTERN = "\\{\\{end}}"
-private const val PATH_PATTERN = "path:\\S+"
+private const val OPEN_TAG_PATTERN = "(.*)\\{\\{docs (header|body|footer)}}"
+private const val CLOSE_TAG_PATTERN = "(.*)\\{\\{end}}"
+private const val PATH_PATTERN = "(.*)path:(.+)"
 
 private fun watch(file: File, outputBase: File, base: File) {
     val text = Files.readString(file.toPath())
-    val regex = "$OPEN_TAG_PATTERN(.|\\s)*?$PATH_PATTERN?(.|\\s)*?$CLOSE_TAG_PATTERN".toRegex(RegexOption.MULTILINE)
+    val lines = text.lines()
 
     val regions = mutableMapOf<String, List<Region>>()
-    regex.findAll(text).forEach { matchResult ->
-        val prefix = prefix(
-            text = text,
-            first = matchResult.range.first
-        )
 
-        val (path, region) = region(
-            found = matchResult.value,
-            prefix = prefix
-        )
+    val openTagRegex = OPEN_TAG_PATTERN.toRegex()
+    lines.forEachIndexed { index, line ->
+        val match = openTagRegex.matchEntire(line)
+        if (match != null) {
+            val (path, region) = region(
+                match = match,
+                indexLine = index,
+                lines = lines
+            )
 
-        regions[path] = (regions[path] ?: listOf()) + region
+            regions[path] = (regions[path] ?: listOf()) + region
+        }
     }
 
     if (regions.isNotEmpty()) {
@@ -65,11 +66,12 @@ private fun watch(file: File, outputBase: File, base: File) {
 
         regions.forEach { (path, regions) ->
             val output = File(outputBase, path)
-            val fileText = regions.sortedByDescending(Region::isHeader)
-                .joinToString(
-                    separator = "\n\n",
-                    transform = Region::text
-                )
+            val fileText = regions.sortedBy { region ->
+                region.place.ordinal
+            }.joinToString(
+                separator = "\n\n",
+                transform = Region::text
+            )
 
             output.parentFile.mkdirs()
             Files.writeString(
@@ -80,52 +82,80 @@ private fun watch(file: File, outputBase: File, base: File) {
     }
 }
 
-private fun prefix(text: String, first: Int): String {
-    val newLineIndex = (first downTo 0).find { index ->
-        text[index] in "\n\r"
-    } ?: -1
+private fun region(
+    match: MatchResult,
+    indexLine: Int,
+    lines: List<String>
+): Pair<String, Region> {
+    val prefix = match.groups[1]?.value ?: throw RuntimeException("Failed to parse prefix")
+    val openTagRegex = OPEN_TAG_PATTERN.toRegex()
+    val closeTagRegex = CLOSE_TAG_PATTERN.toRegex()
+    val pathTagRegex = PATH_PATTERN.toRegex()
 
-    return text.substring(newLineIndex + 1, first)
-}
+    var place: String? = null
+    var path: String? = null
+    var close: Int? = null
+    for ((index, line) in lines.drop(indexLine).withIndex()) {
+        if (index == 0) {
+            val matched = openTagRegex.matchEntire(line)
+            if (matched == null) {
+                throw RuntimeException("Failed to parse open tag")
+            }
 
-private fun region(found: String, prefix: String): Pair<String, Region> {
-    val lines = found.lines().map { line -> line.removePrefix(prefix) }
+            place = matched.groups[2]?.value ?: throw RuntimeException("Failed to parse place")
+        } else {
+            if (openTagRegex.matches(line)) {
+                throw RuntimeException("Failed to parse pattern")
+            }
 
-    val tagOpen = lines.first()
-    val tagClose = lines.last()
-    val path = lines[1]
+            if (index == 1) {
+                val matched = pathTagRegex.matchEntire(line)
+                if (matched == null) {
+                    throw RuntimeException("Failed to parse path")
+                }
 
-    // checks
-    val tagOpenRegex = OPEN_TAG_PATTERN.toRegex()
-    val pathRegex = PATH_PATTERN.toRegex()
-    if (!tagOpenRegex.matches(tagOpen)) {
-        throw RuntimeException("Open tag is corrupted")
+                path = matched.groups[2]?.value ?: throw RuntimeException("Failed to parse path string")
+            } else if (closeTagRegex.matches(line)) {
+                close = index + indexLine
+                break
+            }
+        }
     }
 
-    if (tagClose != "{{end}}") {
-        throw RuntimeException("Close tag is corrupted")
+    if (place == null || path == null || close == null) {
+        throw RuntimeException("Corrupted pattern")
     }
 
-    if (!pathRegex.matches(path)) {
-        throw RuntimeException("Path is corrupted")
+    val text = lines.subList(indexLine + 2, close).joinToString(separator = "\n") { line ->
+        if (line.startsWith(prefix)) {
+            line.removePrefix(prefix)
+        } else if (line == prefix.trimEnd()) {
+            ""
+        } else {
+            line
+        }
     }
 
-    val extractedPath = path.removePrefix("path:") + ".md"
-
-    val text = lines.drop(2).dropLast(1).joinToString(separator = "\n")
-    val isHeader = when (tagOpenRegex.find(tagOpen)?.groups?.get(1)?.value) {
-        "header" -> true
-        "append" -> false
-        else -> throw RuntimeException("Unknown mode")
+    val parsedPlace = when (place) {
+        "header" -> Region.Place.HEADER
+        "body" -> Region.Place.BODY
+        "footer" -> Region.Place.FOOTER
+        else -> throw RuntimeException("Unknown place")
     }
 
-    return extractedPath to Region(
-        isHeader = isHeader,
+    return "${path.trim()}.md" to Region(
+        place = parsedPlace,
         text = text
     )
 }
 
 private data class Region(
-    val isHeader: Boolean,
+    val place: Place,
     val text: String,
-)
+) {
+    enum class Place {
+        HEADER,
+        BODY,
+        FOOTER
+    }
+}

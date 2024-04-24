@@ -1,5 +1,6 @@
 import shutil
 import subprocess
+import sys
 
 gradle = shutil.which("gradle")
 npm = shutil.which("npm")
@@ -29,4 +30,4 @@ def step(name, args, cwd):
 
 step("Install deps", [npm, "i"], "site")
 step("Generate docs", [gradle, "run", "--args", "../../components ../site/generated kt c"], "gen")
-step("Deploy", [npm, "run", "docs:dev"], "site")
+step("Deploy", [npm, "run", "docs:dev", "--"] + sys.argv[1:], "site")
