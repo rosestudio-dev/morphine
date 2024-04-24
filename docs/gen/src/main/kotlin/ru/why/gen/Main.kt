@@ -7,29 +7,42 @@ fun main(args: Array<String>) {
     val searchBase = File(args[0])
     val outputBase = File(args[1])
 
+    val regions = mutableMapOf<String, List<Region>>()
+
     outputBase.deleteRecursively()
+
     walking(
         searchBase = searchBase,
-        outputBase = outputBase,
         extensions = args.drop(2),
-        base = searchBase
+        base = searchBase,
+        regions = regions,
+    )
+
+    generate(
+        regions = regions,
+        outputBase = outputBase
     )
 }
 
-private fun walking(searchBase: File, outputBase: File, extensions: List<String>, base: File) {
+private fun walking(
+    searchBase: File,
+    extensions: List<String>,
+    base: File,
+    regions: MutableMap<String, List<Region>>
+) {
     searchBase.listFiles()?.forEach { file ->
         if (file.isDirectory) {
             walking(
                 searchBase = file,
-                outputBase = outputBase,
                 extensions = extensions,
-                base = base
+                base = base,
+                regions = regions,
             )
         } else if (extensions.any { extension -> file.name.endsWith(".$extension") }) {
             watch(
                 file = file,
-                outputBase = outputBase,
-                base = base
+                base = base,
+                regions = regions,
             )
         }
     }
@@ -38,55 +51,43 @@ private fun walking(searchBase: File, outputBase: File, extensions: List<String>
 private const val OPEN_TAG_PATTERN = "(.*)\\{\\{docs (.*?)}}"
 private const val CLOSE_TAG_PATTERN = "(.*)\\{\\{end}}"
 private const val PATH_PATTERN = "(.*)path:(.+)"
-private const val HEADER = "---\nlayout: doc\n---\n\n"
 
-private fun watch(file: File, outputBase: File, base: File) {
+private fun watch(
+    file: File,
+    base: File,
+    regions: MutableMap<String, List<Region>>
+) {
+    val relativePath = file.canonicalPath.removePrefix(base.canonicalPath + File.separator)
     val text = Files.readString(file.toPath())
     val lines = text.lines()
 
-    val regions = mutableMapOf<String, List<Region>>()
-
     val openTagRegex = OPEN_TAG_PATTERN.toRegex()
-    lines.forEachIndexed { index, line ->
+    val count = lines.withIndex().count { (index, line) ->
         val match = openTagRegex.matchEntire(line)
         if (match != null) {
             val (path, region) = region(
                 match = match,
                 indexLine = index,
-                lines = lines
+                lines = lines,
+                relativePath = relativePath
             )
 
             regions[path] = (regions[path] ?: listOf()) + region
         }
+
+        match != null
     }
 
-    if (regions.isNotEmpty()) {
-        val count = regions.values.flatten().count()
-        val relativePath = file.canonicalPath.removePrefix(base.canonicalPath + File.separator)
+    if (count > 0) {
         println("${relativePath}: Found $count")
-
-        regions.forEach { (path, regions) ->
-            val output = File(outputBase, path)
-            val fileText = regions.sortedBy { region ->
-                region.place.ordinal
-            }.joinToString(
-                separator = "\n\n",
-                transform = Region::text
-            )
-
-            output.parentFile.mkdirs()
-            Files.writeString(
-                output.toPath(),
-                "$HEADER$fileText"
-            )
-        }
     }
 }
 
 private fun region(
     match: MatchResult,
     indexLine: Int,
-    lines: List<String>
+    lines: List<String>,
+    relativePath: String
 ): Pair<String, Region> {
     val prefix = match.groups[1]?.value ?: throw RuntimeException("Failed to parse prefix")
     val openTagRegex = OPEN_TAG_PATTERN.toRegex()
@@ -146,13 +147,43 @@ private fun region(
 
     return "${path.trim()}.md" to Region(
         place = parsedPlace,
-        text = text
+        text = text,
+        relativePath = relativePath
     )
+}
+
+private const val HEADER = "---\nlayout: doc\n---\n\n"
+
+private fun generate(
+    regions: MutableMap<String, List<Region>>,
+    outputBase: File
+) {
+    regions.forEach { (path, regions) ->
+        val output = File(outputBase, path)
+        val fileText = regions.sortedBy { region ->
+            region.place.ordinal
+        }.joinToString(
+            separator = "\n\n",
+            transform = Region::text
+        )
+
+        val sourceFiles = regions.map(Region::relativePath)
+            .distinct().joinToString(separator = "\n")
+
+        val genFrom = "<!--\nGenerated from:\n$sourceFiles\n-->\n\n"
+
+        output.parentFile.mkdirs()
+        Files.writeString(
+            output.toPath(),
+            "$HEADER$genFrom$fileText"
+        )
+    }
 }
 
 private data class Region(
     val place: Place,
     val text: String,
+    val relativePath: String
 ) {
     enum class Place {
         HEADER,
