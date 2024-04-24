@@ -339,7 +339,9 @@ repeat:;
 }
 
 struct value callstackI_result(morphine_coroutine_t U) {
-    return *callstackI_info_or_error(U)->s.result;
+    struct value result = *callstackI_info_or_error(U)->s.result;
+    *callstackI_info(U)->s.result = valueI_nil;
+    return result;
 }
 
 void callstackI_return(morphine_coroutine_t U, struct value value) {
