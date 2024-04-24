@@ -5,6 +5,10 @@ export default defineConfig({
     title: "Morphine Language",
     lastUpdated: true,
     themeConfig: {
+        sidebar: {
+            '/vm/': {base: '/vm/', items: sidebarVm()},
+        },
+
         logo: {
             light: '/assets/logo-small-light.svg',
             dark: '/assets/logo-small-dark.svg'
@@ -14,9 +18,8 @@ export default defineConfig({
             {text: 'Home', link: '/'},
             {text: 'Quickstart', link: '/quickstart'},
             {text: 'Language', link: '/language'},
-            {text: 'Virtual machine', link: '/vm'},
+            {text: 'Virtual machine', link: '/vm/getting-started'},
             {text: 'Compiler', link: '/compiler'},
-            {text: 'Examples', link: '/examples'},
             {text: 'Changelog', link: '/changelog'},
         ],
 
@@ -27,16 +30,30 @@ export default defineConfig({
         footer: {
             message: 'Released under the MIT License.',
             copyright: 'Copyright © 2024-present <a href="https://github.com/why-iskra">why-iskra</a>'
+        },
+
+        search: {
+            provider: 'local'
         }
     },
     head: [
         [
             'link',
-            {rel: 'icon', type: 'image/svg+xml', href: 'assets/logo-small-dark.svg', media: '(prefers-color-scheme:dark)'}
+            {
+                rel: 'icon',
+                type: 'image/svg+xml',
+                href: 'assets/logo-small-dark.svg',
+                media: '(prefers-color-scheme:dark)'
+            }
         ],
         [
             'link',
-            {rel: 'icon', type: 'image/svg+xml', href: 'assets/logo-small-light.svg', media: '(prefers-color-scheme:light)'}
+            {
+                rel: 'icon',
+                type: 'image/svg+xml',
+                href: 'assets/logo-small-light.svg',
+                media: '(prefers-color-scheme:light)'
+            }
         ],
         [
             'link',
@@ -58,3 +75,35 @@ export default defineConfig({
         'generated/:path(.*)': ':path'
     }
 })
+
+function sidebarVm(): DefaultTheme.SidebarItem[] {
+    return [
+        {
+            text: 'Introduction',
+            collapsed: false,
+            items: [
+                {text: 'Getting Started', link: 'getting-started'},
+            ]
+        },
+        {
+            text: 'Basic',
+            collapsed: false,
+            items: [
+                {text: 'Coroutines', link: 'coroutines'},
+                {text: 'Call', link: 'call'},
+                {text: 'Interpreter', link: 'interpreter'},
+                {text: 'Garbage Collector', link: 'garbage-collector'},
+            ]
+        },
+        {
+            text: 'API',
+            collapsed: false,
+            items: [
+                {text: 'Allocator', link: 'api-allocator'},
+                {text: 'Callstack', link: 'api-callstack'},
+                {text: 'Coroutine', link: 'api-coroutine'},
+                {text: 'Version', link: 'api-version'},
+            ]
+        },
+    ]
+}
