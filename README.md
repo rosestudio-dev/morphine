@@ -1,3 +1,5 @@
+![Deploy Docs](https://github.com/rosestudio-dev/morphine-lang/actions/workflows/deploy-docs.yml/badge.svg)
+
 # Morphine Programming Language
 ![logo](extra/images/morphine-logo-light.png#gh-light-mode-only)
 ![logo](extra/images/morphine-logo-dark.png#gh-dark-mode-only)
