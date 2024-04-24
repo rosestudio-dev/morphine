@@ -39,7 +39,9 @@ jobs:
         run: npm i
         working-directory: docs/site
       - name: Generate docs
-        run: gradle run --args='../../components ../site/generated kt c'
+        run: |
+          gradle run --args='../../components ../site/generated kt c'
+          cp ../../changelog.md ../site/generated/changelog.md
         working-directory: docs/gen
       - name: Build with VitePress
         run: npm run docs:build

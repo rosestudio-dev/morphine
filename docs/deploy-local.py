@@ -30,4 +30,5 @@ def step(name, args, cwd):
 
 step("Install deps", [npm, "i"], "site")
 step("Generate docs", [gradle, "run", "--args", "../../components ../site/generated kt c"], "gen")
+shutil.copy("../changelog.md", "site/generated/changelog.md")
 step("Deploy", [npm, "run", "docs:dev", "--"] + sys.argv[1:], "site")
