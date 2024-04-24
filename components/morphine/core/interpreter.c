@@ -516,6 +516,14 @@ static inline void step(morphine_coroutine_t U) {
     }
 
     if (unlikely(callinfo->exit)) {
+        if (unlikely(callinfo != callstackI_info(U))) {
+            while (callstackI_info(U) != NULL && callstackI_info(U) != callinfo) {
+                callstackI_pop(U);
+            }
+
+            throwI_error(U->I, "Callstack corrupted");
+        }
+
         callstackI_pop(U);
     }
 
