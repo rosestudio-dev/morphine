@@ -35,9 +35,10 @@ private fun walking(searchBase: File, outputBase: File, extensions: List<String>
     }
 }
 
-private const val OPEN_TAG_PATTERN = "(.*)\\{\\{docs (header|body|footer)}}"
+private const val OPEN_TAG_PATTERN = "(.*)\\{\\{docs (.*?)}}"
 private const val CLOSE_TAG_PATTERN = "(.*)\\{\\{end}}"
 private const val PATH_PATTERN = "(.*)path:(.+)"
+private const val HEADER = "---\nlayout: doc\n---\n\n"
 
 private fun watch(file: File, outputBase: File, base: File) {
     val text = Files.readString(file.toPath())
@@ -76,7 +77,7 @@ private fun watch(file: File, outputBase: File, base: File) {
             output.parentFile.mkdirs()
             Files.writeString(
                 output.toPath(),
-                fileText
+                "$HEADER$fileText"
             )
         }
     }
