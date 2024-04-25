@@ -45,7 +45,7 @@ static bool check_type(
         return is_metatype;
     }
 
-    const char *type = mapi_type(U);
+    const char *type = mapi_raw_type(U);
     size_t typelen = strlen(type);
 
     mapi_pop(U, 1);
@@ -178,4 +178,11 @@ MORPHINE_AUX size_t maux_checkargs(morphine_coroutine_t U, size_t count, ...) {
     }
 
     return result;
+}
+
+MORPHINE_AUX void maux_expect(morphine_coroutine_t U, const char *type) {
+    if (!mapi_is(U, type)) {
+        mapi_type(U);
+        mapi_errorf(U, "Expected %s, but got %s", type, mapi_get_string(U));
+    }
 }

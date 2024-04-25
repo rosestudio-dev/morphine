@@ -8,3 +8,4 @@
 #include "morphine/config.h"
 
 MORPHINE_AUX size_t maux_checkargs(morphine_coroutine_t, size_t count, ...);
+MORPHINE_AUX void maux_expect(morphine_coroutine_t, const char *type);

@@ -6,26 +6,40 @@
 
 #include "morphine/core/value.h"
 
-#define MFS_START (MF_CALL)
+#define MFS_START (MF_TYPE)
 #define MFS_COUNT (MF_GC + 1)
 
 enum metatable_field {
-    MF_CALL, MF_GET, MF_SET, MF_TO_STRING, MF_TYPE,
-
-    MF_ADD, MF_SUB, MF_MUL, MF_DIV, MF_MOD,
-    MF_EQUAL, MF_LESS, MF_LESS_EQUAL, MF_OR, MF_AND,
-    MF_CONCAT,
-
-    MF_NEGATE, MF_NOT, MF_LENGTH,
-    MF_REF, MF_DEREF,
-
-    MF_ITERATOR,
-    MF_ITERATOR_INIT,
-    MF_ITERATOR_HAS,
-    MF_ITERATOR_NEXT,
+    // operations
+    MF_TYPE,          // value
+    MF_CALL,          // callable
+    MF_GET,           // callable
+    MF_SET,           // callable
+    MF_TO_STRING,     // callable
+    MF_ADD,           // callable
+    MF_SUB,           // callable
+    MF_MUL,           // callable
+    MF_DIV,           // callable
+    MF_MOD,           // callable
+    MF_EQUAL,         // callable
+    MF_LESS,          // callable
+    MF_LESS_EQUAL,    // callable
+    MF_OR,            // callable
+    MF_AND,           // callable
+    MF_CONCAT,        // callable
+    MF_NEGATE,        // callable
+    MF_NOT,           // callable
+    MF_LENGTH,        // callable
+    MF_REF,           // callable
+    MF_DEREF,         // callable
+    MF_ITERATOR,      // callable
+    MF_ITERATOR_INIT, // callable
+    MF_ITERATOR_HAS,  // callable
+    MF_ITERATOR_NEXT, // callable
 
     // control
-    MF_MASK, MF_GC
+    MF_MASK, // value
+    MF_GC    // callable
 };
 
 void metatableI_set(morphine_instance_t, struct value, struct table *);

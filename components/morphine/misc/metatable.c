@@ -12,63 +12,7 @@
 #include "morphine/gc/barrier.h"
 #include <string.h>
 
-void metatableI_set(morphine_instance_t I, struct value value, struct table *metatable) {
-    {
-        struct table *table = valueI_safe_as_table(value, NULL);
-        if (table != NULL) {
-            if (metatable != NULL) {
-                gcI_objbarrier(I, table, metatable);
-            }
-            table->metatable = metatable;
-            return;
-        }
-    }
-
-    {
-        struct userdata *userdata = valueI_safe_as_userdata(value, NULL);
-        if (userdata != NULL) {
-            if (metatable != NULL) {
-                gcI_objbarrier(I, userdata, metatable);
-            }
-            userdata->metatable = metatable;
-            return;
-        }
-    }
-
-    throwI_errorf(I, "Metatable can be set to %s", valueI_type2string(I, value.type));
-}
-
-void metatableI_set_default(morphine_instance_t I, enum value_type type, struct table *metatable) {
-    I->metatable.defaults[type] = metatable;
-}
-
-struct value metatableI_get_default(morphine_instance_t I, enum value_type type) {
-    struct table *table = I->metatable.defaults[type];
-
-    if (table == NULL) {
-        return valueI_nil;
-    } else {
-        return valueI_object(table);
-    }
-}
-
-static inline struct table *get_metatable(morphine_instance_t I, struct value value) {
-    struct table *metatable = NULL;
-
-    if (valueI_is_table(value)) {
-        metatable = valueI_as_table(value)->metatable;
-    } else if (valueI_is_userdata(value)) {
-        metatable = valueI_as_userdata(value)->metatable;
-    } else {
-        metatable = I->metatable.defaults[value.type];
-    }
-
-    return metatable;
-}
-
-struct value metatableI_get(morphine_instance_t I, struct value value) {
-    struct table *metatable = get_metatable(I, value);
-
+static inline struct value extract_metatable(morphine_instance_t I, struct table *metatable) {
     if (metatable == NULL) {
         return valueI_nil;
     }
@@ -85,14 +29,76 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
     }
 }
 
+void metatableI_set(morphine_instance_t I, struct value value, struct table *metatable) {
+    if (valueI_is_table(value)) {
+        struct table *table = valueI_as_table(value);
+        if (metatable != NULL) {
+            gcI_objbarrier(I, table, metatable);
+        }
+        table->metatable = metatable;
+        return;
+    }
+
+    if (valueI_is_userdata(value)) {
+        struct userdata *userdata = valueI_as_userdata(value);
+        if (metatable != NULL) {
+            gcI_objbarrier(I, userdata, metatable);
+        }
+        userdata->metatable = metatable;
+        return;
+    }
+
+    throwI_errorf(I, "Metatable cannot be set to %s", valueI_type2string(I, value.type));
+}
+
+void metatableI_set_default(morphine_instance_t I, enum value_type type, struct table *metatable) {
+    if (VALUE_TYPES_START > type || type >= VALUE_TYPES_COUNT) {
+        throwI_panic(I, "Unsupported value type");
+    }
+
+    I->metatable.defaults[type] = metatable;
+}
+
+struct value metatableI_get_default(morphine_instance_t I, enum value_type type) {
+    if (VALUE_TYPES_START > type || type >= VALUE_TYPES_COUNT) {
+        throwI_panic(I, "Unsupported value type");
+    }
+
+    return extract_metatable(I, I->metatable.defaults[type]);
+}
+
+struct value metatableI_get(morphine_instance_t I, struct value value) {
+    struct table *metatable = NULL;
+    if (valueI_is_table(value)) {
+        metatable = valueI_as_table(value)->metatable;
+    } else if (valueI_is_userdata(value)) {
+        metatable = valueI_as_userdata(value)->metatable;
+    } else {
+        throwI_errorf(I, "Metatable cannot be get from %s", valueI_type2string(I, value.type));
+    }
+
+    return extract_metatable(I, metatable);
+}
+
 bool metatableI_test(
-    morphine_instance_t I, struct value source, enum metatable_field field, struct value *result
+    morphine_instance_t I,
+    struct value source,
+    enum metatable_field field,
+    struct value *result
 ) {
     if (MFS_START > field || field >= MFS_COUNT) {
         throwI_panic(I, "Unsupported meta field");
     }
 
-    struct table *metatable = get_metatable(I, source);
+    struct table *metatable;
+    if (valueI_is_table(source)) {
+        metatable = valueI_as_table(source)->metatable;
+    } else if (valueI_is_userdata(source)) {
+        metatable = valueI_as_userdata(source)->metatable;
+    } else {
+        metatable = I->metatable.defaults[source.type];
+    }
+
     struct value field_name = valueI_object(I->metatable.names[field]);
 
     bool has = false;

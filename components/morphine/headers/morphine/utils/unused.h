@@ -4,4 +4,4 @@
 
 #pragma once
 
-#define unused(...) ((void)(__VA_ARGS__))
+#define unused(x) ((void)(x))

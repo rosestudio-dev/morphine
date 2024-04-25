@@ -8,6 +8,7 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
+#include "morphine/misc/metatable.h"
 
 MORPHINE_API void mapi_push_nil(morphine_coroutine_t U) {
     stackI_push(U, valueI_nil);
@@ -63,8 +64,21 @@ MORPHINE_API void *mapi_get_raw(morphine_coroutine_t U) {
     return valueI_as_raw_or_error(U->I, stackI_peek(U, 0));
 }
 
-MORPHINE_API const char *mapi_type(morphine_coroutine_t U) {
+MORPHINE_API const char *mapi_raw_type(morphine_coroutine_t U) {
     return valueI_type2string(U->I, stackI_peek(U, 0).type);
+}
+
+MORPHINE_API void mapi_type(morphine_coroutine_t U) {
+    struct value value = stackI_peek(U, 0);
+    struct value mf_value = valueI_nil;
+    struct value result;
+    if (metatableI_test(U->I, value, MF_TYPE, &mf_value)) {
+        result = valueI_value2string(U->I, mf_value);
+    } else {
+        result = valueI_object(stringI_create(U->I, valueI_type2string(U->I, value.type)));
+    }
+
+    stackI_push(U, result);
 }
 
 MORPHINE_API bool mapi_is(morphine_coroutine_t U, const char *type) {
@@ -84,7 +98,16 @@ MORPHINE_API bool mapi_is(morphine_coroutine_t U, const char *type) {
 }
 
 MORPHINE_API bool mapi_is_type(morphine_coroutine_t U, const char *type) {
-    return valueI_string2type(U->I, type) == stackI_peek(U, 0).type;
+    struct value value = stackI_peek(U, 0);
+    struct value mf_value = valueI_nil;
+    const char *got_type;
+    if (metatableI_test(U->I, value, MF_TYPE, &mf_value)) {
+        got_type = valueI_as_string(valueI_value2string(U->I, mf_value))->chars;
+    } else {
+        got_type = valueI_type2string(U->I, value.type);
+    }
+
+    return strcmp(type, got_type) == 0;
 }
 
 MORPHINE_API bool mapi_is_callable(morphine_coroutine_t U) {

@@ -88,7 +88,7 @@ static void setdefaultmetatable(morphine_coroutine_t U) {
         nb_init
             maux_checkargs(U, 1, "any,table");
             mapi_push_arg(U, 0);
-            const char *type = mapi_type(U);
+            const char *type = mapi_raw_type(U);
             mapi_pop(U, 1);
             mapi_push_arg(U, 1);
             mapi_set_default_metatable(U, type);
@@ -101,7 +101,7 @@ static void getdefaultmetatable(morphine_coroutine_t U) {
         nb_init
             maux_checkargs(U, 1, "any");
             mapi_push_arg(U, 0);
-            const char *type = mapi_type(U);
+            const char *type = mapi_raw_type(U);
             mapi_pop(U, 1);
             mapi_get_default_metatable(U, type);
             nb_return();
