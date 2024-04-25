@@ -8,6 +8,7 @@
 static void kill(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
+            maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
@@ -20,6 +21,7 @@ static void kill(morphine_coroutine_t U) {
 static void status(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
+            maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
@@ -32,6 +34,7 @@ static void status(morphine_coroutine_t U) {
 static void priority(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
+            maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
@@ -47,6 +50,7 @@ static void priority(morphine_coroutine_t U) {
 static void wait(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
+            maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
@@ -63,6 +67,7 @@ static void wait(morphine_coroutine_t U) {
 static void suspend(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
+            maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
@@ -75,6 +80,7 @@ static void suspend(morphine_coroutine_t U) {
 static void resume(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
+            maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
@@ -108,6 +114,7 @@ static void launch(morphine_coroutine_t U) {
 static void create(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
+            maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "callable");
             morphine_coroutine_t coroutine = mapi_push_coroutine(U);

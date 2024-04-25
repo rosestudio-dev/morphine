@@ -9,13 +9,8 @@
 static void tostr(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(U, 2, "self:any", "any");
-
-            if (variant == 0) {
-                mapi_push_self(U);
-            } else {
-                mapi_push_arg(U, 0);
-            }
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
 
             if (mapi_metatable_test(U, "_mf_to_string")) {
                 mapi_callself(U, 0);
@@ -36,14 +31,8 @@ static void tostr(morphine_coroutine_t U) {
 static void toint(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(U, 2, "self:any", "any");
-
-            if (variant == 0) {
-                mapi_push_self(U);
-            } else {
-                mapi_push_arg(U, 0);
-            }
-
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
             mapi_to_integer(U);
             nb_return();
     nb_end
@@ -52,14 +41,8 @@ static void toint(morphine_coroutine_t U) {
 static void todec(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(U, 2, "self:any", "any");
-
-            if (variant == 0) {
-                mapi_push_self(U);
-            } else {
-                mapi_push_arg(U, 0);
-            }
-
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
             mapi_to_decimal(U);
             nb_return();
     nb_end
@@ -68,14 +51,8 @@ static void todec(morphine_coroutine_t U) {
 static void tobool(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(U, 2, "self:any", "any");
-
-            if (variant == 0) {
-                mapi_push_self(U);
-            } else {
-                mapi_push_arg(U, 0);
-            }
-
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
             mapi_to_boolean(U);
             nb_return();
     nb_end

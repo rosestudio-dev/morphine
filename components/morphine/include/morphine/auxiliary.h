@@ -4,7 +4,6 @@
 
 #pragma once
 
-#include "auxiliary/checkargs.h"
+#include "auxiliary/expect.h"
 #include "auxiliary/constructor.h"
 #include "auxiliary/nativebuilder.h"
-#include "auxiliary/table.h"

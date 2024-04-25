@@ -73,8 +73,7 @@ MORPHINE_API void mapi_to_decimal(morphine_coroutine_t);
 MORPHINE_API void mapi_to_boolean(morphine_coroutine_t);
 MORPHINE_API void mapi_to_string(morphine_coroutine_t);
 
-MORPHINE_API const char *mapi_raw_type(morphine_coroutine_t);
-MORPHINE_API void mapi_type(morphine_coroutine_t);
+MORPHINE_API const char *mapi_type(morphine_coroutine_t);
 MORPHINE_API bool mapi_is(morphine_coroutine_t, const char *type);
 MORPHINE_API bool mapi_is_type(morphine_coroutine_t, const char *type);
 MORPHINE_API bool mapi_is_callable(morphine_coroutine_t);
@@ -200,6 +199,7 @@ MORPHINE_API void mapi_peek(morphine_coroutine_t, size_t offset);
 MORPHINE_API void mapi_move(morphine_coroutine_t, morphine_coroutine_t to);
 MORPHINE_API void mapi_copy(morphine_coroutine_t, morphine_coroutine_t to, size_t offset);
 MORPHINE_API void mapi_stack_reset(morphine_coroutine_t);
+MORPHINE_API size_t mapi_stack(morphine_coroutine_t);
 
 MORPHINE_API void mapi_registry_set_key(morphine_coroutine_t);
 MORPHINE_API bool mapi_registry_get(morphine_coroutine_t);
