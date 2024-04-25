@@ -61,10 +61,11 @@ void execute(
 
     struct settings settings = {
         .gc.limit_bytes = alloc_limit,
-        .gc.threshold = 8192,
+        .gc.threshold = 16384,
         .gc.grow = 150,
-        .gc.deal = 400,
+        .gc.deal = 200,
         .gc.pause = 13,
+        .gc.cache_callinfo_holding = 16,
         .finalizer.stack_limit = 256,
         .finalizer.stack_grow = 32,
         .states.stack_limit = 4096,

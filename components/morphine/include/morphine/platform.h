@@ -44,6 +44,7 @@ struct gc_settings {
     uint16_t grow;
     uint16_t deal;
     uint8_t pause;
+    size_t cache_callinfo_holding;
 };
 
 struct coroutine_settings {

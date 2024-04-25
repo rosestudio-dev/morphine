@@ -125,6 +125,17 @@ static void changepause(morphine_coroutine_t U) {
     nb_end
 }
 
+static void changecachecallinfoholding(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_checkargs(U, 1, "integer");
+            mapi_push_arg(U, 0);
+            size_t value = mapi_get_size(U);
+            mapi_gc_change_cache_callinfo_holding(mapi_instance(U), value);
+            nb_leave();
+    nb_end
+}
+
 static void changefinalizerstacklimit(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
@@ -206,24 +217,25 @@ static void status(morphine_coroutine_t U) {
 }
 
 static struct maux_construct_field table[] = {
-    { "full",                      full },
-    { "force",                     force },
-    { "step",                      step },
-    { "status",                    status },
-    { "isrunning",                 isrunning },
-    { "enable",                    enable },
-    { "isenabled",                 isenabled },
-    { "changethreshold",           changethreshold },
-    { "changedeal",                changedeal },
-    { "changegrow",                changegrow },
-    { "changepause",               changepause },
-    { "changefinalizerstacklimit", changefinalizerstacklimit },
-    { "changefinalizerstackgrow",  changefinalizerstackgrow },
-    { "changestacklimit",          changestacklimit },
-    { "changestackgrow",           changestackgrow },
-    { "getallocated",              getallocated },
-    { "getmaxallocated",           getmaxallocated },
-    { "resetmaxallocated",         resetmaxallocated },
+    { "full",                       full },
+    { "force",                      force },
+    { "step",                       step },
+    { "status",                     status },
+    { "isrunning",                  isrunning },
+    { "enable",                     enable },
+    { "isenabled",                  isenabled },
+    { "changethreshold",            changethreshold },
+    { "changedeal",                 changedeal },
+    { "changegrow",                 changegrow },
+    { "changepause",                changepause },
+    { "changecachecallinfoholding", changecachecallinfoholding },
+    { "changefinalizerstacklimit",  changefinalizerstacklimit },
+    { "changefinalizerstackgrow",   changefinalizerstackgrow },
+    { "changestacklimit",           changestacklimit },
+    { "changestackgrow",            changestackgrow },
+    { "getallocated",               getallocated },
+    { "getmaxallocated",            getmaxallocated },
+    { "resetmaxallocated",          resetmaxallocated },
     { NULL, NULL }
 };
 

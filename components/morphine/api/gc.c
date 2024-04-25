@@ -68,6 +68,10 @@ MORPHINE_API void mapi_gc_change_pause(morphine_instance_t I, uint8_t value) {
     gcI_change_pause(I, value);
 }
 
+MORPHINE_API void mapi_gc_change_cache_callinfo_holding(morphine_instance_t I, size_t value) {
+    gcI_change_cache_callinfo_holding(I, value);
+}
+
 MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value) {
     if (I->G.finalizer.coroutine != NULL) {
         stackI_set_limit(I->G.finalizer.coroutine, value);

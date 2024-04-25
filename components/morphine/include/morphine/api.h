@@ -80,8 +80,8 @@ MORPHINE_API bool mapi_is_callable(morphine_coroutine_t);
 MORPHINE_API bool mapi_is_metatype(morphine_coroutine_t);
 MORPHINE_API bool mapi_is_iterable(morphine_coroutine_t);
 
-MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t U, size_t value);
-MORPHINE_API ml_size mapi_csize2index(morphine_coroutine_t U, size_t value);
+MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t, size_t value);
+MORPHINE_API ml_size mapi_csize2index(morphine_coroutine_t, size_t value);
 
 MORPHINE_API void mapi_push_string(morphine_coroutine_t, const char *str);
 MORPHINE_API void mapi_push_stringn(morphine_coroutine_t, const char *str, size_t size);
@@ -145,8 +145,8 @@ MORPHINE_API void *mapi_push_userdata_vec(
     morphine_coroutine_t, const char *type,
     size_t count, size_t size, morphine_free_t free
 );
-MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t U, size_t size);
-MORPHINE_API void *mapi_userdata_resize_vec(morphine_coroutine_t U, size_t count, size_t size);
+MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t, size_t size);
+MORPHINE_API void *mapi_userdata_resize_vec(morphine_coroutine_t, size_t count, size_t size);
 MORPHINE_API const char *mapi_userdata_type(morphine_coroutine_t);
 MORPHINE_API void *mapi_userdata_pointer(morphine_coroutine_t);
 
@@ -181,8 +181,9 @@ MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_grow(morphine_instance_t, uint16_t value);
 MORPHINE_API void mapi_gc_change_deal(morphine_instance_t, uint16_t value);
 MORPHINE_API void mapi_gc_change_pause(morphine_instance_t, uint8_t value);
-MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value);
-MORPHINE_API void mapi_gc_change_finalizer_stack_grow(morphine_instance_t I, size_t value);
+MORPHINE_API void mapi_gc_change_cache_callinfo_holding(morphine_instance_t, size_t value);
+MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t, size_t value);
+MORPHINE_API void mapi_gc_change_finalizer_stack_grow(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_stack_limit(morphine_coroutine_t, size_t value);
 MORPHINE_API void mapi_gc_change_stack_grow(morphine_coroutine_t, size_t value);
 
