@@ -149,6 +149,7 @@ static inline void recover_pool(morphine_instance_t I, struct object **pool) {
 static void recover_pools(morphine_instance_t I) {
     recover_pool(I, &I->G.pools.sweep);
     recover_pool(I, &I->G.pools.black);
+    recover_pool(I, &I->G.pools.black_coroutines);
     recover_pool(I, &I->G.pools.grey);
 }
 

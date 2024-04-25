@@ -152,6 +152,8 @@ void gcI_dump(morphine_instance_t I) {
     pool(I, I->G.pools.grey);
     fprintf(out, "@ Pool 'black':\n");
     pool(I, I->G.pools.black);
+    fprintf(out, "@ Pool 'black coroutines':\n");
+    pool(I, I->G.pools.black_coroutines);
     fprintf(out, "@ Pool 'sweep':\n");
     pool(I, I->G.pools.sweep);
     fprintf(out, "@ Pool 'finalize':\n");

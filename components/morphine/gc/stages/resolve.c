@@ -65,6 +65,27 @@ static inline void resolve_cache(morphine_instance_t I, bool emergency) {
     I->G.cache.callinfo.pool = current;
 }
 
+static inline void attach_black_coroutines(morphine_instance_t I) {
+    struct object *end = NULL;
+    struct object *current = I->G.pools.black_coroutines;
+    while (current != NULL) {
+        end = current;
+        current = current->prev;
+    }
+
+    if (end != NULL) {
+        struct object *black = I->G.pools.black;
+
+        if (black != NULL) {
+            black->next = end;
+        }
+        end->prev = black;
+
+        I->G.pools.black = I->G.pools.black_coroutines;
+        I->G.pools.black_coroutines = NULL;
+    }
+}
+
 static inline bool finalize(morphine_instance_t I) {
     struct object *current = I->G.pools.allocated;
 
@@ -95,6 +116,8 @@ void gcstageI_resolve(morphine_instance_t I, bool emergency) {
     if (finalize(I)) {
         while (gcstageI_increment(I, SIZE_MAX)) { }
     }
+
+    attach_black_coroutines(I);
 
     resolve_pools(I);
     resolve_cache(I, emergency);

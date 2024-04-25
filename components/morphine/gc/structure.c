@@ -39,6 +39,7 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
         .pools.allocated = NULL,
         .pools.grey = NULL,
         .pools.black = NULL,
+        .pools.black_coroutines = NULL,
         .pools.sweep = NULL,
         .pools.finalize = NULL,
 
@@ -70,6 +71,7 @@ void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {
     free_objects(I, G.pools.allocated);
     free_objects(I, G.pools.grey);
     free_objects(I, G.pools.black);
+    free_objects(I, G.pools.black_coroutines);
     free_objects(I, G.pools.sweep);
     free_objects(I, G.pools.finalize);
 

@@ -42,6 +42,7 @@ struct garbage_collector {
         struct object *allocated;
         struct object *grey;
         struct object *black;
+        struct object *black_coroutines;
         struct object *sweep;
 
         struct object *finalize;
