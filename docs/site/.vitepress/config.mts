@@ -28,7 +28,7 @@ export default defineConfig({
         ],
 
         footer: {
-            message: 'Released under the MIT License.',
+            message: 'Released under the MIT License',
             copyright: 'Copyright © 2024-present <a href="https://github.com/why-iskra">why-iskra</a>'
         },
 
@@ -89,10 +89,13 @@ function sidebarVm(): DefaultTheme.SidebarItem[] {
             text: 'Basic',
             collapsed: false,
             items: [
+                {text: 'Instance', link: 'instance'},
+                {text: 'Values and objects', link: 'values-and-objects'},
                 {text: 'Coroutines', link: 'coroutines'},
                 {text: 'Call', link: 'call'},
                 {text: 'Interpreter', link: 'interpreter'},
                 {text: 'Garbage Collector', link: 'garbage-collector'},
+                {text: 'Require Function', link: 'require-function'},
             ]
         },
         {
@@ -102,6 +105,9 @@ function sidebarVm(): DefaultTheme.SidebarItem[] {
                 {text: 'Allocator', link: 'api-allocator'},
                 {text: 'Callstack', link: 'api-callstack'},
                 {text: 'Coroutine', link: 'api-coroutine'},
+                {text: 'Garbage collector', link: 'api-garbage-collector'},
+                {text: 'Instance', link: 'api-instance'},
+                {text: 'Iterator', link: 'api-iterator'},
                 {text: 'Version', link: 'api-version'},
             ]
         },
