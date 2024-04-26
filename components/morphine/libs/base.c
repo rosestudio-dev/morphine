@@ -24,7 +24,12 @@ static void print(morphine_coroutine_t U) {
             mlib_value_call(U, "tostr", 1);
         nb_state(1)
             mapi_push_result(U);
-            fprintf(mapi_io_out(mapi_instance(U)), "%s", mapi_get_string(U));
+
+            FILE *out = mapi_io_out(mapi_instance(U));
+            if (out != NULL) {
+                fprintf(out, "%s", mapi_get_string(U));
+            }
+
             mapi_pop(U, 1);
             nb_leave();
     nb_end
@@ -35,7 +40,10 @@ static void println(morphine_coroutine_t U) {
         nb_init
             size_t args = mapi_args(U);
             if (args == 0) {
-                fprintf(mapi_io_out(mapi_instance(U)), "\n");
+                FILE *out = mapi_io_out(mapi_instance(U));
+                if (out != NULL) {
+                    fprintf(out, "\n");
+                }
             } else {
                 maux_expect_args(U, 1);
                 mapi_push_arg(U, 0);
@@ -44,7 +52,12 @@ static void println(morphine_coroutine_t U) {
             mlib_value_call(U, "tostr", 1);
         nb_state(1)
             mapi_push_result(U);
-            fprintf(mapi_io_out(mapi_instance(U)), "%s\n", mapi_get_string(U));
+
+            FILE *out = mapi_io_out(mapi_instance(U));
+            if (out != NULL) {
+                fprintf(out, "%s\n", mapi_get_string(U));
+            }
+
             mapi_pop(U, 1);
             nb_leave();
         nb_state(3)

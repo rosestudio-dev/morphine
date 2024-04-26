@@ -16,6 +16,10 @@
 static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
     FILE *file = U->I->platform.io.stacktrace;
 
+    if (file == NULL) {
+        return;
+    }
+
     fprintf(file, "morphine error (in coroutine %p): %s\n", U, message);
     fprintf(file, "tracing callstack:\n");
 
@@ -46,7 +50,14 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
                 line = function->instructions[position].line;
             }
 
-            fprintf(file, "[line: %"PRIu32", p: %zu] function %s (%p)\n", line, position, function->name, function);
+            fprintf(
+                file,
+                "[line: %"PRIu32", p: %zu] function %s (%p)\n",
+                line,
+                position,
+                function->name,
+                function
+            );
         } else if (valueI_is_native(callable)) {
             struct native *native = valueI_as_native(callable);
 
