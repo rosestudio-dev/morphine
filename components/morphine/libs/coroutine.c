@@ -3,6 +3,7 @@
 //
 
 #include <morphine.h>
+#include <string.h>
 #include "morphine/libs/loader.h"
 
 static void kill(morphine_coroutine_t U) {
@@ -126,6 +127,101 @@ static void create(morphine_coroutine_t U) {
     nb_end
 }
 
+static void guardlock(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 0);
+            mapi_push_self(U);
+            maux_expect(U, "table");
+
+            mapi_peek(U, 0);
+            mapi_op(U, "type");
+            if (strcmp(mapi_get_string(U), "coroutine.guard") != 0) {
+                mapi_error(U, "Expected coroutine.guard");
+            } else {
+                mapi_pop(U, 1);
+            }
+
+            nb_immediately_continue(1);
+        nb_immediately_state(1)
+            mapi_push_string(U, "islocked");
+            mapi_table_getoe(U);
+            if (mapi_get_boolean(U)) {
+                mapi_pop(U, 1);
+                nb_continue(1);
+            } else {
+                mapi_pop(U, 1);
+                mapi_push_string(U, "islocked");
+                mapi_push_boolean(U, true);
+                mapi_table_set(U);
+                nb_leave();
+            }
+    nb_end
+}
+
+static void guardunlock(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 0);
+            mapi_push_self(U);
+            maux_expect(U, "table");
+
+            mapi_peek(U, 0);
+            mapi_op(U, "type");
+            if (strcmp(mapi_get_string(U), "coroutine.guard") != 0) {
+                mapi_error(U, "Expected coroutine.guard");
+            } else {
+                mapi_pop(U, 1);
+            }
+
+            mapi_push_string(U, "islocked");
+            mapi_push_boolean(U, false);
+            mapi_table_set(U);
+            nb_leave();
+    nb_end
+}
+
+static void guard(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 0);
+
+            mapi_push_table(U);
+
+            mapi_push_string(U, "islocked");
+            mapi_push_boolean(U, false);
+            mapi_table_set(U);
+
+            mapi_push_string(U, "lock");
+            mapi_push_native(U, "coroutine.guard.lock", guardlock);
+            mapi_table_set(U);
+
+            mapi_push_string(U, "unlock");
+            mapi_push_native(U, "coroutine.guard.unlock", guardunlock);
+            mapi_table_set(U);
+
+            mapi_push_table(U);
+
+            mapi_push_string(U, "_mf_type");
+            mapi_push_string(U, "coroutine.guard");
+            mapi_table_set(U);
+
+            mapi_push_string(U, "_mf_mask");
+            mapi_push_nil(U);
+            mapi_table_set(U);
+
+            mapi_push_string(U, "_mf_set");
+            mapi_push_nil(U);
+            mapi_table_set(U);
+
+            mapi_set_metatable(U);
+            mapi_table_mode_fixed(U, true);
+            mapi_table_mode_lock_metatable(U);
+
+            nb_return();
+    nb_end
+}
+
 static struct maux_construct_field table[] = {
     { "create",   create },
     { "launch",   launch },
@@ -135,6 +231,7 @@ static struct maux_construct_field table[] = {
     { "status",   status },
     { "priority", priority },
     { "wait",     wait },
+    { "guard",    guard },
     { NULL, NULL }
 };
 
