@@ -52,6 +52,11 @@ MORPHINE_API bool mapi_table_mode_is_fixed(morphine_coroutine_t U) {
     return table->mode.fixed;
 }
 
+MORPHINE_API bool mapi_table_mode_metatable_is_locked(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    return table->mode.metatable_locked;
+}
+
 MORPHINE_API bool mapi_table_mode_is_locked(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
     return table->mode.locked;

@@ -72,7 +72,6 @@ static void setmetatable(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
             maux_expect(U, "meta");
             mapi_push_arg(U, 1);
-            maux_expect(U, "table");
 
             mapi_set_metatable(U);
             nb_return();
@@ -99,9 +98,7 @@ static void setdefaultmetatable(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 0);
             const char *type = mapi_type(U);
-            mapi_pop(U, 1);
             mapi_push_arg(U, 1);
-            maux_expect(U, "table");
             mapi_set_default_metatable(U, type);
             nb_return();
     nb_end

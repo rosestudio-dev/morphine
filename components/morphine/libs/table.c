@@ -90,6 +90,18 @@ static void fixed(morphine_coroutine_t U) {
     nb_end
 }
 
+static void lockmetatable(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_expect(U, "table");
+
+            mapi_table_mode_lock_metatable(U);
+            nb_return();
+    nb_end
+}
+
 static void lock(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
@@ -136,6 +148,19 @@ static void islocked(morphine_coroutine_t U) {
             maux_expect(U, "table");
 
             bool value = mapi_table_mode_is_locked(U);
+            mapi_push_boolean(U, value);
+            nb_return();
+    nb_end
+}
+
+static void metatableislocked(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_expect(U, "table");
+
+            bool value = mapi_table_mode_metatable_is_locked(U);
             mapi_push_boolean(U, value);
             nb_return();
     nb_end
@@ -196,17 +221,19 @@ static void tostr(morphine_coroutine_t U) {
 }
 
 static struct maux_construct_field table[] = {
-    { "clear",     clear },
-    { "copy",      copy },
-    { "has",       has },
-    { "remove",    remove_ },
-    { "mutable",   mutable },
-    { "fixed",     fixed },
-    { "lock",      lock },
-    { "isfixed",   isfixed },
-    { "ismutable", ismutable },
-    { "islocked",  islocked },
-    { "tostr",     tostr },
+    { "clear",             clear },
+    { "copy",              copy },
+    { "has",               has },
+    { "remove",            remove_ },
+    { "mutable",           mutable },
+    { "fixed",             fixed },
+    { "lockmetatable",     lockmetatable },
+    { "lock",              lock },
+    { "isfixed",           isfixed },
+    { "ismutable",         ismutable },
+    { "metatableislocked", metatableislocked },
+    { "islocked",          islocked },
+    { "tostr",             tostr },
     { NULL, NULL }
 };
 

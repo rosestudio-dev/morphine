@@ -35,6 +35,11 @@ MORPHINE_API void mapi_userdata_mode_lock_metatable(morphine_coroutine_t U) {
     userdataI_mode_lock_metatable(U->I, userdata);
 }
 
+MORPHINE_API bool mapi_userdata_mode_metatable_is_locked(morphine_coroutine_t U) {
+    struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
+    return userdata->mode.metatable_locked;
+}
+
 MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t U, size_t size) {
     struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
     userdataI_resize(U->I, userdata, size);

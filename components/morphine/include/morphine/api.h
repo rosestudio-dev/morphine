@@ -99,6 +99,7 @@ MORPHINE_API void mapi_table_mode_fixed(morphine_coroutine_t, bool is_fixed);
 MORPHINE_API void mapi_table_mode_lock_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_table_mode_lock(morphine_coroutine_t);
 MORPHINE_API bool mapi_table_mode_is_mutable(morphine_coroutine_t);
+MORPHINE_API bool mapi_table_mode_metatable_is_locked(morphine_coroutine_t);
 MORPHINE_API bool mapi_table_mode_is_fixed(morphine_coroutine_t);
 MORPHINE_API bool mapi_table_mode_is_locked(morphine_coroutine_t);
 MORPHINE_API void mapi_table_set(morphine_coroutine_t);
@@ -147,6 +148,7 @@ MORPHINE_API void *mapi_push_userdata_vec(
     size_t count, size_t size, morphine_free_t free
 );
 MORPHINE_API void mapi_userdata_mode_lock_metatable(morphine_coroutine_t);
+MORPHINE_API bool mapi_userdata_mode_metatable_is_locked(morphine_coroutine_t);
 MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t, size_t size);
 MORPHINE_API void *mapi_userdata_resize_vec(morphine_coroutine_t, size_t count, size_t size);
 MORPHINE_API const char *mapi_userdata_type(morphine_coroutine_t);
