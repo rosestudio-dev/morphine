@@ -30,6 +30,11 @@ MORPHINE_API void *mapi_push_userdata_vec(
     return userdata->data;
 }
 
+MORPHINE_API void mapi_userdata_mode_lock_metatable(morphine_coroutine_t U) {
+    struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
+    userdataI_mode_lock_metatable(U->I, userdata);
+}
+
 MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t U, size_t size) {
     struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
     userdataI_resize(U->I, userdata, size);

@@ -540,6 +540,7 @@ struct table *tableI_create(morphine_instance_t I) {
 
         .mode.fixed = false,
         .mode.mutable = true,
+        .mode.metatable_locked = false,
         .mode.locked = false,
 
         .hashmap.buckets.head = NULL,
@@ -590,6 +591,14 @@ void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mut
     }
 
     table->mode.mutable = is_mutable;
+}
+
+void tableI_mode_lock_metatable(morphine_instance_t I, struct table *table) {
+    if (table == NULL) {
+        throwI_error(I, "Table is null");
+    }
+
+    table->mode.metatable_locked = true;
 }
 
 void tableI_mode_lock(morphine_instance_t I, struct table *table) {

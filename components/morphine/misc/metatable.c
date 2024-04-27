@@ -32,18 +32,30 @@ static inline struct value extract_metatable(morphine_instance_t I, struct table
 void metatableI_set(morphine_instance_t I, struct value value, struct table *metatable) {
     if (valueI_is_table(value)) {
         struct table *table = valueI_as_table(value);
+
+        if (table->mode.metatable_locked) {
+            throwI_error(I, "Metatable was locked");
+        }
+
         if (metatable != NULL) {
             gcI_objbarrier(I, table, metatable);
         }
+
         table->metatable = metatable;
         return;
     }
 
     if (valueI_is_userdata(value)) {
         struct userdata *userdata = valueI_as_userdata(value);
+
+        if (userdata->mode.metatable_locked) {
+            throwI_error(I, "Metatable was locked");
+        }
+
         if (metatable != NULL) {
             gcI_objbarrier(I, userdata, metatable);
         }
+
         userdata->metatable = metatable;
         return;
     }

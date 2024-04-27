@@ -32,6 +32,7 @@ static struct userdata *create(
         .size = 0,
         .data = NULL,
         .free = NULL,
+        .mode.metatable_locked = false,
         .metatable = NULL,
     };
 
@@ -89,6 +90,14 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
 
     allocI_free(I, userdata->data);
     allocI_free(I, userdata);
+}
+
+void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userdata) {
+    if (userdata == NULL) {
+        throwI_error(I, "Userdata is null");
+    }
+
+    userdata->mode.metatable_locked = true;
 }
 
 void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t size) {
