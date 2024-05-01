@@ -227,12 +227,19 @@ class Parser(
         val condition = expression()
         consume(Token.Operator.RPAREN)
 
-        val ifStatement = statementBlock(Token.SystemWord.ELSE, Token.SystemWord.ELIF)
+        val ifStatement = statementBlock(
+            Token.SystemWord.ELSE,
+            Token.SystemWord.ELIF,
+            Token.SystemWord.END
+        )
 
         val elseStatement = when {
             look(Token.SystemWord.ELIF) -> statementIf(elif = true)
             match(Token.SystemWord.ELSE) -> statementBlock()
-            else -> EmptyStatement(data(saved))
+            else -> {
+                match(Token.SystemWord.END)
+                EmptyStatement(data(saved))
+            }
         }
 
         return IfStatement(
