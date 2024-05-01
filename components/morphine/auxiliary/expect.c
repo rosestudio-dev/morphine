@@ -20,7 +20,7 @@ MORPHINE_AUX void maux_expect_args(morphine_coroutine_t U, size_t count) {
         } else if (count == 1) {
             mapi_errorf(U, "Expected 1 argument, but got %zu", got);
         } else {
-            mapi_errorf(U, "Expected %zu argument, but got %zu", count);
+            mapi_errorf(U, "Expected %zu arguments, but got %zu", count, got);
         }
     }
 }
