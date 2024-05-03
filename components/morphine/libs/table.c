@@ -5,6 +5,37 @@
 #include <morphine.h>
 #include "morphine/libs/loader.h"
 
+static void rawget(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 2);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "table");
+
+            mapi_push_arg(U, 1);
+
+            mapi_table_get(U);
+            nb_return();
+    nb_end
+}
+
+static void rawset(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 3);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "table");
+
+            mapi_push_arg(U, 1);
+            mapi_push_arg(U, 2);
+
+            mapi_table_set(U);
+            nb_return();
+    nb_end
+}
+
 static void clear(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
@@ -221,6 +252,8 @@ static void tostr(morphine_coroutine_t U) {
 }
 
 static struct maux_construct_field table[] = {
+    { "rawget",            rawget },
+    { "rawset",            rawset },
     { "clear",             clear },
     { "copy",              copy },
     { "has",               has },
