@@ -5,6 +5,23 @@
 #include <morphine.h>
 #include "morphine/libs/loader.h"
 
+static void create(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 2);
+            mapi_push_arg(U, 0);
+            maux_expect(U, "integer");
+            ml_size size = mapi_get_size(U);
+
+            mapi_push_vector(U, size);
+            for (ml_size i = 0; i < size; i++) {
+                mapi_push_arg(U, 1);
+                mapi_vector_set(U, i);
+            }
+            nb_return();
+    nb_end
+}
+
 static void clear(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
@@ -288,6 +305,7 @@ static void tostr(morphine_coroutine_t U) {
 }
 
 static struct maux_construct_field table[] = {
+    { "create",    create },
     { "clear",     clear },
     { "copy",      copy },
     { "resize",    resize },
