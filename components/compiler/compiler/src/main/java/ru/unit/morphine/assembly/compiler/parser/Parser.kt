@@ -188,22 +188,17 @@ class Parser(
     }
 
     private fun statementBlock(
-        vararg closes: Token,
-        allowSingleStatement: Boolean = true
+        vararg closes: Token
     ): BlockStatement {
         val saved = position
 
-        return if (match(Token.Operator.COLON) && allowSingleStatement) {
-            BlockStatement(listOf(statement()), data(saved))
-        } else {
-            val list = mutableListOf<Statement>()
+        val list = mutableListOf<Statement>()
 
-            while (!look(*closes) && !match(Token.SystemWord.END)) {
-                list.add(statement())
-            }
-
-            BlockStatement(list, data(saved))
+        while (!look(*closes) && !match(Token.SystemWord.END)) {
+            list.add(statement())
         }
+
+        return BlockStatement(list, data(saved))
     }
 
     private fun statementYield(): YieldStatement {
@@ -721,6 +716,24 @@ class Parser(
     }
 
     private fun expressionChain(): Expression {
+        fun functionArguments() = if (look(Token.Operator.LBRACE)) {
+            listOf(expressionTable())
+        } else {
+            val arguments = arguments(
+                determinator = Token.Operator.COMMA,
+                open = Token.Operator.LPAREN,
+                close = Token.Operator.RPAREN
+            ) { expression() }
+
+            val table = if (look(Token.Operator.LBRACE)) {
+                listOf(expressionTable())
+            } else {
+                emptyList()
+            }
+
+            arguments + table
+        }
+
         var result = expressionValue()
 
         while (true) {
@@ -747,30 +760,13 @@ class Parser(
                     )
                 }
 
-                look(Token.Operator.LPAREN) -> {
+                look(Token.Operator.LPAREN) || look(Token.Operator.LBRACE) -> {
                     val saved = position - 1
-
-                    val arguments = arguments(
-                        determinator = Token.Operator.COMMA,
-                        open = Token.Operator.LPAREN,
-                        close = Token.Operator.RPAREN
-                    ) { expression() }
+                    val arguments = functionArguments()
 
                     result = CallExpression(
                         expression = result,
                         arguments = arguments,
-                        data = data(saved)
-                    )
-                }
-
-                look(Token.Operator.LBRACE) -> {
-                    val saved = position - 1
-
-                    val table = expressionTable()
-
-                    result = CallExpression(
-                        expression = result,
-                        arguments = listOf(table),
                         data = data(saved)
                     )
                 }
@@ -795,21 +791,13 @@ class Parser(
                         }
                     }
 
-                    val arguments = if (look(Token.Operator.LBRACE)) {
-                        listOf(expressionTable())
-                    } else {
-                        arguments(
-                            determinator = Token.Operator.COMMA,
-                            open = Token.Operator.LPAREN,
-                            close = Token.Operator.RPAREN
-                        ) { expression() }
-                    }
+                    val arguments = functionArguments()
 
                     result = CallSelfExpression(
                         self = result,
                         callable = callable,
-                        arguments = arguments,
                         extractCallable = true,
+                        arguments = arguments,
                         data = data(saved)
                     )
                 }
@@ -834,15 +822,7 @@ class Parser(
                         }
                     }
 
-                    val arguments = if (look(Token.Operator.LBRACE)) {
-                        listOf(expressionTable())
-                    } else {
-                        arguments(
-                            determinator = Token.Operator.COMMA,
-                            open = Token.Operator.LPAREN,
-                            close = Token.Operator.RPAREN
-                        ) { expression() }
-                    }
+                    val arguments = functionArguments()
 
                     result = CallSelfExpression(
                         self = result,
