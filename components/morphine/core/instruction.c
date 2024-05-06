@@ -28,11 +28,11 @@ const uint8_t instructionI_opcode_args[OPCODES_COUNT] = {
     1, // OPCODE_JUMP
     3, // OPCODE_JUMP_IF
 
-    2, // OPCODE_GET_STATIC
-    2, // OPCODE_SET_STATIC
+    3, // OPCODE_GET_STATIC
+    3, // OPCODE_SET_STATIC
 
-    2, // OPCODE_GET_CLOSURE
-    2, // OPCODE_SET_CLOSURE
+    3, // OPCODE_GET_CLOSURE
+    3, // OPCODE_SET_CLOSURE
 
     3, // OPCODE_CLOSURE
     2, // OPCODE_CALL
@@ -65,22 +65,19 @@ bool instructionI_validate(
     size_t arguments_count,
     size_t slots_count,
     size_t params_count,
-    size_t closures_count,
-    size_t statics_count,
     size_t constants_count
 ) {
 #define arg_type_count(a, s) if(instruction.a.value >= (s)) goto error;
 #define arg_type_size(a, s) if(instruction.a.value > (s)) goto error;
 
 #define arg_position(a)
-#define arg_closure(a) arg_type_count(a, closures_count)
-#define arg_static(a) arg_type_count(a, statics_count)
 #define arg_slot(a) arg_type_count(a, slots_count)
 #define arg_constant(a) arg_type_count(a, constants_count)
 #define arg_param(a) arg_type_count(a, params_count)
 #define arg_argument(a) arg_type_count(a, arguments_count)
 #define arg_params_count(a) arg_type_size(a, params_count)
 #define arg_count(a)
+#define arg_index(a)
 #define arg_undefined(a)
 
     switch (instruction.opcode) {
@@ -121,17 +118,12 @@ bool instructionI_validate(
             return true;
         }
         case OPCODE_GET_STATIC:
-        case OPCODE_SET_STATIC: {
-            arg_static(argument1)
-            arg_slot(argument2)
-            arg_undefined(argument3)
-            return true;
-        }
+        case OPCODE_SET_STATIC:
         case OPCODE_GET_CLOSURE:
         case OPCODE_SET_CLOSURE: {
-            arg_closure(argument1)
-            arg_slot(argument2)
-            arg_undefined(argument3)
+            arg_slot(argument1)
+            arg_index(argument2)
+            arg_slot(argument3)
             return true;
         }
         case OPCODE_CLOSURE:

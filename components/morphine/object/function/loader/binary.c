@@ -151,7 +151,6 @@ static struct function *get_function(struct data *data) {
     size_t arguments_count = get_u16(data);
     size_t slots_count = get_u16(data);
     size_t params_count = get_u16(data);
-    size_t closures_count = get_u16(data);
     size_t statics_count = get_u16(data);
     size_t constants_count = get_u16(data);
     size_t instructions_count = get_u16(data);
@@ -165,7 +164,6 @@ static struct function *get_function(struct data *data) {
         statics_count,
         arguments_count,
         slots_count,
-        closures_count,
         params_count
     );
 

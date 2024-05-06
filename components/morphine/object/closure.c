@@ -10,11 +10,12 @@
 #include "morphine/gc/safe.h"
 
 struct closure *closureI_create(morphine_instance_t I, struct value callable, size_t size) {
+    struct value extracted = callstackI_extract_callable(I, callable);
     struct closure *result = allocI_uni(I, NULL, sizeof(struct closure));
 
     (*result) = (struct closure) {
         .size = 0,
-        .callable = callable,
+        .callable = extracted,
         .values = NULL
     };
 

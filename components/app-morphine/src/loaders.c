@@ -46,7 +46,7 @@ void loader_source_file(morphine_coroutine_t U, const char *path) {
         mapi_errorf(U, "Error while compiling");
     }
 
-    mapi_rload(U, (size_t) size, native);
+    mapi_push_function(U, (size_t) size, native);
 
     mapi_rotate(U, 3);
     mapi_pop(U, 2);
@@ -54,7 +54,7 @@ void loader_source_file(morphine_coroutine_t U, const char *path) {
 
 void loader_binary_file(morphine_coroutine_t U, const char *path) {
     FILE *file = userdata_tbc_file(U, path, "r");
-    mapi_load(U, NULL, file_read, NULL, file);
+    mapi_function_load(U, NULL, file_read, NULL, file);
     mapi_rotate(U, 2);
     mapi_pop(U, 1);
 }
