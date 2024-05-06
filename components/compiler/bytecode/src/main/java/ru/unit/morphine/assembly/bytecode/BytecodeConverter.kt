@@ -39,7 +39,6 @@ class BytecodeConverter {
         function.argumentsCount.convertAsShort("Count of arguments too big"),
         function.slotsCount.convertAsShort("Count of slots too big"),
         function.paramsCount.convertAsShort("Count of params too big"),
-        function.closuresCount.convertAsShort("Count of closures too big"),
         function.staticsCount.convertAsShort("Count of statics too big"),
         function.constants.size.convertAsShort("Count of constants too big"),
         function.instructions.size.convertAsShort("Count of instructions too big"),

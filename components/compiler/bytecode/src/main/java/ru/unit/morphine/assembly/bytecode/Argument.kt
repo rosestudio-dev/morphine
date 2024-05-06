@@ -18,11 +18,7 @@ sealed interface Argument {
         override val value: Int,
     ) : Argument
 
-    data class Static(
-        override val value: Int
-    ) : Argument
-
-    data class Closure(
+    data class Index(
         override val value: Int
     ) : Argument
 

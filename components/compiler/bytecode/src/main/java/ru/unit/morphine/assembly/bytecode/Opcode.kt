@@ -24,11 +24,11 @@ enum class Opcode {
     JUMP,            // [position (pos)]                                              jump to (position)
     JUMP_IF,         // [condition (slot), if_position (pos), else_position (pos)]    if (condition) is true jump to (if_position) else jump to (else_position)
 
-    GET_STATIC,      // [static (id), dest (slot)]                                    get from (static) to (dest)
-    SET_STATIC,      // [static (id), src (slot)]                                     set (src) to (static)
+    GET_STATIC,      // [callable (slot), static (index), dest (slot)]                get static by (index) from (callable) to (dest)
+    SET_STATIC,      // [callable (slot), static (index), src (slot)]                 set (src) to static of (callable) by (index)
 
-    GET_CLOSURE,     // [closure (id), dest (slot)]                                   get from (closure) to (dest)
-    SET_CLOSURE,     // [closure (id), src (slot)]                                    set (src) to (closure)
+    GET_CLOSURE,     // [closure (slot), closure (index), dest (slot)]                get closure by (index) from (closure) to (dest)
+    SET_CLOSURE,     // [closure (slot), closure (index), src (slot)]                 set (src) to (closure) by (index)
 
     CLOSURE,         // [function (slot), params (num), dest (slot)]                  create closure for (function) with params (size) in (dest)
     CALL,            // [function (slot), params (num)]                               call (function) with params (size) and self as nil

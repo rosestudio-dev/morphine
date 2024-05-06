@@ -241,56 +241,60 @@ sealed interface Instruction {
         override val description = "if $source is true move to $ifPosition else $elsePosition"
     }
 
-    @Producer
+    @Processing
     data class GetStatic(
-        val static: Argument.Static,
+        val callable: Argument.Slot,
+        val index: Argument.Index,
         val destination: Argument.Slot,
         override var lineData: LineData? = null
     ) : Instruction {
         override val opcode = Opcode.GET_STATIC
 
-        override val orderedArguments = listOf(static, destination)
+        override val orderedArguments = listOf(callable, index, destination)
 
-        override val description = "get $static to $destination"
+        override val description = "get $index from $callable to $destination"
     }
 
     @Consumer
     data class SetStatic(
-        val static: Argument.Static,
+        val callable: Argument.Slot,
+        val index: Argument.Index,
         val source: Argument.Slot,
         override var lineData: LineData? = null
     ) : Instruction {
         override val opcode = Opcode.SET_STATIC
 
-        override val orderedArguments = listOf(static, source)
+        override val orderedArguments = listOf(callable, index, source)
 
-        override val description = "set $source to $static"
+        override val description = "set $source to $index of $callable"
     }
 
-    @Producer
+    @Processing
     data class GetClosure(
-        val closure: Argument.Closure,
+        val closure: Argument.Slot,
+        val index: Argument.Index,
         val destination: Argument.Slot,
         override var lineData: LineData? = null
     ) : Instruction {
         override val opcode = Opcode.GET_CLOSURE
 
-        override val orderedArguments = listOf(closure, destination)
+        override val orderedArguments = listOf(closure, index, destination)
 
-        override val description = "get $closure to $destination"
+        override val description = "get $index from $closure to $destination"
     }
 
     @Consumer
     data class SetClosure(
-        val closure: Argument.Closure,
+        val closure: Argument.Slot,
+        val index: Argument.Index,
         val source: Argument.Slot,
         override var lineData: LineData? = null
     ) : Instruction {
         override val opcode = Opcode.SET_CLOSURE
 
-        override val orderedArguments = listOf(closure, source)
+        override val orderedArguments = listOf(closure, index, source)
 
-        override val description = "set $source to $closure"
+        override val description = "set $source to $index of $closure"
     }
 
     @Processing

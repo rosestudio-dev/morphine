@@ -846,11 +846,11 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                     arg = Argument.Arg(index),
                     destination = argumentSlot
                 ),
-                variableSet(
+                *variableSet(
                     name = argument,
                     variable = access,
                     slot = argumentSlot
-                )
+                ).toTypedArray()
             )
         }
 
@@ -861,11 +861,11 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                 Instruction.Recursion(
                     destination = argumentSlot
                 ),
-                variableSet(
+                *variableSet(
                     name = name,
                     variable = access,
                     slot = argumentSlot
-                )
+                ).toTypedArray()
             )
         }
 
@@ -930,6 +930,15 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         val variable = accessVariable(name)
 
         result { resultSlot ->
+            val access = when (variable) {
+                is Access.Closure,
+                is Access.Static -> Instruction.Recursion(
+                    destination = resultSlot
+                )
+
+                else -> null
+            }
+
             val instruction = when (variable) {
                 is Access.Argument -> Instruction.Arg(
                     arg = Argument.Arg(variable.index),
@@ -937,7 +946,8 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                 )
 
                 is Access.Closure -> Instruction.GetClosure(
-                    closure = Argument.Closure(variable.index),
+                    closure = resultSlot,
+                    index = Argument.Index(variable.index),
                     destination = resultSlot
                 )
 
@@ -946,7 +956,8 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                 )
 
                 is Access.Static -> Instruction.GetStatic(
-                    static = Argument.Static(variable.index),
+                    callable = resultSlot,
+                    index = Argument.Index(variable.index),
                     destination = resultSlot
                 )
 
@@ -956,7 +967,7 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                 )
             }
 
-            instruction(instruction)
+            instruction(access, instruction)
         }
     }
 
@@ -964,32 +975,52 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         val variable = accessVariable(name)
 
         instruction(
-            variableSet(
+            *variableSet(
                 name = name,
                 variable = variable,
                 slot = slot
-            )
+            ).toTypedArray()
         )
     }
 
-    private fun variableSet(
+    private fun Codegen.variableSet(
         name: String,
         variable: Access,
         slot: Argument.Slot
     ) = when (variable) {
-        is Access.Closure -> Instruction.SetClosure(
-            closure = Argument.Closure(variable.index),
-            source = slot
-        )
+        is Access.Closure -> {
+            val temp = slot()
+            listOf(
+                Instruction.Recursion(
+                    destination = temp
+                ),
+                Instruction.SetClosure(
+                    closure = temp,
+                    index = Argument.Index(variable.index),
+                    source = slot
+                )
+            )
+        }
 
-        is Access.Static -> Instruction.SetStatic(
-            static = Argument.Static(variable.index),
-            source = slot
-        )
+        is Access.Static -> {
+            val temp = slot()
+            listOf(
+                Instruction.Recursion(
+                    destination = temp
+                ),
+                Instruction.SetStatic(
+                    callable = temp,
+                    index = Argument.Index(variable.index),
+                    source = slot
+                )
+            )
+        }
 
-        is Access.Variable -> Instruction.Move(
-            source = slot,
-            destination = Argument.Slot(variable.index)
+        is Access.Variable -> listOf(
+            Instruction.Move(
+                source = slot,
+                destination = Argument.Slot(variable.index)
+            )
         )
 
         is Access.Argument -> throw CompilerException("Argument '$name' cannot be modified")
@@ -1027,11 +1058,11 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                     )
 
                     instruction(
-                        variableSet(
+                        *variableSet(
                             name = entry.value,
                             variable = variable,
                             slot = slot
-                        )
+                        ).toTypedArray()
                     )
                 }
             }
@@ -1043,11 +1074,11 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                 )
 
                 instruction(
-                    variableSet(
+                    *variableSet(
                         name = method.entry,
                         variable = variable,
                         slot = source
-                    )
+                    ).toTypedArray()
                 )
             }
         }

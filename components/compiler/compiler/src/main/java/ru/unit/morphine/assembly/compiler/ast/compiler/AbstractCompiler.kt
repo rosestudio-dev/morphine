@@ -338,9 +338,9 @@ abstract class AbstractCompiler(
 
         fun slot() = Argument.Slot(function.temporaries.add(Scope.Slot.Temporary))
 
-        fun instruction(vararg instructions: Instruction) {
+        fun instruction(vararg instructions: Instruction?) {
             function.instructions.addAll(
-                instructions.onEach { instruction ->
+                instructions.filterNotNull().onEach { instruction ->
                     instruction.lineData = node.data.lineData
                 }
             )
