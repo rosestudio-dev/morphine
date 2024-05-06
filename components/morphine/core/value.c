@@ -32,7 +32,7 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
             struct string *str_b = valueI_as_string(b);
             bool equal_size = str_a->size == str_b->size;
 
-            return equal_size && (memcmp(str_a->chars, str_b->chars, str_a->size) == 0);
+            return equal_size && (memcmp(str_a->chars, str_b->chars, sizeof(char) * str_a->size) == 0);
         }
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_TABLE:
@@ -151,9 +151,9 @@ struct value valueI_value2boolean(morphine_instance_t I, struct value value) {
 
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
-        if (strcmp(str->chars, "true") == 0) {
+        if (str->size == 4 && memcmp(str->chars, "true", sizeof(char) * 4) == 0) {
             return valueI_boolean(true);
-        } else if (strcmp(str->chars, "false") == 0) {
+        } else if (str->size == 5 && memcmp(str->chars, "false", sizeof(char) * 5) == 0) {
             return valueI_boolean(false);
         } else {
             throwI_errorf(I, "Cannot convert string '%s' to boolean", str->chars);
