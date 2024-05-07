@@ -1,14 +1,14 @@
 package ru.unit.morphine.assembly.compiler.ast.node
 
-data class IncDecExpression(
+data class IncrementExpression(
     val type: Type,
     val isPostfix: Boolean,
     val accessible: Accessible,
     override val data: Node.Data
-) : Expression{
+) : Expression {
 
-    enum class Type(val text: String) {
-        INCREMENT("++"),
-        DECREMENT("--"),
+    enum class Type {
+        INCREMENT,
+        DECREMENT,
     }
 }

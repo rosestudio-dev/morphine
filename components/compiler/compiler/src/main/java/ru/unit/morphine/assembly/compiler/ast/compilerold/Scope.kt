@@ -1,4 +1,4 @@
-package ru.unit.morphine.assembly.compiler.ast.compiler
+package ru.unit.morphine.assembly.compiler.ast.compilerold
 
 class Scope<T : Scope.Slot>(private val slots: MutableList<Slot>) {
 

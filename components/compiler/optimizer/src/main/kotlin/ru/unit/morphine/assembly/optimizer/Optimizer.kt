@@ -13,15 +13,13 @@ import ru.unit.morphine.assembly.optimizer.strategy.StubStrategy
 import ru.unit.morphine.assembly.optimizer.tracer.Tracer
 import ru.unit.morphine.assembly.optimizer.tracer.functions.tracerPrint
 
-class Optimizer(
-    private val debug: Boolean
-) {
+class Optimizer(private val bytecode: Bytecode) {
 
     private companion object {
         const val MAX_ITERATIONS = 262144
     }
 
-    private val tracer = Tracer(debug)
+    private val tracer = Tracer()
 
     private val repeatableStrategies = listOf(
         DestinationPropagationStrategy(),
@@ -38,7 +36,7 @@ class Optimizer(
         ConstantZipperStrategy()
     )
 
-    fun optimize(bytecode: Bytecode): Bytecode {
+    fun optimize(): Bytecode {
         val optimized = bytecode.functions.map { function ->
             if (function.optimize) {
                 function.optimize()
@@ -53,11 +51,11 @@ class Optimizer(
     }
 
     private fun Bytecode.Function.optimize() =
-        repeatableOptimize().optimizeWithStrategies(onceStrategies, -1)
+        repeatableOptimize().optimizeWithStrategies(onceStrategies)
 
     private fun Bytecode.Function.repeatableOptimize() =
-        (0 until MAX_ITERATIONS).fold(this) { last, iteration ->
-            val result = last.optimizeWithStrategies(repeatableStrategies, iteration)
+        (0 until MAX_ITERATIONS).fold(this) { last, _ ->
+            val result = last.optimizeWithStrategies(repeatableStrategies)
 
             if (result == last) {
                 return result
@@ -67,21 +65,10 @@ class Optimizer(
         }
 
     private fun Bytecode.Function.optimizeWithStrategies(
-        strategies: List<OptimizationStrategy>,
-        iteration: Int
+        strategies: List<OptimizationStrategy>
     ) = strategies.fold(this) { current, strategy ->
-        if (debug) {
-            println("Strategy: ${strategy::class.simpleName}, iteration: $iteration")
-        }
-
         val data = tracer.trace(current)
         val out = strategy.optimize(data)
-
-        if (debug) {
-            data.tracerPrint(out)
-            println()
-        }
-
         tracer.reconstruct(out)
     }
 }

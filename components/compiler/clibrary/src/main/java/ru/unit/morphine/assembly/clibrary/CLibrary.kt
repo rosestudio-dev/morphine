@@ -5,7 +5,7 @@ import org.graalvm.nativeimage.c.function.CEntryPoint
 import org.graalvm.nativeimage.c.type.CCharPointer
 import org.graalvm.nativeimage.c.type.CTypeConversion
 import ru.unit.morphine.assembly.clibrary.clibrary.BuildConfig
-import ru.unit.morphine.assembly.compiler.MorphineAssemble
+import ru.unit.morphine.assembly.compiler.MorphineCompiler
 
 object CLibrary {
 
@@ -18,21 +18,19 @@ object CLibrary {
         text: CCharPointer,
         optimize: Boolean
     ): Boolean {
-        val result = MorphineAssemble(
+        val result = MorphineCompiler(
             text = CTypeConversion.toJavaString(text),
-            optimize = optimize,
-            print = false,
-            debug = false
+            optimize = optimize
         ).compile()
 
         assembleResult = when (result) {
-            is MorphineAssemble.Result.Error -> Result.Error(result.message)
-            is MorphineAssemble.Result.Success -> Result.Success(
+            is MorphineCompiler.Result.Error -> Result.Error(result.message)
+            is MorphineCompiler.Result.Success -> Result.Success(
                 binary = result.data
             )
         }
 
-        return result is MorphineAssemble.Result.Error
+        return result is MorphineCompiler.Result.Error
     }
 
     @JvmStatic

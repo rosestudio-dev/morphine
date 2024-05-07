@@ -5,4 +5,4 @@ data class IfStatement(
     val ifStatement: Statement,
     val elseStatement: Statement,
     override val data: Node.Data
-) : Statement, Expression
+) : Statement

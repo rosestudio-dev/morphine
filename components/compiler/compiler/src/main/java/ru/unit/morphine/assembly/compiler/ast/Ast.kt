@@ -1,8 +1,8 @@
 package ru.unit.morphine.assembly.compiler.ast
 
 import ru.unit.morphine.assembly.bytecode.Bytecode
-import ru.unit.morphine.assembly.compiler.ast.compiler.CompilerInstance
-import ru.unit.morphine.assembly.compiler.ast.compiler.exception.CompilerException
+import ru.unit.morphine.assembly.compiler.ast.compilerold.CompilerInstance
+import ru.unit.morphine.assembly.compiler.ast.compilerold.exception.CompilerException
 import ru.unit.morphine.assembly.compiler.ast.node.Statement
 import ru.unit.morphine.assembly.compiler.ast.node.Visitor
 

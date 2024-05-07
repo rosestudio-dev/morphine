@@ -3,6 +3,7 @@ package ru.unit.morphine.assembly.compiler.ast.visitor
 import ru.unit.morphine.assembly.compiler.ast.node.AccessAccessible
 import ru.unit.morphine.assembly.compiler.ast.node.AssigmentStatement
 import ru.unit.morphine.assembly.compiler.ast.node.BinaryExpression
+import ru.unit.morphine.assembly.compiler.ast.node.BlockExpression
 import ru.unit.morphine.assembly.compiler.ast.node.BlockStatement
 import ru.unit.morphine.assembly.compiler.ast.node.BreakStatement
 import ru.unit.morphine.assembly.compiler.ast.node.CallExpression
@@ -15,8 +16,9 @@ import ru.unit.morphine.assembly.compiler.ast.node.EnvExpression
 import ru.unit.morphine.assembly.compiler.ast.node.EvalStatement
 import ru.unit.morphine.assembly.compiler.ast.node.ForStatement
 import ru.unit.morphine.assembly.compiler.ast.node.FunctionExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IfExpression
 import ru.unit.morphine.assembly.compiler.ast.node.IfStatement
-import ru.unit.morphine.assembly.compiler.ast.node.IncDecExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IncrementExpression
 import ru.unit.morphine.assembly.compiler.ast.node.IteratorStatement
 import ru.unit.morphine.assembly.compiler.ast.node.Node
 import ru.unit.morphine.assembly.compiler.ast.node.ReturnStatement
@@ -40,7 +42,7 @@ abstract class AbstractVisitor : Visitor {
         is EnvExpression -> visit(node)
         is FunctionExpression -> visit(node)
         is IfStatement -> visit(node)
-        is IncDecExpression -> visit(node)
+        is IncrementExpression -> visit(node)
         is SelfExpression -> visit(node)
         is TableExpression -> visit(node)
         is UnaryExpression -> visit(node)
@@ -60,6 +62,8 @@ abstract class AbstractVisitor : Visitor {
         is AccessAccessible -> visit(node)
         is VariableAccessible -> visit(node)
         is VectorExpression -> visit(node)
+        is BlockExpression -> visit(node)
+        is IfExpression -> visit(node)
     }
 
     abstract fun visit(node: BinaryExpression)
@@ -69,7 +73,7 @@ abstract class AbstractVisitor : Visitor {
     abstract fun visit(node: EnvExpression)
     abstract fun visit(node: FunctionExpression)
     abstract fun visit(node: IfStatement)
-    abstract fun visit(node: IncDecExpression)
+    abstract fun visit(node: IncrementExpression)
     abstract fun visit(node: SelfExpression)
     abstract fun visit(node: TableExpression)
     abstract fun visit(node: UnaryExpression)
@@ -89,4 +93,6 @@ abstract class AbstractVisitor : Visitor {
     abstract fun visit(node: AccessAccessible)
     abstract fun visit(node: VariableAccessible)
     abstract fun visit(node: VectorExpression)
+    abstract fun visit(node: BlockExpression)
+    abstract fun visit(node: IfExpression)
 }

@@ -3,12 +3,12 @@ package ru.unit.morphine.assembly.compiler.lexer
 import ru.unit.morphine.assembly.bytecode.LineData
 import ru.unit.morphine.assembly.compiler.lexer.exception.LexerException
 
-class Lexer(text: String) {
+class Lexer(private val text: String) {
 
-    private var tokens = mutableListOf<Pair<Token, LineData>>()
-    private var carriage = Carriage(text)
+    fun tokenize(): List<LinedToken> {
+        val tokens = mutableListOf<LinedToken>()
+        val carriage = Carriage(text)
 
-    fun tokenize(): List<Pair<Token, LineData>> {
         carriage.update(shift = false)
 
         do {
@@ -17,16 +17,16 @@ class Lexer(text: String) {
             carriage.save()
 
             val token = when {
-                current.isEof() -> Token.Eof to carriage.lineData()
-                Character.isDigit(current) -> tokenizeNumber()
-                Character.isLetter(current) || current == '_' -> tokenizeWord()
-                current == '#' -> tokenizeHexNumber()
-                current == '`' -> tokenizeExtendedWord()
-                current == '"' || current == '\'' -> tokenizeText(current)
-                current == '/' && carriage.peek(1) == '/' -> tokenizeComment()
-                current == '/' && carriage.peek(1) == '*' -> tokenizeMultilineComment()
-                Token.Operator.CHARS.indexOf(current) != -1 -> tokenizeOperator()
-                else -> tokenizeNext()
+                current.isEof() -> LinedToken(token = Token.Eof, lineData = carriage.lineData())
+                Character.isDigit(current) -> tokenizeNumber(carriage)
+                Character.isLetter(current) || current == '_' -> tokenizeWord(carriage)
+                current == '#' -> tokenizeHexNumber(carriage)
+                current == '`' -> tokenizeExtendedWord(carriage)
+                current == '"' || current == '\'' -> tokenizeText(carriage, current)
+                current == '/' && carriage.peek(1) == '/' -> tokenizeComment(carriage)
+                current == '/' && carriage.peek(1) == '*' -> tokenizeMultilineComment(carriage)
+                Token.Operator.CHARS.indexOf(current) != -1 -> tokenizeOperator(carriage)
+                else -> tokenizeNext(carriage)
             } ?: continue
 
             tokens.add(token)
@@ -35,12 +35,12 @@ class Lexer(text: String) {
         return tokens
     }
 
-    private fun tokenizeNext(): Pair<Token, LineData>? {
+    private fun tokenizeNext(carriage: Carriage): LinedToken? {
         carriage.next()
         return null
     }
 
-    private fun tokenizeNumber(): Pair<Token, LineData> {
+    private fun tokenizeNumber(carriage: Carriage): LinedToken {
         var current = carriage.peek(0)
 
         val buffer = buildString {
@@ -61,10 +61,13 @@ class Lexer(text: String) {
             throw carriage.error("Invalid decimal number")
         }
 
-        return Token.Number(buffer) to carriage.lineData()
+        return LinedToken(
+            token = Token.Number(buffer),
+            lineData = carriage.lineData()
+        )
     }
 
-    private fun tokenizeHexNumber(): Pair<Token, LineData> {
+    private fun tokenizeHexNumber(carriage: Carriage): LinedToken {
         carriage.next()
 
         var current = carriage.peek(0)
@@ -82,13 +85,16 @@ class Lexer(text: String) {
         }
 
         return runCatching {
-            Token.Number(buffer.toInt(16).toString()) to carriage.lineData()
+            LinedToken(
+                token = Token.Number(buffer.toInt(16).toString()),
+                lineData = carriage.lineData()
+            )
         }.getOrElse {
             throw carriage.error("Invalid hex number")
         }
     }
 
-    private fun tokenizeText(startChar: Char): Pair<Token, LineData> {
+    private fun tokenizeText(carriage: Carriage, startChar: Char): LinedToken {
         var current = carriage.next()
 
         val buffer = buildString {
@@ -128,10 +134,13 @@ class Lexer(text: String) {
 
         carriage.next()
 
-        return Token.Text(buffer) to carriage.lineData()
+        return LinedToken(
+            token = Token.Text(buffer),
+            lineData = carriage.lineData()
+        )
     }
 
-    private fun tokenizeWord(): Pair<Token, LineData> {
+    private fun tokenizeWord(carriage: Carriage): LinedToken {
         var current = carriage.peek(0)
 
         val buffer = buildString {
@@ -146,10 +155,13 @@ class Lexer(text: String) {
             }
         }
 
-        return (SYSTEM_WORDS[buffer] ?: Token.Word(buffer)) to carriage.lineData()
+        return LinedToken(
+            token = SYSTEM_WORDS[buffer] ?: Token.Word(buffer),
+            lineData = carriage.lineData()
+        )
     }
 
-    private fun tokenizeExtendedWord(): Pair<Token, LineData> {
+    private fun tokenizeExtendedWord(carriage: Carriage): LinedToken {
         carriage.next() // skip `
 
         var current = carriage.peek(0)
@@ -172,10 +184,13 @@ class Lexer(text: String) {
 
         carriage.next() // skip `
 
-        return (SYSTEM_WORDS[buffer] ?: Token.Word(buffer)) to carriage.lineData()
+        return LinedToken(
+            token = SYSTEM_WORDS[buffer] ?: Token.Word(buffer),
+            lineData = carriage.lineData()
+        )
     }
 
-    private fun tokenizeOperator(): Pair<Token, LineData> {
+    private fun tokenizeOperator(carriage: Carriage): LinedToken {
         var current = carriage.peek(0)
 
         val buffer = buildString {
@@ -204,10 +219,13 @@ class Lexer(text: String) {
             type.text == buffer
         } ?: throw carriage.error("Unknown operator")
 
-        return operator to carriage.lineData()
+        return LinedToken(
+            token = operator,
+            lineData = carriage.lineData()
+        )
     }
 
-    private fun tokenizeComment(): Pair<Token, LineData>? {
+    private fun tokenizeComment(carriage: Carriage): LinedToken? {
         carriage.next() // skip /
         carriage.next() // skip /
 
@@ -220,7 +238,7 @@ class Lexer(text: String) {
         return null
     }
 
-    private fun tokenizeMultilineComment(): Pair<Token, LineData>? {
+    private fun tokenizeMultilineComment(carriage: Carriage): LinedToken? {
         carriage.next() // skip /
         carriage.next() // skip *
 

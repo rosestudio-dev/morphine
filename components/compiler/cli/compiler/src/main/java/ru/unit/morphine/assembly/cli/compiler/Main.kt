@@ -6,7 +6,8 @@ import kotlin.system.exitProcess
 import kotlinx.cli.ArgParser
 import kotlinx.cli.ArgType
 import ru.unit.morphine.assembly.cli.compiler.compiler.BuildConfig
-import ru.unit.morphine.assembly.compiler.MorphineAssemble
+import ru.unit.morphine.assembly.compiler.MorphineCompiler
+import ru.unit.morphine.assembly.compiler.Printer
 
 fun main(args: Array<String>) {
     val programName = args.getOrNull(0) ?: "compiler"
@@ -94,41 +95,42 @@ private fun compile(
     disassembly: Boolean,
     debug: Boolean,
 ) {
-    runCatching {
-        val text = Files.readString(Path.of(file))
-
-        val result = MorphineAssemble(
-            text = text,
-            optimize = optimizer,
-            print = disassembly,
-            debug = debug
-        ).compile()
-
-        when (result) {
-            is MorphineAssemble.Result.Error -> {
-                println(result.message)
-                exitProcess(1)
-            }
-
-            is MorphineAssemble.Result.Success -> {
-                val out = result.data.toByteArray()
-
-                if (!output.isNullOrBlank()) {
-                    Files.write(Path.of(output), out)
-                }
-
-                when {
-                    output.isNullOrBlank() && !bytes -> System.out.write(out)
-                    bytes -> printCompiled(out)
-                }
-            }
-        }
-    }.onFailure { throwable ->
-        if (debug) {
-            throw throwable
-        }
-
+    val text = runCatching {
+        Files.readString(Path.of(file))
+    }.getOrElse {
+        println("Cannot open file $file")
         exitProcess(1)
+    }
+
+    val result = MorphineCompiler(
+        text = text,
+        optimize = optimizer,
+    ).compile()
+
+    when (result) {
+        is MorphineCompiler.Result.Error -> if (debug) {
+            throw result.throwable
+        } else {
+            println(result.message)
+            exitProcess(1)
+        }
+
+        is MorphineCompiler.Result.Success -> {
+            if (disassembly) {
+                Printer.bytecode(result.bytecode, text)
+            }
+
+            val out = result.data.toByteArray()
+
+            if (!output.isNullOrBlank()) {
+                Files.write(Path.of(output), out)
+            }
+
+            when {
+                output.isNullOrBlank() && !bytes -> System.out.write(out)
+                bytes -> printCompiled(out)
+            }
+        }
     }
 }
 

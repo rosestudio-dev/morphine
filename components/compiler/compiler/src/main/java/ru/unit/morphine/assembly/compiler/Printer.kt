@@ -4,11 +4,12 @@ import ru.unit.morphine.assembly.bytecode.Bytecode
 import ru.unit.morphine.assembly.bytecode.LineData
 import ru.unit.morphine.assembly.bytecode.Value
 import ru.unit.morphine.assembly.compiler.ast.Ast
+import ru.unit.morphine.assembly.compiler.lexer.LinedToken
 import ru.unit.morphine.assembly.compiler.lexer.Token
 
 object Printer {
 
-    fun tokens(tokens: List<Pair<Token, LineData>>) {
+    fun tokens(tokens: List<LinedToken>) {
         println("Tokens:")
 
         val lines = tokens.map { (_, lineData) ->
@@ -18,7 +19,7 @@ object Printer {
         lines.forEach { line ->
             val tokensInLine = tokens.filter { (_, lineData) ->
                 lineData.line == line
-            }.map(Pair<Token, LineData>::first)
+            }.map(LinedToken::token)
 
             println("    $line: ${tokensInLine.joinToString()}")
         }

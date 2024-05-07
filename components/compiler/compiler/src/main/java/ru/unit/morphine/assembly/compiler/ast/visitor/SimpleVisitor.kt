@@ -4,6 +4,7 @@ import ru.unit.morphine.assembly.compiler.ast.node.AccessAccessible
 import ru.unit.morphine.assembly.compiler.ast.node.AssigmentStatement
 import ru.unit.morphine.assembly.compiler.ast.node.AssignMethod
 import ru.unit.morphine.assembly.compiler.ast.node.BinaryExpression
+import ru.unit.morphine.assembly.compiler.ast.node.BlockExpression
 import ru.unit.morphine.assembly.compiler.ast.node.BlockStatement
 import ru.unit.morphine.assembly.compiler.ast.node.BreakStatement
 import ru.unit.morphine.assembly.compiler.ast.node.CallExpression
@@ -16,8 +17,9 @@ import ru.unit.morphine.assembly.compiler.ast.node.EnvExpression
 import ru.unit.morphine.assembly.compiler.ast.node.EvalStatement
 import ru.unit.morphine.assembly.compiler.ast.node.ForStatement
 import ru.unit.morphine.assembly.compiler.ast.node.FunctionExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IfExpression
 import ru.unit.morphine.assembly.compiler.ast.node.IfStatement
-import ru.unit.morphine.assembly.compiler.ast.node.IncDecExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IncrementExpression
 import ru.unit.morphine.assembly.compiler.ast.node.IteratorStatement
 import ru.unit.morphine.assembly.compiler.ast.node.Node
 import ru.unit.morphine.assembly.compiler.ast.node.ReturnStatement
@@ -39,6 +41,11 @@ abstract class SimpleVisitor : AbstractVisitor() {
 
     override fun visit(node: BlockStatement) {
         node.statements.accept()
+    }
+
+    override fun visit(node: BlockExpression) {
+        node.statements.accept()
+        node.expression.accept()
     }
 
     override fun visit(node: CallExpression) {
@@ -64,7 +71,13 @@ abstract class SimpleVisitor : AbstractVisitor() {
         node.elseStatement.accept()
     }
 
-    override fun visit(node: IncDecExpression) {
+    override fun visit(node: IfExpression) {
+        node.condition.accept()
+        node.ifExpression.accept()
+        node.elseExpression.accept()
+    }
+
+    override fun visit(node: IncrementExpression) {
         node.accessible.accept()
     }
 

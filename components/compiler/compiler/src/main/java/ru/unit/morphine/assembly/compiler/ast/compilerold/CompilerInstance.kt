@@ -1,15 +1,16 @@
-package ru.unit.morphine.assembly.compiler.ast.compiler
+package ru.unit.morphine.assembly.compiler.ast.compilerold
 
 import java.util.UUID
 import ru.unit.morphine.assembly.bytecode.Argument
 import ru.unit.morphine.assembly.bytecode.Instruction
 import ru.unit.morphine.assembly.bytecode.Value
-import ru.unit.morphine.assembly.compiler.ast.compiler.exception.CompilerException
+import ru.unit.morphine.assembly.compiler.ast.compilerold.exception.CompilerException
 import ru.unit.morphine.assembly.compiler.ast.node.AccessAccessible
 import ru.unit.morphine.assembly.compiler.ast.node.Accessible
 import ru.unit.morphine.assembly.compiler.ast.node.AssigmentStatement
 import ru.unit.morphine.assembly.compiler.ast.node.AssignMethod
 import ru.unit.morphine.assembly.compiler.ast.node.BinaryExpression
+import ru.unit.morphine.assembly.compiler.ast.node.BlockExpression
 import ru.unit.morphine.assembly.compiler.ast.node.BlockStatement
 import ru.unit.morphine.assembly.compiler.ast.node.BreakStatement
 import ru.unit.morphine.assembly.compiler.ast.node.CallExpression
@@ -23,8 +24,9 @@ import ru.unit.morphine.assembly.compiler.ast.node.EvalStatement
 import ru.unit.morphine.assembly.compiler.ast.node.Expression
 import ru.unit.morphine.assembly.compiler.ast.node.ForStatement
 import ru.unit.morphine.assembly.compiler.ast.node.FunctionExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IfExpression
 import ru.unit.morphine.assembly.compiler.ast.node.IfStatement
-import ru.unit.morphine.assembly.compiler.ast.node.IncDecExpression
+import ru.unit.morphine.assembly.compiler.ast.node.IncrementExpression
 import ru.unit.morphine.assembly.compiler.ast.node.IteratorStatement
 import ru.unit.morphine.assembly.compiler.ast.node.ReturnStatement
 import ru.unit.morphine.assembly.compiler.ast.node.SelfExpression
@@ -43,13 +45,13 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         is AccessAccessible -> expression.eval()
         is VariableAccessible -> expression.eval()
         is BinaryExpression -> expression.eval()
-        is BlockStatement -> expression.eval()
+        is BlockExpression -> expression.eval()
         is CallExpression -> expression.eval()
         is CallSelfExpression -> expression.eval()
         is EnvExpression -> expression.eval()
         is FunctionExpression -> expression.eval()
-        is IfStatement -> expression.eval()
-        is IncDecExpression -> expression.eval()
+        is IfExpression -> expression.eval()
+        is IncrementExpression -> expression.eval()
         is SelfExpression -> expression.eval()
         is TableExpression -> expression.eval()
         is UnaryExpression -> expression.eval()
@@ -261,7 +263,7 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         )
     }
 
-    private fun IfStatement.eval() = codegenExpression {
+    private fun IfExpression.eval() = codegenExpression {
         val condition = condition.evalWithResult()
         val ifAnchorUUID = UUID.randomUUID()
         val elseAnchorUUID = UUID.randomUUID()
@@ -277,7 +279,7 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
 
         fun produce(slot: Argument.Slot) {
             anchor(ifAnchorUUID)
-            (ifStatement as? Expression)?.evalWithResult(slot) ?: throw CompilerException("Expected expression")
+            ifExpression.evalWithResult(slot)
             instruction(
                 Instruction.Jump(
                     position = positionByAnchor(endAnchorUUID)
@@ -285,7 +287,7 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
             )
 
             anchor(elseAnchorUUID)
-            (elseStatement as? Expression)?.evalWithResult(slot) ?: throw CompilerException("Expected expression")
+            elseExpression.evalWithResult(slot)
 
             anchor(endAnchorUUID)
         }
@@ -328,7 +330,7 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         anchor(endAnchorUUID)
     }
 
-    private fun IncDecExpression.eval() = codegenExpression {
+    private fun IncrementExpression.eval() = codegenExpression {
         val value = accessible.evalWithResult()
 
         fun produce(slot: Argument.Slot) {
@@ -338,13 +340,13 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
                     destination = slot
                 ),
                 when (type) {
-                    IncDecExpression.Type.INCREMENT -> Instruction.Add(
+                    IncrementExpression.Type.INCREMENT -> Instruction.Add(
                         sourceLeft = value,
                         sourceRight = slot,
                         destination = slot
                     )
 
-                    IncDecExpression.Type.DECREMENT -> Instruction.Sub(
+                    IncrementExpression.Type.DECREMENT -> Instruction.Sub(
                         sourceLeft = value,
                         sourceRight = slot,
                         destination = slot
@@ -801,17 +803,10 @@ class CompilerInstance(optimize: Boolean) : AbstractCompiler(optimize) {
         function.variables.exit()
     }
 
-    private fun BlockStatement.eval() = codegenExpression {
+    private fun BlockExpression.eval() = codegenExpression {
         function.variables.enter()
 
-        val expressionStatement = statements.lastOrNull()
-            ?: throw CompilerException("Expression block is empty")
-
-        val expression = (expressionStatement as? Expression)
-            ?: (expressionStatement as? EvalStatement)?.expression
-            ?: throw CompilerException("Expression is expected at the end")
-
-        statements.dropLast(1).forEach { statement ->
+        statements.forEach { statement ->
             statement.exec()
         }
 

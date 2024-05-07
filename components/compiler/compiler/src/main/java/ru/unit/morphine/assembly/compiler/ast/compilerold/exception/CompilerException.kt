@@ -1,4 +1,4 @@
-package ru.unit.morphine.assembly.compiler.ast.compiler.exception
+package ru.unit.morphine.assembly.compiler.ast.compilerold.exception
 
 import ru.unit.morphine.assembly.bytecode.LineData
 

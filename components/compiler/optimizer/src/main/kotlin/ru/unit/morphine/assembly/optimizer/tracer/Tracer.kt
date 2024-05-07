@@ -11,9 +11,7 @@ import ru.unit.morphine.assembly.optimizer.tracer.functions.traceDestinations
 import ru.unit.morphine.assembly.optimizer.tracer.functions.traceValues
 import ru.unit.morphine.assembly.optimizer.tracer.functions.traceVersions
 
-class Tracer(
-    private val debug: Boolean
-) {
+class Tracer {
 
     fun trace(function: Bytecode.Function): Data {
         val data = function.toData()
@@ -21,7 +19,7 @@ class Tracer(
         return if (function.instructions.isEmpty()) {
             data
         } else {
-            data.controlFlow(debug).apply {
+            data.controlFlow().apply {
                 traceDestinations()
                 traceVersions()
                 traceValues()
