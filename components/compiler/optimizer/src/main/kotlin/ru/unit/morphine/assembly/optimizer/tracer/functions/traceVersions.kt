@@ -1,6 +1,5 @@
 package ru.unit.morphine.assembly.optimizer.tracer.functions
 
-import org.jgrapht.traverse.BreadthFirstIterator
 import ru.unit.morphine.assembly.bytecode.AbstractInstruction
 import ru.unit.morphine.assembly.optimizer.exception.OptimizerException
 import ru.unit.morphine.assembly.optimizer.tracer.ControlFlowTree
@@ -41,9 +40,7 @@ private fun ControlFlowTree.valuesCalc() {
 }
 
 private fun ControlFlowTree.extractCalc(): Map<Tracer.Block, Set<Tracer.Block>> {
-    val iter = BreadthFirstIterator(dominatorTree.iDomGraph).apply {
-        isCrossComponentTraversal = false
-    }
+    val iter = dominatorTree.iDomGraph.bfi()
 
     val blocks = data.blocks.associateWith { block ->
         if (dominatorTree.root == block) {
@@ -70,9 +67,7 @@ private fun ControlFlowTree.extractCalc(): Map<Tracer.Block, Set<Tracer.Block>> 
 private fun ControlFlowTree.sourceCalc() {
     val extractBlocks = extractCalc()
 
-    val iter = BreadthFirstIterator(dominatorTree.iDomGraph).apply {
-        isCrossComponentTraversal = false
-    }
+    val iter = dominatorTree.iDomGraph.bfi()
 
     while (iter.hasNext()) {
         val block = iter.next()

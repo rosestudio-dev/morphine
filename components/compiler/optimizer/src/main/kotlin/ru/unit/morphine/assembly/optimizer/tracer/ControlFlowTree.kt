@@ -1,13 +1,9 @@
 package ru.unit.morphine.assembly.optimizer.tracer
 
-import org.jgrapht.graph.DefaultDirectedGraph
-import org.jgrapht.graph.DefaultEdge
-import org.jgrapht.traverse.DepthFirstIterator
-
 class ControlFlowTree(
     val originalData: Tracer.Data
 ) {
-    val graph = DefaultDirectedGraph<Tracer.Block, DefaultEdge>(DefaultEdge::class.java).apply {
+    val graph = Graph<Tracer.Block>().apply {
         originalData.blocks.forEach { block ->
             addVertex(block)
 
@@ -20,15 +16,7 @@ class ControlFlowTree(
             }
         }
 
-        val iter = DepthFirstIterator(this, originalData.blocks.first()).apply {
-            isCrossComponentTraversal = false
-        }
-
-        val travel = mutableListOf<Tracer.Block>()
-
-        while (iter.hasNext()) {
-            travel.add(iter.next())
-        }
+        val travel = dfi(originalData.blocks.first()).asSequence().toList()
 
         originalData.blocks.filter { block ->
             block !in travel

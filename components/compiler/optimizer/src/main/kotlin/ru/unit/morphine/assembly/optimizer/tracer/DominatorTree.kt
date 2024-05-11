@@ -1,16 +1,12 @@
 package ru.unit.morphine.assembly.optimizer.tracer
 
-import org.jgrapht.graph.AbstractBaseGraph
-import org.jgrapht.graph.DefaultEdge
-import org.jgrapht.graph.DirectedAcyclicGraph
-import org.jgrapht.traverse.DepthFirstIterator
 import ru.unit.morphine.assembly.optimizer.exception.OptimizerException
 
 class DominatorTree<T>(
-    private val graph: AbstractBaseGraph<T, DefaultEdge>,
+    private val graph: Graph<T>,
     val root: T
 ) {
-    val iDomGraph: DirectedAcyclicGraph<T, DefaultEdge>
+    val iDomGraph: Graph<T>
 
     private val nodePreOrder = root?.let { first ->
         dfs(graph, first)
@@ -53,15 +49,15 @@ class DominatorTree<T>(
         }
 
         idomMap.forEach { (dominated, _) ->
-            val strictlyVertexes = iDomGraph.outgoingEdgesOf(dominated).flatMap { edge ->
-                dfs(iDomGraph, iDomGraph.getEdgeTarget(edge))
+            val strictlyVertexes = iDomGraph.outgoingEdges(dominated).flatMap { edge ->
+                dfs(iDomGraph, edge.target)
             }
 
             val fronts = graph.vertexSet().filterNot { vertex ->
                 vertex in strictlyVertexes
             }.filter { vertex ->
-                val ingoingVertexes = graph.incomingEdgesOf(vertex).map { edge ->
-                    graph.getEdgeSource(edge)
+                val ingoingVertexes = graph.incomingEdges(vertex).map { edge ->
+                    edge.source
                 }
 
                 ingoingVertexes.any { ingoingVertex ->
@@ -73,7 +69,7 @@ class DominatorTree<T>(
         }
     }
 
-    private fun create(): DirectedAcyclicGraph<T, DefaultEdge> {
+    private fun create(): Graph<T> {
         nodePreOrder.forEachIndexed { index, node ->
             preOrderMap[node] = index
         }
@@ -83,11 +79,8 @@ class DominatorTree<T>(
         return getDominatorTree()
     }
 
-    private fun dfs(graph: AbstractBaseGraph<T, DefaultEdge>, startNode: T): List<T> {
-        val iter = DepthFirstIterator(graph, startNode).apply {
-            isCrossComponentTraversal = false
-        }
-
+    private fun dfs(graph: Graph<T>, startNode: T): List<T> {
+        val iter = graph.dfi(startNode)
         val travel = mutableListOf<T>()
 
         while (iter.hasNext()) {
@@ -114,8 +107,8 @@ class DominatorTree<T>(
                 val oldIdom = idomMap[node]
                 var newIdom: T? = null
 
-                for (edge in graph.incomingEdgesOf(node)) {
-                    val preNode = graph.getEdgeSource(edge)
+                for (edge in graph.incomingEdges(node)) {
+                    val preNode = edge.source
 
                     if (idomMap[preNode] == null) {
                         continue
@@ -156,8 +149,8 @@ class DominatorTree<T>(
         return t1
     }
 
-    private fun getDominatorTree(): DirectedAcyclicGraph<T, DefaultEdge> {
-        val tree = DirectedAcyclicGraph<T, DefaultEdge>(DefaultEdge::class.java)
+    private fun getDominatorTree(): Graph<T> {
+        val tree = Graph<T>()
         for (node in graph.vertexSet()) {
             tree.addVertex(node)
 
