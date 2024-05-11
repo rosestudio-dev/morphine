@@ -6,8 +6,8 @@ buildscript {
     }
 
     dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:1.9.24")
-        classpath("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:1.9.24-1.0.20")
+        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0-RC3")
+        classpath("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.0.0-RC2-1.0.20")
         classpath("com.github.gmazzo.buildconfig:plugin:5.3.5")
     }
 }
