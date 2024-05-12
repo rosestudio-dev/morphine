@@ -1,54 +1,22 @@
-buildscript {
-    repositories {
-        gradlePluginPortal()
-        google()
-        mavenCentral()
-    }
+group = "morphine"
 
-    dependencies {
-        classpath("org.jetbrains.kotlin:kotlin-gradle-plugin:2.0.0-RC3")
-        classpath("com.google.devtools.ksp:com.google.devtools.ksp.gradle.plugin:2.0.0-RC2-1.0.20")
-        classpath("com.github.gmazzo.buildconfig:plugin:5.3.5")
-    }
-}
-
-group = "ru.unit.morphine"
-
-ext {
-    val projectVersion = System.getProperty("projectVersion") ?: "unknown"
-    val projectVersionCode = System.getProperty("projectVersionCode") ?: "-1"
-
-    set("version", projectVersion)
-    set("versionCode", projectVersionCode)
+plugins {
+    kotlin("multiplatform").apply(false)
+    id("com.google.devtools.ksp").apply(false)
+    id("com.github.gmazzo.buildconfig").apply(false)
 }
 
 subprojects {
-    val monoBuildDir = System.getProperty("monoBuildDir")?.let { monoBuildDir ->
-        File(
-            File(monoBuildDir).apply { mkdir() },
-            project.fullname
+    if (Properties.monoBuildDir.isNotBlank()) {
+        val monoBuildDir = File(
+            File(Properties.monoBuildDir).apply { mkdir() },
+            project.projectFullName()
         )
-    }
 
-    val projectVersion = System.getProperty("projectVersion") ?: "unknown"
-    val projectVersionCode = System.getProperty("projectVersionCode") ?: "-1"
-
-    if (monoBuildDir != null) {
         layout.buildDirectory.set(monoBuildDir)
     }
 
-    version = projectVersion
+    version = Properties.projectVersion
+
+    production()
 }
-
-val Project.fullname
-    get() = run {
-        val projects = mutableListOf<Project>()
-
-        var current: Project? = this
-        while (current != null) {
-            projects.add(current)
-            current = current.parent
-        }
-
-        projects.reversed().joinToString(separator = "_", transform = Project::getName)
-    }

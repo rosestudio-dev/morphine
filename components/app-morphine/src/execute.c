@@ -48,6 +48,7 @@ static void load_program(morphine_coroutine_t U, const char *path, bool binary) 
 }
 
 void execute(
+    struct libcompiler *libcompiler,
     struct allocator *allocator,
     const char *path,
     bool binary,
@@ -58,6 +59,10 @@ void execute(
     if (setjmp(abort_jmp) != 0) {
         return;
     }
+
+    struct vmdata data = {
+        .libcompiler = libcompiler
+    };
 
     struct settings settings = {
         .gc.limit_bytes = alloc_limit,
@@ -89,7 +94,7 @@ void execute(
         instance_platform.functions.free = dfree;
     }
 
-    morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
+    morphine_instance_t I = mapi_open(instance_platform, settings, &data);
     morphine_coroutine_t U = mapi_coroutine(I);
 
     ml_size argc_size = mapi_csize2size(U, argc);

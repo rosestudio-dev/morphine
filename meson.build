@@ -15,11 +15,13 @@ installdir = get_option('installdir')
 message('Install dir:', installdir)
 
 subproject('app-morphine')
-subproject('app-compiler')
+subproject('compiler')
 
-install_data(
-    files('extra' / 'templates' / 'gitignore'),
-    follow_symlinks : false,
-    install_dir : installdir,
-    rename : ['.gitignore'],
-)
+if installdir != 'undefined'
+    install_data(
+        files('extra' / 'templates' / 'gitignore'),
+        follow_symlinks : false,
+        install_dir : installdir,
+        rename : ['.gitignore'],
+    )
+endif

@@ -9,7 +9,7 @@ installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
 morphine = subproject('morphine').get_variable('morphine_dep')
-dlibcompiler_headers = subproject('compiler').get_variable('dlibcompiler_headers_dep')
+compiler_lib = subproject('compiler').get_variable('compiler_lib_shared_dep')
 
 sources = run_command(
     'python',
@@ -26,10 +26,10 @@ warning_flags = [
     '-Wextra',
     '-Werror',
     '-Wno-error=conversion',
+    '-Wno-error=strict-prototypes',
     '-Wdouble-promotion',
     '-Wshadow',
     '-Wformat',
-    '-Wstrict-prototypes',
     '-Wunused-parameter',
     '-Wconversion',
     '-Wredundant-decls',
@@ -60,7 +60,7 @@ endif
 executable(
     'morphine', sources,
     include_directories : include,
-    dependencies : [morphine, dlibcompiler_headers],
+    dependencies : [morphine, compiler_lib],
     c_args : compiler_args,
 
     install : installdir != 'undefined',

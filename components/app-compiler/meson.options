@@ -1,3 +1,0 @@
-option('installdir', type : 'string', yield : true)
-option('version', type : 'string', yield : true)
-option('versioncode', type : 'string', yield : true)

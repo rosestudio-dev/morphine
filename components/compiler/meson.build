@@ -34,16 +34,16 @@ gradle_options = [
     meson.current_source_dir(),
     '-DprojectVersion=' + version,
     '-DprojectVersionCode=' + versioncode,
-    '-DjarOutputDir=' + meson.current_build_dir()
+    '-DmonoBuildDir=' + meson.global_build_root() / 'gradleBuild',
+    '-DoutputDir='+meson.current_build_dir(),
 ]
 
 if get_option('localgradle').enabled()
     gradle_options += [
         '-g',
-        meson.build_root() / 'gradle' / '.gradle',
+        meson.global_build_root() / 'gradle' / '.gradle',
         '--project-cache-dir',
-        meson.build_root() / 'gradle' / 'cache' / 'compiler',
-        '-DmonoBuildDir=' + meson.build_root() / 'gradle' / 'build' / 'compiler',
+        meson.global_build_root() / 'gradle' / 'cache' / 'compiler',
     ]
 endif
 
@@ -54,88 +54,85 @@ nativeimage_options = [
 
 # Targets
 
-compiler_cli_jar = custom_target(
-    'compiler-cli-jar',
-    output : ['cli-' + version + '.jar'],
+compiler_output = [
+    'cli.kexe',
+    'libsharedcompiler.so',
+    'libsharedcompiler_api.h',
+    'libstaticcompiler.a',
+    'libstaticcompiler_api.h',
+    'library-jvm-' + version + '.jar'
+]
+
+compiler_shadow_output = [
+    'compiler',
+    'libcompiler.so',
+    'libcompiler_shared_api.h',
+    'libcompiler.a',
+    'libcompiler_static_api.h',
+    'compiler.jar'
+]
+
+compiler_output_parsed = []
+compiler_shadow_output_parsed = []
+
+foreach s : compiler_output
+    compiler_output_parsed += ['@OUTDIR@' / s]
+endforeach
+
+foreach s : compiler_shadow_output
+    compiler_shadow_output_parsed += ['@OUTDIR@' / s]
+endforeach
+
+compiler_raw = custom_target(
+    'compiler-raw',
+    output : compiler_output,
     console : true,
     command : [
         prog_gradle,
         gradle_options,
-        ':cli:compiler:jar'
+        'production'
     ],
     depend_files : [sources_kts, sources_kt],
 
     install : false
 )
 
-compiler_clib_jar = custom_target(
-    'compiler-clib-jar',
-    output : ['clib-' + version + '.jar'],
+compiler = custom_target(
+    'compiler',
+    output : compiler_shadow_output,
     console : true,
     command : [
-        prog_gradle,
-        gradle_options,
-        ':clibrary:jar'
-    ],
-    depend_files : [sources_kts, sources_kt],
-
-    install : false
-)
-
-dlibcompiler = custom_target(
-    'dlib-compiler',
-    input : [compiler_clib_jar],
-    output : [
-        'libcompiler.so',
-        'libcompiler.h',
-        'libcompiler_dynamic.h',
-        'graal_isolate.h',
-        'graal_isolate_dynamic.h'
-    ],
-    depends : [compiler_clib_jar],
-    console : true,
-    command : [
-        prog_nativeimage,
-        nativeimage_options,
-        '--shared',
-        '-H:Name=libcompiler',
-        '-jar',
-        '@INPUT@',
+        prog_python,
+        meson.source_root() / 'extra' / 'scripts' / 'rename.py',
+        '-i',
+        ':'.join(compiler_output_parsed),
         '-o',
-        '@OUTDIR@' / 'libcompiler'
+        ':'.join(compiler_shadow_output_parsed),
     ],
+    depends : [compiler_raw],
 
     install : installdir != 'undefined',
     install_dir : [
-        installdir/'libs',
-        installdir/'include'/'compiler',
-        installdir/'include'/'compiler',
-        installdir/'include'/'compiler',
-        installdir/'include'/'compiler',
+        installdir,
+        installdir / 'libs',
+        installdir / 'include' / 'compiler',
+        installdir / 'libs',
+        installdir / 'include' / 'compiler',
+        installdir / 'libs',
     ]
 )
 
 # Dependencies
 
-dlibcompiler_headers = []
-dlibcompiler_shared = []
-
-foreach s : dlibcompiler.to_list()
-    if s.full_path().endswith('.h')
-        dlibcompiler_headers += s
-    else
-        dlibcompiler_shared += s
-    endif
-endforeach
-
-dlibcompiler_headers_dep = declare_dependency(
-    sources : dlibcompiler_headers,
-    version : get_option('version')
+compiler_lib_static_dep = declare_dependency(
+    sources : [compiler[3], compiler[4]],
+    version : get_option('version'),
+    link_with : [compiler[3]]
 )
 
-dlibcompiler_shared_dep = declare_dependency(
-    sources : dlibcompiler_shared,
-    version : get_option('version')
+compiler_lib_shared_dep = declare_dependency(
+    sources : [compiler[2]],
+    version : get_option('version'),
 )
 
 # Misc

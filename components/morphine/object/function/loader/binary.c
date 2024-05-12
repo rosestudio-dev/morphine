@@ -271,8 +271,18 @@ static void load_name(struct data *data, struct function *function) {
 
 static void check_csum(struct data *data) {
     uint32_t expected = crc32_result(&data->crc);
-    uint32_t hash = get_u32(data);
-    if (expected != hash) {
+
+    union {
+        uint8_t raw[4];
+        uint32_t result;
+    } hash;
+
+    hash.raw[3] = get_u8(data);
+    hash.raw[2] = get_u8(data);
+    hash.raw[1] = get_u8(data);
+    hash.raw[0] = get_u8(data);
+
+    if (expected != hash.result) {
         process_error(data->state, "Binary corrupted");
     }
 }
