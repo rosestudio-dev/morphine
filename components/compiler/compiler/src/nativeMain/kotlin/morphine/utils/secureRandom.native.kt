@@ -17,8 +17,10 @@ actual fun secureRandom(size: Int): ByteArray {
     check(file != -1) { "Failed to access /dev/urandom: $errno" }
 
     try {
-        array.usePinned { pin ->
-            read(file, pin.addressOf(0), size.toULong())
+        repeat(size) { index ->
+            array.usePinned { pin ->
+                read(file, pin.addressOf(index), 1UL)
+            }
         }
     } finally {
         close(file)

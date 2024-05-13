@@ -2,7 +2,6 @@ package morphine.compiler.ast.assembly
 
 import morphine.bytecode.Argument
 import morphine.bytecode.Instruction
-import morphine.utils.UID
 import morphine.bytecode.Value
 import morphine.compiler.ast.assembly.exception.CompilerException
 import morphine.compiler.ast.node.AccessAccessible
@@ -90,17 +89,17 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
 
         anchor(function.continueAnchor)
         val condition = condition.evalWithResult()
-        val blockAnchorUUID = UID()
+        val blockAnchorMarker = AnchorMarker()
 
         instruction(
             Instruction.JumpIf(
                 source = condition,
-                ifPosition = positionByAnchor(blockAnchorUUID),
+                ifPosition = positionByAnchor(blockAnchorMarker),
                 elsePosition = positionByAnchor(function.breakAnchor)
             )
         )
 
-        anchor(blockAnchorUUID)
+        anchor(blockAnchorMarker)
         statement.exec()
 
         iterator.exec()
@@ -123,19 +122,19 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
 
         anchor(function.continueAnchor)
         val condition = condition.evalWithResult()
-        val blockAnchorUUID = UID()
+        val blockAnchorMarker = AnchorMarker()
 
         instruction(
             Instruction.JumpIf(
                 source = condition,
-                ifPosition = positionByAnchor(blockAnchorUUID),
+                ifPosition = positionByAnchor(blockAnchorMarker),
                 elsePosition = positionByAnchor(function.breakAnchor)
             )
         )
 
         function.variables.enter()
 
-        anchor(blockAnchorUUID)
+        anchor(blockAnchorMarker)
         statement.exec()
 
         instruction(
@@ -177,17 +176,17 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
             )
         )
 
-        val blockAnchorUUID = UID()
+        val blockAnchorMarker = AnchorMarker()
 
         instruction(
             Instruction.JumpIf(
                 source = condition,
-                ifPosition = positionByAnchor(blockAnchorUUID),
+                ifPosition = positionByAnchor(blockAnchorMarker),
                 elsePosition = positionByAnchor(function.breakAnchor)
             )
         )
 
-        anchor(blockAnchorUUID)
+        anchor(blockAnchorMarker)
 
         val next = slot()
 
@@ -265,31 +264,31 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
 
     private fun IfExpression.eval() = codegenExpression {
         val condition = condition.evalWithResult()
-        val ifAnchorUUID = UID()
-        val elseAnchorUUID = UID()
-        val endAnchorUUID = UID()
+        val ifAnchorMarker = AnchorMarker()
+        val elseAnchorMarker = AnchorMarker()
+        val endAnchorMarker = AnchorMarker()
 
         instruction(
             Instruction.JumpIf(
                 source = condition,
-                ifPosition = positionByAnchor(ifAnchorUUID),
-                elsePosition = positionByAnchor(elseAnchorUUID),
+                ifPosition = positionByAnchor(ifAnchorMarker),
+                elsePosition = positionByAnchor(elseAnchorMarker),
             )
         )
 
         fun produce(slot: Argument.Slot) {
-            anchor(ifAnchorUUID)
+            anchor(ifAnchorMarker)
             ifExpression.evalWithResult(slot)
             instruction(
                 Instruction.Jump(
-                    position = positionByAnchor(endAnchorUUID)
+                    position = positionByAnchor(endAnchorMarker)
                 )
             )
 
-            anchor(elseAnchorUUID)
+            anchor(elseAnchorMarker)
             elseExpression.evalWithResult(slot)
 
-            anchor(endAnchorUUID)
+            anchor(endAnchorMarker)
         }
 
         result(
@@ -304,30 +303,30 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
 
     private fun IfStatement.exec() = codegenStatement {
         val condition = condition.evalWithResult()
-        val ifAnchorUUID = UID()
-        val elseAnchorUUID = UID()
-        val endAnchorUUID = UID()
+        val ifAnchorMarker = AnchorMarker()
+        val elseAnchorMarker = AnchorMarker()
+        val endAnchorMarker = AnchorMarker()
 
         instruction(
             Instruction.JumpIf(
                 source = condition,
-                ifPosition = positionByAnchor(ifAnchorUUID),
-                elsePosition = positionByAnchor(elseAnchorUUID),
+                ifPosition = positionByAnchor(ifAnchorMarker),
+                elsePosition = positionByAnchor(elseAnchorMarker),
             )
         )
 
-        anchor(ifAnchorUUID)
+        anchor(ifAnchorMarker)
         ifStatement.exec()
         instruction(
             Instruction.Jump(
-                position = positionByAnchor(endAnchorUUID)
+                position = positionByAnchor(endAnchorMarker)
             )
         )
 
-        anchor(elseAnchorUUID)
+        anchor(elseAnchorMarker)
         elseStatement.exec()
 
-        anchor(endAnchorUUID)
+        anchor(endAnchorMarker)
     }
 
     private fun IncrementExpression.eval() = codegenExpression {
@@ -673,8 +672,8 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
 
     private fun BinaryExpression.eval() = codegenExpression {
         fun produce(slot: Argument.Slot) {
-            val exitAnchorUUID = UID()
-            val bAnchorUUID = UID()
+            val exitAnchorMarker = AnchorMarker()
+            val bAnchorMarker = AnchorMarker()
 
             val a = expressionA.evalWithResult(slot)
 
@@ -683,8 +682,8 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
                     instruction(
                         Instruction.JumpIf(
                             source = a,
-                            ifPosition = positionByAnchor(exitAnchorUUID),
-                            elsePosition = positionByAnchor(bAnchorUUID)
+                            ifPosition = positionByAnchor(exitAnchorMarker),
+                            elsePosition = positionByAnchor(bAnchorMarker)
                         )
                     )
                 }
@@ -693,8 +692,8 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
                     instruction(
                         Instruction.JumpIf(
                             source = a,
-                            ifPosition = positionByAnchor(bAnchorUUID),
-                            elsePosition = positionByAnchor(exitAnchorUUID)
+                            ifPosition = positionByAnchor(bAnchorMarker),
+                            elsePosition = positionByAnchor(exitAnchorMarker)
                         )
                     )
                 }
@@ -702,7 +701,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
                 else -> Unit
             }
 
-            anchor(bAnchorUUID)
+            anchor(bAnchorMarker)
 
             val b = expressionB.evalWithResult()
 
@@ -776,7 +775,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
 
             instruction(binaryInstruction)
 
-            anchor(exitAnchorUUID)
+            anchor(exitAnchorMarker)
         }
 
         result(

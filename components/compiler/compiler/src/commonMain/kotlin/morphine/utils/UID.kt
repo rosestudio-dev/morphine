@@ -1,31 +1,51 @@
 package morphine.utils
 
-import kotlin.time.TimeSource
+import kotlin.random.Random
 
 interface UID {
     val mostBits: Long
     val leastBits: Long
 }
 
-class CommonUID : UID {
-    private val time = TimeSource.Monotonic
-        .markNow()
-        .elapsedNow()
-        .inWholeMicroseconds
+data class CommonUID(
+    override val mostBits: Long,
+    override val leastBits: Long
+) : UID {
 
-    override val mostBits = time
-    override val leastBits = random()
+    private val string by lazy {
+        val randomMost = Random(mostBits)
+        val randomLeast = Random(leastBits)
+        val randomShuffle = Random(mostBits.xor(leastBits))
 
-    private fun random(): Long {
-        val array = secureRandom(8)
-        var result = 0L
+        val comp1 = (0 until LEN / 2).map { toStringChars[randomMost.nextInt(toStringChars.size)] }
+        val comp2 = (0 until LEN / 2).map { toStringChars[randomLeast.nextInt(toStringChars.size)] }
 
-        repeat(8) { index ->
-            result = result.or(array[index].toLong() shl (index * 8))
+        (comp1 + comp2).shuffled(randomShuffle).joinToString(separator = "")
+    }
+
+    override fun toString() = string
+
+    companion object {
+
+        private const val LEN = 12
+        private val toStringChars = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789".toCharArray()
+
+        fun random(): CommonUID {
+            val array = secureRandom(8)
+            var rand = 0L
+
+            repeat(8) { index ->
+                rand = rand.or(array[index].toLong().and(0xFF) shl (index * 8))
+            }
+
+            val time = millis()
+
+            return CommonUID(
+                mostBits = time,
+                leastBits = rand
+            )
         }
-
-        return result
     }
 }
 
-fun UID() = CommonUID()
+fun UID() = CommonUID.random()

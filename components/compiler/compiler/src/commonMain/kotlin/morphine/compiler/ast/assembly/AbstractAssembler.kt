@@ -4,7 +4,6 @@ import morphine.bytecode.Argument
 import morphine.bytecode.Bytecode
 import morphine.bytecode.Instruction
 import morphine.bytecode.LineData
-import morphine.utils.UID
 import morphine.bytecode.Value
 import morphine.compiler.ast.assembly.exception.CompilerException
 import morphine.compiler.ast.node.Accessible
@@ -12,6 +11,7 @@ import morphine.compiler.ast.node.Compiler
 import morphine.compiler.ast.node.Expression
 import morphine.compiler.ast.node.Node
 import morphine.compiler.ast.node.Statement
+import morphine.utils.UID
 
 abstract class AbstractAssembler(
     private val optimize: Boolean
@@ -22,11 +22,11 @@ abstract class AbstractAssembler(
     var lineData: LineData? = null
         private set
 
-    private val mainUUID = UID()
+    private val mainUID = UID()
 
     private val mainFunction = Function(
         name = "main",
-        uid = mainUUID,
+        uid = mainUID,
         arguments = emptyList(),
         statics = emptyList(),
     )
@@ -111,8 +111,8 @@ abstract class AbstractAssembler(
     fun exitBreakContinue() {
         val block = function.breakContinueAnchors.removeLast()
 
-        val hasBreak = function.anchors.any { anchor -> anchor.uid == block.breakAnchorUID }
-        val hasContinue = function.anchors.any { anchor -> anchor.uid == block.continueAnchorUID }
+        val hasBreak = function.anchors.any { anchor -> anchor.marker == block.breakAnchorMarker }
+        val hasContinue = function.anchors.any { anchor -> anchor.marker == block.continueAnchorMarker }
 
         if (!hasBreak || !hasContinue) {
             throw CompilerException("Break/Continue block corrupted")
@@ -228,7 +228,7 @@ abstract class AbstractAssembler(
     // region bytecode
 
     fun bytecode() = Bytecode(
-        mainFunction = mainUUID,
+        mainFunction = mainUID,
         functions = (readyFunctions + mainFunction).map { function ->
             Bytecode.Function(
                 uid = function.uid,
@@ -288,11 +288,11 @@ abstract class AbstractAssembler(
         val temporaries = Scope<Scope.Slot.Temporary>(slots)
 
         val breakAnchor
-            get() = breakContinueAnchors.lastOrNull()?.breakAnchorUID
+            get() = breakContinueAnchors.lastOrNull()?.breakAnchorMarker
                 ?: throw CompilerException("Breakable block not found")
 
         val continueAnchor
-            get() = breakContinueAnchors.lastOrNull()?.continueAnchorUID
+            get() = breakContinueAnchors.lastOrNull()?.continueAnchorMarker
                 ?: throw CompilerException("Continuable block not found")
     }
 
@@ -354,13 +354,13 @@ abstract class AbstractAssembler(
             )
         }
 
-        fun anchor(uid: UID) {
-            val anchor = function.anchors.find { anchor -> anchor.uid == uid }
+        fun anchor(marker: AnchorMarker) {
+            val anchor = function.anchors.find { anchor -> anchor.marker == marker }
 
             when {
                 anchor == null -> function.anchors.add(
                     Anchor(
-                        uid = uid,
+                        marker = marker,
                         position = function.instructions.size
                     )
                 )
@@ -371,15 +371,15 @@ abstract class AbstractAssembler(
             }
         }
 
-        fun positionByAnchor(uid: UID): Argument.Position {
+        fun positionByAnchor(marker: AnchorMarker): Argument.Position {
             val anchorIndex = function.anchors.indexOfFirst { anchor ->
-                anchor.uid == uid
+                anchor.marker == marker
             }
 
             return if (anchorIndex in function.anchors.indices) {
                 Argument.Position(anchorIndex)
             } else {
-                function.anchors.add(Anchor(uid = uid))
+                function.anchors.add(Anchor(marker = marker))
                 Argument.Position(function.anchors.size - 1)
             }
         }
@@ -441,14 +441,16 @@ abstract class AbstractAssembler(
     inner class AccessibleCodegen(node: Node) : Codegen(node)
 
     data class Anchor(
-        val uid: UID,
+        val marker: AnchorMarker,
         var position: Int? = null
     )
 
     data class BreakContinueAnchors(
-        val breakAnchorUID: UID = UID(),
-        val continueAnchorUID: UID = UID(),
+        val breakAnchorMarker: AnchorMarker = AnchorMarker(),
+        val continueAnchorMarker: AnchorMarker = AnchorMarker(),
     )
+
+    class AnchorMarker
 
     private sealed interface CompileInfo {
 
