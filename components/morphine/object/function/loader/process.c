@@ -58,9 +58,8 @@ struct function *process(
     void *args,
     function_loader_t loader
 ) {
-    struct process_state *state = process_userdata(U, init, read, finish, args);
-
     size_t stack_size = stackI_space(U);
+    struct process_state *state = process_userdata(U, init, read, finish, args);
     struct function *result = loader(U, state);
     stackI_pop(U, stackI_space(U) - stack_size);
 
