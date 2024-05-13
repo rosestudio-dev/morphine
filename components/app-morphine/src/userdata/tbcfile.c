@@ -18,7 +18,10 @@ static void tbc_file_free(morphine_instance_t I, void *p) {
 }
 
 FILE *userdata_tbc_file(morphine_coroutine_t U, const char *path, const char *mode) {
-    struct file *file = mapi_push_userdata(U, "tbc_file", sizeof(struct file), tbc_file_free);
+    struct file *file = mapi_push_userdata(U, "tbc_file", sizeof(struct file));
+    file->file = NULL;
+    mapi_userdata_set_free(U, tbc_file_free);
+
     file->file = fopen(path, mode);
 
     if (file->file == NULL) {

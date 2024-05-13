@@ -8,6 +8,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
 #include "morphine/gc/allocator.h"
+#include "morphine/core/throw.h"
 #include <string.h>
 
 struct data {
@@ -22,7 +23,7 @@ struct data {
 };
 
 static uint8_t get_u8(struct data *data) {
-    uint8_t byte = process_byte(data->state);
+    uint8_t byte = process_byte(data->U, data->state);
     crc32_char(&data->crc, byte);
     return byte;
 }
@@ -67,7 +68,7 @@ static uint32_t get_u32(struct data *data) {
             init = 4;
             break;
         default:
-            process_error(data->state, "Unknown int tag");
+            throwI_error(data->U->I, "Unknown int tag");
     }
 
     for (int i = init; i < 4; i++) {
@@ -183,7 +184,7 @@ static void load_instructions(struct data *data, struct function *function) {
         };
 
         if (!instructionI_is_valid_opcode(instruction.opcode)) {
-            process_error(data->state, "Unsupported opcode");
+            throwI_error(data->U->I, "Unsupported opcode");
         }
 
         argument_t *args = &instruction.argument1;
@@ -230,7 +231,7 @@ static void load_constants(struct data *data, struct function *function) {
                 }
 
                 if (found == NULL) {
-                    process_error(data->state, "Function constant corrupted");
+                    throwI_error(data->U->I, "Function constant corrupted");
                 }
 
                 constant = valueI_object(found);
@@ -250,7 +251,7 @@ static void load_constants(struct data *data, struct function *function) {
             }
 
             default: {
-                process_error(data->state, "Unsupported constant tag");
+                throwI_error(data->U->I, "Unsupported constant tag");
             }
         }
 
@@ -283,7 +284,7 @@ static void check_csum(struct data *data) {
     hash.raw[0] = get_u8(data);
 
     if (expected != hash.result) {
-        process_error(data->state, "Binary corrupted");
+        throwI_error(data->U->I, "Binary corrupted");
     }
 }
 
@@ -296,7 +297,7 @@ static void check_tag(struct data *data) {
     }
 
     if (strcmp(buffer, FORMAT_TAG) != 0) {
-        process_error(data->state, "Wrong format tag");
+        throwI_error(data->U->I, "Wrong format tag");
     }
 }
 
@@ -307,7 +308,7 @@ static struct uuid load(struct data *data) {
     size_t functions_count = get_u32(data);
 
     struct userdata *userdata = userdataI_create_vec(
-        data->U->I, "functions", functions_count, sizeof(struct function *), NULL
+        data->U->I, "functions", functions_count, sizeof(struct function *)
     );
 
     stackI_push(data->U, valueI_object(userdata));
@@ -352,7 +353,7 @@ static struct function *get_main(struct data *data, struct uuid main_uuid) {
     }
 
     if (main == NULL) {
-        process_error(data->state, "Main function wasn't found");
+        throwI_error(data->U->I, "Main function wasn't found");
     }
 
     return main;

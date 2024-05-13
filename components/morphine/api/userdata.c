@@ -10,10 +10,9 @@
 MORPHINE_API void *mapi_push_userdata(
     morphine_coroutine_t U,
     const char *type,
-    size_t size,
-    morphine_free_t free
+    size_t size
 ) {
-    struct userdata *userdata = userdataI_create(U->I, type, size, free);
+    struct userdata *userdata = userdataI_create(U->I, type, size);
     stackI_push(U, valueI_object(userdata));
     return userdata->data;
 }
@@ -22,12 +21,16 @@ MORPHINE_API void *mapi_push_userdata_vec(
     morphine_coroutine_t U,
     const char *type,
     size_t count,
-    size_t size,
-    morphine_free_t free
+    size_t size
 ) {
-    struct userdata *userdata = userdataI_create_vec(U->I, type, count, size, free);
+    struct userdata *userdata = userdataI_create_vec(U->I, type, count, size);
     stackI_push(U, valueI_object(userdata));
     return userdata->data;
+}
+
+MORPHINE_API void mapi_userdata_set_free(morphine_coroutine_t U, morphine_free_t free) {
+    struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
+    userdataI_set_free(U->I, userdata, free);
 }
 
 MORPHINE_API void mapi_userdata_mode_lock_metatable(morphine_coroutine_t U) {

@@ -78,7 +78,7 @@ static void check_version(morphine_coroutine_t U, struct compiler_instance *inst
 
 struct compiler_instance *libcompiler_userdata(morphine_coroutine_t U) {
     struct compiler_instance *instance = mapi_push_userdata(
-        U, "libcompiler", sizeof(struct compiler_instance), userdata_free
+        U, "libcompiler", sizeof(struct compiler_instance)
     );
 
     struct vmdata *data = mapi_instance_data(mapi_instance(U));
@@ -87,6 +87,8 @@ struct compiler_instance *libcompiler_userdata(morphine_coroutine_t U) {
         .inited = false,
         .symbols = data->libcompiler->symbols
     };
+
+    mapi_userdata_set_free(U, userdata_free);
 
     if (instance->symbols == NULL) {
         mapi_errorf(U, "Compiler isn't initialized");

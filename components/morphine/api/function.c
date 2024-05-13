@@ -16,11 +16,11 @@ struct loader_array {
     const uint8_t *vector;
 };
 
-static void *loader_array_open(morphine_coroutine_t U, void *data) {
+static void *loader_array_open(morphine_instance_t I, void *data) {
     struct loader_array *array = cast(struct loader_array *, data);
 
     if (array->size == 0 || array->vector == NULL) {
-        throwI_error(U->I, "Binary vector is empty");
+        throwI_error(I, "Binary vector is empty");
     }
 
     array->pointer = 0;
@@ -28,8 +28,8 @@ static void *loader_array_open(morphine_coroutine_t U, void *data) {
     return array;
 }
 
-static uint8_t loader_array_read(morphine_coroutine_t U, void *data, const char **error) {
-    unused(U);
+static uint8_t loader_array_read(morphine_instance_t I, void *data, const char **error) {
+    unused(I);
 
     struct loader_array *loader = cast(struct loader_array *, data);
 

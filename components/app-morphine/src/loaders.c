@@ -8,8 +8,8 @@
 #include "userdata/readfile.h"
 #include "userdata/tbcfile.h"
 
-static uint8_t file_read(morphine_coroutine_t U, void *data, const char **error) {
-    (void) (U);
+static uint8_t file_read(morphine_instance_t I, void *data, const char **error) {
+    (void) (I);
 
     FILE *file = (FILE *) data;
 

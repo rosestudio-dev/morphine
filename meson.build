@@ -15,7 +15,6 @@ installdir = get_option('installdir')
 message('Install dir:', installdir)
 
 subproject('app-morphine')
-subproject('compiler')
 
 if installdir != 'undefined'
     install_data(

@@ -150,14 +150,9 @@ MORPHINE_API morphine_native_t mapi_native_function(morphine_coroutine_t);
 
 // userdata
 
-MORPHINE_API void *mapi_push_userdata(
-    morphine_coroutine_t, const char *type,
-    size_t size, morphine_free_t free
-);
-MORPHINE_API void *mapi_push_userdata_vec(
-    morphine_coroutine_t, const char *type,
-    size_t count, size_t size, morphine_free_t free
-);
+MORPHINE_API void *mapi_push_userdata(morphine_coroutine_t, const char *type, size_t size);
+MORPHINE_API void *mapi_push_userdata_vec(morphine_coroutine_t, const char *type, size_t count, size_t size);
+MORPHINE_API void mapi_userdata_set_free(morphine_coroutine_t, morphine_free_t);
 MORPHINE_API void mapi_userdata_mode_lock_metatable(morphine_coroutine_t);
 MORPHINE_API bool mapi_userdata_mode_metatable_is_locked(morphine_coroutine_t);
 MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t, size_t size);
