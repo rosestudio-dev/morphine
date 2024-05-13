@@ -25,7 +25,7 @@ Morphine has the following main features that build the language's ideology:
 - python 3
 - cc
 - gradle
-- java (graalvm with native-image utility)
+- java
 
 ## License
 > [!NOTE]
