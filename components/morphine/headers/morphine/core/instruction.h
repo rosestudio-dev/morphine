@@ -35,11 +35,11 @@ typedef enum {
     OPCODE_JUMP,            // [position (pos)]                                              jump to (position)
     OPCODE_JUMP_IF,         // [condition (slot), if_position (pos), else_position (pos)]    if (condition) is true jump to (if_position) else jump to (else_position)
 
-    OPCODE_GET_STATIC,      // [static (id), dest (slot)]                                    get from (static) to (dest)
-    OPCODE_SET_STATIC,      // [static (id), src (slot)]                                     set (src) to (static)
+    OPCODE_GET_STATIC,      // [callable (slot), static (index), dest (slot)]                get static by (index) from (callable) to (dest)
+    OPCODE_SET_STATIC,      // [callable (slot), static (index), src (slot)]                 set (src) to static of (callable) by (index)
 
-    OPCODE_GET_CLOSURE,     // [closure (id), dest (slot)]                                   get from (closure) to (dest)
-    OPCODE_SET_CLOSURE,     // [closure (id), src (slot)]                                    set (src) to (closure)
+    OPCODE_GET_CLOSURE,     // [closure (slot), closure (index), dest (slot)]                get closure by (index) from (closure) to (dest)
+    OPCODE_SET_CLOSURE,     // [closure (slot), closure (index), src (slot)]                 set (src) to (closure) by (index)
 
     OPCODE_CLOSURE,         // [function (slot), params (num), dest (slot)]                  create closure for (function) with params (size) in (dest)
     OPCODE_CALL,            // [function (slot), params (num)]                               call (function) with params (size) and self as nil
@@ -86,8 +86,6 @@ bool instructionI_validate(
     size_t arguments_count,
     size_t slots_count,
     size_t params_count,
-    size_t closures_count,
-    size_t statics_count,
     size_t constants_count
 );
 

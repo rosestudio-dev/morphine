@@ -305,6 +305,25 @@ MORPHINE_API void mapi_gc_change_pause(morphine_instance_t I, uint8_t value) {
 /*
  * {{docs body}}
  * path:vm/api-garbage-collector
+ * ## mapi_gc_change_cache_callinfo_holding
+ * ### Prototype
+ * ```c
+ * void mapi_gc_change_cache_callinfo_holding(morphine_instance_t I, uint8_t value)
+ * ```
+ * ### Parameters
+ * * `I` - instance
+ * * `value` - count of holded callinfo
+ * ### Description
+ * Sets count of holded callinfo into gc
+ * {{end}}
+ */
+MORPHINE_API void mapi_gc_change_cache_callinfo_holding(morphine_instance_t I, size_t value) {
+    gcI_change_cache_callinfo_holding(I, value);
+}
+
+/*
+ * {{docs body}}
+ * path:vm/api-garbage-collector
  * ## mapi_gc_change_finalizer_stack_limit
  * ### Prototype
  * ```c

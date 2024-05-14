@@ -19,7 +19,6 @@ struct function *functionI_create(
     size_t statics_count,
     size_t arguments_count,
     size_t slots_count,
-    size_t closures_count,
     size_t params_count
 ) {
     if (name_len > MLIMIT_FUNCTION_NAME) {
@@ -37,7 +36,6 @@ struct function *functionI_create(
         .statics_count = 0,
         .arguments_count = arguments_count,
         .slots_count = slots_count,
-        .closures_count = closures_count,
         .params_count = params_count,
         .constants = NULL,
         .instructions = NULL,
@@ -92,8 +90,6 @@ void functionI_validate(morphine_instance_t I, struct function *function) {
             function->arguments_count,
             function->slots_count,
             function->params_count,
-            function->closures_count,
-            function->statics_count,
             function->constants_count
         );
 

@@ -29,3 +29,7 @@ MORPHINE_API void mapi_copy(morphine_coroutine_t U, morphine_coroutine_t to, siz
 MORPHINE_API void mapi_stack_reset(morphine_coroutine_t U) {
     stackI_pop(U, stackI_space(U));
 }
+
+MORPHINE_API size_t mapi_stack(morphine_coroutine_t U) {
+    return stackI_space(U);
+}

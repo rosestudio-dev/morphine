@@ -21,7 +21,6 @@ struct function {
     size_t constants_count;
     size_t arguments_count;
     size_t slots_count;
-    size_t closures_count;
     size_t statics_count;
     size_t params_count;
 
@@ -41,7 +40,6 @@ struct function *functionI_create(
     size_t statics_count,
     size_t arguments_count,
     size_t slots_count,
-    size_t closures_count,
     size_t params_count
 );
 
@@ -49,8 +47,8 @@ void functionI_free(morphine_instance_t, struct function *);
 
 void functionI_validate(morphine_instance_t, struct function *);
 
-struct value functionI_static_get(morphine_instance_t, struct function *, size_t index);
-void functionI_static_set(morphine_instance_t, struct function *, size_t index, struct value value);
+struct value functionI_static_get(morphine_instance_t, struct function *function, size_t index);
+void functionI_static_set(morphine_instance_t, struct function *function, size_t index, struct value value);
 
 struct value functionI_constant_get(morphine_instance_t, struct function *, size_t index);
 void functionI_constant_set(morphine_instance_t, struct function *, size_t index, struct value value);

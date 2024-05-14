@@ -71,7 +71,14 @@ static inline int compare(morphine_instance_t I, struct value a, struct value b)
         case VALUE_TYPE_STRING: {
             struct string *str_a = valueI_as_string(a);
             struct string *str_b = valueI_as_string(b);
-            return strcmp(str_a->chars, str_b->chars);
+
+            if(str_a->size == str_b->size) {
+                return memcmp(str_a->chars, str_b->chars, sizeof(char) * str_a->size);
+            } else if(str_a->size > str_b->size) {
+                return 1;
+            } else {
+                return -1;
+            }
         }
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_TABLE:
@@ -540,6 +547,7 @@ struct table *tableI_create(morphine_instance_t I) {
 
         .mode.fixed = false,
         .mode.mutable = true,
+        .mode.metatable_locked = false,
         .mode.locked = false,
 
         .hashmap.buckets.head = NULL,
@@ -590,6 +598,14 @@ void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mut
     }
 
     table->mode.mutable = is_mutable;
+}
+
+void tableI_mode_lock_metatable(morphine_instance_t I, struct table *table) {
+    if (table == NULL) {
+        throwI_error(I, "Table is null");
+    }
+
+    table->mode.metatable_locked = true;
 }
 
 void tableI_mode_lock(morphine_instance_t I, struct table *table) {

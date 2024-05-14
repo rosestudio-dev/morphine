@@ -9,6 +9,10 @@
 struct userdata {
     struct object header;
 
+    struct {
+        bool metatable_locked;
+    } mode;
+
     char *name;
     size_t name_len;
 
@@ -20,19 +24,13 @@ struct userdata {
     struct table *metatable;
 };
 
-struct userdata *userdataI_create(
-    morphine_instance_t, const char *name,
-    size_t size,
-    morphine_free_t free
-);
-
-struct userdata *userdataI_create_vec(
-    morphine_instance_t, const char *name,
-    size_t count, size_t size,
-    morphine_free_t free
-);
-
+struct userdata *userdataI_create(morphine_instance_t, const char *name, size_t size);
+struct userdata *userdataI_create_vec(morphine_instance_t, const char *name, size_t count, size_t size);
 void userdataI_free(morphine_instance_t, struct userdata *);
+
+void userdataI_set_free(morphine_instance_t, struct userdata *, morphine_free_t);
+
+void userdataI_mode_lock_metatable(morphine_instance_t, struct userdata *);
 
 void userdataI_resize(morphine_instance_t, struct userdata *, size_t);
 void userdataI_resize_vec(morphine_instance_t, struct userdata *, size_t count, size_t);

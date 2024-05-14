@@ -127,6 +127,42 @@ MORPHINE_API void mapi_callselfi(morphine_coroutine_t U, size_t argc) {
 /*
  * {{docs body}}
  * path:vm/api-callstack
+ * ## mapi_push_callable
+ * ### Prototype
+ * ```c
+ * void mapi_push_callable(morphine_coroutine_t U)
+ * ```
+ * ### Parameters
+ * * `U` - coroutine
+ * ### Description
+ * Pushes the callable onto the stack
+ * {{end}}
+ */
+MORPHINE_API void mapi_push_callable(morphine_coroutine_t U) {
+    stackI_push(U, *callstackI_info_or_error(U)->s.callable);
+}
+
+/*
+ * {{docs body}}
+ * path:vm/api-callstack
+ * ## mapi_extract_callable
+ * ### Prototype
+ * ```c
+ * void mapi_extract_callable(morphine_coroutine_t U)
+ * ```
+ * ### Parameters
+ * * `U` - coroutine
+ * ### Description
+ * Extracts a peeked callable and pushes it onto the stack
+ * {{end}}
+ */
+MORPHINE_API void mapi_extract_callable(morphine_coroutine_t U) {
+    stackI_push(U, callstackI_extract_callable(U->I, stackI_peek(U, 0)));
+}
+
+/*
+ * {{docs body}}
+ * path:vm/api-callstack
  * ## mapi_push_result
  * ### Prototype
  * ```c

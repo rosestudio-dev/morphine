@@ -7,6 +7,7 @@
 #include <inttypes.h>
 #include <string.h>
 #include <parseargs.h>
+#include <ctype.h>
 
 static void help(const char *program, const char *message, bool disable_usage) {
     printf("Morphine Language\n");
@@ -21,10 +22,10 @@ static void help(const char *program, const char *message, bool disable_usage) {
         printf("    args          program arguments\n");
         printf("Optional arguments:\n");
         printf("    -b            Binary program\n");
-        printf("    -l bytes [8M] Limit of allocation in bytes (suffixes: K, M, G, T)\n");
+        printf("    -l bytes [8M] Limit of allocation in bytes (suffixes: K, M, G)\n");
         printf("    -m, -M        Enable executing time measure (Use uppercase for pretty printing)\n");
         printf("    -a, -A        Use debug allocator (Use uppercase for pretty printing)\n");
-        printf("    -L bytes [8M] Limit of allocation for debug allocator in bytes (suffixes: K, M, G, T)\n");
+        printf("    -L bytes [8M] Limit of allocation for debug allocator in bytes (suffixes: K, M, G)\n");
         printf("    -v            Print version\n");
         printf("    -h            Usage info\n");
         printf("    --            Stop handling options\n");
@@ -37,16 +38,16 @@ static size_t read_bytes(const char *str, const char *program) {
     char *end;
     size_t bytes = strtoumax(str, &end, 10);
 
-    switch (*end) {
+    switch (tolower(*end)) {
         case '\0':
             return bytes;
-        case 'G':
+        case 'g':
             bytes *= 1024 * 1024 * 1024;
             break;
-        case 'M':
+        case 'm':
             bytes *= 1024 * 1024;
             break;
-        case 'K':
+        case 'k':
             bytes *= 1024;
             break;
     }

@@ -102,7 +102,7 @@ static inline void step(morphine_instance_t I, size_t reserved) {
         }
         case GC_STATUS_RESOLVE: {
 resolve:
-            gcstageI_resolve(I);
+            gcstageI_resolve(I, false);
             I->G.status = GC_STATUS_SWEEP;
             break;
         }
@@ -149,6 +149,7 @@ static inline void recover_pool(morphine_instance_t I, struct object **pool) {
 static void recover_pools(morphine_instance_t I) {
     recover_pool(I, &I->G.pools.sweep);
     recover_pool(I, &I->G.pools.black);
+    recover_pool(I, &I->G.pools.black_coroutines);
     recover_pool(I, &I->G.pools.grey);
 }
 
@@ -182,6 +183,10 @@ void gcI_change_pause(morphine_instance_t I, uint8_t value) {
     }
 
     I->G.settings.pause = ((uint32_t) 1) << value;
+}
+
+void gcI_change_cache_callinfo_holding(morphine_instance_t I, size_t value) {
+    I->G.settings.cache_callinfo_holding = value;
 }
 
 void gcI_reset_max_allocated(morphine_instance_t I) {
@@ -225,7 +230,7 @@ void gcI_full(morphine_instance_t I, size_t reserved) {
     recover_pools(I);
     gcstageI_prepare(I);
     while (gcstageI_increment(I, SIZE_MAX)) { }
-    gcstageI_resolve(I);
+    gcstageI_resolve(I, true);
     while (gcstageI_sweep(I, SIZE_MAX)) { }
 
     I->G.status = GC_STATUS_IDLE;

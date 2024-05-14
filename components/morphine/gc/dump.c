@@ -97,6 +97,12 @@ static void pool(morphine_instance_t I, struct object *pool) {
 }
 
 void gcI_dump(morphine_instance_t I) {
+    FILE *out = I->platform.io.out;
+
+    if (out == NULL) {
+        return;
+    }
+
     const char *status = "unknown";
     switch (I->G.status) {
         case GC_STATUS_IDLE:
@@ -115,8 +121,6 @@ void gcI_dump(morphine_instance_t I) {
             status = "sweep";
             break;
     }
-
-    FILE *out = I->platform.io.out;
 
     fprintf(out, "@ Garbage collector dump\n");
     fprintf(out, "@ Status:                 %s\n", status);
@@ -152,6 +156,8 @@ void gcI_dump(morphine_instance_t I) {
     pool(I, I->G.pools.grey);
     fprintf(out, "@ Pool 'black':\n");
     pool(I, I->G.pools.black);
+    fprintf(out, "@ Pool 'black coroutines':\n");
+    pool(I, I->G.pools.black_coroutines);
     fprintf(out, "@ Pool 'sweep':\n");
     pool(I, I->G.pools.sweep);
     fprintf(out, "@ Pool 'finalize':\n");

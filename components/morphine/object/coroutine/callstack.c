@@ -11,7 +11,7 @@
 #include "morphine/core/value.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
-#include "morphine/gc/hot.h"
+#include "morphine/gc/cache.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 #include "morphine/misc/metatable.h"
@@ -68,7 +68,7 @@ static inline void stackI_call(
         throwI_error(I, "Cannot pop values after call");
     }
 
-    struct callinfo *callinfo = gcI_hot_callinfo(I);
+    struct callinfo *callinfo = gcI_cache_callinfo(I);
     if (callinfo == NULL) {
         callinfo = allocI_uni(I, NULL, sizeof(struct callinfo));
     }
@@ -280,7 +280,7 @@ void callstackI_pop(morphine_coroutine_t U) {
     callstackI_info(U) = callinfo->prev;
     U->callstack.size--;
 
-    gcI_dispose_callinfo(U->I, callinfo);
+    gcI_cache_dispose_callinfo(U->I, callinfo);
 
     stackI_pop(U, pop_size);
 
@@ -291,7 +291,7 @@ void callstackI_pop(morphine_coroutine_t U) {
 
 void callstackI_fix_uninit(morphine_coroutine_t U) {
     if (U->callstack.uninit_callinfo != NULL) {
-        gcI_dispose_callinfo(U->I, U->callstack.uninit_callinfo);
+        gcI_cache_dispose_callinfo(U->I, U->callstack.uninit_callinfo);
         U->callstack.uninit_callinfo = NULL;
     }
 }

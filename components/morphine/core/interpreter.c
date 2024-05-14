@@ -204,20 +204,33 @@ sp_case(OPCODE_JUMP_IF)
             }
 sp_case(OPCODE_GET_STATIC)
             {
-                slot(C, arg2) = functionI_static_get(U->I, F, arg1.value);
+                struct value extracted = callstackI_extract_callable(U->I, slot(C, arg1));
+                struct function *function = valueI_as_function_or_error(U->I, extracted);
+                slot(C, arg3) = functionI_static_get(
+                    U->I,
+                    function,
+                    arg2.value
+                );
                 sp_end();
             }
 sp_case(OPCODE_SET_STATIC)
             {
-                functionI_static_set(U->I, F, arg1.value, slot(C, arg2));
+                struct value extracted = callstackI_extract_callable(U->I, slot(C, arg1));
+                struct function *function = valueI_as_function_or_error(U->I, extracted);
+                functionI_static_set(
+                    U->I,
+                    function,
+                    arg2.value,
+                    slot(C, arg3)
+                );
                 sp_end();
             }
 sp_case(OPCODE_GET_CLOSURE)
             {
-                slot(C, arg2) = closureI_get(
+                slot(C, arg3) = closureI_get(
                     U->I,
-                    valueI_as_closure_or_error(U->I, *C->s.callable),
-                    arg1.value
+                    valueI_as_closure_or_error(U->I, slot(C, arg1)),
+                    arg2.value
                 );
                 sp_end();
             }
@@ -225,9 +238,10 @@ sp_case(OPCODE_SET_CLOSURE)
             {
                 closureI_set(
                     U->I,
-                    valueI_as_closure_or_error(U->I, *C->s.callable),
-                    arg1.value,
-                    slot(C, arg2));
+                    valueI_as_closure_or_error(U->I, slot(C, arg1)),
+                    arg2.value,
+                    slot(C, arg3)
+                );
                 sp_end();
             }
 sp_case(OPCODE_CLOSURE)

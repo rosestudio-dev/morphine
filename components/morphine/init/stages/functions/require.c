@@ -16,6 +16,7 @@ static struct require_loader table[] = {
     { "math",      mlib_math_loader },
     { "string",    mlib_string_loader },
     { "table",     mlib_table_loader },
+    { "userdata",  mlib_userdata_loader },
     { "vector",    mlib_vector_loader },
     { "value",     mlib_value_loader },
     { "registry",  mlib_registry_loader },
@@ -38,30 +39,22 @@ static inline struct require_loader *search(struct require_loader *loader, const
 void require(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t variant = maux_checkargs(
-                U, 4,
-                "string",
-                "string,string",
-                "string,boolean",
-                "string,string,boolean"
-            );
+            size_t args = mapi_args(U);
 
             mapi_push_arg(U, 0);
+            maux_expect(U, "string");
             const char *id = mapi_get_string(U);
 
             bool has = mapi_registry_get(U);
-            bool force_load = false;
-            if (variant == 2) {
+            bool force = false;
+            if (args > 1) {
+                maux_expect_args(U, 2);
                 mapi_push_arg(U, 1);
-                force_load = mapi_get_boolean(U);
-                mapi_pop(U, 1);
-            } else if (variant == 3) {
-                mapi_push_arg(U, 2);
-                force_load = mapi_get_boolean(U);
-                mapi_pop(U, 1);
+                maux_expect(U, "boolean");
+                force = mapi_get_boolean(U);
             }
 
-            if (!has || force_load) {
+            if (!has | force) {
                 mapi_pop(U, 1);
 
                 struct require_loader *result = search(table, id);
@@ -78,19 +71,6 @@ void require(morphine_coroutine_t U) {
                 mapi_peek(U, 1);
                 mapi_registry_set(U);
             }
-
-            if (variant == 0 || variant == 2) {
-                nb_return();
-            }
-
-            mapi_push_arg(U, 1);
-            const char *symbol = mapi_get_string(U);
-            bool has_part = mapi_table_get(U);
-
-            if (!has_part) {
-                mapi_errorf(U, "Cannot find '%s' symbol from '%s' library", symbol, id);
-            }
-
             nb_return();
     nb_end
 }

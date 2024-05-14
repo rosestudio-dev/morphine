@@ -25,6 +25,7 @@ struct garbage_collector {
         uint16_t grow;
         uint16_t deal;
         size_t pause;
+        size_t cache_callinfo_holding;
     } settings;
 
     struct {
@@ -41,6 +42,7 @@ struct garbage_collector {
         struct object *allocated;
         struct object *grey;
         struct object *black;
+        struct object *black_coroutines;
         struct object *sweep;
 
         struct object *finalize;
@@ -58,8 +60,11 @@ struct garbage_collector {
     } safe;
 
     struct {
-        struct callinfo *callinfo;
-    } trash;
+        struct {
+            size_t size;
+            struct callinfo *pool;
+        } callinfo;
+    } cache;
 };
 
 void gcI_prototype(morphine_instance_t, size_t inited_bytes);

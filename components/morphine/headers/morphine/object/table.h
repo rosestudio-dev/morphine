@@ -51,6 +51,7 @@ struct table {
     struct {
         bool fixed;
         bool mutable;
+        bool metatable_locked;
         bool locked;
     } mode;
 
@@ -63,6 +64,7 @@ void tableI_free(morphine_instance_t, struct table *);
 
 void tableI_mode_fixed(morphine_instance_t, struct table *, bool is_fixed);
 void tableI_mode_mutable(morphine_instance_t, struct table *, bool is_mutable);
+void tableI_mode_lock_metatable(morphine_instance_t, struct table *);
 void tableI_mode_lock(morphine_instance_t, struct table *);
 
 ml_size tableI_size(morphine_instance_t, struct table *);

@@ -14,7 +14,7 @@ struct readfile {
 static void readfile_free(morphine_instance_t I, void *p) {
     struct readfile *readfile = p;
 
-    if (!readfile->closed) {
+    if (!readfile->closed && readfile->file != NULL) {
         fclose(readfile->file);
     }
 
@@ -23,14 +23,18 @@ static void readfile_free(morphine_instance_t I, void *p) {
 
 void *userdata_readfile(morphine_coroutine_t U, const char *path) {
     struct readfile *readfile = mapi_push_userdata(
-        U, "readfile", sizeof(struct readfile), readfile_free
+        U, "readfile", sizeof(struct readfile)
     );
 
     (*readfile) = (struct readfile) {
         .data = NULL,
-        .file = fopen(path, "r"),
+        .file = NULL,
         .closed = false
     };
+
+    mapi_userdata_set_free(U, readfile_free);
+
+    readfile->file = fopen(path, "r");
 
     if (readfile->file == NULL) {
         mapi_errorf(U, "Cannot open file %s", path);

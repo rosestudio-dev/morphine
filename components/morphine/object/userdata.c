@@ -32,6 +32,7 @@ static struct userdata *create(
         .size = 0,
         .data = NULL,
         .free = NULL,
+        .mode.metatable_locked = false,
         .metatable = NULL,
     };
 
@@ -46,8 +47,7 @@ static struct userdata *create(
 struct userdata *userdataI_create(
     morphine_instance_t I,
     const char *name,
-    size_t size,
-    morphine_free_t free
+    size_t size
 ) {
     struct userdata *userdata = create(I, name);
 
@@ -55,7 +55,6 @@ struct userdata *userdataI_create(
 
     userdata->data = allocI_uni(I, NULL, size);
     userdata->size = size;
-    userdata->free = free;
 
     gcI_reset_safe(I, rollback);
 
@@ -66,8 +65,7 @@ struct userdata *userdataI_create_vec(
     morphine_instance_t I,
     const char *name,
     size_t count,
-    size_t size,
-    morphine_free_t free
+    size_t size
 ) {
     struct userdata *userdata = create(I, name);
 
@@ -75,7 +73,6 @@ struct userdata *userdataI_create_vec(
 
     userdata->data = allocI_vec(I, NULL, count, size);
     userdata->size = size;
-    userdata->free = free;
 
     gcI_reset_safe(I, rollback);
 
@@ -89,6 +86,22 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
 
     allocI_free(I, userdata->data);
     allocI_free(I, userdata);
+}
+
+void userdataI_set_free(morphine_instance_t I, struct userdata *userdata, morphine_free_t free) {
+    if (userdata == NULL) {
+        throwI_error(I, "Userdata is null");
+    }
+
+    userdata->free = free;
+}
+
+void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userdata) {
+    if (userdata == NULL) {
+        throwI_error(I, "Userdata is null");
+    }
+
+    userdata->mode.metatable_locked = true;
 }
 
 void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t size) {

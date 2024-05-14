@@ -7,7 +7,12 @@
 #include <stdbool.h>
 #include "allocator.h"
 
+struct vmdata {
+    struct libcompiler *libcompiler;
+};
+
 void execute(
+    struct libcompiler *libcompiler,
     struct allocator *allocator,
     const char *path,
     bool binary,

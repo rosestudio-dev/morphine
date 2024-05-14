@@ -48,16 +48,42 @@ static inline void resolve_pools(morphine_instance_t I) {
     }
 }
 
-static inline void resolve_trash(morphine_instance_t I) {
-    struct callinfo *current = I->G.trash.callinfo;
+static inline void resolve_cache(morphine_instance_t I, bool emergency) {
+    struct callinfo *current = I->G.cache.callinfo.pool;
     while (current != NULL) {
+        if (!emergency && I->G.cache.callinfo.size < I->G.settings.cache_callinfo_holding) {
+            break;
+        }
+
         struct callinfo *prev = current->prev;
         callstackI_callinfo_free(I, current);
+        I->G.cache.callinfo.size--;
 
         current = prev;
     }
 
-    I->G.trash.callinfo = NULL;
+    I->G.cache.callinfo.pool = current;
+}
+
+static inline void attach_black_coroutines(morphine_instance_t I) {
+    struct object *end = NULL;
+    struct object *current = I->G.pools.black_coroutines;
+    while (current != NULL) {
+        end = current;
+        current = current->prev;
+    }
+
+    if (end != NULL) {
+        struct object *black = I->G.pools.black;
+
+        if (black != NULL) {
+            black->next = end;
+        }
+        end->prev = black;
+
+        I->G.pools.black = I->G.pools.black_coroutines;
+        I->G.pools.black_coroutines = NULL;
+    }
 }
 
 static inline bool finalize(morphine_instance_t I) {
@@ -86,13 +112,15 @@ static inline bool finalize(morphine_instance_t I) {
     return has;
 }
 
-void gcstageI_resolve(morphine_instance_t I) {
+void gcstageI_resolve(morphine_instance_t I, bool emergency) {
     if (finalize(I)) {
         while (gcstageI_increment(I, SIZE_MAX)) { }
     }
 
+    attach_black_coroutines(I);
+
     resolve_pools(I);
-    resolve_trash(I);
+    resolve_cache(I, emergency);
 
     I->G.pools.sweep = I->G.pools.allocated;
     I->G.pools.allocated = I->G.pools.black;

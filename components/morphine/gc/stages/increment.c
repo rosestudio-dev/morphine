@@ -12,23 +12,27 @@ static inline size_t record(morphine_instance_t I) {
         morphine_coroutine_t current = I->E.coroutines;
         while (current != NULL) {
             mark_object(I, objectI_cast(current));
-            checked += mark_internal(I, objectI_cast(current));
             current = current->prev;
         }
 
         if (I->E.running != NULL) {
             mark_object(I, objectI_cast(I->E.running));
-            checked += mark_internal(I, objectI_cast(I->E.running));
         }
 
         if (I->E.next != NULL) {
             mark_object(I, objectI_cast(I->E.next));
-            checked += mark_internal(I, objectI_cast(I->E.next));
         }
 
         if (I->G.finalizer.coroutine != NULL) {
             mark_object(I, objectI_cast(I->G.finalizer.coroutine));
-            checked += mark_internal(I, objectI_cast(I->G.finalizer.coroutine));
+        }
+    }
+
+    {
+        struct object *current = I->G.pools.black_coroutines;
+        while (current != NULL) {
+            checked += mark_internal(I, current);
+            current = current->prev;
         }
     }
 
@@ -88,7 +92,12 @@ bool gcstageI_increment(morphine_instance_t I, size_t debt) {
 
             current->color = OBJ_COLOR_BLACK;
             gcI_pools_remove(current, &I->G.pools.grey);
-            gcI_pools_insert(current, &I->G.pools.black);
+
+            if (current->type == OBJ_TYPE_COROUTINE) {
+                gcI_pools_insert(current, &I->G.pools.black_coroutines);
+            } else {
+                gcI_pools_insert(current, &I->G.pools.black);
+            }
 
             size_t size = mark_internal(I, current);
             if (unlikely(size > SIZE_MAX - checked)) {

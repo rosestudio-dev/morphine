@@ -21,9 +21,4 @@ struct function *process(
     function_loader_t
 );
 
-morphine_noret void process_error(
-    struct process_state *,
-    const char *message
-);
-
-uint8_t process_byte(struct process_state *);
+uint8_t process_byte(morphine_coroutine_t, struct process_state *);

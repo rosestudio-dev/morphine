@@ -4,12 +4,12 @@
 
 #include <loaders.h>
 #include <dlfcn.h>
-#include "dlibcompiler.h"
+#include "compiler.h"
 #include "userdata/readfile.h"
 #include "userdata/tbcfile.h"
 
-static uint8_t file_read(morphine_coroutine_t U, void *data, const char **error) {
-    (void) (U);
+static uint8_t file_read(morphine_instance_t I, void *data, const char **error) {
+    (void) (I);
 
     FILE *file = (FILE *) data;
 
@@ -29,24 +29,26 @@ static uint8_t file_read(morphine_coroutine_t U, void *data, const char **error)
 }
 
 void loader_source_file(morphine_coroutine_t U, const char *path) {
-    struct compiler_instance *dlibcompiler = dlibcompiler_userdata(U, "libs/libcompiler.so");
+    struct compiler_instance *compiler = libcompiler_userdata(U);
     char *source = userdata_readfile(U, path);
 
-    bool iserror = dlibcompiler_assemble(U, dlibcompiler, source, true);
+    bool iserror = libcompiler_compile(U, compiler, source, true);
 
     if (iserror) {
-        const char *error = dlibcompiler_geterror(U, dlibcompiler);
+        const char *error = libcompiler_get_error(U, compiler);
         mapi_errorf(U, "Error while compiling\n%s", error);
     }
 
-    int size = dlibcompiler_getbytecodesize(U, dlibcompiler);
-    const uint8_t *native = dlibcompiler_getbytecodevector(U, dlibcompiler);
+    int size = libcompiler_get_bytecode_size(U, compiler);
+    const uint8_t *native = libcompiler_get_bytecode(U, compiler);
 
     if (native == NULL) {
         mapi_errorf(U, "Error while compiling");
     }
 
-    mapi_rload(U, (size_t) size, native);
+    mapi_push_function(U, (size_t) size, native);
+
+    libcompiler_release(U, compiler);
 
     mapi_rotate(U, 3);
     mapi_pop(U, 2);
@@ -54,7 +56,7 @@ void loader_source_file(morphine_coroutine_t U, const char *path) {
 
 void loader_binary_file(morphine_coroutine_t U, const char *path) {
     FILE *file = userdata_tbc_file(U, path, "r");
-    mapi_load(U, NULL, file_read, NULL, file);
+    mapi_function_load(U, NULL, file_read, NULL, file);
     mapi_rotate(U, 2);
     mapi_pop(U, 1);
 }

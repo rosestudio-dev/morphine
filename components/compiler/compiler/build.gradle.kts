@@ -1,15 +1,36 @@
-plugins {
-    kotlin("jvm")
-}
+import com.google.devtools.ksp.gradle.KspTaskMetadata
 
-group = "ru.unit.morphine.assembly.compiler"
+plugins {
+    kotlin("multiplatform")
+    id("com.google.devtools.ksp")
+}
 
 repositories {
     mavenCentral()
 }
 
+kotlin {
+    jvm()
+    linuxX64()
+
+    applyDefaultHierarchyTemplate()
+
+    sourceSets {
+        val commonMain by getting {
+            dependencies {
+                implementation(kotlin("stdlib"))
+                implementation(project(":annotation"))
+            }
+
+            tasks.withType<KspTaskMetadata> { kotlin.srcDir(destinationDirectory) }
+        }
+    }
+}
+
+ksp {
+    arg("processor.packagePrefix", "morphine.bytecode")
+}
+
 dependencies {
-    implementation(project(":bytecode"))
-    implementation(project(":optimizer"))
-    implementation(kotlin("stdlib"))
+    add("kspCommonMainMetadata", project(":processor"))
 }
