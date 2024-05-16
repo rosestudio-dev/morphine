@@ -29,7 +29,6 @@ sources_kt = run_command(
 # Options
 
 gradle_options = [
-    '--no-daemon',
     '--project-dir',
     meson.current_source_dir(),
     '-DprojectVersion=' + version,
@@ -45,6 +44,10 @@ if get_option('localgradle').enabled()
         '--project-cache-dir',
         meson.global_build_root() / 'gradle' / 'cache' / 'compiler',
     ]
+endif
+
+if get_option('gradledaemon').disabled()
+    gradle_options += ['--no-daemon']
 endif
 
 nativeimage_options = [

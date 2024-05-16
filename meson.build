@@ -7,6 +7,7 @@ project(
         'morphine:sanitize=disabled',
         'app-morphine:sanitize=disabled',
         'compiler:localgradle=enabled',
+        'compiler:gradledaemon=enabled',
     ],
     subproject_dir : 'components',
 )
