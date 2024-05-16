@@ -7,7 +7,6 @@ import morphine.compiler.lexer.Lexer
 import morphine.compiler.lexer.exception.LexerException
 import morphine.compiler.parser.Parser
 import morphine.compiler.parser.exception.ParseException
-import morphine.optimizer.Optimizer
 
 class Compiler(
     private val text: String,
@@ -70,9 +69,9 @@ class Compiler(
         val tokens = Lexer(text).tokenize()
         val ast = Parser(tokens).parse()
         val bytecode = ast.assembly(optimize)
-        val optimized = Optimizer(bytecode).optimize()
+//        val optimized = Optimizer(bytecode).optimize()
 
-        return optimized
+        return bytecode
     }
 
     sealed interface Result<T> {

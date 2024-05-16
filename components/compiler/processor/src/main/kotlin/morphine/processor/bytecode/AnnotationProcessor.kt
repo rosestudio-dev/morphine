@@ -8,6 +8,7 @@ import com.google.devtools.ksp.symbol.KSAnnotated
 import com.google.devtools.ksp.validate
 import com.squareup.kotlinpoet.ksp.writeTo
 import kotlin.reflect.KClass
+import morphine.annotation.bytecode.Clean
 import morphine.annotation.bytecode.Consumer
 import morphine.annotation.bytecode.Control
 import morphine.annotation.bytecode.Movement
@@ -22,25 +23,29 @@ class AnnotationProcessor(
         val consumeAnnotations = resolver.findAnnotations(Consumer::class).toList()
         val controlAnnotations = resolver.findAnnotations(Control::class).toList()
         val movementAnnotations = resolver.findAnnotations(Movement::class).toList()
+        val cleanAnnotations = resolver.findAnnotations(Clean::class).toList()
         val processingAnnotations = resolver.findAnnotations(Processing::class).toList()
         val producerAnnotations = resolver.findAnnotations(Producer::class).toList()
 
         val notValidated = (consumeAnnotations +
                 controlAnnotations +
+                cleanAnnotations +
                 movementAnnotations +
                 processingAnnotations +
                 producerAnnotations).filterNot(KSAnnotated::validate)
 
         val models = consumeAnnotations.map { node ->
-            node.accept(Visitor(), Model.Type.Consumer)
+            node.accept(Visitor(), ModelType.Consumer)
+        } + cleanAnnotations.map { node ->
+            node.accept(Visitor(), ModelType.Clean)
         } + controlAnnotations.map { node ->
-            node.accept(Visitor(), Model.Type.Control)
+            node.accept(Visitor(), ModelType.Control)
         } + movementAnnotations.map { node ->
-            node.accept(Visitor(), Model.Type.Movement)
+            node.accept(Visitor(), ModelType.Movement)
         } + processingAnnotations.map { node ->
-            node.accept(Visitor(), Model.Type.Processing)
+            node.accept(Visitor(), ModelType.Processing)
         } + producerAnnotations.map { node ->
-            node.accept(Visitor(), Model.Type.Producer)
+            node.accept(Visitor(), ModelType.Producer)
         }
 
         val packagePrefix = environment.options[PACKAGE_PREFIX_ARG]?.plus(".") ?: ""

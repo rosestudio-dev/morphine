@@ -2,47 +2,57 @@ package morphine.processor.bytecode
 
 import com.google.devtools.ksp.symbol.KSFile
 import com.squareup.kotlinpoet.ClassName
-import kotlin.reflect.KClass
 
-data class Model(
-    val type: Type<*>,
-    val instruction: ClassName,
-    val destination: String?,
-    val sources: List<String>,
+sealed interface Model {
+
     val file: KSFile
-) {
+    val instruction: ClassName
 
-    sealed interface Type<T : Annotation> {
+    data class Clean(
+        val from: String,
+        val count: String,
+        override val file: KSFile,
+        override val instruction: ClassName,
+    ) : Model
 
-        val kclass: KClass<T>
+    data class Consumer(
+        val sources: List<String>,
+        override val file: KSFile,
+        override val instruction: ClassName,
+    ) : Model {
 
-        data object Consumer : Type<morphine.annotation.bytecode.Consumer> {
-
-            override val kclass: KClass<morphine.annotation.bytecode.Consumer> =
-                morphine.annotation.bytecode.Consumer::class
-        }
-
-        data object Control : Type<morphine.annotation.bytecode.Control> {
-
-            override val kclass: KClass<morphine.annotation.bytecode.Control> =
-                morphine.annotation.bytecode.Control::class
-        }
-
-        data object Movement : Type<morphine.annotation.bytecode.Movement> {
-
-            override val kclass: KClass<morphine.annotation.bytecode.Movement> =
-                morphine.annotation.bytecode.Movement::class
-        }
-
-        data object Processing : Type<morphine.annotation.bytecode.Processing> {
-
-            override val kclass: KClass<morphine.annotation.bytecode.Processing> =
-                morphine.annotation.bytecode.Processing::class
-        }
-
-        data object Producer : Type<morphine.annotation.bytecode.Producer> {
-            override val kclass: KClass<morphine.annotation.bytecode.Producer> =
-                morphine.annotation.bytecode.Producer::class
+        init {
+            assert(sources.isNotEmpty())
         }
     }
+
+    data class Control(
+        override val file: KSFile,
+        override val instruction: ClassName,
+    ) : Model
+
+    data class Movement(
+        val source: String,
+        val destination: String,
+        override val file: KSFile,
+        override val instruction: ClassName,
+    ) : Model
+
+    data class Processing(
+        val sources: List<String>,
+        val destination: String,
+        override val file: KSFile,
+        override val instruction: ClassName,
+    ) : Model {
+
+        init {
+            assert(sources.isNotEmpty())
+        }
+    }
+
+    data class Producer(
+        val destination: String,
+        override val file: KSFile,
+        override val instruction: ClassName,
+    ) : Model
 }
