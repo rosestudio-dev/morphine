@@ -822,48 +822,37 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
     }
 
     private fun FunctionExpression.eval() = codegenExpression {
+        val name = if (name == null) {
+            FunctionName.Anonymous
+        } else {
+            FunctionName.Normal(name)
+        }
+
+        arguments.forEach { argument ->
+            if (arguments.count { arg -> arg == argument } > 1) {
+                throw CompilerException("Argument $argument is exists")
+            }
+        }
+
+        closures.forEach { closure ->
+            if (closures.count { c -> c.alias == closure.alias } > 1) {
+                throw CompilerException("Closure variable ${closure.alias} is exists")
+            }
+        }
+
+        statics.forEach { static ->
+            if (statics.count { s -> s == static } > 1) {
+                throw CompilerException("Static variable $static is exists")
+            }
+        }
+
         functionEnter(
             name = name,
             arguments = arguments,
-            statics = statics
+            statics = statics,
+            closures = closures,
+            isRecursive = isRecursive
         )
-
-        function.temporaries.enter()
-
-        val argumentSlot = slot()
-
-        arguments.forEachIndexed { index, argument ->
-            val access = defineVariable(argument, isConst = true)
-
-            instruction(
-                Instruction.Arg(
-                    arg = Argument.Arg(index),
-                    destination = argumentSlot
-                ),
-                *variableSet(
-                    name = argument,
-                    variable = access,
-                    slot = argumentSlot
-                ).toTypedArray()
-            )
-        }
-
-        if (name != null) {
-            val access = defineVariable(name, isConst = true)
-
-            instruction(
-                Instruction.Recursion(
-                    destination = argumentSlot
-                ),
-                *variableSet(
-                    name = name,
-                    variable = access,
-                    slot = argumentSlot
-                ).toTypedArray()
-            )
-        }
-
-        function.temporaries.exit()
 
         function.variables.enter()
 
@@ -871,22 +860,22 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
 
         function.variables.exit()
 
-        val info = functionExit()
+        val uid = functionExit()
 
         result { resultSlot ->
             instruction(
                 Instruction.Load(
-                    constant = constant(Value.Function(info.uid)),
+                    constant = constant(Value.Function(uid)),
                     destination = resultSlot
                 )
             )
 
-            if (info.closures.isNotEmpty()) {
-                val slots = info.closures.map { slot() }
+            if (closures.isNotEmpty()) {
+                val slots = closures.map { slot() }
 
-                info.closures.mapIndexed { index, name ->
+                closures.mapIndexed { index, name ->
                     val slot = VariableAccessible(
-                        name = name,
+                        name = name.access,
                         data = data
                     ).evalWithResult(slots[index])
 
@@ -901,7 +890,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
                 instruction(
                     Instruction.Closure(
                         source = resultSlot,
-                        count = Argument.Count(info.closures.size),
+                        count = Argument.Count(closures.size),
                         destination = resultSlot
                     ),
                 )

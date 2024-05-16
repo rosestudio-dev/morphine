@@ -9,6 +9,7 @@ import morphine.compiler.ast.assembly.exception.CompilerException
 import morphine.compiler.ast.node.Accessible
 import morphine.compiler.ast.node.Compiler
 import morphine.compiler.ast.node.Expression
+import morphine.compiler.ast.node.FunctionExpression
 import morphine.compiler.ast.node.Node
 import morphine.compiler.ast.node.Statement
 import morphine.utils.UID
@@ -25,10 +26,12 @@ abstract class AbstractAssembler(
     private val mainUID = UID()
 
     private val mainFunction = Function(
-        name = "main",
+        name = FunctionName.Normal("main"),
         uid = mainUID,
         arguments = emptyList(),
         statics = emptyList(),
+        closures = emptyList(),
+        isRecursive = false
     )
 
     private val functionStack = mutableListOf(mainFunction)
@@ -40,27 +43,28 @@ abstract class AbstractAssembler(
     // region function
 
     fun functionEnter(
-        name: String?,
+        name: FunctionName,
         arguments: List<String>,
-        statics: List<String>
+        statics: List<String>,
+        closures: List<FunctionExpression.Closure>,
+        isRecursive: Boolean
     ) {
         functionStack.add(
             Function(
                 name = name,
                 arguments = arguments,
-                statics = statics
+                statics = statics,
+                closures = closures,
+                isRecursive = isRecursive
             )
         )
     }
 
-    fun functionExit(): FunctionInfo {
+    fun functionExit(): UID {
         val function = functionStack.removeLast()
         readyFunctions.add(function)
 
-        return FunctionInfo(
-            uid = function.uid,
-            closures = function.closures
-        )
+        return function.uid
     }
 
     // endregion
@@ -146,32 +150,8 @@ abstract class AbstractAssembler(
         }
     }
 
-    fun accessVariable(
-        name: String
-    ) = function.accessVariable(name) ?: run {
-        val indexedFunction = functionStack.withIndex().reversed().find { (_, function) ->
-            if (function == this.function) {
-                false
-            } else {
-                val hasVariable = function.variables.accessVariable(name) != null
-                val hasClosure = function.closures.any { closureName -> closureName == name }
-
-                hasClosure || hasVariable
-            }
-        } ?: throw CompilerException("'$name' variable cannot be accessed")
-
-        (indexedFunction.index + 1 until functionStack.size).forEach { index ->
-            functionStack[index].closures.add(name)
-        }
-
-        return Access.Closure(
-            name = name,
-            index = function.closures.size - 1
-        )
-    }
-
-    private fun Scope<Scope.Slot.Variable>.accessVariable(name: String): Access? {
-        levels.reversed().forEach { scope ->
+    fun accessVariable(name: String): Access = with(function) {
+        variables.levels.reversed().forEach { scope ->
             val indexedVariable = scope.find { (_, variable) -> variable.name == name }
 
             if (indexedVariable != null) {
@@ -183,34 +163,6 @@ abstract class AbstractAssembler(
             }
         }
 
-        return null
-    }
-
-    private fun Function.accessVariable(
-        name: String
-    ): Access? = variables.accessVariable(name) ?: run {
-        arguments.withIndex().find { (_, argName) ->
-            argName == name
-        }?.let { indexedArgument ->
-            return Access.Argument(
-                name = indexedArgument.value,
-                index = indexedArgument.index
-            )
-        }
-
-        if (name == function.name) {
-            return Access.Recursion(name)
-        }
-
-        closures.withIndex().find { (_, closureName) ->
-            closureName == name
-        }?.let { indexedArgument ->
-            return Access.Closure(
-                name = indexedArgument.value,
-                index = indexedArgument.index
-            )
-        }
-
         statics.withIndex().find { (_, staticName) ->
             staticName == name
         }?.let { indexedArgument ->
@@ -220,7 +172,29 @@ abstract class AbstractAssembler(
             )
         }
 
-        return null
+        arguments.withIndex().find { (_, argName) ->
+            argName == name
+        }?.let { indexedArgument ->
+            return Access.Argument(
+                name = indexedArgument.value,
+                index = indexedArgument.index
+            )
+        }
+
+        closures.withIndex().find { (_, closureName) ->
+            closureName.alias == name
+        }?.let { indexedArgument ->
+            return Access.Closure(
+                name = indexedArgument.value.alias,
+                index = indexedArgument.index
+            )
+        }
+
+        if (isRecursive && name == (function.name as? FunctionName.Normal)?.value) {
+            return Access.Recursion(name)
+        }
+
+        throw CompilerException("'$name' variable cannot be accessed")
     }
 
     // endregion
@@ -232,7 +206,10 @@ abstract class AbstractAssembler(
         functions = (readyFunctions + mainFunction).map { function ->
             Bytecode.Function(
                 uid = function.uid,
-                name = function.name ?: "anonymous'${function.uid}",
+                name = when (function.name) {
+                    FunctionName.Anonymous -> "anonymous${function.uid}"
+                    is FunctionName.Normal -> function.name.value
+                },
                 instructions = function.formatInstructions(),
                 constants = function.constants,
                 argumentsCount = function.arguments.size,
@@ -272,11 +249,12 @@ abstract class AbstractAssembler(
     // endregion
 
     data class Function(
-        val name: String?,
+        val name: FunctionName,
         val uid: UID = UID(),
         val arguments: List<String>,
         val statics: List<String>,
-        val closures: MutableList<String> = mutableListOf(),
+        val closures: List<FunctionExpression.Closure>,
+        val isRecursive: Boolean,
         val slots: MutableList<Scope.Slot> = mutableListOf(),
         val constants: MutableList<Value> = mutableListOf(),
         val instructions: MutableList<Instruction> = mutableListOf(),
@@ -296,10 +274,12 @@ abstract class AbstractAssembler(
                 ?: throw CompilerException("Continuable block not found")
     }
 
-    data class FunctionInfo(
-        val uid: UID,
-        val closures: List<String>,
-    )
+    sealed interface FunctionName {
+
+        data object Anonymous : FunctionName
+
+        data class Normal(val value: String) : FunctionName
+    }
 
     sealed interface Access {
 

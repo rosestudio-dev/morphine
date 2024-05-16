@@ -4,6 +4,7 @@ import morphine.compiler.ast.node.FunctionExpression
 import morphine.compiler.ast.node.ReturnStatement
 import morphine.compiler.lexer.Token
 import morphine.compiler.parser.Parser
+import morphine.compiler.parser.exception.ParseException
 
 fun Parser.Controller.expressionFunction(
     requireName: Boolean = false
@@ -12,10 +13,40 @@ fun Parser.Controller.expressionFunction(
 
     consume(Token.SystemWord.FUN)
 
+    val isRecursive = match(Token.SystemWord.RECURSIVE)
+
     val name = if (lookWord() || requireName) {
         consumeWord().text
+    } else if (isRecursive) {
+        throw ParseException("Recursive function needs name", data(saved))
     } else {
         null
+    }
+
+    val closures = if (look(Token.Operator.LT)) {
+        supportArguments(
+            determinator = Token.Operator.COMMA,
+            open = Token.Operator.LT,
+            close = Token.Operator.GT
+        ) {
+            val accessName = consumeWord().text
+
+            if (match(Token.SystemWord.AS)) {
+                val aliasName = consumeWord().text
+
+                FunctionExpression.Closure(
+                    access = accessName,
+                    alias = aliasName
+                )
+            } else {
+                FunctionExpression.Closure(
+                    access = accessName,
+                    alias = accessName
+                )
+            }
+        }
+    } else {
+        emptyList()
     }
 
     val arguments = supportArguments(
@@ -51,6 +82,8 @@ fun Parser.Controller.expressionFunction(
         name = name,
         statics = statics,
         arguments = arguments,
+        isRecursive = isRecursive,
+        closures = closures,
         statement = statement,
         data = data(saved)
     )

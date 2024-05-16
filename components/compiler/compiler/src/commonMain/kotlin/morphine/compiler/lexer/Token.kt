@@ -28,6 +28,7 @@ sealed interface Token {
         AND,
         OR,
         NOT,
+        RECURSIVE,
         FUN,
         IF,
         ELSE,
@@ -86,6 +87,7 @@ sealed interface Token {
         SLASHEQ("/="),
         PERCENTEQ("%="),
         DOTDOTEQ("..="),
+        LARROW("<-"),
         RARROW("->");
 
         companion object {
