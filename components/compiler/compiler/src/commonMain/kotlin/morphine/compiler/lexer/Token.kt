@@ -29,6 +29,7 @@ sealed interface Token {
         OR,
         NOT,
         RECURSIVE,
+        AUTO,
         FUN,
         IF,
         ELSE,

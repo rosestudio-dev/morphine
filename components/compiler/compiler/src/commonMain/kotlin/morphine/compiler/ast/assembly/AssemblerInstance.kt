@@ -834,9 +834,15 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
             }
         }
 
-        closures.forEach { closure ->
-            if (closures.count { c -> c.alias == closure.alias } > 1) {
-                throw CompilerException("Closure variable ${closure.alias} is exists")
+        when (closureMode) {
+            FunctionExpression.ClosureMode.Automatic -> Unit
+
+            is FunctionExpression.ClosureMode.Manual -> {
+                closureMode.list.forEach { closure ->
+                    if (closureMode.list.count { c -> c.alias == closure.alias } > 1) {
+                        throw CompilerException("Closure variable ${closure.alias} is exists")
+                    }
+                }
             }
         }
 
@@ -850,7 +856,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
             name = name,
             arguments = arguments,
             statics = statics,
-            closures = closures,
+            closureMode = closureMode,
             isRecursive = isRecursive
         )
 
@@ -860,20 +866,20 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
 
         function.variables.exit()
 
-        val uid = functionExit()
+        val readyFunction = functionExit()
 
         result { resultSlot ->
             instruction(
                 Instruction.Load(
-                    constant = constant(Value.Function(uid)),
+                    constant = constant(Value.Function(readyFunction.uid)),
                     destination = resultSlot
                 )
             )
 
-            if (closures.isNotEmpty()) {
-                val slots = closures.map { slot() }
+            if (readyFunction.closures.isNotEmpty()) {
+                val slots = readyFunction.closures.map { slot() }
 
-                closures.mapIndexed { index, name ->
+                readyFunction.closures.mapIndexed { index, name ->
                     val slot = VariableAccessible(
                         name = name.access,
                         data = data
@@ -890,7 +896,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
                 instruction(
                     Instruction.Closure(
                         source = resultSlot,
-                        count = Argument.Count(closures.size),
+                        count = Argument.Count(readyFunction.closures.size),
                         destination = resultSlot
                     ),
                 )
@@ -910,7 +916,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
     }
 
     private fun VariableAccessible.eval() = codegenExpression {
-        val variable = accessVariable(name)
+        val variable = function.accessVariable(name)
 
         result { resultSlot ->
             val access = when (variable) {
@@ -955,7 +961,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
     }
 
     private fun VariableAccessible.set(slot: Argument.Slot) = codegenAccessible {
-        val variable = accessVariable(name)
+        val variable = function.accessVariable(name)
 
         instruction(
             *variableSet(
@@ -1035,7 +1041,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
                         )
                     )
 
-                    val variable = defineVariable(
+                    val variable = function.defineVariable(
                         name = entry.value,
                         isConst = !isMutable,
                     )
@@ -1051,7 +1057,7 @@ class AssemblerInstance(optimize: Boolean) : AbstractAssembler(optimize) {
             }
 
             is AssignMethod.Single -> {
-                val variable = defineVariable(
+                val variable = function.defineVariable(
                     name = method.entry,
                     isConst = !isMutable
                 )

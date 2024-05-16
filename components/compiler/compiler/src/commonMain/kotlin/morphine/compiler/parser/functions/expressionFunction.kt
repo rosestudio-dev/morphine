@@ -23,30 +23,36 @@ fun Parser.Controller.expressionFunction(
         null
     }
 
-    val closures = if (look(Token.Operator.LT)) {
-        supportArguments(
-            determinator = Token.Operator.COMMA,
-            open = Token.Operator.LT,
-            close = Token.Operator.GT
-        ) {
-            val accessName = consumeWord().text
+    val closures = if (match(Token.Operator.LT)) {
+        if (match(Token.SystemWord.AUTO)) {
+            consume(Token.Operator.GT)
+            FunctionExpression.ClosureMode.Automatic
+        } else {
+            val closures = supportArguments(
+                determinator = Token.Operator.COMMA,
+                close = Token.Operator.GT
+            ) {
+                val accessName = consumeWord().text
 
-            if (match(Token.SystemWord.AS)) {
-                val aliasName = consumeWord().text
+                if (match(Token.SystemWord.AS)) {
+                    val aliasName = consumeWord().text
 
-                FunctionExpression.Closure(
-                    access = accessName,
-                    alias = aliasName
-                )
-            } else {
-                FunctionExpression.Closure(
-                    access = accessName,
-                    alias = accessName
-                )
+                    FunctionExpression.Closure(
+                        access = accessName,
+                        alias = aliasName
+                    )
+                } else {
+                    FunctionExpression.Closure(
+                        access = accessName,
+                        alias = accessName
+                    )
+                }
             }
+
+            FunctionExpression.ClosureMode.Manual(closures)
         }
     } else {
-        emptyList()
+        FunctionExpression.ClosureMode.Manual()
     }
 
     val arguments = supportArguments(
@@ -83,7 +89,7 @@ fun Parser.Controller.expressionFunction(
         statics = statics,
         arguments = arguments,
         isRecursive = isRecursive,
-        closures = closures,
+        closureMode = closures,
         statement = statement,
         data = data(saved)
     )
