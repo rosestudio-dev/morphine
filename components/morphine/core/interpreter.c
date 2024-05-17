@@ -44,6 +44,7 @@
         } \
     morphinem_blk_end
 
+#define sloti(C, i) ((C)->s.slots[(i)])
 #define slot(C, a) ((C)->s.slots[(a).value])
 #define param(C, a) ((C)->s.params[(a)])
 
@@ -102,6 +103,17 @@ sp_case(OPCODE_PARAM)
 sp_case(OPCODE_ARG)
             {
                 slot(C, arg2) = C->s.args[arg1.value];
+                sp_end();
+            }
+sp_case(OPCODE_CLEAR)
+            {
+                size_t from = arg1.value;
+                size_t count = arg2.value;
+
+                for(size_t i = 0; i < count; i ++) {
+                    sloti(C, from + i) = valueI_nil;
+                }
+
                 sp_end();
             }
 sp_case(OPCODE_ENV)

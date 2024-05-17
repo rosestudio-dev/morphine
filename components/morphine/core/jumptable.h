@@ -17,6 +17,7 @@ static const void *const sp_dispatch_tab[OPCODES_COUNT] = {
     &&OL_OPCODE_MOVE,
     &&OL_OPCODE_PARAM,
     &&OL_OPCODE_ARG,
+    &&OL_OPCODE_CLEAR,
     &&OL_OPCODE_ENV,
     &&OL_OPCODE_SELF,
     &&OL_OPCODE_RECURSION,

@@ -6,6 +6,7 @@ enum class Opcode {
     MOVE,            // [src (slot), dest (slot)]                                     get from (src) and set to (dest)
     PARAM,           // [src (slot), dest (param)]                                    get from (src) and set to (param)
     ARG,             // [src (arg), dest (slot)]                                      get from (src) and set to (dest)
+    CLEAR,           // [from (index), count (count)]                                  sets nil to slots starting (from) in amount (count)
 
     ENV,             // [dest (slot)]                                                 move env to (dest)
     SELF,            // [dest (slot)]                                                 move self to (dest)

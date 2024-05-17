@@ -1,5 +1,6 @@
 package morphine.bytecode
 
+import morphine.annotation.bytecode.Clean
 import morphine.annotation.bytecode.Consumer
 import morphine.annotation.bytecode.Control
 import morphine.annotation.bytecode.Movement
@@ -77,6 +78,19 @@ sealed interface Instruction {
         override val orderedArguments = listOf(arg, destination)
 
         override val description = "move $arg to $destination"
+    }
+
+    @Clean
+    data class Clear(
+        val from: Argument.Index,
+        val count: Argument.Count,
+        override var lineData: LineData? = null
+    ) : Instruction {
+        override val opcode = Opcode.CLEAR
+
+        override val orderedArguments = listOf(from, count)
+
+        override val description = "sets nil to slots starting $from in amount $count"
     }
 
     @Producer

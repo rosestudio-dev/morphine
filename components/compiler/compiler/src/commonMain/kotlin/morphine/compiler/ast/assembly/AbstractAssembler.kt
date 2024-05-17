@@ -9,6 +9,7 @@ import morphine.compiler.ast.assembly.exception.CompilerException
 import morphine.compiler.ast.node.Accessible
 import morphine.compiler.ast.node.Compiler
 import morphine.compiler.ast.node.Expression
+import morphine.compiler.ast.node.FunctionExpression
 import morphine.compiler.ast.node.Node
 import morphine.compiler.ast.node.Statement
 import morphine.utils.UID
@@ -17,21 +18,21 @@ abstract class AbstractAssembler(
     private val optimize: Boolean
 ) : Compiler {
 
-    val function get() = functionStack.last()
-
     var lineData: LineData? = null
         private set
 
     private val mainUID = UID()
 
-    private val mainFunction = Function(
-        name = "main",
+    var function = Function(
+        name = FunctionName.Normal("main"),
         uid = mainUID,
         arguments = emptyList(),
         statics = emptyList(),
+        closureMode = FunctionExpression.ClosureMode.Manual(),
+        isRecursive = false,
+        parent = null
     )
-
-    private val functionStack = mutableListOf(mainFunction)
+        private set
 
     private val readyFunctions = mutableListOf<Function>()
 
@@ -40,27 +41,33 @@ abstract class AbstractAssembler(
     // region function
 
     fun functionEnter(
-        name: String?,
+        name: FunctionName,
         arguments: List<String>,
-        statics: List<String>
+        statics: List<String>,
+        closureMode: FunctionExpression.ClosureMode,
+        isRecursive: Boolean
     ) {
-        functionStack.add(
-            Function(
-                name = name,
-                arguments = arguments,
-                statics = statics
-            )
+        function = Function(
+            name = name,
+            arguments = arguments,
+            statics = statics,
+            closureMode = closureMode,
+            isRecursive = isRecursive,
+            parent = function
         )
     }
 
-    fun functionExit(): FunctionInfo {
-        val function = functionStack.removeLast()
-        readyFunctions.add(function)
+    fun functionExit(): Function {
+        val ready = function
+        if (ready.parent == null) {
+            throw CompilerException("Cannot exit from main function")
+        } else {
+            function = ready.parent
+        }
 
-        return FunctionInfo(
-            uid = function.uid,
-            closures = function.closures
-        )
+        readyFunctions.add(ready)
+
+        return ready
     }
 
     // endregion
@@ -123,8 +130,8 @@ abstract class AbstractAssembler(
 
     // region variable
 
-    fun defineVariable(name: String, isConst: Boolean): Access.Variable {
-        val has = function.variables.levels.last().any { variable ->
+    fun Function.defineVariable(name: String, isConst: Boolean): Access.Variable {
+        val has = variables.levels.last().any { variable ->
             variable.value.name == name
         }
 
@@ -136,7 +143,7 @@ abstract class AbstractAssembler(
                 isConst = isConst
             )
 
-            val index = function.variables.add(variable)
+            val index = variables.add(variable)
 
             Access.Variable(
                 name = name,
@@ -146,32 +153,11 @@ abstract class AbstractAssembler(
         }
     }
 
-    fun accessVariable(
-        name: String
-    ) = function.accessVariable(name) ?: run {
-        val indexedFunction = functionStack.withIndex().reversed().find { (_, function) ->
-            if (function == this.function) {
-                false
-            } else {
-                val hasVariable = function.variables.accessVariable(name) != null
-                val hasClosure = function.closures.any { closureName -> closureName == name }
+    fun Function.accessVariable(name: String) =
+        access(name) ?: throw CompilerException("'$name' variable cannot be accessed")
 
-                hasClosure || hasVariable
-            }
-        } ?: throw CompilerException("'$name' variable cannot be accessed")
-
-        (indexedFunction.index + 1 until functionStack.size).forEach { index ->
-            functionStack[index].closures.add(name)
-        }
-
-        return Access.Closure(
-            name = name,
-            index = function.closures.size - 1
-        )
-    }
-
-    private fun Scope<Scope.Slot.Variable>.accessVariable(name: String): Access? {
-        levels.reversed().forEach { scope ->
+    private fun Function.access(name: String): Access? {
+        variables.levels.reversed().forEach { scope ->
             val indexedVariable = scope.find { (_, variable) -> variable.name == name }
 
             if (indexedVariable != null) {
@@ -183,12 +169,15 @@ abstract class AbstractAssembler(
             }
         }
 
-        return null
-    }
+        statics.withIndex().find { (_, staticName) ->
+            staticName == name
+        }?.let { indexedArgument ->
+            return Access.Static(
+                name = indexedArgument.value,
+                index = indexedArgument.index
+            )
+        }
 
-    private fun Function.accessVariable(
-        name: String
-    ): Access? = variables.accessVariable(name) ?: run {
         arguments.withIndex().find { (_, argName) ->
             argName == name
         }?.let { indexedArgument ->
@@ -198,26 +187,43 @@ abstract class AbstractAssembler(
             )
         }
 
-        if (name == function.name) {
+        if (isRecursive && name == (this.name as? FunctionName.Normal)?.value) {
             return Access.Recursion(name)
         }
 
-        closures.withIndex().find { (_, closureName) ->
-            closureName == name
+        when (closureMode) {
+            FunctionExpression.ClosureMode.Automatic -> automaticClosures
+            is FunctionExpression.ClosureMode.Manual -> closureMode.list
+        }.withIndex().find { (_, closureName) ->
+            closureName.alias == name
         }?.let { indexedArgument ->
             return Access.Closure(
-                name = indexedArgument.value,
+                name = indexedArgument.value.alias,
                 index = indexedArgument.index
             )
         }
 
-        statics.withIndex().find { (_, staticName) ->
-            staticName == name
-        }?.let { indexedArgument ->
-            return Access.Static(
-                name = indexedArgument.value,
-                index = indexedArgument.index
-            )
+        when (closureMode) {
+            FunctionExpression.ClosureMode.Automatic -> if (parent != null) {
+                val closure = parent.access(name)
+                if (closure != null) {
+                    val created = FunctionExpression.Closure(
+                        access = closure.name,
+                        alias = closure.name,
+                    )
+
+                    val result = Access.Closure(
+                        name = closure.name,
+                        index = automaticClosures.size
+                    )
+
+                    automaticClosures.add(created)
+
+                    return result
+                }
+            }
+
+            is FunctionExpression.ClosureMode.Manual -> Unit
         }
 
         return null
@@ -229,10 +235,13 @@ abstract class AbstractAssembler(
 
     fun bytecode() = Bytecode(
         mainFunction = mainUID,
-        functions = (readyFunctions + mainFunction).map { function ->
+        functions = (readyFunctions + function).map { function ->
             Bytecode.Function(
                 uid = function.uid,
-                name = function.name ?: "anonymous'${function.uid}",
+                name = when (function.name) {
+                    FunctionName.Anonymous -> "anonymous${function.uid}"
+                    is FunctionName.Normal -> function.name.value
+                },
                 instructions = function.formatInstructions(),
                 constants = function.constants,
                 argumentsCount = function.arguments.size,
@@ -272,11 +281,14 @@ abstract class AbstractAssembler(
     // endregion
 
     data class Function(
-        val name: String?,
+        val name: FunctionName,
         val uid: UID = UID(),
         val arguments: List<String>,
         val statics: List<String>,
-        val closures: MutableList<String> = mutableListOf(),
+        val closureMode: FunctionExpression.ClosureMode,
+        val isRecursive: Boolean,
+        val parent: Function?,
+        val automaticClosures: MutableList<FunctionExpression.Closure> = mutableListOf(),
         val slots: MutableList<Scope.Slot> = mutableListOf(),
         val constants: MutableList<Value> = mutableListOf(),
         val instructions: MutableList<Instruction> = mutableListOf(),
@@ -294,12 +306,20 @@ abstract class AbstractAssembler(
         val continueAnchor
             get() = breakContinueAnchors.lastOrNull()?.continueAnchorMarker
                 ?: throw CompilerException("Continuable block not found")
+
+        val closures
+            get() = when (closureMode) {
+                FunctionExpression.ClosureMode.Automatic -> automaticClosures
+                is FunctionExpression.ClosureMode.Manual -> closureMode.list
+            }
     }
 
-    data class FunctionInfo(
-        val uid: UID,
-        val closures: List<String>,
-    )
+    sealed interface FunctionName {
+
+        data object Anonymous : FunctionName
+
+        data class Normal(val value: String) : FunctionName
+    }
 
     sealed interface Access {
 

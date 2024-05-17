@@ -29,4 +29,10 @@ sealed interface AbstractInstruction {
         val source: Argument.Slot,
         val destination: Argument.Slot,
     ) : AbstractInstruction
+
+    data class Clean(
+        override val instruction: Instruction,
+        val from: Argument.Index,
+        val count: Argument.Count,
+    ) : AbstractInstruction
 }

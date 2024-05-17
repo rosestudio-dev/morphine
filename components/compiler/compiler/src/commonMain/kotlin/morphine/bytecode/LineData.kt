@@ -5,5 +5,5 @@ data class LineData(
     val column: Int,
 ) {
 
-    override fun toString() = "[$line:$column]"
+    override fun toString() = "[Line: $line]"
 }

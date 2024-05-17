@@ -25,35 +25,6 @@ class Code(
     }
 
     fun generate(models: List<Model>) = FileSpec.builder(packageData.name, "AbstractInstructionExt").apply {
-        models.forEach { model ->
-            when (model.type) {
-                Model.Type.Consumer -> {
-                    assert(model.destination == null)
-                    assert(model.sources.isNotEmpty())
-                }
-
-                Model.Type.Control -> {
-                    assert(model.destination == null)
-                    assert(model.sources.isEmpty())
-                }
-
-                Model.Type.Movement -> {
-                    assert(model.destination != null)
-                    assert(model.sources.size == 1)
-                }
-
-                Model.Type.Processing -> {
-                    assert(model.destination != null)
-                    assert(model.sources.isNotEmpty())
-                }
-
-                Model.Type.Producer -> {
-                    assert(model.destination != null)
-                    assert(model.sources.isEmpty())
-                }
-            }
-        }
-
         addFunction(
             FunSpec.builder("abstract").apply {
                 receiver(instructionClassName)
@@ -65,29 +36,29 @@ class Code(
                     models.forEach { model ->
                         add("is %T -> ", model.instruction)
 
-                        when (model.type) {
-                            Model.Type.Consumer -> {
+                        when (model) {
+                            is Model.Consumer -> {
                                 add("AbstractInstruction.Consumer(\n")
                                 add("instruction = this,\n")
                                 add("sources = listOf(${model.sources.joinToString()}),\n")
                                 add(")\n")
                             }
 
-                            Model.Type.Control -> {
+                            is Model.Control -> {
                                 add("AbstractInstruction.Control(\n")
                                 add("instruction = this,\n")
                                 add(")\n")
                             }
 
-                            Model.Type.Movement -> {
+                            is Model.Movement -> {
                                 add("AbstractInstruction.Movement(\n")
                                 add("instruction = this,\n")
-                                add("source = ${model.sources.single()},\n")
+                                add("source = ${model.source},\n")
                                 add("destination = ${model.destination},\n")
                                 add(")\n")
                             }
 
-                            Model.Type.Processing -> {
+                            is Model.Processing -> {
                                 add("AbstractInstruction.Processing(\n")
                                 add("instruction = this,\n")
                                 add("sources = listOf(${model.sources.joinToString()}),\n")
@@ -95,10 +66,18 @@ class Code(
                                 add(")\n")
                             }
 
-                            Model.Type.Producer -> {
+                            is Model.Producer -> {
                                 add("AbstractInstruction.Producer(\n")
                                 add("instruction = this,\n")
                                 add("destination = ${model.destination},\n")
+                                add(")\n")
+                            }
+
+                            is Model.Clean -> {
+                                add("AbstractInstruction.Clean(\n")
+                                add("instruction = this,\n")
+                                add("from = ${model.from},\n")
+                                add("count = ${model.count},\n")
                                 add(")\n")
                             }
                         }
@@ -120,12 +99,13 @@ class Code(
                     beginControlFlow("return when (val instruction = instruction)")
 
                     models.forEach { model ->
-                        val name = when (model.type) {
-                            Model.Type.Consumer -> "Consumer"
-                            Model.Type.Control -> "Control"
-                            Model.Type.Movement -> "Movement"
-                            Model.Type.Processing -> "Processing"
-                            Model.Type.Producer -> "Producer"
+                        val name = when (model) {
+                            is Model.Consumer -> "Consumer"
+                            is Model.Control -> "Control"
+                            is Model.Movement -> "Movement"
+                            is Model.Processing -> "Processing"
+                            is Model.Producer -> "Producer"
+                            is Model.Clean -> "Clean"
                         }
 
                         add(
@@ -133,29 +113,34 @@ class Code(
                             model.instruction
                         )
 
-                        when (model.type) {
-                            Model.Type.Consumer -> {
+                        when (model) {
+                            is Model.Consumer -> {
                                 model.sources.forEachIndexed { index, source ->
                                     add("$source = abstract.sources[$index],\n")
                                 }
                             }
 
-                            Model.Type.Control -> Unit
+                            is Model.Control -> Unit
 
-                            Model.Type.Movement -> {
-                                add("${model.sources.single()} = abstract.source,\n")
+                            is Model.Movement -> {
+                                add("${model.source} = abstract.source,\n")
                                 add("${model.destination} = abstract.destination,\n")
                             }
 
-                            Model.Type.Processing -> {
+                            is Model.Processing -> {
                                 model.sources.forEachIndexed { index, source ->
                                     add("$source = abstract.sources[$index],\n")
                                 }
                                 add("${model.destination} = abstract.destination,\n")
                             }
 
-                            Model.Type.Producer -> {
+                            is Model.Producer -> {
                                 add("${model.destination} = abstract.destination,\n")
+                            }
+
+                            is Model.Clean -> {
+                                add("${model.from} = abstract.from,\n")
+                                add("${model.count} = abstract.count,\n")
                             }
                         }
                         add(")\n}\n\n")

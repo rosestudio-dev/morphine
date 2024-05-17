@@ -17,6 +17,7 @@ typedef enum {
     OPCODE_MOVE,            // [src (slot), dest (slot)]                                     get from (src) and set to (dest)
     OPCODE_PARAM,           // [src (slot), dest (param)]                                    get from (src) and set to (param)
     OPCODE_ARG,             // [src (arg), dest (slot)]                                      get from (src) and set to (dest)
+    OPCODE_CLEAR,           // [from (index), count (count)]                                 sets nil to slots starting (from) in amount (count)
 
     OPCODE_ENV,             // [dest (slot)]                                                 move env to (dest)
     OPCODE_SELF,            // [dest (slot)]                                                 move self to (dest)
@@ -68,6 +69,8 @@ typedef enum {
 } opcode_t;
 
 extern const uint8_t instructionI_opcode_args[OPCODES_COUNT];
+
+#define ARGUMENT_MAX_VALUE (UINT16_MAX)
 
 typedef struct {
     uint16_t value;

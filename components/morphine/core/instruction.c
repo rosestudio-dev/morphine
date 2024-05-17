@@ -10,6 +10,7 @@ const uint8_t instructionI_opcode_args[OPCODES_COUNT] = {
     2, // OPCODE_MOVE
     2, // OPCODE_PARAM
     2, // OPCODE_ARG
+    2, // OPCODE_CLEAR
 
     1, // OPCODE_ENV
     1, // OPCODE_SELF
@@ -81,6 +82,21 @@ bool instructionI_validate(
 #define arg_undefined(a)
 
     switch (instruction.opcode) {
+        case OPCODE_CLEAR: {
+            size_t from = instruction.argument1.value;
+            size_t count = instruction.argument2.value;
+
+            if (count > ARGUMENT_MAX_VALUE - from) {
+                goto error;
+            }
+
+            if (from >= slots_count || from + count > slots_count) {
+                goto error;
+            }
+
+            arg_undefined(argument3)
+            return true;
+        }
         case OPCODE_YIELD: {
             arg_undefined(argument1)
             arg_undefined(argument2)
