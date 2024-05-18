@@ -605,6 +605,10 @@ void tableI_mode_lock_metatable(morphine_instance_t I, struct table *table) {
         throwI_error(I, "Table is null");
     }
 
+    if (table->mode.locked) {
+        throwI_error(I, "Table is locked");
+    }
+
     table->mode.metatable_locked = true;
 }
 
