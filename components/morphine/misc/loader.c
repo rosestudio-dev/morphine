@@ -2,18 +2,22 @@
 // Created by why-iskra on 31.03.2024.
 //
 
-#include "binary.h"
+#include "morphine/misc/loader.h"
+#include "morphine/object/coroutine/stack.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/core/throw.h"
+#include "morphine/algorithm/crc32.h"
 #include <string.h>
+
+#define FORMAT_TAG "morphine-bout"
 
 struct data {
     morphine_coroutine_t U;
-    struct process_state *state;
+    struct sio *sio;
     struct crc32_buf crc;
 
     struct {
@@ -23,7 +27,13 @@ struct data {
 };
 
 static uint8_t get_u8(struct data *data) {
-    uint8_t byte = process_byte(data->U, data->state);
+    uint8_t byte = 0;
+    size_t read_count = sioI_read(data->U->I, data->sio, &byte, 1);
+
+    if (read_count == 0) {
+        throwI_error(data->U->I, "Binary corrupted");
+    }
+
     crc32_char(&data->crc, byte);
     return byte;
 }
@@ -359,10 +369,10 @@ static struct function *get_main(struct data *data, struct uuid main_uuid) {
     return main;
 }
 
-struct function *binary(morphine_coroutine_t U, struct process_state *state) {
+static struct function *binary(morphine_coroutine_t U, struct sio *sio) {
     struct data data = {
         .U = U,
-        .state = state,
+        .sio = sio,
         .crc = crc32_init(),
         .functions.vector = NULL,
         .functions.count = 0
@@ -370,4 +380,12 @@ struct function *binary(morphine_coroutine_t U, struct process_state *state) {
 
     struct uuid main_uuid = load(&data);
     return get_main(&data, main_uuid);
+}
+
+struct function *loaderI_load(morphine_coroutine_t U, struct sio *sio) {
+    size_t stack_size = stackI_space(U);
+    struct function *result = binary(U, sio);
+    stackI_pop(U, stackI_space(U) - stack_size);
+
+    return result;
 }

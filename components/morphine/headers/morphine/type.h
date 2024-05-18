@@ -12,6 +12,9 @@
 
 #define typeI_value_is_obj(x) ({ enum obj_type _vt = (enum obj_type) (x); (OBJ_TYPES_START <= _vt && _vt < OBJ_TYPES_COUNT); })
 
+#define bridge(name) VALUE_TYPE_##name = OBJ_TYPE_##name
+#define append(name, i) VALUE_TYPE_##name = (OBJ_TYPES_COUNT + (i))
+
 enum obj_type {
     OBJ_TYPE_USERDATA = 0,
     OBJ_TYPE_STRING = 1,
@@ -22,24 +25,29 @@ enum obj_type {
     OBJ_TYPE_FUNCTION = 6,
     OBJ_TYPE_NATIVE = 7,
     OBJ_TYPE_REFERENCE = 8,
-    OBJ_TYPE_ITERATOR = 9,
+    OBJ_TYPE_SIO = 9,
+    OBJ_TYPE_ITERATOR = 10,
 };
 
 enum value_type {
-    VALUE_TYPE_USERDATA = 0,
-    VALUE_TYPE_STRING = 1,
-    VALUE_TYPE_TABLE = 2,
-    VALUE_TYPE_VECTOR = 3,
-    VALUE_TYPE_CLOSURE = 4,
-    VALUE_TYPE_COROUTINE = 5,
-    VALUE_TYPE_FUNCTION = 6,
-    VALUE_TYPE_NATIVE = 7,
-    VALUE_TYPE_REFERENCE = 8,
-    VALUE_TYPE_ITERATOR = 9,
+    bridge(USERDATA),
+    bridge(STRING),
+    bridge(TABLE),
+    bridge(VECTOR),
+    bridge(CLOSURE),
+    bridge(COROUTINE),
+    bridge(FUNCTION),
+    bridge(NATIVE),
+    bridge(REFERENCE),
+    bridge(SIO),
+    bridge(ITERATOR),
 
-    VALUE_TYPE_NIL = 10,
-    VALUE_TYPE_INTEGER = 11,
-    VALUE_TYPE_DECIMAL = 12,
-    VALUE_TYPE_BOOLEAN = 13,
-    VALUE_TYPE_RAW = 14,
+    append(NIL, 0),
+    append(INTEGER, 1),
+    append(DECIMAL, 2),
+    append(BOOLEAN, 3),
+    append(RAW, 4),
 };
+
+#undef bridge
+#undef append

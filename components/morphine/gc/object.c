@@ -13,6 +13,7 @@
 #include "morphine/object/native.h"
 #include "morphine/object/iterator.h"
 #include "morphine/object/vector.h"
+#include "morphine/object/sio.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 #include "morphine/gc/pools.h"
@@ -58,6 +59,9 @@ void objectI_free(morphine_instance_t I, struct object *object) {
             return;
         case OBJ_TYPE_ITERATOR:
             iteratorI_free(I, cast(struct iterator *, object));
+            return;
+        case OBJ_TYPE_SIO:
+            sioI_free(I, cast(struct sio *, object));
             return;
     }
 

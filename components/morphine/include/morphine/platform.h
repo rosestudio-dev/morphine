@@ -6,22 +6,34 @@
 
 #include <stdbool.h>
 #include <stddef.h>
-#include <stdio.h>
 #include "config.h"
 #include "limits.h"
 
 typedef struct coroutine *morphine_coroutine_t;
 typedef struct instance *morphine_instance_t;
+typedef void (*morphine_native_t)(morphine_coroutine_t);
+typedef void (*morphine_free_t)(morphine_instance_t, void *);
 
 typedef uint8_t priority_t;
 
-typedef void (*morphine_native_t)(morphine_coroutine_t);
+// sio types
 
-typedef void (*morphine_free_t)(morphine_instance_t, void *);
+typedef struct sio_accessor *morphine_sio_accessor_t;
+typedef void *(*morphine_sio_open_t)(morphine_sio_accessor_t, void *args);
+typedef size_t (*morphine_sio_read_t)(morphine_sio_accessor_t, void *data, uint8_t *buffer, size_t size);
+typedef size_t (*morphine_sio_write_t)(morphine_sio_accessor_t, void *data, const uint8_t *buffer, size_t size);
+typedef void (*morphine_sio_flush_t)(morphine_sio_accessor_t, void *data);
+typedef void (*morphine_sio_close_t)(morphine_sio_accessor_t, void *data);
 
-typedef void *(*morphine_init_t)(morphine_instance_t, void *args);
-typedef uint8_t (*morphine_read_t)(morphine_instance_t, void *data, const char **error);
-typedef void (*morphine_finish_t)(morphine_instance_t, void *data);
+typedef struct {
+    morphine_sio_open_t open;
+    morphine_sio_read_t read;
+    morphine_sio_write_t write;
+    morphine_sio_flush_t flush;
+    morphine_sio_close_t close;
+} morphine_sio_interface_t;
+
+// platform
 
 struct platform {
     struct {
@@ -31,11 +43,8 @@ struct platform {
         void (*signal)(morphine_instance_t) morphine_noret;
     } functions;
 
-    struct {
-        FILE *in;
-        FILE *out;
-        FILE *stacktrace;
-    } io;
+    morphine_sio_interface_t sio_io_interface;
+    morphine_sio_interface_t sio_error_interface;
 };
 
 struct gc_settings {

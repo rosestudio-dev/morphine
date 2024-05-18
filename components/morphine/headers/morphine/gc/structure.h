@@ -56,7 +56,7 @@ struct garbage_collector {
 
     struct {
         size_t index;
-        struct value stack[8];
+        struct value stack[12];
     } safe;
 
     struct {

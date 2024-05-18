@@ -234,6 +234,10 @@ void stackI_rotate(morphine_coroutine_t U, size_t count) {
         return;
     }
 
+    if (stackI_space(U) == 0) {
+        throwI_error(U->I, "Cannot rotate empty stack");
+    }
+
     struct value *values = stack_vector(U, 0, count);
 
     struct value temp = values[count - 1];

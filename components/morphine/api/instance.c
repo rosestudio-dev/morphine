@@ -27,14 +27,6 @@ MORPHINE_API void mapi_userlibs(morphine_instance_t I, struct require_loader *ta
     instanceI_require_table(I, table);
 }
 
-MORPHINE_API FILE *mapi_io_out(morphine_instance_t I) {
-    return I->platform.io.out;
-}
-
-MORPHINE_API FILE *mapi_io_in(morphine_instance_t I) {
-    return I->platform.io.in;
-}
-
 MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t U) {
     return U->I;
 }

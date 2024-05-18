@@ -14,6 +14,7 @@
 #include "morphine/object/native.h"
 #include "morphine/object/iterator.h"
 #include "morphine/object/vector.h"
+#include "morphine/object/sio.h"
 #include "morphine/core/throw.h"
 #include "morphine/utils/unused.h"
 
@@ -72,6 +73,11 @@ static inline size_t size_reference(struct reference *reference) {
     return sizeof(struct reference);
 }
 
+static inline size_t size_sio(struct sio *sio) {
+    unused(sio);
+    return sizeof(struct sio);
+}
+
 static inline size_t size_obj(morphine_instance_t I, struct object *obj) {
     switch (obj->type) {
         case OBJ_TYPE_TABLE: {
@@ -103,6 +109,9 @@ static inline size_t size_obj(morphine_instance_t I, struct object *obj) {
         }
         case OBJ_TYPE_REFERENCE: {
             return size_reference(cast(struct reference *, obj));
+        }
+        case OBJ_TYPE_SIO: {
+            return size_sio(cast(struct sio *, obj));
         }
     }
 

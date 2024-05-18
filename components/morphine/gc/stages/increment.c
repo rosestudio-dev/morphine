@@ -71,6 +71,9 @@ static inline size_t record(morphine_instance_t I) {
         mark_object(I, objectI_cast(I->registry));
     }
 
+    mark_object(I, objectI_cast(I->sio.error));
+    mark_object(I, objectI_cast(I->sio.io));
+
     {
         size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
 

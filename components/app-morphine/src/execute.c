@@ -6,6 +6,7 @@
 #include <loaders.h>
 #include <stdlib.h>
 #include <setjmp.h>
+#include <stdio.h>
 
 static struct allocator *pallocator;
 static jmp_buf abort_jmp;
@@ -15,10 +16,10 @@ __attribute__((noreturn)) static void cabort(void) {
 }
 
 morphine_noret static void signal(morphine_instance_t I) {
-    const char *message = mapi_get_panic_message(I);
+    const char *message = mapi_signal_message(I);
     printf("morphine panic: %s\n", message);
 
-    if (I != NULL) {
+    if (I != NULL && !mapi_is_nested_signal(I)) {
         mapi_close(I);
     }
 
@@ -45,6 +46,22 @@ static void load_program(morphine_coroutine_t U, const char *path, bool binary) 
     } else {
         loader_source_file(U, path);
     }
+}
+
+static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
+    (void) A;
+    (void) data;
+
+    fwrite(buffer, size, 1, stdout);
+    return size;
+}
+
+static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
+    (void) A;
+    (void) data;
+
+    fwrite(buffer, size, 1, stderr);
+    return size;
 }
 
 void execute(
@@ -77,14 +94,29 @@ void execute(
         .states.stack_grow = 64,
     };
 
+    morphine_sio_interface_t io_interface = {
+        .write = io_write,
+        .read = NULL,
+        .flush = NULL,
+        .open = NULL,
+        .close = NULL
+    };
+
+    morphine_sio_interface_t error_interface = {
+        .write = io_error_write,
+        .read = NULL,
+        .flush = NULL,
+        .open = NULL,
+        .close = NULL
+    };
+
     struct platform instance_platform = {
         .functions.malloc = malloc,
         .functions.realloc = realloc,
         .functions.free = free,
         .functions.signal = signal,
-        .io.in = stdin,
-        .io.out = stdout,
-        .io.stacktrace = stderr,
+        .sio_io_interface = io_interface,
+        .sio_error_interface = error_interface,
     };
 
     if (allocator != NULL) {

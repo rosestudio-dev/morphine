@@ -3,29 +3,29 @@
 //
 
 #include <loaders.h>
-#include <dlfcn.h>
+#include <stdio.h>
 #include "compiler.h"
 #include "userdata/readfile.h"
 #include "userdata/tbcfile.h"
 
-static uint8_t file_read(morphine_instance_t I, void *data, const char **error) {
-    (void) (I);
-
+static size_t file_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
     FILE *file = (FILE *) data;
 
-    if (feof(file)) {
-        *error = "Binary corrupted";
-        return 0;
+    size_t read = 0;
+    for(size_t i = 0; i < size; i ++) {
+        if(feof(file)) {
+            buffer[i] = 0;
+        } else {
+            buffer[i] = (uint8_t) fgetc(file);
+            read ++;
+        }
+
+        if (ferror(file)) {
+            mapi_sio_accessor_error(A, "Error while reading");
+        }
     }
 
-    uint8_t c = (uint8_t) fgetc(file);
-
-    if (ferror(file)) {
-        *error = "Error while reading";
-        return 0;
-    }
-
-    return c;
+    return read;
 }
 
 void loader_source_file(morphine_coroutine_t U, const char *path) {
@@ -46,7 +46,8 @@ void loader_source_file(morphine_coroutine_t U, const char *path) {
         mapi_errorf(U, "Error while compiling");
     }
 
-    mapi_push_function(U, (size_t) size, native);
+    maux_push_sio_vector(U, native, (size_t) size, false);
+    mapi_push_function(U);
 
     libcompiler_release(U, compiler);
 
@@ -56,7 +57,19 @@ void loader_source_file(morphine_coroutine_t U, const char *path) {
 
 void loader_binary_file(morphine_coroutine_t U, const char *path) {
     FILE *file = userdata_tbc_file(U, path, "r");
-    mapi_function_load(U, NULL, file_read, NULL, file);
-    mapi_rotate(U, 2);
-    mapi_pop(U, 1);
+
+    morphine_sio_interface_t interface = {
+        .read = file_read,
+        .open = NULL,
+        .close = NULL,
+        .write = NULL,
+        .flush = NULL,
+    };
+
+    mapi_push_sio(U, interface);
+    mapi_sio_open(U, file);
+    mapi_push_function(U);
+
+    mapi_rotate(U, 3);
+    mapi_pop(U, 2);
 }

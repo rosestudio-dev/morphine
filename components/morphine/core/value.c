@@ -42,6 +42,7 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_FUNCTION:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
+        case VALUE_TYPE_SIO:
         case VALUE_TYPE_ITERATOR:
             return a.object.header == b.object.header;
     }
@@ -81,6 +82,8 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
             return valueI_object(stringI_createf(I, "[object:function:%p|%s]", value.object.function, valueI_as_function(value)->name));
         case VALUE_TYPE_NATIVE:
             return valueI_object(stringI_createf(I, "[object:native:%p|%s]", value.object.native, valueI_as_native(value)->name));
+        case VALUE_TYPE_SIO:
+            return valueI_object(stringI_createf(I, "[object:sio:%p]", value.object.native));
         case VALUE_TYPE_RAW:
             return valueI_object(stringI_createf(I, "[raw:%p]", value.raw));
     }
@@ -193,6 +196,8 @@ const char *valueI_type2string(morphine_instance_t I, enum value_type type) {
             return "reference";
         case VALUE_TYPE_ITERATOR:
             return "iterator";
+        case VALUE_TYPE_SIO:
+            return "sio";
         case VALUE_TYPE_RAW:
             return "raw";
     }

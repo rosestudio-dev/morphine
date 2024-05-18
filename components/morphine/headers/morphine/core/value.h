@@ -8,7 +8,7 @@
 #include "morphine/utils/likely.h"
 #include "morphine/gc/object.h"
 
-// region create
+// create
 
 #define valueI_create(t, d, x) ((struct value) { .type = VALUE_TYPE_##t, .d = (x) })
 
@@ -17,12 +17,9 @@
 #define valueI_decimal(x) valueI_create(DECIMAL, decimal, x)
 #define valueI_boolean(x) valueI_create(BOOLEAN, boolean, x)
 #define valueI_raw(x)     valueI_create(RAW, raw, x)
-
 #define valueI_object(x)  ({struct object *_obj = objectI_cast(x); ((struct value) { .type = (enum value_type) (_obj->type), .object.header = _obj });})
 
-// endregion
-
-// region is
+// is
 
 #define valueI_is(t, x) ((x).type == VALUE_TYPE_##t)
 
@@ -41,12 +38,10 @@
 #define valueI_is_native(x)    valueI_is(NATIVE, x)
 #define valueI_is_reference(x) valueI_is(REFERENCE, x)
 #define valueI_is_iterator(x)  valueI_is(ITERATOR, x)
-
+#define valueI_is_sio(x)       valueI_is(SIO, x)
 #define valueI_is_object(x)    typeI_value_is_obj((x).type)
 
-// endregion
-
-// region as
+// as
 
 #define valueI_as(t, x) ((x).t)
 
@@ -65,11 +60,10 @@
 #define valueI_as_native(x)    valueI_as(object.native, x)
 #define valueI_as_reference(x) valueI_as(object.reference, x)
 #define valueI_as_iterator(x)  valueI_as(object.iterator, x)
+#define valueI_as_sio(x)       valueI_as(object.sio, x)
 #define valueI_as_object(x)    valueI_as(object.header, x)
 
-// endregion
-
-// region safe_as
+// safe as
 
 #define valueI_safe_as(t, x, o) ({struct value _a = (x); (likely(valueI_is_##t(_a)) ? valueI_as_##t(_a) : (o));})
 
@@ -88,11 +82,10 @@
 #define valueI_safe_as_native(x, o)    valueI_safe_as(native, x, o)
 #define valueI_safe_as_reference(x, o) valueI_safe_as(reference, x, o)
 #define valueI_safe_as_iterator(x, o)  valueI_safe_as(iterator, x, o)
+#define valueI_safe_as_sio(x, o)       valueI_safe_as(sio, x, o)
 #define valueI_safe_as_object(x, o)    valueI_safe_as(object, x, o)
 
-// endregion
-
-// region as_or_error
+// as or error
 
 #define valueI_as_or_error(I, t, x) ({struct value _a = (x); if(unlikely(!valueI_is_##t(_a))) throwI_error((I), "Expected " #t); valueI_as_##t(_a);})
 
@@ -111,9 +104,10 @@
 #define valueI_as_native_or_error(I, x)    valueI_as_or_error(I, native, x)
 #define valueI_as_reference_or_error(I, x) valueI_as_or_error(I, reference, x)
 #define valueI_as_iterator_or_error(I, x)  valueI_as_or_error(I, iterator, x)
+#define valueI_as_sio_or_error(I, x)       valueI_as_or_error(I, sio, x)
 #define valueI_as_object_or_error(I, x)    valueI_as_or_error(I, object, x)
 
-// endregion
+// other
 
 #define valueI_integer2namedsize(I, x, name) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((ml_size) _i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to "name, _i); ((ml_size) _i);})
 #define valueI_csize2namedsize(I, x, name) ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to "name, _s); ((ml_size) _s);})
@@ -151,6 +145,7 @@ struct value {
             struct vector *vector;
             struct userdata *userdata;
             struct iterator *iterator;
+            struct sio *sio;
         } object;
     };
 };

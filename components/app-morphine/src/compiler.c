@@ -5,6 +5,7 @@
 #include <dlfcn.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 #include "compiler.h"
 #include "execute.h"
 

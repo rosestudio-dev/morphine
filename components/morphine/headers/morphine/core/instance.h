@@ -26,6 +26,11 @@ struct instance {
         struct string *names[MFS_COUNT];
         struct table *defaults[VALUE_TYPES_COUNT];
     } metatable;
+
+    struct {
+        struct sio *io;
+        struct sio *error;
+    } sio;
 };
 
 morphine_instance_t instanceI_open(struct platform, struct settings, void *data);
