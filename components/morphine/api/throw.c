@@ -34,10 +34,18 @@ MORPHINE_API void mapi_push_thrown(morphine_coroutine_t U) {
     stackI_push(U, *callstackI_info_or_error(U)->s.thrown);
 }
 
-MORPHINE_API const char *mapi_get_panic_message(morphine_instance_t I) {
+MORPHINE_API const char *mapi_signal_message(morphine_instance_t I) {
     if (I == NULL) {
         return "Initial error";
     }
 
     return throwI_message(I);
+}
+
+MORPHINE_API bool mapi_is_nested_signal(morphine_instance_t I) {
+    if (I == NULL) {
+        return false;
+    }
+
+    return throwI_is_nested_signal(I);
 }

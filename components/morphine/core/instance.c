@@ -6,6 +6,7 @@
 #include "morphine/init/instance.h"
 #include "morphine/gc/finalizer.h"
 #include "morphine/gc/control.h"
+#include "morphine/object/sio.h"
 
 morphine_instance_t instanceI_open(struct platform platform, struct settings settings, void *data) {
     if (sizeof(struct instance) >= settings.gc.limit_bytes) {
@@ -39,6 +40,9 @@ morphine_instance_t instanceI_open(struct platform platform, struct settings set
 }
 
 void instanceI_close(morphine_instance_t I) {
+    sioI_close(I, I->sio.io);
+    sioI_close(I, I->sio.error);
+
     gcI_destruct(I, I->G);
     I->platform.functions.free(I);
 }

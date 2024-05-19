@@ -19,6 +19,7 @@ struct callinfo {
         struct value *source;
         struct value *env;
         struct value *self;
+        struct value *registry;
         struct value *result;
         struct value *thrown;
         struct value *args;
@@ -94,4 +95,5 @@ struct value callstackI_result(morphine_coroutine_t);
 void callstackI_return(morphine_coroutine_t, struct value);
 void callstackI_leave(morphine_coroutine_t);
 void callstackI_continue(morphine_coroutine_t, size_t state);
+void callstackI_bind_registry(morphine_coroutine_t);
 size_t callstackI_state(morphine_coroutine_t);

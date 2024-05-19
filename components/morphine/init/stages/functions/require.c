@@ -20,6 +20,7 @@ static struct require_loader table[] = {
     { "vector",    mlib_vector_loader },
     { "value",     mlib_value_loader },
     { "registry",  mlib_registry_loader },
+    { "sio",       mlib_sio_loader },
     { NULL, NULL }
 };
 

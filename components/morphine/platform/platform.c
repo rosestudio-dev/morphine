@@ -4,6 +4,7 @@
 
 #include "morphine/platform.h"
 #include <ctype.h>
+#include <stdio.h>
 
 bool platformI_string2integer(const char *string, ml_integer *container) {
     size_t len = 0;

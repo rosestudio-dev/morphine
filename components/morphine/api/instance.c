@@ -117,46 +117,6 @@ MORPHINE_API void mapi_userlibs(morphine_instance_t I, struct require_loader *ta
 /*
  * {{docs body}}
  * path:vm/api-instance
- * ## mapi_io_out
- * ### Prototype
- * ```c
- * FILE *mapi_io_out(morphine_instance_t I)
- * ```
- * ### Parameters
- * * `I` - instance
- * ### Result
- * File for output
- * ### Description
- * Gets file for output
- * {{end}}
- */
-MORPHINE_API FILE *mapi_io_out(morphine_instance_t I) {
-    return I->platform.io.out;
-}
-
-/*
- * {{docs body}}
- * path:vm/api-instance
- * ## mapi_io_in
- * ### Prototype
- * ```c
- * FILE *mapi_io_in(morphine_instance_t I)
- * ```
- * ### Parameters
- * * `I` - instance
- * ### Result
- * File for input
- * ### Description
- * Gets file for input
- * {{end}}
- */
-MORPHINE_API FILE *mapi_io_in(morphine_instance_t I) {
-    return I->platform.io.in;
-}
-
-/*
- * {{docs body}}
- * path:vm/api-instance
  * ## mapi_instance
  * ### Prototype
  * ```c

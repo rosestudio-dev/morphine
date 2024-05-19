@@ -45,6 +45,7 @@ static uint64_t hashcode(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_FUNCTION:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_ITERATOR:
+        case VALUE_TYPE_SIO:
         case VALUE_TYPE_REFERENCE:
             return (uint64_t) valueI_as_object(value);
     }
@@ -88,6 +89,7 @@ static inline int compare(morphine_instance_t I, struct value a, struct value b)
         case VALUE_TYPE_FUNCTION:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
+        case VALUE_TYPE_SIO:
         case VALUE_TYPE_ITERATOR:
             return COMPARE_NUM(a.object.header, b.object.header);
     }
@@ -603,6 +605,10 @@ void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mut
 void tableI_mode_lock_metatable(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_error(I, "Table is null");
+    }
+
+    if (table->mode.locked) {
+        throwI_error(I, "Table is locked");
     }
 
     table->mode.metatable_locked = true;

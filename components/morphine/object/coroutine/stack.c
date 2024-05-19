@@ -16,6 +16,7 @@ static inline void callstack_recover(struct coroutine *U, struct value *stack) {
         stackI_ptr_recover(current->s.source);
         stackI_ptr_recover(current->s.env);
         stackI_ptr_recover(current->s.self);
+        stackI_ptr_recover(current->s.registry);
         stackI_ptr_recover(current->s.result);
         stackI_ptr_recover(current->s.thrown);
         stackI_ptr_recover(current->s.args);
@@ -232,6 +233,10 @@ void stackI_pop(morphine_coroutine_t U, size_t count) {
 void stackI_rotate(morphine_coroutine_t U, size_t count) {
     if (count == 0) {
         return;
+    }
+
+    if (stackI_space(U) == 0) {
+        throwI_error(U->I, "Cannot rotate empty stack");
     }
 
     struct value *values = stack_vector(U, 0, count);

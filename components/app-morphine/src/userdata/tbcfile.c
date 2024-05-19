@@ -2,6 +2,7 @@
 // Created by whyiskra on 3/24/24.
 //
 
+#include <stdio.h>
 #include "userdata/tbcfile.h"
 
 struct file {

@@ -113,6 +113,9 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_REFERENCE: {
             return size_reference(cast(struct reference *, obj));
         }
+        case OBJ_TYPE_SIO: {
+            return size_sio(cast(struct sio *, obj));
+        }
     }
 
     throwI_panic(I, "Unsupported object");

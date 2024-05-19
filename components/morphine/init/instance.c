@@ -6,6 +6,7 @@
 #include "stages.h"
 
 void initI_instance(morphine_instance_t I) {
+    init_sio(I);
     init_env(I);
     init_registry(I);
     init_metatables(I);

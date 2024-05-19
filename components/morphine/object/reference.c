@@ -7,9 +7,7 @@
 #include "morphine/gc/allocator.h"
 
 struct reference *referenceI_create(morphine_instance_t I, struct value value) {
-    size_t alloc_size = sizeof(struct reference);
-
-    struct reference *result = allocI_uni(I, NULL, alloc_size);
+    struct reference *result = allocI_uni(I, NULL, sizeof(struct reference));
 
     (*result) = (struct reference) {
         .value = value,

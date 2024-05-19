@@ -22,7 +22,7 @@ MORPHINE_API bool mapi_registry_get(morphine_coroutine_t U) {
 
     bool has = false;
     struct value result = registryI_get(U, value, &has);
-    stackI_push(U, result);
+    stackI_replace(U, 0, result);
 
     return has;
 }
@@ -34,7 +34,7 @@ MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t U) {
     struct value result = registryI_get(U, value, &has);
 
     if (has) {
-        stackI_push(U, result);
+        stackI_replace(U, 0, result);
     } else {
         throwI_errorf(U->I, "Cannot get value from registry by %s", valueI_value2string(U->I, value));
     }

@@ -25,10 +25,10 @@ static void print(morphine_coroutine_t U) {
         nb_state(1)
             mapi_push_result(U);
 
-            FILE *out = mapi_io_out(mapi_instance(U));
-            if (out != NULL) {
-                fprintf(out, "%s", mapi_get_string(U));
-            }
+            const uint8_t *string = (const uint8_t *) mapi_get_string(U);
+            size_t size = mapi_string_len(U);
+            mapi_push_sio_io(U);
+            mapi_sio_write(U, string, size);
 
             mapi_pop(U, 1);
             nb_leave();
@@ -40,10 +40,8 @@ static void println(morphine_coroutine_t U) {
         nb_init
             size_t args = mapi_args(U);
             if (args == 0) {
-                FILE *out = mapi_io_out(mapi_instance(U));
-                if (out != NULL) {
-                    fprintf(out, "\n");
-                }
+                mapi_push_sio_io(U);
+                mapi_sio_write(U, (const uint8_t *) "\n", 1);
             } else {
                 maux_expect_args(U, 1);
                 mapi_push_arg(U, 0);
@@ -53,10 +51,11 @@ static void println(morphine_coroutine_t U) {
         nb_state(1)
             mapi_push_result(U);
 
-            FILE *out = mapi_io_out(mapi_instance(U));
-            if (out != NULL) {
-                fprintf(out, "%s\n", mapi_get_string(U));
-            }
+            const uint8_t *string = (const uint8_t *) mapi_get_string(U);
+            size_t size = mapi_string_len(U);
+            mapi_push_sio_io(U);
+            mapi_sio_write(U, string, size);
+            mapi_sio_write(U, (const uint8_t *) "\n", 1);
 
             mapi_pop(U, 1);
             nb_leave();

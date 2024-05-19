@@ -93,3 +93,7 @@ void registryI_clear(morphine_coroutine_t U) {
 
     tableI_remove(U->I, U->I->registry, registry_key, NULL);
 }
+
+void registryI_clear_by_key(morphine_instance_t I, struct value key) {
+    tableI_remove(I, I->registry, key, NULL);
+}

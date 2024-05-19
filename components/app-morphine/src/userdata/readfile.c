@@ -3,6 +3,7 @@
 //
 
 #include <string.h>
+#include <stdio.h>
 #include "userdata/readfile.h"
 
 struct readfile {

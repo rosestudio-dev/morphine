@@ -15,6 +15,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 #include "morphine/misc/metatable.h"
+#include "morphine/misc/registry.h"
 
 static inline void stackI_call(
     morphine_coroutine_t U, struct value callable, struct value self, size_t argc, size_t pop_size
@@ -75,7 +76,7 @@ static inline void stackI_call(
 
     U->callstack.uninit_callinfo = callinfo;
 
-    size_t raise_size = 6 + argc + slots_count + params_count;
+    size_t raise_size = 7 + argc + slots_count + params_count;
     struct value *base = stackI_raise(U, raise_size);
 
     (*callinfo) = (struct callinfo) {
@@ -83,11 +84,12 @@ static inline void stackI_call(
         .s.source = (base + 1),
         .s.env = (base + 2),
         .s.self = (base + 3),
-        .s.result = (base + 4),
-        .s.thrown = (base + 5),
-        .s.args = (base + 6),
-        .s.slots = (base + 6 + argc),
-        .s.params = (base + 6 + argc + slots_count),
+        .s.registry = (base + 4),
+        .s.result = (base + 5),
+        .s.thrown = (base + 6),
+        .s.args = (base + 7),
+        .s.slots = (base + 7 + argc),
+        .s.params = (base + 7 + argc + slots_count),
         .s.space = (U->stack.allocated + U->stack.top),
         .s.top = (U->stack.allocated + U->stack.top),
         .pop_size = pop_size,
@@ -273,10 +275,11 @@ void callstackI_call_params(
 
 void callstackI_pop(morphine_coroutine_t U) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
+    registryI_clear_by_key(U->I, *callinfo->s.registry);
+
     size_t pop_size = callinfo->pop_size;
 
     stackI_reduce(U, (size_t) (callinfo->s.top - callinfo->s.base));
-
     callstackI_info(U) = callinfo->prev;
     U->callstack.size--;
 
@@ -362,6 +365,13 @@ void callstackI_continue(morphine_coroutine_t U, size_t state) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
     callinfo->pc.state = state;
     callinfo->exit = false;
+}
+
+void callstackI_bind_registry(morphine_coroutine_t U) {
+    struct callinfo *callinfo = callstackI_info_or_error(U);
+    struct value key = valueI_raw(callinfo);
+    *callinfo->s.registry = key;
+    registryI_set_key(U->I, *callinfo->s.callable, key);
 }
 
 size_t callstackI_state(morphine_coroutine_t U) {

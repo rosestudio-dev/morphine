@@ -3,7 +3,6 @@
 //
 
 #include <setjmp.h>
-#include <stdio.h>
 #include <inttypes.h>
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
@@ -12,16 +11,14 @@
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 #include "morphine/gc/safe.h"
+#include "morphine/object/sio.h"
 
 static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
-    FILE *file = U->I->platform.io.stacktrace;
+    morphine_instance_t I = U->I;
+    struct sio *error = I->sio.error;
 
-    if (file == NULL) {
-        return;
-    }
-
-    fprintf(file, "morphine error (in coroutine %p): %s\n", U, message);
-    fprintf(file, "tracing callstack:\n");
+    sioI_printf(I, error, "morphine error (in coroutine %p): %s\n", U, message);
+    sioI_print(I, error, "tracing callstack:\n");
 
     size_t callstack_size = U->callstack.size;
     size_t callstack_index = 0;
@@ -29,7 +26,7 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
     while (callinfo != NULL) {
         if (callstack_size >= 30) {
             if (callstack_index == 10) {
-                fprintf(file, "    ... (skipped %zu)\n", callstack_size - 20);
+                sioI_printf(I, error, "    ... (skipped %zu)\n", callstack_size - 20);
             }
 
             if (callstack_index >= 10 && callstack_index < callstack_size - 10) {
@@ -37,7 +34,7 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
             }
         }
 
-        fprintf(file, "    ");
+        sioI_print(I, error, "    ");
 
         struct value callable = *callinfo->s.source;
 
@@ -50,8 +47,9 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
                 line = function->instructions[position].line;
             }
 
-            fprintf(
-                file,
+            sioI_printf(
+                I,
+                error,
                 "[line: %"PRIu32", p: %zu] function %s (%p)\n",
                 line,
                 position,
@@ -61,8 +59,9 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
         } else if (valueI_is_native(callable)) {
             struct native *native = valueI_as_native(callable);
 
-            fprintf(
-                file,
+            sioI_printf(
+                I,
+                error,
                 "[s: %zu] native %s (%p)\n",
                 callinfo->pc.state,
                 native->name,
@@ -79,6 +78,7 @@ next:
 struct throw throwI_prototype(void) {
     return (struct throw) {
         .inited = false,
+        .signal_entered = 0,
         .is_message = false,
         .error.value = valueI_nil,
         .context_coroutine = NULL
@@ -163,6 +163,7 @@ morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
 morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
     struct throw *throw = &I->E.throw;
 
+    throw->signal_entered ++;
     throw->is_message = true;
     throw->error.message = message;
     I->platform.functions.signal(I);
@@ -184,6 +185,7 @@ morphine_noret void throwI_errorv(morphine_instance_t I, struct value value) {
 morphine_noret void throwI_panicv(morphine_instance_t I, struct value value) {
     struct throw *throw = &I->E.throw;
 
+    throw->signal_entered ++;
     throw->is_message = false;
     throw->error.value = value;
     I->platform.functions.signal(I);
@@ -204,6 +206,10 @@ const char *throwI_message(morphine_instance_t I) {
     } else {
         return string->chars;
     }
+}
+
+bool throwI_is_nested_signal(morphine_instance_t I) {
+    return I->E.throw.signal_entered > 1;
 }
 
 void throwI_catchable(morphine_coroutine_t U, size_t callstate) {
