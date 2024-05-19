@@ -256,6 +256,7 @@ MORPHINE_API void mapi_push_sio_io(morphine_coroutine_t);
 MORPHINE_API void mapi_push_sio_error(morphine_coroutine_t);
 MORPHINE_API void mapi_push_sio(morphine_coroutine_t, morphine_sio_interface_t);
 MORPHINE_API void mapi_sio_open(morphine_coroutine_t, void *);
+MORPHINE_API bool mapi_sio_is_opened(morphine_coroutine_t);
 MORPHINE_API void mapi_sio_close(morphine_coroutine_t);
 MORPHINE_API size_t mapi_sio_read(morphine_coroutine_t, uint8_t *, size_t);
 MORPHINE_API size_t mapi_sio_write(morphine_coroutine_t, const uint8_t *, size_t);

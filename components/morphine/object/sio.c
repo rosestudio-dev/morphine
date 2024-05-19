@@ -23,7 +23,7 @@ struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interfac
 
     (*result) = (struct sio) {
         .interface = interface,
-        .inited = false,
+        .opened = false,
         .data = NULL
     };
 
@@ -39,11 +39,11 @@ static struct sio_accessor get_accessor(morphine_instance_t I) {
 }
 
 static void close(morphine_instance_t I, struct sio *sio, bool require) {
-    if (require && !sio->inited) {
+    if (require && !sio->opened) {
         throwI_error(I, "SIO already closed");
     }
 
-    if (sio->inited && sio->interface.close != NULL) {
+    if (sio->opened && sio->interface.close != NULL) {
         struct sio_accessor A = get_accessor(I);
         sio->interface.close(&A, sio->data);
     }
@@ -59,7 +59,7 @@ void sioI_open(morphine_instance_t I, struct sio *sio, void *arg) {
         throwI_error(I, "SIO is null");
     }
 
-    if (sio->inited) {
+    if (sio->opened) {
         throwI_error(I, "SIO is already opened");
     }
 
@@ -70,7 +70,15 @@ void sioI_open(morphine_instance_t I, struct sio *sio, void *arg) {
         sio->data = sio->interface.open(&A, arg);
     }
 
-    sio->inited = true;
+    sio->opened = true;
+}
+
+bool sioI_is_opened(morphine_instance_t I, struct sio *sio) {
+    if (sio == NULL) {
+        throwI_error(I, "SIO is null");
+    }
+
+    return sio->opened;
 }
 
 void sioI_close(morphine_instance_t I, struct sio *sio) {
@@ -90,7 +98,7 @@ size_t sioI_read(morphine_instance_t I, struct sio *sio, uint8_t *buffer, size_t
         throwI_error(I, "SIO is write only");
     }
 
-    if (!sio->inited) {
+    if (!sio->opened) {
         throwI_error(I, "SIO isn't opened");
     }
 
@@ -107,7 +115,7 @@ size_t sioI_write(morphine_instance_t I, struct sio *sio, const uint8_t *buffer,
         throwI_error(I, "SIO is read only");
     }
 
-    if (!sio->inited) {
+    if (!sio->opened) {
         throwI_error(I, "SIO isn't opened");
     }
 
@@ -120,7 +128,7 @@ void sioI_flush(morphine_instance_t I, struct sio *sio) {
         throwI_error(I, "SIO is null");
     }
 
-    if (!sio->inited) {
+    if (!sio->opened) {
         throwI_error(I, "SIO isn't opened");
     }
 

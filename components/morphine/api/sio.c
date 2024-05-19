@@ -30,6 +30,11 @@ MORPHINE_API void mapi_sio_open(morphine_coroutine_t U, void *data) {
     sioI_open(U->I, sio, data);
 }
 
+MORPHINE_API bool mapi_sio_is_opened(morphine_coroutine_t U) {
+    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
+    return sioI_is_opened(U->I, sio);
+}
+
 MORPHINE_API void mapi_sio_close(morphine_coroutine_t U) {
     struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
 
