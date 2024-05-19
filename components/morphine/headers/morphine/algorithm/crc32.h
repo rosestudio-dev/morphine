@@ -14,4 +14,3 @@ struct crc32_buf {
 struct crc32_buf crc32_init(void);
 uint32_t crc32_result(struct crc32_buf *impl);
 void crc32_char(struct crc32_buf *impl, uint8_t c);
-void crc32_string(struct crc32_buf *impl, uint8_t *buf, size_t len);

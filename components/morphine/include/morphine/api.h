@@ -38,6 +38,7 @@ MORPHINE_API void mapi_push_arg(morphine_coroutine_t, size_t index);
 MORPHINE_API void mapi_push_env(morphine_coroutine_t);
 MORPHINE_API void mapi_push_self(morphine_coroutine_t);
 MORPHINE_API void mapi_change_env(morphine_coroutine_t);
+MORPHINE_API void mapi_bind_registry(morphine_coroutine_t);
 
 // error
 

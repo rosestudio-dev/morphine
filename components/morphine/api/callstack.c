@@ -359,3 +359,21 @@ MORPHINE_API void mapi_change_env(morphine_coroutine_t U) {
     struct value env = stackI_peek(U, 0);
     *callstackI_info_or_error(U)->s.env = env;
 }
+
+/*
+ * {{docs body}}
+ * path:vm/api-callstack
+ * ## mapi_bind_registry
+ * ### Prototype
+ * ```c
+ * void mapi_bind_registry(morphine_coroutine_t U)
+ * ```
+ * ### Parameters
+ * * `U` - coroutine
+ * ### Description
+ * Binds call info as raw value with registry (after call it will automatically delete from registry)
+ * {{end}}
+ */
+MORPHINE_API void mapi_bind_registry(morphine_coroutine_t U) {
+    callstackI_bind_registry(U);
+}

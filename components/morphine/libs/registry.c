@@ -22,7 +22,6 @@ static void has(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             bool has = mapi_registry_get(U);
-            mapi_pop(U, 1);
             mapi_push_boolean(U, has);
             nb_return();
     nb_end
