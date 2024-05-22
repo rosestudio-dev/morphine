@@ -8,6 +8,8 @@ versioncode = get_option('versioncode')
 installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
+morphine = subproject('morphine').get_variable('morphine_dep')
+
 sources = run_command(
     'python',
     meson.source_root() / 'extra' / 'scripts' / 'walker.py',
@@ -58,6 +60,7 @@ executable(
     'native-compiler', sources,
     include_directories : include,
     c_args : compiler_args,
+    dependencies : [morphine],
 
     install : installdir != 'undefined',
     install_dir : installdir
