@@ -6,7 +6,7 @@
 #include <ctype.h>
 #include "lex.h"
 
-#define TYPE "lex"
+#define MORPHINE_TYPE "lex"
 
 #define isnewline(c) ((c) == '\n' || (c) == '\r')
 #define eoschar '\0'
@@ -70,46 +70,46 @@ static struct {
     const char *name;
     enum token_operator type;
 } operator_table[] = {
-#define op(t, n) { .type = TOP_##t, .name = (n) }
-    op(PLUS, "+"),
-    op(MINUS, "-"),
-    op(STAR, "*"),
-    op(SLASH, "/"),
-    op(PERCENT, "%"),
-    op(EQ, "="),
-    op(EQEQ, "=="),
-    op(EXCLEQ, "!="),
-    op(LTEQ, "<="),
-    op(LT, "<"),
-    op(GT, ">"),
-    op(GTEQ, ">="),
-    op(COLON, ":"),
-    op(DOLLAR, "$"),
-    op(SEMICOLON, ";"),
-    op(LPAREN, "("),
-    op(RPAREN, ")"),
-    op(LBRACKET, "["),
-    op(RBRACKET, "]"),
-    op(LBRACE, "{"),
-    op(RBRACE, "}"),
-    op(COMMA, ","),
-    op(DOT, "."),
-    op(DOTDOT, ".."),
-    op(PLUSPLUS, "++"),
-    op(MINUSMINUS, "--"),
-    op(PLUSEQ, "+="),
-    op(MINUSEQ, "-="),
-    op(STAREQ, "*="),
-    op(SLASHEQ, "/="),
-    op(PERCENTEQ, "%="),
-    op(DOTDOTEQ, "..="),
-    op(LARROW, "<-"),
-    op(RARROW, "->")
-#undef op
+#define operator(t, n) { .type = TOP_##t, .name = (n) }
+    operator(PLUS, "+"),
+    operator(MINUS, "-"),
+    operator(STAR, "*"),
+    operator(SLASH, "/"),
+    operator(PERCENT, "%"),
+    operator(EQ, "="),
+    operator(EQEQ, "=="),
+    operator(EXCLEQ, "!="),
+    operator(LTEQ, "<="),
+    operator(LT, "<"),
+    operator(GT, ">"),
+    operator(GTEQ, ">="),
+    operator(COLON, ":"),
+    operator(DOLLAR, "$"),
+    operator(SEMICOLON, ";"),
+    operator(LPAREN, "("),
+    operator(RPAREN, ")"),
+    operator(LBRACKET, "["),
+    operator(RBRACKET, "]"),
+    operator(LBRACE, "{"),
+    operator(RBRACE, "}"),
+    operator(COMMA, ","),
+    operator(DOT, "."),
+    operator(DOTDOT, ".."),
+    operator(PLUSPLUS, "++"),
+    operator(MINUSMINUS, "--"),
+    operator(PLUSEQ, "+="),
+    operator(MINUSEQ, "-="),
+    operator(STAREQ, "*="),
+    operator(SLASHEQ, "/="),
+    operator(PERCENTEQ, "%="),
+    operator(DOTDOTEQ, "..="),
+    operator(LARROW, "<-"),
+    operator(RARROW, "->")
+#undef operator
 };
 
 void lex(morphine_coroutine_t U, const char *text, size_t len) {
-    struct lex *L = mapi_push_userdata(U, TYPE, sizeof(struct lex));
+    struct lex *L = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct lex));
 
     *L = (struct lex) {
         .text = text,
@@ -120,10 +120,10 @@ void lex(morphine_coroutine_t U, const char *text, size_t len) {
 }
 
 static struct lex *get_lex(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), TYPE) == 0) {
+    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
         return mapi_userdata_pointer(U);
     } else {
-        mapi_error(U, "expected "TYPE);
+        mapi_error(U, "expected "MORPHINE_TYPE);
     }
 }
 
@@ -428,7 +428,7 @@ static bool handle_operator(struct lex *L, size_t from, size_t to, struct token 
             if (token != NULL) {
                 *token = (struct token) {
                     .type = TT_OPERATOR,
-                    .op = operator_table[i].type,
+                    .operator = operator_table[i].type,
                     .line = L->line
                 };
             }
@@ -522,22 +522,22 @@ struct token lex_next(morphine_coroutine_t U) {
     lex_error(U, L, "unknown symbol");
 }
 
-const char *lex_op2str(enum token_operator op) {
+const char *lex_operator2str(morphine_coroutine_t U, enum token_operator operator) {
     for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
-        if (operator_table[i].type == op) {
+        if (operator_table[i].type == operator) {
             return operator_table[i].name;
         }
     }
 
-    return NULL;
+    mapi_error(U, "operator not found");
 }
 
-const char *lex_predefined2str(enum token_predefined_word predefined_word) {
+const char *lex_predefined2str(morphine_coroutine_t U, enum token_predefined_word predefined_word) {
     for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
         if (predefined_table[i].type == predefined_word) {
             return predefined_table[i].name;
         }
     }
 
-    return NULL;
+    mapi_error(U, "predefined word not found");
 }

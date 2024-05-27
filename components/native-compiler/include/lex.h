@@ -103,12 +103,12 @@ struct token {
         strtable_index_t string;
         strtable_index_t word;
         enum token_predefined_word predefined_word;
-        enum token_operator op;
+        enum token_operator operator;
     };
 };
 
 void lex(morphine_coroutine_t, const char *, size_t);
 struct token lex_next(morphine_coroutine_t);
 
-const char *lex_op2str(enum token_operator);
-const char *lex_predefined2str(enum token_predefined_word);
+const char *lex_operator2str(morphine_coroutine_t, enum token_operator);
+const char *lex_predefined2str(morphine_coroutine_t, enum token_predefined_word);
