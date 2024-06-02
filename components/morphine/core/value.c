@@ -10,6 +10,7 @@
 #include "morphine/object/native.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/userdata.h"
+#include "morphine/platform/conversions.h"
 
 bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
     if (likely(a.type != b.type)) {

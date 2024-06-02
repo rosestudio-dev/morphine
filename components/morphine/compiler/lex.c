@@ -4,7 +4,8 @@
 
 #include <string.h>
 #include <ctype.h>
-#include "lex.h"
+#include "morphine/compiler/lex.h"
+#include "morphine/platform/conversions.h"
 
 #define MORPHINE_TYPE "lex"
 
@@ -12,7 +13,7 @@
 #define eoschar '\0'
 #define opchars "+-*/%()[]{}=<>!&|.,^~?:;"
 
-#define lex_cl_error(U, line, str) mapi_errorf((U), "Line %"PRIu32": "str, (line))
+#define lex_cl_error(U, line, str) mapi_errorf((U), "line %"PRIu32": "str, (line))
 #define lex_error(U, L, str) lex_cl_error(U, (L)->line, str)
 
 struct lex {

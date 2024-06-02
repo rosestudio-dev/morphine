@@ -4,11 +4,11 @@
 
 #include <string.h>
 #include <setjmp.h>
-#include <stdio.h>
-#include "parser.h"
+#include "morphine/compiler/parser.h"
 #include "grammar/support/matcher.h"
 #include "grammar/support/elements.h"
 #include "grammar/impl.h"
+#include "stack.h"
 
 #define MORPHINE_TYPE "parser"
 
@@ -35,15 +35,6 @@ struct context {
     bool is_wrapped;
     size_t from;
     enum reduce_type type;
-};
-
-struct stack {
-    size_t type_size;
-    size_t expansion_factor;
-    size_t limit;
-    size_t size;
-    size_t used;
-    void *array;
 };
 
 struct parser {
@@ -132,79 +123,6 @@ bool elements_look(struct elements *E, size_t index, struct matcher_symbol symbo
     struct token token = elements_get_token(E, index);
 
     return matcher_symbol(symbol, token);
-}
-
-// stack
-
-#define stack_push_typed(T, U, S)   ((T *) stack_push((U), (S)))
-#define stack_peek_typed(T, U, S)   ((T *) stack_peek((U), (S)))
-#define stack_get_typed(T, U, S, i) ((T *) stack_get((U), (S), (i)))
-#define stack_is_empty(S)           ((S).used == 0)
-#define stack_size(S)               ((S).used)
-
-static void stack_init(struct stack *S, size_t type_size, size_t expansion_factor, size_t limit) {
-    *S = (struct stack) {
-        .type_size = type_size,
-        .expansion_factor = expansion_factor,
-        .limit = limit,
-        .size = 0,
-        .used = 0,
-        .array = NULL
-    };
-}
-
-static void stack_free(morphine_instance_t I, struct stack *S) {
-    mapi_allocator_free(I, S->array);
-}
-
-static void *stack_push(morphine_coroutine_t U, struct stack *S) {
-    if (S->used == S->size) {
-        if (S->size >= S->limit) {
-            mapi_error(U, "stack too big");
-        }
-
-        S->array = mapi_allocator_vec(
-            mapi_instance(U),
-            S->array,
-            S->size + S->expansion_factor,
-            S->type_size
-        );
-
-        S->size += S->expansion_factor;
-    }
-
-    void *result = S->array + (S->type_size * S->used);
-    S->used++;
-
-    return result;
-}
-
-static void stack_pop(morphine_coroutine_t U, struct stack *S, size_t count) {
-    if (count > S->used) {
-        mapi_error(U, "cannot pop from stack");
-    }
-
-    S->used -= count;
-}
-
-static void *stack_peek(morphine_coroutine_t U, struct stack *S) {
-    if (stack_is_empty(*S)) {
-        mapi_error(U, "stack is empty");
-    }
-
-    return S->array + (S->type_size * (S->used - 1));
-}
-
-static void *stack_get(morphine_coroutine_t U, struct stack *S, size_t index) {
-    if (stack_is_empty(*S)) {
-        mapi_error(U, "stack is empty");
-    }
-
-    if (index >= stack_size(*S)) {
-        mapi_error(U, "index is out of bounce");
-    }
-
-    return S->array + (S->type_size * index);
 }
 
 // initialization

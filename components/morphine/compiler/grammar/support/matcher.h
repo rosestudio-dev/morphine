@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "lex.h"
+#include "morphine/compiler/lex.h"
 
 #define symbol_eos            ((struct matcher_symbol) { .type = TT_EOS })
 #define symbol_int            ((struct matcher_symbol) { .type = TT_INTEGER })

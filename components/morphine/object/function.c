@@ -8,6 +8,7 @@
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
+#include "morphine/instruction/info.h"
 #include <string.h>
 
 struct function *functionI_create(
@@ -49,12 +50,12 @@ struct function *functionI_create(
     result->name_len = name_len;
     memset(result->name, 0, (name_len + 1) * sizeof(char));
 
-    result->instructions = allocI_vec(I, NULL, instructions_count, sizeof(instruction_t));
+    result->instructions = allocI_vec(I, NULL, instructions_count, sizeof(morphine_instruction_t));
     result->instructions_count = instructions_count;
     for (size_t i = 0; i < instructions_count; i++) {
-        result->instructions[i] = (instruction_t) {
+        result->instructions[i] = (morphine_instruction_t) {
             .line = 0,
-            .opcode = OPCODE_YIELD,
+            .opcode = MORPHINE_OPCODE_YIELD,
             .argument1.value = 0,
             .argument2.value = 0,
             .argument3.value = 0

@@ -71,6 +71,3 @@ struct require_loader {
     const char *name;
     void (*loader)(morphine_coroutine_t);
 };
-
-bool platformI_string2integer(const char *string, ml_integer *container);
-bool platformI_string2decimal(const char *string, ml_decimal *container);

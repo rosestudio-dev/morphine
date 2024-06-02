@@ -3,7 +3,7 @@
 //
 
 #include <memory.h>
-#include "strtable.h"
+#include "morphine/compiler/strtable.h"
 
 #define MORPHINE_TYPE "strtable"
 

@@ -5,7 +5,7 @@
 #pragma once
 
 #include "elements.h"
-#include "ast.h"
+#include "morphine/compiler/ast.h"
 
 size_t match_sblock(
     struct matcher *,

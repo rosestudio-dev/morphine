@@ -5,8 +5,8 @@
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
-#include <stdio.h>
 #include <string.h>
+#include <stdio.h>
 
 static inline uint64_t hash(size_t size, const char *str) {
     uint64_t h = 0;

@@ -3,7 +3,7 @@
 //
 
 #include <string.h>
-#include "ast.h"
+#include "morphine/compiler/ast.h"
 
 #define MORPHINE_TYPE "ast"
 

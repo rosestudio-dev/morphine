@@ -5,7 +5,7 @@
 #pragma once
 
 #include "elements.h"
-#include "ast.h"
+#include "morphine/compiler/ast.h"
 
 bool match_decompose(struct matcher *, bool is_word);
 

@@ -74,38 +74,38 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
     size_t instructions_count = F->instructions_count;
 
     for (;;) {
-        instruction_t instruction;
+        morphine_instruction_t instruction;
 
         sp_fetch();
 
         sp_dispatch (instruction.opcode)
         {
-sp_case(OPCODE_YIELD)
+sp_case(MORPHINE_OPCODE_YIELD)
             {
                 sp_next();
                 sp_yield();
             }
-sp_case(OPCODE_LOAD)
+sp_case(MORPHINE_OPCODE_LOAD)
             {
                 slot(C, arg2) = F->constants[arg1.value];
                 sp_end();
             }
-sp_case(OPCODE_MOVE)
+sp_case(MORPHINE_OPCODE_MOVE)
             {
                 slot(C, arg2) = slot(C, arg1);
                 sp_end();
             }
-sp_case(OPCODE_PARAM)
+sp_case(MORPHINE_OPCODE_PARAM)
             {
                 param(C, arg2.value) = slot(C, arg1);
                 sp_end();
             }
-sp_case(OPCODE_ARG)
+sp_case(MORPHINE_OPCODE_ARG)
             {
                 slot(C, arg2) = C->s.args[arg1.value];
                 sp_end();
             }
-sp_case(OPCODE_CLEAR)
+sp_case(MORPHINE_OPCODE_CLEAR)
             {
                 size_t from = arg1.value;
                 size_t count = arg2.value;
@@ -116,32 +116,32 @@ sp_case(OPCODE_CLEAR)
 
                 sp_end();
             }
-sp_case(OPCODE_ENV)
+sp_case(MORPHINE_OPCODE_ENV)
             {
                 slot(C, arg1) = *C->s.env;
                 sp_end();
             }
-sp_case(OPCODE_SELF)
+sp_case(MORPHINE_OPCODE_SELF)
             {
                 slot(C, arg1) = *C->s.self;
                 sp_end();
             }
-sp_case(OPCODE_RECURSION)
+sp_case(MORPHINE_OPCODE_RECURSION)
             {
                 slot(C, arg1) = *C->s.callable;
                 sp_end();
             }
-sp_case(OPCODE_VECTOR)
+sp_case(MORPHINE_OPCODE_VECTOR)
             {
                 slot(C, arg1) = valueI_object(vectorI_create(U->I, arg2.value));
                 sp_end();
             }
-sp_case(OPCODE_TABLE)
+sp_case(MORPHINE_OPCODE_TABLE)
             {
                 slot(C, arg1) = valueI_object(tableI_create(U->I));
                 sp_end();
             }
-sp_case(OPCODE_GET)
+sp_case(MORPHINE_OPCODE_GET)
             {
                 struct value container = slot(C, arg1);
                 struct value key = slot(C, arg2);
@@ -152,7 +152,7 @@ sp_case(OPCODE_GET)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_SET)
+sp_case(MORPHINE_OPCODE_SET)
             {
                 struct value container = slot(C, arg1);
                 struct value key = slot(C, arg2);
@@ -161,7 +161,7 @@ sp_case(OPCODE_SET)
                 complex_fun(interpreter_fun_set, 1, container, key, value);
                 sp_end();
             }
-sp_case(OPCODE_ITERATOR)
+sp_case(MORPHINE_OPCODE_ITERATOR)
             {
                 struct value container = slot(C, arg1);
                 struct value result = valueI_nil;
@@ -171,13 +171,13 @@ sp_case(OPCODE_ITERATOR)
                 slot(C, arg2) = result;
                 sp_end();
             }
-sp_case(OPCODE_ITERATOR_INIT)
+sp_case(MORPHINE_OPCODE_ITERATOR_INIT)
             {
                 struct value iterator = slot(C, arg1);
                 complex_fun(interpreter_fun_iterator_init, 1, iterator);
                 sp_end();
             }
-sp_case(OPCODE_ITERATOR_HAS)
+sp_case(MORPHINE_OPCODE_ITERATOR_HAS)
             {
                 struct value iterator = slot(C, arg1);
                 struct value result = valueI_nil;
@@ -187,7 +187,7 @@ sp_case(OPCODE_ITERATOR_HAS)
                 slot(C, arg2) = result;
                 sp_end();
             }
-sp_case(OPCODE_ITERATOR_NEXT)
+sp_case(MORPHINE_OPCODE_ITERATOR_NEXT)
             {
                 struct value iterator = slot(C, arg1);
                 struct value result = valueI_nil;
@@ -197,12 +197,12 @@ sp_case(OPCODE_ITERATOR_NEXT)
                 slot(C, arg2) = result;
                 sp_end();
             }
-sp_case(OPCODE_JUMP)
+sp_case(MORPHINE_OPCODE_JUMP)
             {
                 *position = arg1.value;
                 sp_continue();
             }
-sp_case(OPCODE_JUMP_IF)
+sp_case(MORPHINE_OPCODE_JUMP_IF)
             {
                 struct value cond = slot(C, arg1);
 
@@ -214,7 +214,7 @@ sp_case(OPCODE_JUMP_IF)
 
                 sp_continue();
             }
-sp_case(OPCODE_GET_STATIC)
+sp_case(MORPHINE_OPCODE_GET_STATIC)
             {
                 struct value extracted = callstackI_extract_callable(U->I, slot(C, arg1));
                 struct function *function = valueI_as_function_or_error(U->I, extracted);
@@ -225,7 +225,7 @@ sp_case(OPCODE_GET_STATIC)
                 );
                 sp_end();
             }
-sp_case(OPCODE_SET_STATIC)
+sp_case(MORPHINE_OPCODE_SET_STATIC)
             {
                 struct value extracted = callstackI_extract_callable(U->I, slot(C, arg1));
                 struct function *function = valueI_as_function_or_error(U->I, extracted);
@@ -237,7 +237,7 @@ sp_case(OPCODE_SET_STATIC)
                 );
                 sp_end();
             }
-sp_case(OPCODE_GET_CLOSURE)
+sp_case(MORPHINE_OPCODE_GET_CLOSURE)
             {
                 slot(C, arg3) = closureI_get(
                     U->I,
@@ -246,7 +246,7 @@ sp_case(OPCODE_GET_CLOSURE)
                 );
                 sp_end();
             }
-sp_case(OPCODE_SET_CLOSURE)
+sp_case(MORPHINE_OPCODE_SET_CLOSURE)
             {
                 closureI_set(
                     U->I,
@@ -256,7 +256,7 @@ sp_case(OPCODE_SET_CLOSURE)
                 );
                 sp_end();
             }
-sp_case(OPCODE_CLOSURE)
+sp_case(MORPHINE_OPCODE_CLOSURE)
             {
                 size_t count = arg2.value;
                 struct value callable = slot(C, arg1);
@@ -275,7 +275,7 @@ sp_case(OPCODE_CLOSURE)
                 clear_params(C, count);
                 sp_end();
             }
-sp_case(OPCODE_CALL)
+sp_case(MORPHINE_OPCODE_CALL)
             {
                 if (callstackI_state(U) == 1) {
                     callstackI_continue(U, 0);
@@ -298,7 +298,7 @@ sp_case(OPCODE_CALL)
                 clear_params(C, 0);
                 sp_yield();
             }
-sp_case(OPCODE_SCALL)
+sp_case(MORPHINE_OPCODE_SCALL)
             {
                 if (callstackI_state(U) == 1) {
                     callstackI_continue(U, 0);
@@ -322,18 +322,18 @@ sp_case(OPCODE_SCALL)
                 clear_params(C, 0);
                 sp_yield();
             }
-sp_case(OPCODE_LEAVE)
+sp_case(MORPHINE_OPCODE_LEAVE)
             {
                 callstackI_return(U, slot(C, arg1));
                 (*position)++;
                 sp_yield();
             }
-sp_case(OPCODE_RESULT)
+sp_case(MORPHINE_OPCODE_RESULT)
             {
                 slot(C, arg1) = callstackI_result(U);
                 sp_end();
             }
-sp_case(OPCODE_ADD)
+sp_case(MORPHINE_OPCODE_ADD)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -344,7 +344,7 @@ sp_case(OPCODE_ADD)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_SUB)
+sp_case(MORPHINE_OPCODE_SUB)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -355,7 +355,7 @@ sp_case(OPCODE_SUB)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_MUL)
+sp_case(MORPHINE_OPCODE_MUL)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -366,7 +366,7 @@ sp_case(OPCODE_MUL)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_DIV)
+sp_case(MORPHINE_OPCODE_DIV)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -377,7 +377,7 @@ sp_case(OPCODE_DIV)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_MOD)
+sp_case(MORPHINE_OPCODE_MOD)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -388,7 +388,7 @@ sp_case(OPCODE_MOD)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_EQUAL)
+sp_case(MORPHINE_OPCODE_EQUAL)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -399,7 +399,7 @@ sp_case(OPCODE_EQUAL)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_LESS)
+sp_case(MORPHINE_OPCODE_LESS)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -410,7 +410,7 @@ sp_case(OPCODE_LESS)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_LESS_EQUAL)
+sp_case(MORPHINE_OPCODE_LESS_EQUAL)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -421,7 +421,7 @@ sp_case(OPCODE_LESS_EQUAL)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_AND)
+sp_case(MORPHINE_OPCODE_AND)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -432,7 +432,7 @@ sp_case(OPCODE_AND)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_OR)
+sp_case(MORPHINE_OPCODE_OR)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -443,7 +443,7 @@ sp_case(OPCODE_OR)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_CONCAT)
+sp_case(MORPHINE_OPCODE_CONCAT)
             {
                 struct value a = slot(C, arg1);
                 struct value b = slot(C, arg2);
@@ -454,7 +454,7 @@ sp_case(OPCODE_CONCAT)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(OPCODE_TYPE)
+sp_case(MORPHINE_OPCODE_TYPE)
             {
                 struct value a = slot(C, arg1);
                 struct value result = valueI_nil;
@@ -464,7 +464,7 @@ sp_case(OPCODE_TYPE)
                 slot(C, arg2) = result;
                 sp_end();
             }
-sp_case(OPCODE_NEGATIVE)
+sp_case(MORPHINE_OPCODE_NEGATIVE)
             {
                 struct value a = slot(C, arg1);
                 struct value result = valueI_nil;
@@ -474,7 +474,7 @@ sp_case(OPCODE_NEGATIVE)
                 slot(C, arg2) = result;
                 sp_end();
             }
-sp_case(OPCODE_NOT)
+sp_case(MORPHINE_OPCODE_NOT)
             {
                 struct value a = slot(C, arg1);
                 struct value result = valueI_nil;
@@ -484,7 +484,7 @@ sp_case(OPCODE_NOT)
                 slot(C, arg2) = result;
                 sp_end();
             }
-sp_case(OPCODE_REF)
+sp_case(MORPHINE_OPCODE_REF)
             {
                 struct value a = slot(C, arg1);
                 struct value result = valueI_nil;
@@ -494,7 +494,7 @@ sp_case(OPCODE_REF)
                 slot(C, arg2) = result;
                 sp_end();
             }
-sp_case(OPCODE_DEREF)
+sp_case(MORPHINE_OPCODE_DEREF)
             {
                 struct value a = slot(C, arg1);
                 struct value result = valueI_nil;
@@ -504,7 +504,7 @@ sp_case(OPCODE_DEREF)
                 slot(C, arg2) = result;
                 sp_end();
             }
-sp_case(OPCODE_LENGTH)
+sp_case(MORPHINE_OPCODE_LENGTH)
             {
                 struct value a = slot(C, arg1);
                 struct value result = valueI_nil;

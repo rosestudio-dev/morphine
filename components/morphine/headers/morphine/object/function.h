@@ -6,7 +6,7 @@
 
 #include <stddef.h>
 #include "morphine/core/value.h"
-#include "morphine/core/instruction.h"
+#include "morphine/instruction.h"
 
 struct function {
     struct object header;
@@ -21,7 +21,7 @@ struct function {
     size_t statics_count;
     size_t params_count;
 
-    instruction_t *instructions;
+    morphine_instruction_t *instructions;
     struct value *constants;
     struct value *statics;
 

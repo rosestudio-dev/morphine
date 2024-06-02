@@ -11,6 +11,8 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/algorithm/crc32.h"
+#include "morphine/instruction.h"
+#include "morphine/instruction/info.h"
 #include <string.h>
 
 #define FORMAT_TAG "morphine-bout"
@@ -188,7 +190,7 @@ static struct function_with_uid get_function(struct data *data) {
 
 static void load_instructions(struct data *data, struct function *function) {
     for (size_t i = 0; i < function->instructions_count; i++) {
-        instruction_t instruction = {
+        morphine_instruction_t instruction = {
             .line = 0,
             .opcode = get_u8(data),
             .argument1.value = 0,
@@ -196,12 +198,14 @@ static void load_instructions(struct data *data, struct function *function) {
             .argument3.value = 0,
         };
 
-        if (!instructionI_is_valid_opcode(instruction.opcode)) {
+
+        bool valid = false;
+        size_t count = instructionI_opcode_args(instruction.opcode, &valid);
+        if (!valid) {
             throwI_error(data->U->I, "Unsupported opcode");
         }
 
-        argument_t *args = &instruction.argument1;
-        size_t count = instructionI_opcode_args[instruction.opcode];
+        morphine_argument_t *args = &instruction.argument1;
         for (size_t c = 0; c < count; c++) {
             args[c].value = get_u16(data);
         }

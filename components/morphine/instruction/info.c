@@ -2,9 +2,9 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include "morphine/core/instruction.h"
+#include "morphine/instruction/info.h"
 
-const uint8_t instructionI_opcode_args[OPCODES_COUNT] = {
+static const uint8_t opcode_args[MORPHINE_OPCODES_COUNT] = {
     0, // OPCODE_YIELD
     2, // OPCODE_LOAD
     2, // OPCODE_MOVE
@@ -61,8 +61,24 @@ const uint8_t instructionI_opcode_args[OPCODES_COUNT] = {
     2, // OPCODE_LENGTH
 };
 
+uint8_t instructionI_opcode_args(morphine_opcode_t opcode, bool *valid) {
+    if (MORPHINE_OPCODES_START <= opcode && opcode < MORPHINE_OPCODES_COUNT) {
+        if (valid != NULL) {
+            *valid = true;
+        }
+
+        return opcode_args[opcode];
+    }
+
+    if (valid != NULL) {
+        *valid = false;
+    }
+
+    return 0;
+}
+
 bool instructionI_validate(
-    instruction_t instruction,
+    morphine_instruction_t instruction,
     size_t arguments_count,
     size_t slots_count,
     size_t params_count,
@@ -82,11 +98,11 @@ bool instructionI_validate(
 #define arg_undefined(a)
 
     switch (instruction.opcode) {
-        case OPCODE_CLEAR: {
+        case MORPHINE_OPCODE_CLEAR: {
             size_t from = instruction.argument1.value;
             size_t count = instruction.argument2.value;
 
-            if (count > ARGUMENT_MAX_VALUE - from) {
+            if (count > MORPHINE_ARGUMENT_MAX_VALUE - from) {
                 goto error;
             }
 
@@ -97,110 +113,110 @@ bool instructionI_validate(
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_YIELD: {
+        case MORPHINE_OPCODE_YIELD: {
             arg_undefined(argument1)
             arg_undefined(argument2)
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_LOAD: {
+        case MORPHINE_OPCODE_LOAD: {
             arg_constant(argument1)
             arg_slot(argument2)
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_PARAM: {
+        case MORPHINE_OPCODE_PARAM: {
             arg_slot(argument1)
             arg_param(argument2)
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_ARG: {
+        case MORPHINE_OPCODE_ARG: {
             arg_argument(argument1)
             arg_slot(argument2)
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_JUMP: {
+        case MORPHINE_OPCODE_JUMP: {
             arg_position(argument1)
             arg_undefined(argument2)
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_JUMP_IF: {
+        case MORPHINE_OPCODE_JUMP_IF: {
             arg_slot(argument1)
             arg_position(argument2)
             arg_position(argument3)
             return true;
         }
-        case OPCODE_GET_STATIC:
-        case OPCODE_SET_STATIC:
-        case OPCODE_GET_CLOSURE:
-        case OPCODE_SET_CLOSURE: {
+        case MORPHINE_OPCODE_GET_STATIC:
+        case MORPHINE_OPCODE_SET_STATIC:
+        case MORPHINE_OPCODE_GET_CLOSURE:
+        case MORPHINE_OPCODE_SET_CLOSURE: {
             arg_slot(argument1)
             arg_index(argument2)
             arg_slot(argument3)
             return true;
         }
-        case OPCODE_CLOSURE:
-        case OPCODE_SCALL: {
+        case MORPHINE_OPCODE_CLOSURE:
+        case MORPHINE_OPCODE_SCALL: {
             arg_slot(argument1)
             arg_params_count(argument2)
             arg_slot(argument3)
             return true;
         }
-        case OPCODE_CALL: {
+        case MORPHINE_OPCODE_CALL: {
             arg_slot(argument1)
             arg_params_count(argument2)
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_VECTOR: {
+        case MORPHINE_OPCODE_VECTOR: {
             arg_slot(argument1)
             arg_count(argument2)
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_ITERATOR_INIT:
-        case OPCODE_RECURSION:
-        case OPCODE_ENV:
-        case OPCODE_SELF:
-        case OPCODE_TABLE:
-        case OPCODE_LEAVE:
-        case OPCODE_RESULT: {
+        case MORPHINE_OPCODE_ITERATOR_INIT:
+        case MORPHINE_OPCODE_RECURSION:
+        case MORPHINE_OPCODE_ENV:
+        case MORPHINE_OPCODE_SELF:
+        case MORPHINE_OPCODE_TABLE:
+        case MORPHINE_OPCODE_LEAVE:
+        case MORPHINE_OPCODE_RESULT: {
             arg_slot(argument1)
             arg_undefined(argument2)
             arg_undefined(argument3)
             return true;
         }
-        case OPCODE_GET:
-        case OPCODE_SET:
-        case OPCODE_ADD:
-        case OPCODE_SUB:
-        case OPCODE_MUL:
-        case OPCODE_DIV:
-        case OPCODE_MOD:
-        case OPCODE_EQUAL:
-        case OPCODE_LESS:
-        case OPCODE_LESS_EQUAL:
-        case OPCODE_AND:
-        case OPCODE_OR:
-        case OPCODE_CONCAT: {
+        case MORPHINE_OPCODE_GET:
+        case MORPHINE_OPCODE_SET:
+        case MORPHINE_OPCODE_ADD:
+        case MORPHINE_OPCODE_SUB:
+        case MORPHINE_OPCODE_MUL:
+        case MORPHINE_OPCODE_DIV:
+        case MORPHINE_OPCODE_MOD:
+        case MORPHINE_OPCODE_EQUAL:
+        case MORPHINE_OPCODE_LESS:
+        case MORPHINE_OPCODE_LESS_EQUAL:
+        case MORPHINE_OPCODE_AND:
+        case MORPHINE_OPCODE_OR:
+        case MORPHINE_OPCODE_CONCAT: {
             arg_slot(argument1)
             arg_slot(argument2)
             arg_slot(argument3)
             return true;
         }
-        case OPCODE_ITERATOR:
-        case OPCODE_ITERATOR_HAS:
-        case OPCODE_ITERATOR_NEXT:
-        case OPCODE_MOVE:
-        case OPCODE_TYPE:
-        case OPCODE_NEGATIVE:
-        case OPCODE_NOT:
-        case OPCODE_REF:
-        case OPCODE_DEREF:
-        case OPCODE_LENGTH: {
+        case MORPHINE_OPCODE_ITERATOR:
+        case MORPHINE_OPCODE_ITERATOR_HAS:
+        case MORPHINE_OPCODE_ITERATOR_NEXT:
+        case MORPHINE_OPCODE_MOVE:
+        case MORPHINE_OPCODE_TYPE:
+        case MORPHINE_OPCODE_NEGATIVE:
+        case MORPHINE_OPCODE_NOT:
+        case MORPHINE_OPCODE_REF:
+        case MORPHINE_OPCODE_DEREF:
+        case MORPHINE_OPCODE_LENGTH: {
             arg_slot(argument1)
             arg_slot(argument2)
             arg_undefined(argument3)

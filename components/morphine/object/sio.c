@@ -2,7 +2,6 @@
 // Created by why-iskra on 18.05.2024.
 //
 
-#include <stdio.h>
 #include <string.h>
 #include "morphine/object/sio.h"
 #include "morphine/core/throw.h"

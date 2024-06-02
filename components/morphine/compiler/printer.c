@@ -3,9 +3,9 @@
 //
 
 #include <stdio.h>
-#include "printer.h"
-#include "strtable.h"
-#include "ast.h"
+#include "morphine/compiler/printer.h"
+#include "morphine/compiler/strtable.h"
+#include "morphine/compiler/ast.h"
 
 #define printn(str, s) fwrite((str), (s), 1, stdout)
 

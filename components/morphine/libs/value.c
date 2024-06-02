@@ -3,7 +3,6 @@
 //
 
 #include <morphine.h>
-#include <stdio.h>
 #include "morphine/libs/loader.h"
 
 static void tostr(morphine_coroutine_t U) {

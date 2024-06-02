@@ -18,3 +18,4 @@ MORPHINE_LIB void mlib_userdata_call(morphine_coroutine_t, const char *name, siz
 MORPHINE_LIB void mlib_vector_call(morphine_coroutine_t, const char *name, size_t argc);
 MORPHINE_LIB void mlib_registry_call(morphine_coroutine_t, const char *name, size_t argc);
 MORPHINE_LIB void mlib_sio_call(morphine_coroutine_t, const char *name, size_t argc);
+MORPHINE_LIB void mlib_compiler_call(morphine_coroutine_t, const char *name, size_t argc);

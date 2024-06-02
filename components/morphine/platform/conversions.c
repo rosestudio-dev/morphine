@@ -2,7 +2,7 @@
 // Created by whyiskra on 30.12.23.
 //
 
-#include "morphine/platform.h"
+#include "morphine/platform/conversions.h"
 #include <ctype.h>
 #include <stdio.h>
 
