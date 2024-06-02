@@ -12,7 +12,6 @@
 
 struct function *functionI_create(
     morphine_instance_t I,
-    struct uuid uuid,
     size_t name_len,
     size_t constants_count,
     size_t instructions_count,
@@ -28,7 +27,6 @@ struct function *functionI_create(
     struct function *result = allocI_uni(I, NULL, sizeof(struct function));
 
     (*result) = (struct function) {
-        .uuid = uuid,
         .name = NULL,
         .name_len = 0,
         .constants_count = 0,
@@ -53,6 +51,15 @@ struct function *functionI_create(
 
     result->instructions = allocI_vec(I, NULL, instructions_count, sizeof(instruction_t));
     result->instructions_count = instructions_count;
+    for (size_t i = 0; i < instructions_count; i++) {
+        result->instructions[i] = (instruction_t) {
+            .line = 0,
+            .opcode = OPCODE_YIELD,
+            .argument1.value = 0,
+            .argument2.value = 0,
+            .argument3.value = 0
+        };
+    }
 
     result->constants = allocI_vec(I, NULL, constants_count, sizeof(struct value));
     result->constants_count = constants_count;

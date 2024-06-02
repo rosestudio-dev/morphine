@@ -7,15 +7,12 @@
 #include <stddef.h>
 #include "morphine/core/value.h"
 #include "morphine/core/instruction.h"
-#include "morphine/misc/uuid.h"
 
 struct function {
     struct object header;
 
-    struct uuid uuid;
-    char *name;
-
     size_t name_len;
+    char *name;
 
     size_t instructions_count;
     size_t constants_count;
@@ -33,7 +30,6 @@ struct function {
 
 struct function *functionI_create(
     morphine_instance_t,
-    struct uuid uuid,
     size_t name_len,
     size_t constants_count,
     size_t instructions_count,

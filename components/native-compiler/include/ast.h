@@ -79,7 +79,6 @@ void ast_ready(morphine_coroutine_t, struct ast_node *);
 struct expression *ast_node_as_expression(morphine_coroutine_t, struct ast_node *);
 struct statement *ast_node_as_statement(morphine_coroutine_t, struct ast_node *);
 
-
 /*
  * statements
  */

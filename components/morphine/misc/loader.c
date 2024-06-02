@@ -15,13 +15,20 @@
 
 #define FORMAT_TAG "morphine-bout"
 
+typedef size_t uid_t;
+
+struct function_with_uid {
+    uid_t uid;
+    struct function *function;
+};
+
 struct data {
     morphine_coroutine_t U;
     struct sio *sio;
     struct crc32_buf crc;
 
     struct {
-        struct function **vector;
+        struct function_with_uid *vector;
         size_t count;
     } functions;
 };
@@ -146,18 +153,12 @@ static struct value get_string(struct data *data) {
     return value;
 }
 
-static struct uuid get_uuid(struct data *data) {
-    uint64_t most_significant_bits = get_u64(data);
-    uint64_t least_significant_bits = get_u64(data);
-
-    return (struct uuid) {
-        .most_significant_bits = most_significant_bits,
-        .least_significant_bits = least_significant_bits
-    };
+static uid_t get_uid(struct data *data) {
+    return get_u64(data);
 }
 
-static struct function *get_function(struct data *data) {
-    struct uuid uuid = get_uuid(data);
+static struct function_with_uid get_function(struct data *data) {
+    uid_t uid = get_uid(data);
     size_t name_len = get_u16(data);
     size_t arguments_count = get_u16(data);
     size_t slots_count = get_u16(data);
@@ -168,7 +169,6 @@ static struct function *get_function(struct data *data) {
 
     struct function *function = functionI_create(
         data->U->I,
-        uuid,
         name_len,
         constants_count,
         instructions_count,
@@ -180,7 +180,10 @@ static struct function *get_function(struct data *data) {
 
     stackI_push(data->U, valueI_object(function));
 
-    return function;
+    return (struct function_with_uid) {
+        .uid = uid,
+        .function = function,
+    };
 }
 
 static void load_instructions(struct data *data, struct function *function) {
@@ -230,12 +233,12 @@ static void load_constants(struct data *data, struct function *function) {
                 break;
             }
             case 'f': {
-                struct uuid uuid = get_uuid(data);
+                uid_t uid = get_uid(data);
 
                 struct function *found = NULL;
                 for (size_t c = 0; c < data->functions.count; c++) {
-                    if (uuidI_equal(data->functions.vector[c]->uuid, uuid)) {
-                        found = data->functions.vector[c];
+                    if (data->functions.vector[c].uid == uid) {
+                        found = data->functions.vector[c].function;
                         break;
                     }
                 }
@@ -311,19 +314,19 @@ static void check_tag(struct data *data) {
     }
 }
 
-static struct uuid load(struct data *data) {
+static uid_t load(struct data *data) {
     check_tag(data);
 
-    struct uuid main_uuid = get_uuid(data);
+    uid_t main_uid = get_uid(data);
     size_t functions_count = get_u32(data);
 
     struct userdata *userdata = userdataI_create_vec(
-        data->U->I, "functions", functions_count, sizeof(struct function *)
+        data->U->I, "functions", functions_count, sizeof(struct function_with_uid)
     );
 
     stackI_push(data->U, valueI_object(userdata));
 
-    struct function **functions = userdata->data;
+    struct function_with_uid *functions = userdata->data;
     data->functions.count = functions_count;
     data->functions.vector = functions;
 
@@ -332,32 +335,32 @@ static struct uuid load(struct data *data) {
     }
 
     for (size_t i = 0; i < functions_count; i++) {
-        load_instructions(data, functions[i]);
+        load_instructions(data, functions[i].function);
     }
 
     for (size_t i = 0; i < functions_count; i++) {
-        load_lines(data, functions[i]);
+        load_lines(data, functions[i].function);
     }
 
     for (size_t i = 0; i < functions_count; i++) {
-        load_constants(data, functions[i]);
+        load_constants(data, functions[i].function);
     }
 
     for (size_t i = 0; i < functions_count; i++) {
-        load_name(data, functions[i]);
+        load_name(data, functions[i].function);
     }
 
     check_csum(data);
 
-    return main_uuid;
+    return main_uid;
 }
 
-static struct function *get_main(struct data *data, struct uuid main_uuid) {
+static struct function *get_main(struct data *data, uid_t main_uid) {
     struct function *main = NULL;
 
     for (size_t i = 0; i < data->functions.count; i++) {
-        if (uuidI_equal(data->functions.vector[i]->uuid, main_uuid)) {
-            main = data->functions.vector[i];
+        if (data->functions.vector[i].uid == main_uid) {
+            main = data->functions.vector[i].function;
             break;
         }
     }
@@ -378,8 +381,8 @@ static struct function *binary(morphine_coroutine_t U, struct sio *sio) {
         .functions.count = 0
     };
 
-    struct uuid main_uuid = load(&data);
-    return get_main(&data, main_uuid);
+    uid_t main_uid = load(&data);
+    return get_main(&data, main_uid);
 }
 
 struct function *loaderI_load(morphine_coroutine_t U, struct sio *sio) {

@@ -12,6 +12,8 @@ class BytecodeConverter {
         const val FORMAT_TAG = "morphine-bout"
     }
 
+    private val uidSet = mutableSetOf<UID>()
+
     fun convert(bytecode: Bytecode) = (header() + bytecode(bytecode)).crc32Modifier()
 
     private fun header() = bytesBuilder(FORMAT_TAG.length) {
@@ -19,7 +21,7 @@ class BytecodeConverter {
     }
 
     private fun bytecode(bytecode: Bytecode): List<Byte> {
-        val uuid = bytecode.mainFunction.convert()
+        val uid = bytecode.mainFunction.convert()
         val size = bytecode.functions.size.convert()
         val functions = bytecode.functions.flatMap(::function)
         val instructions = bytecode.functions.flatMap(::instructions)
@@ -29,7 +31,7 @@ class BytecodeConverter {
             function.name.convert(needLen = false)
         }
 
-        return uuid + size + functions + instructions + lines + constants + names
+        return uid + size + functions + instructions + lines + constants + names
     }
 
     private fun function(function: Bytecode.Function) = listOf(
@@ -99,9 +101,10 @@ class BytecodeConverter {
         }
     }.flatten()
 
-    private fun UID.convert() = bytesBuilder(16) {
-        putLong(this@convert.mostBits)
-        putLong(this@convert.leastBits)
+    private fun UID.convert() = bytesBuilder(8) {
+        uidSet.add(this@convert)
+
+        putLong(uidSet.indexOf(this@convert).toLong())
     }
 
     private fun Double.convert() = bytesBuilder(8) {
