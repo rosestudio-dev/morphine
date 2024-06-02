@@ -45,7 +45,7 @@
     morphinem_blk_end
 
 #define sloti(C, i) ((C)->s.slots[(i)])
-#define slot(C, a) ((C)->s.slots[(a).value])
+#define slot(C, a) ((C)->s.slots[(a)])
 #define param(C, a) ((C)->s.params[(a)])
 
 #define arg1 instruction.argument1
@@ -87,7 +87,7 @@ sp_case(MORPHINE_OPCODE_YIELD)
             }
 sp_case(MORPHINE_OPCODE_LOAD)
             {
-                slot(C, arg2) = F->constants[arg1.value];
+                slot(C, arg2) = F->constants[arg1];
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_MOVE)
@@ -97,18 +97,18 @@ sp_case(MORPHINE_OPCODE_MOVE)
             }
 sp_case(MORPHINE_OPCODE_PARAM)
             {
-                param(C, arg2.value) = slot(C, arg1);
+                param(C, arg2) = slot(C, arg1);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ARG)
             {
-                slot(C, arg2) = C->s.args[arg1.value];
+                slot(C, arg2) = C->s.args[arg1];
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_CLEAR)
             {
-                size_t from = arg1.value;
-                size_t count = arg2.value;
+                size_t from = arg1;
+                size_t count = arg2;
 
                 for(size_t i = 0; i < count; i ++) {
                     sloti(C, from + i) = valueI_nil;
@@ -133,7 +133,7 @@ sp_case(MORPHINE_OPCODE_RECURSION)
             }
 sp_case(MORPHINE_OPCODE_VECTOR)
             {
-                slot(C, arg1) = valueI_object(vectorI_create(U->I, arg2.value));
+                slot(C, arg1) = valueI_object(vectorI_create(U->I, arg2));
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_TABLE)
@@ -199,7 +199,7 @@ sp_case(MORPHINE_OPCODE_ITERATOR_NEXT)
             }
 sp_case(MORPHINE_OPCODE_JUMP)
             {
-                *position = arg1.value;
+                *position = arg1;
                 sp_continue();
             }
 sp_case(MORPHINE_OPCODE_JUMP_IF)
@@ -207,9 +207,9 @@ sp_case(MORPHINE_OPCODE_JUMP_IF)
                 struct value cond = slot(C, arg1);
 
                 if (valueI_as_boolean_or_error(U->I, cond)) {
-                    *position = arg2.value;
+                    *position = arg2;
                 } else {
-                    *position = arg3.value;
+                    *position = arg3;
                 }
 
                 sp_continue();
@@ -221,7 +221,7 @@ sp_case(MORPHINE_OPCODE_GET_STATIC)
                 slot(C, arg3) = functionI_static_get(
                     U->I,
                     function,
-                    arg2.value
+                    arg2
                 );
                 sp_end();
             }
@@ -232,7 +232,7 @@ sp_case(MORPHINE_OPCODE_SET_STATIC)
                 functionI_static_set(
                     U->I,
                     function,
-                    arg2.value,
+                    arg2,
                     slot(C, arg3)
                 );
                 sp_end();
@@ -242,7 +242,7 @@ sp_case(MORPHINE_OPCODE_GET_CLOSURE)
                 slot(C, arg3) = closureI_get(
                     U->I,
                     valueI_as_closure_or_error(U->I, slot(C, arg1)),
-                    arg2.value
+                    arg2
                 );
                 sp_end();
             }
@@ -251,14 +251,14 @@ sp_case(MORPHINE_OPCODE_SET_CLOSURE)
                 closureI_set(
                     U->I,
                     valueI_as_closure_or_error(U->I, slot(C, arg1)),
-                    arg2.value,
+                    arg2,
                     slot(C, arg3)
                 );
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_CLOSURE)
             {
-                size_t count = arg2.value;
+                size_t count = arg2;
                 struct value callable = slot(C, arg1);
 
                 struct closure *closure = closureI_create(U->I, callable, count);
@@ -283,7 +283,7 @@ sp_case(MORPHINE_OPCODE_CALL)
                 }
 
                 struct value callable = slot(C, arg1);
-                size_t count = arg2.value;
+                size_t count = arg2;
 
                 callstackI_continue(U, 1);
 
@@ -307,7 +307,7 @@ sp_case(MORPHINE_OPCODE_SCALL)
 
                 struct value callable = slot(C, arg1);
                 struct value self = slot(C, arg3);
-                size_t count = arg2.value;
+                size_t count = arg2;
 
                 callstackI_continue(U, 1);
 

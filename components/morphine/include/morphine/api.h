@@ -7,6 +7,7 @@
 #include <stdarg.h>
 #include "config.h"
 #include "platform.h"
+#include "instruction.h"
 
 MORPHINE_API const char *mapi_version(void);
 MORPHINE_API int mapi_version_code(void);
@@ -188,13 +189,21 @@ MORPHINE_API size_t mapi_closure_size(morphine_coroutine_t);
 // function
 
 MORPHINE_API void mapi_push_function(morphine_coroutine_t);
-MORPHINE_API void mapi_static_get(morphine_coroutine_t, size_t index);
-MORPHINE_API void mapi_static_set(morphine_coroutine_t, size_t index);
-MORPHINE_API size_t mapi_static_size(morphine_coroutine_t);
 
-MORPHINE_API void mapi_constant_get(morphine_coroutine_t, size_t index);
-MORPHINE_API void mapi_constant_set(morphine_coroutine_t, size_t index);
-MORPHINE_API size_t mapi_constant_size(morphine_coroutine_t);
+MORPHINE_API void mapi_function_complete(morphine_coroutine_t);
+MORPHINE_API bool mapi_function_is_complete(morphine_coroutine_t);
+
+MORPHINE_API void mapi_static_get(morphine_coroutine_t, ml_size index);
+MORPHINE_API void mapi_static_set(morphine_coroutine_t, ml_size index);
+MORPHINE_API ml_size mapi_static_size(morphine_coroutine_t);
+
+MORPHINE_API void mapi_constant_get(morphine_coroutine_t, ml_size index);
+MORPHINE_API void mapi_constant_set(morphine_coroutine_t, ml_size index);
+MORPHINE_API ml_size mapi_constant_size(morphine_coroutine_t);
+
+MORPHINE_API morphine_instruction_t mapi_instruction_get(morphine_coroutine_t, ml_size index);
+MORPHINE_API void mapi_instruction_set(morphine_coroutine_t, ml_size index, morphine_instruction_t);
+MORPHINE_API ml_size mapi_instruction_size(morphine_coroutine_t);
 
 // allocation
 

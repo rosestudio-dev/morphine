@@ -32,6 +32,10 @@ static inline void stackI_call(
     if (valueI_is_function(source)) {
         struct function *function = valueI_as_function(source);
 
+        if (!function->complete) {
+            throwI_error(I, "Incomplete function");
+        }
+
         if (argc != function->arguments_count) {
             throwI_error(I, "Wrong arguments count");
         }

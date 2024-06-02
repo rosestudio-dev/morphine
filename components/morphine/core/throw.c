@@ -42,7 +42,7 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
             struct function *function = valueI_as_function(callable);
 
             size_t position = callinfo->pc.position;
-            uint32_t line = 0;
+            ml_line line = 0;
             if (position < function->instructions_count) {
                 line = function->instructions[position].line;
             }
@@ -50,7 +50,7 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
             sioI_printf(
                 I,
                 error,
-                "[line: %"PRIu32", p: %zu] function %s (%p)\n",
+                "[line: %"MLIMIT_LINE_PR", p: %zu] function %s (%p)\n",
                 line,
                 position,
                 function->name,

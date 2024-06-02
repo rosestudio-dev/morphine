@@ -7,8 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-
-#define MORPHINE_ARGUMENT_MAX_VALUE (UINT16_MAX)
+#include "limits.h"
 
 #define MORPHINE_OPCODES_START (MORPHINE_OPCODE_YIELD)
 #define MORPHINE_OPCODES_COUNT (MORPHINE_OPCODE_LENGTH + 1)
@@ -71,13 +70,9 @@ typedef enum {
 } morphine_opcode_t;
 
 typedef struct {
-    uint16_t value;
-} morphine_argument_t;
-
-typedef struct {
-    uint32_t line;
     morphine_opcode_t opcode;
-    morphine_argument_t argument1;
-    morphine_argument_t argument2;
-    morphine_argument_t argument3;
+    ml_argument argument1;
+    ml_argument argument2;
+    ml_argument argument3;
+    ml_line line;
 } morphine_instruction_t;

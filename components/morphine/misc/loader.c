@@ -8,7 +8,6 @@
 #include "morphine/object/function.h"
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
-#include "morphine/gc/allocator.h"
 #include "morphine/core/throw.h"
 #include "morphine/algorithm/crc32.h"
 #include "morphine/instruction.h"
@@ -161,13 +160,13 @@ static uid_t get_uid(struct data *data) {
 
 static struct function_with_uid get_function(struct data *data) {
     uid_t uid = get_uid(data);
-    size_t name_len = get_u16(data);
-    size_t arguments_count = get_u16(data);
-    size_t slots_count = get_u16(data);
-    size_t params_count = get_u16(data);
-    size_t statics_count = get_u16(data);
-    size_t constants_count = get_u16(data);
-    size_t instructions_count = get_u16(data);
+    ml_size name_len = get_u16(data);
+    ml_size arguments_count = get_u16(data);
+    ml_size slots_count = get_u16(data);
+    ml_size params_count = get_u16(data);
+    ml_size statics_count = get_u16(data);
+    ml_size constants_count = get_u16(data);
+    ml_size instructions_count = get_u16(data);
 
     struct function *function = functionI_create(
         data->U->I,
@@ -189,13 +188,13 @@ static struct function_with_uid get_function(struct data *data) {
 }
 
 static void load_instructions(struct data *data, struct function *function) {
-    for (size_t i = 0; i < function->instructions_count; i++) {
+    for (ml_size i = 0; i < function->instructions_count; i++) {
         morphine_instruction_t instruction = {
             .line = 0,
             .opcode = get_u8(data),
-            .argument1.value = 0,
-            .argument2.value = 0,
-            .argument3.value = 0,
+            .argument1 = 0,
+            .argument2 = 0,
+            .argument3 = 0,
         };
 
 
@@ -205,25 +204,23 @@ static void load_instructions(struct data *data, struct function *function) {
             throwI_error(data->U->I, "Unsupported opcode");
         }
 
-        morphine_argument_t *args = &instruction.argument1;
+        ml_argument *args = &instruction.argument1;
         for (size_t c = 0; c < count; c++) {
-            args[c].value = get_u16(data);
+            args[c] = get_u16(data);
         }
 
-        function->instructions[i] = instruction;
+        functionI_instruction_set(data->U->I, function, i, instruction);
     }
-
-    functionI_validate(data->U->I, function);
 }
 
 static void load_lines(struct data *data, struct function *function) {
-    for (size_t i = 0; i < function->instructions_count; i++) {
-        function->instructions[i].line = get_u32(data);
+    for (ml_size i = 0; i < function->instructions_count; i++) {
+        functionI_line_set(data->U->I, function, i, get_u32(data));
     }
 }
 
 static void load_constants(struct data *data, struct function *function) {
-    for (size_t i = 0; i < function->constants_count; i++) {
+    for (ml_size i = 0; i < function->constants_count; i++) {
         char type = (char) get_u8(data);
 
         struct value constant = valueI_nil;
@@ -272,12 +269,7 @@ static void load_constants(struct data *data, struct function *function) {
             }
         }
 
-        functionI_constant_set(
-            data->U->I,
-            function,
-            i,
-            constant
-        );
+        functionI_constant_set(data->U->I, function, i, constant);
     }
 }
 
@@ -352,6 +344,10 @@ static uid_t load(struct data *data) {
 
     for (size_t i = 0; i < functions_count; i++) {
         load_name(data, functions[i].function);
+    }
+
+    for (size_t i = 0; i < functions_count; i++) {
+        functionI_complete(data->U->I, functions[i].function);
     }
 
     check_csum(data);

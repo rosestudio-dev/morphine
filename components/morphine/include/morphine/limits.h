@@ -26,6 +26,16 @@ typedef uint32_t ml_size;
 #define MLIMIT_SIZE_SC  SCNu32
 #define MLIMIT_SIZE_MAX INT32_MAX
 
+// instruction
+
+typedef uint16_t ml_argument;
+#define MLIMIT_ARGUMENT_PR  PRIu16
+#define MLIMIT_ARGUMENT_MAX UINT16_MAX
+
+typedef uint32_t ml_line;
+#define MLIMIT_LINE_PR  PRIu32
+#define MLIMIT_LINE_MAX UINT32_MAX
+
 // behaviour
 
 #define MLIMIT_CALLABLE_ARGS   256
@@ -39,4 +49,5 @@ typedef uint32_t ml_size;
 
 _Static_assert(sizeof(ml_size) <= sizeof(size_t), "ml_size incompatible with arch");
 _Static_assert(sizeof(ml_size) <= sizeof(ml_integer), "ml_size incompatible with ml_integer");
+_Static_assert(sizeof(ml_argument) <= sizeof(ml_size), "ml_argument incompatible with ml_size");
 _Static_assert(sizeof(size_t) <= sizeof(uintmax_t) && 4 <= sizeof(size_t), "incompatible arch");

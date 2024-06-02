@@ -84,8 +84,8 @@ bool instructionI_validate(
     size_t params_count,
     size_t constants_count
 ) {
-#define arg_type_count(a, s) if(instruction.a.value >= (s)) goto error;
-#define arg_type_size(a, s) if(instruction.a.value > (s)) goto error;
+#define arg_type_count(a, s) if(instruction.a >= (s)) goto error;
+#define arg_type_size(a, s) if(instruction.a > (s)) goto error;
 
 #define arg_position(a)
 #define arg_slot(a) arg_type_count(a, slots_count)
@@ -99,10 +99,10 @@ bool instructionI_validate(
 
     switch (instruction.opcode) {
         case MORPHINE_OPCODE_CLEAR: {
-            size_t from = instruction.argument1.value;
-            size_t count = instruction.argument2.value;
+            size_t from = instruction.argument1;
+            size_t count = instruction.argument2;
 
-            if (count > MORPHINE_ARGUMENT_MAX_VALUE - from) {
+            if (count > MLIMIT_ARGUMENT_MAX - from) {
                 goto error;
             }
 
