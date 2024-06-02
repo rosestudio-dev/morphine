@@ -17,7 +17,7 @@ static void string(morphine_coroutine_t U) {
             const char *text = mapi_get_string(U);
             size_t size = mapi_string_len(U);
 
-            strtable(U, 32);
+            strtable(U);
             lex(U, text, size);
             parser(U);
             while (parser_next(U)) { }

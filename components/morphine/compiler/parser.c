@@ -9,12 +9,9 @@
 #include "grammar/support/elements.h"
 #include "grammar/impl.h"
 #include "stack.h"
+#include "config.h"
 
 #define MORPHINE_TYPE "parser"
-
-#define LIMIT_STACK_CONTEXTS   262144
-#define LIMIT_STACK_ELEMENTS   262144
-#define EXPANSION_FACTOR_STACK 16
 
 struct element {
     bool is_token;
@@ -152,8 +149,19 @@ void parser(morphine_coroutine_t U) {
         .lookahead.has = false
     };
 
-    stack_init(&P->contexts, sizeof(struct context), EXPANSION_FACTOR_STACK, LIMIT_STACK_CONTEXTS);
-    stack_init(&P->elements, sizeof(struct element), EXPANSION_FACTOR_STACK, LIMIT_STACK_ELEMENTS);
+    stack_init(
+        &P->contexts,
+        sizeof(struct context),
+        PARSER_STACK_EXPANSION_FACTOR,
+        PARSER_LIMIT_STACK_CONTEXTS
+    );
+
+    stack_init(
+        &P->elements,
+        sizeof(struct element),
+        PARSER_STACK_EXPANSION_FACTOR,
+        PARSER_LIMIT_STACK_ELEMENTS
+    );
 
     mapi_userdata_set_free(U, parser_free);
 

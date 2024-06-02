@@ -4,13 +4,9 @@
 
 #include <memory.h>
 #include "morphine/compiler/strtable.h"
+#include "config.h"
 
 #define MORPHINE_TYPE "strtable"
-
-#define LIMIT_ENTRIES 262144
-
-#define _STR(a) #a
-#define STR(a) _STR(a)
 
 struct entry {
     char *string;
@@ -18,7 +14,6 @@ struct entry {
 };
 
 struct strtable {
-    size_t expansion_factor;
     size_t size;
     size_t used;
     struct entry *entries;
@@ -42,19 +37,10 @@ static struct strtable *get_strtable(morphine_coroutine_t U) {
     }
 }
 
-void strtable(morphine_coroutine_t U, size_t expansion_factor) {
-    if (expansion_factor > LIMIT_ENTRIES) {
-        mapi_error(U, "expansion factor is greater than "STR(LIMIT_ENTRIES));
-    }
-
-    if (expansion_factor == 0) {
-        mapi_error(U, "expansion factor is zero");
-    }
-
+void strtable(morphine_coroutine_t U) {
     struct strtable *T = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct strtable));
 
     *T = (struct strtable) {
-        .expansion_factor = expansion_factor,
         .used = 0,
         .size = 0,
         .entries = NULL
@@ -79,18 +65,18 @@ strtable_index_t strtable_record(morphine_coroutine_t U, const char *str, size_t
     }
 
     if (T->used == T->size) {
-        if (T->size >= LIMIT_ENTRIES) {
+        if (T->size >= STRTABLE_LIMIT_ENTRIES) {
             mapi_error(U, "strtable too big");
         }
 
         T->entries = mapi_allocator_vec(
             mapi_instance(U),
             T->entries,
-            T->size + T->expansion_factor,
+            T->size + STRTABLE_EXPANSION_FACTOR,
             sizeof(struct strtable_entry)
         );
 
-        T->size += T->expansion_factor;
+        T->size += STRTABLE_EXPANSION_FACTOR;
     }
 
     char *buffer = mapi_allocator_uni(mapi_instance(U), NULL, size);

@@ -13,7 +13,7 @@ struct strtable_entry {
     size_t size;
 };
 
-void strtable(morphine_coroutine_t, size_t expansion_factor);
+void strtable(morphine_coroutine_t);
 strtable_index_t strtable_record(morphine_coroutine_t, const char *, size_t);
 bool strtable_has(morphine_coroutine_t, strtable_index_t);
 struct strtable_entry strtable_get(morphine_coroutine_t, strtable_index_t);
