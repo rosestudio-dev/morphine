@@ -13,7 +13,7 @@ void match_while(struct matcher *M) {
 }
 
 struct ast_node *assemble_while(morphine_coroutine_t U, struct elements *E) {
-    uint32_t line = elements_get_token(E, 0).line;
+    ml_line line = elements_get_token(E, 0).line;
     struct statement_while *result = ast_create_statement_while(U, line);
 
     struct reduce reduce_expression = elements_get_reduce(E, 2);

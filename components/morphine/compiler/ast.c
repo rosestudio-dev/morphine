@@ -76,7 +76,7 @@ struct statement *ast_node_as_statement(morphine_coroutine_t U, struct ast_node 
 static void setup_node(
     morphine_coroutine_t U,
     struct ast_node *node,
-    uint32_t line,
+    ml_line line,
     enum ast_node_type type
 ) {
     struct ast *A = get_ast(U);
@@ -92,7 +92,7 @@ static void setup_node(
 
 static struct expression *ast_insert_expression(
     morphine_coroutine_t U,
-    uint32_t line,
+    ml_line line,
     enum expression_type type,
     size_t size
 ) {
@@ -112,7 +112,7 @@ static struct expression *ast_insert_expression(
 
 static struct statement *ast_insert_statement(
     morphine_coroutine_t U,
-    uint32_t line,
+    ml_line line,
     enum statement_type type,
     size_t size
 ) {
@@ -140,11 +140,11 @@ static struct statement *ast_insert_statement(
 #define body_statement_create(type, U, line, size) body_create(U, line, statement, STATEMENT_TYPE, type, size)
 
 #define function_expression_create(type) \
-    struct expression_##type *ast_create_expression_##type(morphine_coroutine_t U, uint32_t line) { \
+    struct expression_##type *ast_create_expression_##type(morphine_coroutine_t U, ml_line line) { \
         return body_expression_create(type, U, line, 0); }
 
 #define function_statement_create(type) \
-    struct statement_##type *ast_create_statement_##type(morphine_coroutine_t U, uint32_t line) { \
+    struct statement_##type *ast_create_statement_##type(morphine_coroutine_t U, ml_line line) { \
         return body_statement_create(type, U, line, 0); }
 
 // as
@@ -171,7 +171,7 @@ static struct statement *ast_insert_statement(
 
 // block
 
-struct statement_block *ast_create_statement_block(morphine_coroutine_t U, uint32_t line, size_t size) {
+struct statement_block *ast_create_statement_block(morphine_coroutine_t U, ml_line line, size_t size) {
     size_t extend_size = sizeof(struct statement *) * size;
     struct statement_block *result = body_statement_create(block, U, line, extend_size);
 
@@ -216,7 +216,7 @@ function_statement_as(while)
 // iterator
 
 struct statement_iterator *ast_create_statement_iterator(
-    morphine_coroutine_t U, uint32_t line, size_t size
+    morphine_coroutine_t U, ml_line line, size_t size
 ) {
     size_t extend_size = (sizeof(struct expression *) + sizeof(strtable_index_t)) * size;
     struct statement_iterator *result = body_statement_create(iterator, U, line, extend_size);
@@ -233,7 +233,7 @@ function_statement_as(iterator)
 // if
 
 struct statement_if *ast_create_statement_if(
-    morphine_coroutine_t U, uint32_t line, size_t size
+    morphine_coroutine_t U, ml_line line, size_t size
 ) {
     size_t extend_size = (sizeof(struct expression *) + sizeof(struct statement *)) * size;
     struct statement_if *result = body_statement_create(if, U, line, extend_size);
@@ -250,7 +250,7 @@ function_statement_as(if)
 // declaration
 
 struct statement_declaration *ast_create_statement_declaration(
-    morphine_coroutine_t U, uint32_t line, size_t size
+    morphine_coroutine_t U, ml_line line, size_t size
 ) {
     size_t extend_size = (sizeof(struct expression *) + sizeof(strtable_index_t)) * size;
     struct statement_declaration *result = body_statement_create(declaration, U, line, extend_size);
@@ -267,7 +267,7 @@ function_statement_as(declaration)
 // assigment
 
 struct statement_assigment *ast_create_statement_assigment(
-    morphine_coroutine_t U, uint32_t line, size_t size
+    morphine_coroutine_t U, ml_line line, size_t size
 ) {
     size_t extend_size = sizeof(struct expression *) * 2 * size;
     struct statement_assigment *result = body_statement_create(assigment, U, line, extend_size);
@@ -324,7 +324,7 @@ function_expression_as(global)
 // table
 
 struct expression_table *ast_create_expression_table(
-    morphine_coroutine_t U, uint32_t line, size_t size
+    morphine_coroutine_t U, ml_line line, size_t size
 ) {
     size_t extend_size = sizeof(struct expression *) * 2 * size;
     struct expression_table *result = body_expression_create(table, U, line, extend_size);
@@ -341,7 +341,7 @@ function_expression_as(table)
 // vector
 
 struct expression_vector *ast_create_expression_vector(
-    morphine_coroutine_t U, uint32_t line, size_t size
+    morphine_coroutine_t U, ml_line line, size_t size
 ) {
     size_t extend_size = sizeof(struct expression *) * size;
     struct expression_vector *result = body_expression_create(vector, U, line, extend_size);
@@ -363,7 +363,7 @@ function_expression_as(access)
 // call
 
 struct expression_call *ast_create_expression_call(
-    morphine_coroutine_t U, uint32_t line, size_t size
+    morphine_coroutine_t U, ml_line line, size_t size
 ) {
     size_t extend_size = sizeof(struct expression *) * size;
     struct expression_call *result = body_expression_create(call, U, line, extend_size);
@@ -379,7 +379,7 @@ function_expression_as(call)
 // call_self
 
 struct expression_call_self *ast_create_expression_call_self(
-    morphine_coroutine_t U, uint32_t line, size_t size
+    morphine_coroutine_t U, ml_line line, size_t size
 ) {
     size_t extend_size = sizeof(struct expression *) * size;
     struct expression_call_self *result = body_expression_create(call_self, U, line, extend_size);
@@ -395,7 +395,7 @@ function_expression_as(call_self)
 // function
 
 struct expression_function *ast_create_expression_function(
-    morphine_coroutine_t U, uint32_t line, size_t closures, size_t args, size_t statics
+    morphine_coroutine_t U, ml_line line, size_t closures, size_t args, size_t statics
 ) {
     size_t extend_size = sizeof(strtable_index_t) * closures +
                          sizeof(struct expression *) * args +
@@ -417,7 +417,7 @@ function_expression_as(function)
 
 // block
 
-struct expression_block *ast_create_expression_block(morphine_coroutine_t U, uint32_t line, size_t size) {
+struct expression_block *ast_create_expression_block(morphine_coroutine_t U, ml_line line, size_t size) {
     size_t extend_size = sizeof(struct statement *) * size;
     struct expression_block *result = body_expression_create(block, U, line, extend_size);
 
@@ -431,7 +431,7 @@ function_expression_as(block)
 
 // if
 
-struct expression_if *ast_create_expression_if(morphine_coroutine_t U, uint32_t line, size_t size) {
+struct expression_if *ast_create_expression_if(morphine_coroutine_t U, ml_line line, size_t size) {
     size_t extend_size = sizeof(struct expression *) * 2 * size;
     struct expression_if *result = body_expression_create(if, U, line, extend_size);
 

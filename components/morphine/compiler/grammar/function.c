@@ -122,7 +122,7 @@ static struct expression_function *create_function(morphine_coroutine_t U, struc
     struct ast_node *body;
     if (elements_look(E, A.pos, symbol_operator(TOP_EQ))) {
         struct reduce reduce = elements_get_reduce(E, A.pos + 1);
-        uint32_t line = elements_get_token(E, A.pos).line;
+        ml_line line = elements_get_token(E, A.pos).line;
 
         struct statement_return *ret = ast_create_statement_return(U, line);
         ret->expression = ast_node_as_expression(U, reduce.node);
@@ -133,7 +133,7 @@ static struct expression_function *create_function(morphine_coroutine_t U, struc
         body = reduce.node;
     }
 
-    uint32_t line = elements_get_token(E, 0).line;
+    ml_line line = elements_get_token(E, 0).line;
     struct expression_function *function = ast_create_expression_function(U, line, closures, args, statics);
     function->anonymous = anonymous;
     function->name = name;

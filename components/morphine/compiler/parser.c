@@ -70,7 +70,7 @@ static struct element elements_get(struct elements *E, size_t index) {
     return E->array[index];
 }
 
-uint32_t elements_line(struct elements *E, size_t index) {
+ml_line elements_line(struct elements *E, size_t index) {
     struct element element = elements_get(E, index);
     if (element.is_token) {
         return element.token.line;
@@ -80,7 +80,7 @@ uint32_t elements_line(struct elements *E, size_t index) {
 }
 
 morphine_noret void elements_error(struct elements *E, size_t index, const char *message) {
-    uint32_t line;
+    ml_line line;
     struct element element = elements_get(E, index);
     if (element.is_token) {
         line = element.token.line;
@@ -88,7 +88,7 @@ morphine_noret void elements_error(struct elements *E, size_t index, const char 
         line = element.reduce.node->line;
     }
 
-    mapi_errorf(E->U, "line %"PRIu32": %s", line, message);
+    mapi_errorf(E->U, "line %"MLIMIT_LINE_PR": %s", line, message);
 }
 
 bool elements_is_token(struct elements *E, size_t index) {
@@ -258,7 +258,7 @@ static void matcher_push(struct matcher *M) {
     };
 }
 
-static uint32_t matcher_get_line(struct matcher *M) {
+static ml_line matcher_get_line(struct matcher *M) {
     struct token token;
     if (matcher_get_token(M, &token)) {
         return token.line;
@@ -277,7 +277,7 @@ static uint32_t matcher_get_line(struct matcher *M) {
 }
 
 morphine_noret void matcher_error(struct matcher *M, const char *message) {
-    mapi_errorf(M->U, "line %"PRIu32": %s", matcher_get_line(M), message);
+    mapi_errorf(M->U, "line %"MLIMIT_LINE_PR": %s", matcher_get_line(M), message);
 }
 
 bool matcher_look(struct matcher *M, struct matcher_symbol symbol) {
@@ -334,7 +334,7 @@ struct token matcher_consume(struct matcher *M, struct matcher_symbol symbol) {
             break;
     }
 
-    mapi_errorf(M->U, "line %"PRIu32": expected %s", matcher_get_line(M), name);
+    mapi_errorf(M->U, "line %"MLIMIT_LINE_PR": expected %s", matcher_get_line(M), name);
 }
 
 void matcher_reduce(struct matcher *M, enum reduce_type type) {
@@ -353,7 +353,7 @@ void matcher_reduce(struct matcher *M, enum reduce_type type) {
     );
 
     if (element.is_token || element.reduce.type != type) {
-        mapi_errorf(M->U, "line %"PRIu32": reduce error", matcher_get_line(M));
+        mapi_errorf(M->U, "line %"MLIMIT_LINE_PR": reduce error", matcher_get_line(M));
     }
 
     M->position++;
@@ -422,7 +422,7 @@ bool parser_next(morphine_coroutine_t U) {
     }
 
     bool push_recursion = false;
-    uint32_t line = matcher_get_line(&matcher);
+    ml_line line = matcher_get_line(&matcher);
 
     if (grammar_quantum.is_wrapping) {
         push_recursion = grammar_quantum.wrapping(&matcher, context.is_wrapped);
@@ -439,7 +439,7 @@ bool parser_next(morphine_coroutine_t U) {
     struct ast_node *node = grammar_quantum.assemble(U, &elements);
 
     if (node == NULL) {
-        mapi_errorf(U, "line %"PRIu32": error while assemble ast node", line);
+        mapi_errorf(U, "line %"MLIMIT_LINE_PR": error while assemble ast node", line);
     }
 
     stack_pop(U, &P->elements, matcher.position);

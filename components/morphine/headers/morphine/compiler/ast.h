@@ -55,7 +55,7 @@ enum expression_type {
 struct ast_node {
     enum ast_node_type type;
     struct ast_node *prev;
-    uint32_t line;
+    ml_line line;
 };
 
 struct statement {
@@ -411,7 +411,7 @@ struct expression_if {
 #define ast_node_empty_args
 #define ast_node_args(args ...) , args
 #define ast_node_functions(type, name, args) \
-struct type##_##name *ast_create_##type##_##name(morphine_coroutine_t, uint32_t line args); \
+struct type##_##name *ast_create_##type##_##name(morphine_coroutine_t, ml_line line args); \
 struct type##_##name *ast_as_##type##_##name(morphine_coroutine_t, struct ast_node *);
 
 ast_node_functions(statement, block, ast_node_args(size_t size))

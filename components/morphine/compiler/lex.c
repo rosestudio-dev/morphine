@@ -13,14 +13,14 @@
 #define eoschar '\0'
 #define opchars "+-*/%()[]{}=<>!&|.,^~?:;"
 
-#define lex_cl_error(U, line, str) mapi_errorf((U), "line %"PRIu32": "str, (line))
+#define lex_cl_error(U, line, str) mapi_errorf((U), "line %"MLIMIT_LINE_PR": "str, (line))
 #define lex_error(U, L, str) lex_cl_error(U, (L)->line, str)
 
 struct lex {
     const char *text;
     size_t len;
     size_t pos;
-    uint32_t line;
+    ml_line line;
 };
 
 static struct {

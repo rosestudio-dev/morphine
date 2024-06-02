@@ -14,7 +14,7 @@ struct reduce {
 };
 
 size_t elements_size(struct elements *);
-uint32_t elements_line(struct elements *, size_t);
+ml_line elements_line(struct elements *, size_t);
 morphine_noret void elements_error(struct elements *, size_t, const char *);
 bool elements_is_token(struct elements *, size_t);
 struct token elements_get_token(struct elements *, size_t);

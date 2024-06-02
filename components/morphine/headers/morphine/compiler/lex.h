@@ -95,7 +95,7 @@ enum token_predefined_word {
 
 struct token {
     enum token_type type;
-    uint32_t line;
+    ml_line line;
 
     union {
         ml_integer integer;
