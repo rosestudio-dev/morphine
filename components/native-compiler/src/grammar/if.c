@@ -102,7 +102,7 @@ struct ast_node *assemble_statement_if(morphine_coroutine_t U, struct elements *
     size_t elifs = count_elif(E);
 
     struct statement_if *result = ast_create_statement_if(U, elements_line(E, 0), elifs);
-    result->condition = ast_node_as_expression(U, elements_get_reduce(E, 2).node);
+    result->if_condition = ast_node_as_expression(U, elements_get_reduce(E, 2).node);
     result->else_statement = NULL;
 
     struct matcher_symbol if_closes[] = {
@@ -163,7 +163,7 @@ struct ast_node *assemble_expression_if(morphine_coroutine_t U, struct elements 
     size_t elifs = count_elif(E);
 
     struct expression_if *result = ast_create_expression_if(U, elements_line(E, 0), elifs);
-    result->condition = ast_node_as_expression(U, elements_get_reduce(E, 2).node);
+    result->if_condition = ast_node_as_expression(U, elements_get_reduce(E, 2).node);
     result->else_expression = NULL;
 
     struct matcher_symbol if_closes[] = {

@@ -68,13 +68,9 @@ struct expression {
     enum expression_type type;
 };
 
-struct ast {
-    struct ast_node *nodes;
-    struct ast_node *root;
-};
-
 void ast(morphine_coroutine_t);
 void ast_ready(morphine_coroutine_t, struct ast_node *);
+struct ast_node *ast_root(morphine_coroutine_t);
 
 struct expression *ast_node_as_expression(morphine_coroutine_t, struct ast_node *);
 struct statement *ast_node_as_statement(morphine_coroutine_t, struct ast_node *);
@@ -170,7 +166,7 @@ struct statement_iterator {
 struct statement_if {
     struct statement header;
 
-    struct expression *condition;
+    struct expression *if_condition;
     struct statement *if_statement;
     struct statement *else_statement;
 
@@ -403,7 +399,7 @@ struct expression_block {
 struct expression_if {
     struct expression header;
 
-    struct expression *condition;
+    struct expression *if_condition;
     struct expression *if_expression;
     struct expression *else_expression;
 

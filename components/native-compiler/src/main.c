@@ -9,6 +9,7 @@
 #include <sys/time.h>
 #include "lex.h"
 #include "parser.h"
+#include "printer.h"
 
 static uint64_t millis(void) {
     struct timeval tv;
@@ -17,17 +18,28 @@ static uint64_t millis(void) {
     return (((uint64_t) tv.tv_sec) * 1000) + (((uint64_t) tv.tv_usec) / 1000);
 }
 
-static void test(morphine_coroutine_t U, const char *text) {
+static void test(morphine_coroutine_t U) {
+    mapi_push_arg(U, 0);
+    const char *text = mapi_get_string(U);
     uint64_t start = millis();
 
     strtable(U, 32);
     lex(U, text, strlen(text));
     parser(U);
     while (parser_next(U)) { }
-    mapi_rotate(U, 3);
+    mapi_rotate(U, 5);
     mapi_pop(U, 2);
+    mapi_rotate(U, 2);
+    mapi_pop(U, 1);
+    mapi_rotate(U, 2);
 
     uint64_t end = millis();
+
+    mapi_rotate(U, 2);
+    printer_strtable(U);
+
+    mapi_rotate(U, 2);
+    printer_ast(U);
 
     mapi_gc_full(mapi_instance(U));
     printf("\nmillis: %zu ms\n", end - start);
@@ -147,7 +159,11 @@ static void vm(const char *text) {
     morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
     morphine_coroutine_t U = mapi_coroutine(I);
 
-    test(U, text);
+    mapi_push_native(U, "test", test);
+    mapi_push_string(U, text);
+    mapi_call(U, 1);
+
+    mapi_interpreter(I);
     mapi_close(I);
 }
 

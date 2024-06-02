@@ -158,6 +158,17 @@ void insert_decompose(
             if (size != as_size) {
                 elements_error(E, 0, "keys for decomposition aren't defined correctly");
             }
+        } else {
+            for (size_t i = 0; i < size; i++) {
+                struct expression_value *value = ast_create_expression_value(
+                    U, elements_line(E, start_index)
+                );
+
+                value->type = EXPRESSION_VALUE_TYPE_INT;
+                value->value.integer = (ml_integer) i;
+
+                keys[i] = ast_as_expression(value);
+            }
         }
     } else if (is_word) {
         *names = elements_get_token(E, start_index).word;

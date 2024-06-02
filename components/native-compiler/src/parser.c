@@ -207,177 +207,6 @@ static void *stack_get(morphine_coroutine_t U, struct stack *S, size_t index) {
     return S->array + (S->type_size * index);
 }
 
-// debug
-
-static void print_token(morphine_coroutine_t U, struct token token) {
-    struct strtable_entry entry;
-    switch (token.type) {
-        case TT_EOS:
-            printf("eos");
-            break;
-        case TT_INTEGER:
-            printf("%d", token.integer);
-            break;
-        case TT_DECIMAL:
-            printf("%g", token.decimal);
-            break;
-        case TT_STRING:
-            mapi_peek(U, 3);
-            if (strtable_get_by_index(U, token.string, &entry)) {
-                printf("'");
-                for (size_t i = 0; i < entry.size; i++) {
-                    printf("%c", entry.string[i]);
-                }
-                printf("'");
-            } else {
-                printf("ERROR");
-            }
-            mapi_pop(U, 1);
-            break;
-        case TT_WORD:
-            mapi_peek(U, 3);
-            if (strtable_get_by_index(U, token.word, &entry)) {
-                for (size_t i = 0; i < entry.size; i++) {
-                    printf("%c", entry.string[i]);
-                }
-            } else {
-                printf("ERROR");
-            }
-            mapi_pop(U, 1);
-            break;
-        case TT_PREDEFINED_WORD:
-            printf("%s", lex_predefined2str(U, token.predefined_word));
-            break;
-        case TT_OPERATOR:
-            printf("%s", lex_operator2str(U, token.operator));
-            break;
-    }
-}
-
-static void print_reduce(enum reduce_type type) {
-    switch (type) {
-        case REDUCE_TYPE_AST:
-            printf("AST");
-            return;
-        case REDUCE_TYPE_EXPRESSION:
-            printf("EXPRESSION");
-            return;
-        case REDUCE_TYPE_ADDITIVE:
-            printf("ADDITIVE");
-            return;
-        case REDUCE_TYPE_MULTIPLICATIVE:
-            printf("MULTIPLICATIVE");
-            return;
-        case REDUCE_TYPE_VALUE:
-            printf("VALUE");
-            return;
-        case REDUCE_TYPE_OR:
-            printf("OR");
-            return;
-        case REDUCE_TYPE_AND:
-            printf("AND");
-            return;
-        case REDUCE_TYPE_EQUAL:
-            printf("EQUAL");
-            return;
-        case REDUCE_TYPE_CONDITION:
-            printf("CONDITION");
-            return;
-        case REDUCE_TYPE_CONCAT:
-            printf("CONCAT");
-            return;
-        case REDUCE_TYPE_PREFIX:
-            printf("PREFIX");
-            return;
-        case REDUCE_TYPE_POSTFIX:
-            printf("POSTFIX");
-            return;
-        case REDUCE_TYPE_TABLE:
-            printf("TABLE");
-            return;
-        case REDUCE_TYPE_VECTOR:
-            printf("VECTOR");
-            return;
-        case REDUCE_TYPE_VARIABLE:
-            printf("VARIABLE");
-            return;
-        case REDUCE_TYPE_STATEMENT:
-            printf("STATEMENT");
-            return;
-        case REDUCE_TYPE_STATEMENT_BLOCK:
-            printf("STATEMENT_BLOCK");
-            return;
-        case REDUCE_TYPE_BLOCK_ELEM:
-            printf("BLOCK_ELEM");
-            return;
-        case REDUCE_TYPE_WHILE:
-            printf("WHILE");
-            return;
-        case REDUCE_TYPE_DO_WHILE:
-            printf("DO_WHILE");
-            return;
-        case REDUCE_TYPE_FOR:
-            printf("FOR");
-            return;
-        case REDUCE_TYPE_FUNCTION:
-            printf("FUNCTION");
-            return;
-        case REDUCE_TYPE_DECLARATION:
-            printf("DECLARATION");
-            return;
-        case REDUCE_TYPE_ASSIGMENT:
-            printf("ASSIGMENT");
-            return;
-        case REDUCE_TYPE_EXPRESSION_BLOCK:
-            printf("EXPRESSION_BLOCK");
-            return;
-        case REDUCE_TYPE_PRIMARY:
-            printf("PRIMARY");
-            return;
-        case REDUCE_TYPE_IMPLICIT_BLOCK_ELEM:
-            printf("IMPLICIT_BLOCK_ELEM");
-            return;
-        case REDUCE_TYPE_ITERATOR:
-            printf("ITERATOR");
-            return;
-        case REDUCE_TYPE_STATEMENT_IF:
-            printf("STATEMENT_IF");
-            return;
-        case REDUCE_TYPE_EXPRESSION_IF:
-            printf("EXPRESSION_IF");
-            return;
-    }
-
-    printf("UNDEFINED");
-}
-
-static void print_stack(morphine_coroutine_t U, struct parser *P, const char *prefix, size_t pos) {
-    if (prefix != NULL) {
-        printf("%s | ", prefix);
-    }
-
-    for (size_t i = 0; i < P->elements.used; i++) {
-        struct element element = *stack_get_typed(struct element, U, &P->elements, i);
-
-        if (i == pos) {
-            printf("{");
-        }
-
-        if (element.is_token) {
-            print_token(U, element.token);
-        } else {
-            print_reduce(element.reduce.type);
-        }
-
-        if (i == pos) {
-            printf("}");
-        }
-
-        printf(" ");
-    }
-    printf("\n");
-}
-
 // initialization
 
 static void parser_free(morphine_instance_t I, void *p) {
@@ -545,7 +374,6 @@ bool matcher_look(struct matcher *M, struct matcher_symbol symbol) {
 bool matcher_match(struct matcher *M, struct matcher_symbol symbol) {
     if (matcher_look(M, symbol)) {
         matcher_push(M);
-        print_stack(M->U, M->P, "s", M->context.from + M->position - 1);
         return true;
     }
 
@@ -556,7 +384,6 @@ struct token matcher_consume(struct matcher *M, struct matcher_symbol symbol) {
     struct token token;
     if (matcher_get_token(M, &token) && matcher_symbol(symbol, token)) {
         matcher_push(M);
-        print_stack(M->U, M->P, "s", M->context.from + M->position - 1);
         return token;
     }
 
@@ -712,10 +539,6 @@ bool parser_next(morphine_coroutine_t U) {
             .from = stack_size(P->elements) - 1,
             .type = context.type
         };
-
-        print_stack(U, P, "u", stack_size(P->elements) - 1);
-    } else {
-        print_stack(U, P, "r", stack_size(P->elements) - 1);
     }
 
     return true;

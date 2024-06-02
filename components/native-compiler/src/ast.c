@@ -7,6 +7,11 @@
 
 #define MORPHINE_TYPE "ast"
 
+struct ast {
+    struct ast_node *nodes;
+    struct ast_node *root;
+};
+
 static void ast_free(morphine_instance_t I, void *p) {
     struct ast *A = p;
 
@@ -40,6 +45,16 @@ void ast(morphine_coroutine_t U) {
 void ast_ready(morphine_coroutine_t U, struct ast_node *node) {
     struct ast *A = get_ast(U);
     A->root = node;
+}
+
+struct ast_node *ast_root(morphine_coroutine_t U) {
+    struct ast *A = get_ast(U);
+
+    if(A->root == NULL) {
+        mapi_error(U, "tree isn't ready");
+    }
+
+    return A->root;
 }
 
 struct expression *ast_node_as_expression(morphine_coroutine_t U, struct ast_node *node) {

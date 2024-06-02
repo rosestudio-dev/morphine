@@ -107,20 +107,26 @@ strtable_index_t strtable_record(morphine_coroutine_t U, const char *str, size_t
     return T->used - 1;
 }
 
-bool strtable_get_by_index(morphine_coroutine_t U, strtable_index_t index, struct strtable_entry *entry) {
+bool strtable_has(morphine_coroutine_t U, strtable_index_t index) {
     struct strtable *T = get_strtable(U);
 
     if (index >= T->used) {
         return false;
     }
 
-    if (entry != NULL) {
-        struct entry e = T->entries[index];
-        *entry = (struct strtable_entry) {
-            .string = e.string,
-            .size = e.size
-        };
+    return true;
+}
+
+struct strtable_entry strtable_get(morphine_coroutine_t U, strtable_index_t index) {
+    struct strtable *T = get_strtable(U);
+
+    if (index >= T->used) {
+        mapi_error(U, "string not found");
     }
 
-    return true;
+    struct entry entry = T->entries[index];
+    return (struct strtable_entry) {
+        .string = entry.string,
+        .size = entry.size
+    };
 }
