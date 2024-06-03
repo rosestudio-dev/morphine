@@ -57,7 +57,7 @@ void match_function(struct matcher *M) {
     }
 }
 
-static struct expression_function *create_function(morphine_coroutine_t U, struct elements *E) {
+static struct ast_function *create_function(morphine_coroutine_t U, struct elements *E) {
     size_t start_pos;
     bool anonymous;
     strtable_index_t name;
@@ -133,8 +133,8 @@ static struct expression_function *create_function(morphine_coroutine_t U, struc
         body = reduce.node;
     }
 
-    ml_line line = elements_get_token(E, 0).line;
-    struct expression_function *function = ast_create_expression_function(U, line, closures, args, statics);
+    struct ast_function *function = ast_create_function(U, closures, args, statics);
+    function->line = elements_get_token(E, 0).line;
     function->anonymous = anonymous;
     function->name = name;
     function->auto_closure = auto_closure;
@@ -144,7 +144,7 @@ static struct expression_function *create_function(morphine_coroutine_t U, struc
 }
 
 struct ast_node *assemble_function(morphine_coroutine_t U, struct elements *E) {
-    struct expression_function *function = create_function(U, E);
+    struct ast_function *function = create_function(U, E);
 
     size_t start_pos;
     if (elements_look(E, 1, symbol_word)) {
@@ -199,5 +199,8 @@ struct ast_node *assemble_function(morphine_coroutine_t U, struct elements *E) {
         argument_matcher_close(&A);
     }
 
-    return ast_as_node(function);
+    struct expression_function *result = ast_create_expression_function(U, function->line);
+    result->ref = function;
+
+    return ast_as_node(result);
 }

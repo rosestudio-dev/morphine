@@ -405,7 +405,6 @@ bool parser_next(morphine_coroutine_t U) {
             mapi_error(U, "parse error");
         }
 
-        ast_ready(U, element.reduce.node);
         return false;
     }
 

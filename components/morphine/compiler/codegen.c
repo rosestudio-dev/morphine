@@ -8,6 +8,44 @@
 
 #define MORPHINE_TYPE "codegen"
 
+enum codegen_argument_type {
+    CAT_VARIABLE,
+    CAT_TEMPORARY,
+    CAT_ANCHOR,
+    CAT_STABLE,
+};
+
+struct codegen_argument_action {
+    enum codegen_argument_type type;
+    union {
+        size_t variable;
+        size_t temporary;
+        size_t anchor;
+        ml_argument stable;
+    };
+};
+
+struct codegen_instruction {
+    morphine_instruction_t instruction;
+    struct codegen_argument_action argument1_action;
+    struct codegen_argument_action argument2_action;
+    struct codegen_argument_action argument3_action;
+};
+
+struct codegen_code_region {
+    bool is_compiled;
+    union {
+        struct {
+            size_t size;
+            struct codegen_instruction *instructions;
+        } compiled;
+
+        struct {
+
+        } precompiled;
+    };
+};
+
 struct codegen_function {
 
 };
@@ -34,12 +72,12 @@ static void codegen_free(morphine_instance_t I, void *p) {
 //}
 
 void codegen(morphine_coroutine_t U) {
-    struct ast_node *root = ast_root(U);
+//    struct ast_node *root = ast_root(U);
 
     struct codegen *C = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct codegen));
 
     *C = (struct codegen) {
-        .root = root
+//        .root = root
     };
 
     mapi_userdata_set_free(U, codegen_free);

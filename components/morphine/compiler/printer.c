@@ -2,22 +2,24 @@
 // Created by why-iskra on 02.06.2024.
 //
 
-#include <stdio.h>
 #include "morphine/compiler/printer.h"
 #include "morphine/compiler/strtable.h"
 #include "morphine/compiler/ast.h"
 
-#define printn(str, s) fwrite((str), (s), 1, stdout)
+#define printn(str, s) do { mapi_sio_write(U, (const uint8_t *) (str), (s)); } while(false)
+#define printf(args...) do { mapi_sio_printf(U, args); } while(false)
 
 #define get_ast(s, t, n) struct s##_##t *n = ast_as_##s##_##t(U, ast_as_node(s))
 #define get_ast_named(t, n) get_ast(t, n, n)
 
 static void print_string(morphine_coroutine_t U, strtable_index_t index) {
+    mapi_pop(U, 1);
     mapi_rotate(U, 2);
     struct strtable_entry entry = strtable_get(U, index);
     mapi_rotate(U, 2);
 
-    fwrite(entry.string, entry.size, 1, stdout);
+    mapi_push_sio_io(U);
+    mapi_sio_write(U, (const uint8_t *) entry.string, entry.size);
 }
 
 static void print_ast_statement(morphine_coroutine_t U, size_t indent, struct statement *statement);
@@ -242,50 +244,7 @@ static void print_ast_expression(morphine_coroutine_t U, size_t indent, struct e
         }
         case EXPRESSION_TYPE_function: {
             get_ast_named(expression, function);
-            printf("fun");
-            if (!function->anonymous) {
-                printf(" ");
-                print_string(U, function->name);
-            }
-
-            if (function->auto_closure) {
-                printf("<auto>(");
-            } else if (function->closures_size > 0) {
-                printf("<");
-                for (size_t i = 0; i < function->closures_size; i++) {
-                    print_string(U, function->closures[i]);
-
-                    if (i != function->closures_size - 1) {
-                        printf(", ");
-                    }
-                }
-                printf(">(");
-            } else {
-                printf("(");
-            }
-
-            for (size_t i = 0; i < function->args_size; i++) {
-                print_ast_expression(U, indent, function->arguments[i]);
-
-                if (i != function->args_size - 1) {
-                    printf(", ");
-                }
-            }
-            printf(") ");
-
-            if(function->statics_size > 0) {
-                printf("static (");
-                for (size_t i = 0; i < function->statics_size; i++) {
-                    print_string(U, function->statics[i]);
-
-                    if (i != function->statics_size - 1) {
-                        printf(", ");
-                    }
-                }
-                printf(") ");
-            }
-
-            print_ast_statement(U, indent, function->body);
+            printf("fun{%p}", function->ref);
             break;
         }
         case EXPRESSION_TYPE_block: {
@@ -536,27 +495,86 @@ static void print_ast_statement(morphine_coroutine_t U, size_t indent, struct st
     }
 }
 
-static void print_ast(morphine_coroutine_t U, struct ast_node *node) {
-    if (ast_node_type(node) == AST_NODE_TYPE_EXPRESSION) {
-        print_ast_expression(U, 0, ast_node_as_expression(U, node));
-    } else {
-        print_ast_statement(U, 0, ast_node_as_statement(U, node));
+static void print_ast_function(morphine_coroutine_t U, struct ast_function *function) {
+    printf("fun{%"MLIMIT_LINE_PR":%p}", function->line, function);
+    if (!function->anonymous) {
+        printf(" ");
+        print_string(U, function->name);
     }
+
+    if (function->auto_closure) {
+        printf("<auto>(");
+    } else if (function->closures_size > 0) {
+        printf("<");
+        for (size_t i = 0; i < function->closures_size; i++) {
+            print_string(U, function->closures[i]);
+
+            if (i != function->closures_size - 1) {
+                printf(", ");
+            }
+        }
+        printf(">(");
+    } else {
+        printf("(");
+    }
+
+    for (size_t i = 0; i < function->args_size; i++) {
+        print_ast_expression(U, 0, function->arguments[i]);
+
+        if (i != function->args_size - 1) {
+            printf(", ");
+        }
+    }
+    printf(") ");
+
+    if (function->statics_size > 0) {
+        printf("static (");
+        for (size_t i = 0; i < function->statics_size; i++) {
+            print_string(U, function->statics[i]);
+
+            if (i != function->statics_size - 1) {
+                printf(", ");
+            }
+        }
+        printf(") ");
+    }
+
+    print_ast_statement(U, 0, function->body);
+    printf("\n");
 }
 
 void printer_strtable(morphine_coroutine_t U) {
+    mapi_push_sio_io(U);
     printf("strtable:\n");
+    mapi_pop(U, 1);
+
     for (size_t i = 0; strtable_has(U, i); i++) {
         struct strtable_entry entry = strtable_get(U, i);
+
+        mapi_push_sio_io(U);
         printf("  %zu. '", i);
         printn(entry.string, entry.size);
         printf("'\n");
+        mapi_pop(U, 1);
     }
+
+    mapi_push_sio_io(U);
     printf("end\n\n");
+    mapi_pop(U, 1);
 }
 
 void printer_ast(morphine_coroutine_t U) {
+    struct ast_function *function = ast_functions(U);
+    mapi_push_sio_io(U);
     printf("ast:\n");
-    print_ast(U, ast_root(U));
-    printf("\nend\n\n");
+    while (function != NULL) {
+        print_ast_function(U, function);
+        function = function->prev;
+
+        if (function != NULL) {
+            printf("\n");
+        }
+    }
+    printf("end\n\n");
+    mapi_pop(U, 1);
 }

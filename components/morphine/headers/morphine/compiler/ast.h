@@ -58,6 +58,25 @@ struct ast_node {
     ml_line line;
 };
 
+struct ast_function {
+    struct ast_function *prev;
+    ml_line line;
+
+    bool anonymous;
+    strtable_index_t name;
+
+    bool auto_closure;
+    size_t closures_size;
+    size_t args_size;
+    size_t statics_size;
+
+    strtable_index_t *closures;
+    struct expression **arguments;
+    strtable_index_t *statics;
+
+    struct statement *body;
+};
+
 struct statement {
     struct ast_node node;
     enum statement_type type;
@@ -69,11 +88,17 @@ struct expression {
 };
 
 void ast(morphine_coroutine_t);
-void ast_ready(morphine_coroutine_t, struct ast_node *);
-struct ast_node *ast_root(morphine_coroutine_t);
+struct ast_function *ast_functions(morphine_coroutine_t);
 
 struct expression *ast_node_as_expression(morphine_coroutine_t, struct ast_node *);
 struct statement *ast_node_as_statement(morphine_coroutine_t, struct ast_node *);
+
+struct ast_function *ast_create_function(
+    morphine_coroutine_t U,
+    size_t closures,
+    size_t args,
+    size_t statics
+);
 
 /*
  * statements
@@ -368,20 +393,7 @@ struct expression_call_self {
 
 struct expression_function {
     struct expression header;
-
-    bool anonymous;
-    strtable_index_t name;
-
-    bool auto_closure;
-    size_t closures_size;
-    size_t args_size;
-    size_t statics_size;
-
-    strtable_index_t *closures;
-    struct expression **arguments;
-    strtable_index_t *statics;
-
-    struct statement *body;
+    struct ast_function *ref;
 };
 
 // block
@@ -436,7 +448,7 @@ ast_node_functions(expression, vector, ast_node_args(size_t size))
 ast_node_functions(expression, access, ast_node_empty_args)
 ast_node_functions(expression, call, ast_node_args(size_t args_size))
 ast_node_functions(expression, call_self, ast_node_args(size_t args_size))
-ast_node_functions(expression, function, ast_node_args(size_t closures, size_t args, size_t statics))
+ast_node_functions(expression, function, ast_node_empty_args)
 ast_node_functions(expression, block, ast_node_args(size_t size))
 ast_node_functions(expression, if, ast_node_args(size_t size))
 

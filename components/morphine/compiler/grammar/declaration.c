@@ -25,14 +25,14 @@ struct ast_node *assemble_declaration(morphine_coroutine_t U, struct elements *E
     if (!elements_is_token(E, 0)) {
         struct reduce reduce = elements_get_reduce(E, 0);
         struct expression_function *function = ast_as_expression_function(U, reduce.node);
-        if (function->anonymous) {
+        if (function->ref->anonymous) {
             elements_error(E, 0, "cannot declare anonymous function");
         }
 
         struct statement_declaration *result = ast_create_statement_declaration(U, reduce.node->line, 0);
         result->mutable = false;
         result->expression = ast_as_expression(function);
-        result->name = function->name;
+        result->name = function->ref->name;
 
         return ast_as_node(result);
     }

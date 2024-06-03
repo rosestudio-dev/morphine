@@ -9,17 +9,24 @@
 
 struct ast {
     struct ast_node *nodes;
-    struct ast_node *root;
+    struct ast_function *functions;
 };
 
 static void ast_free(morphine_instance_t I, void *p) {
     struct ast *A = p;
 
-    struct ast_node *current = A->nodes;
-    while (current != NULL) {
-        struct ast_node *prev = current->prev;
-        mapi_allocator_free(I, current);
-        current = prev;
+    struct ast_function *function = A->functions;
+    while (function != NULL) {
+        struct ast_function *prev = function->prev;
+        mapi_allocator_free(I, function);
+        function = prev;
+    }
+
+    struct ast_node *node = A->nodes;
+    while (node != NULL) {
+        struct ast_node *prev = node->prev;
+        mapi_allocator_free(I, node);
+        node = prev;
     }
 }
 
@@ -36,25 +43,14 @@ void ast(morphine_coroutine_t U) {
 
     *A = (struct ast) {
         .nodes = NULL,
-        .root = NULL
+        .functions = NULL
     };
 
     mapi_userdata_set_free(U, ast_free);
 }
 
-void ast_ready(morphine_coroutine_t U, struct ast_node *node) {
-    struct ast *A = get_ast(U);
-    A->root = node;
-}
-
-struct ast_node *ast_root(morphine_coroutine_t U) {
-    struct ast *A = get_ast(U);
-
-    if(A->root == NULL) {
-        mapi_error(U, "tree isn't ready");
-    }
-
-    return A->root;
+struct ast_function *ast_functions(morphine_coroutine_t U) {
+    return get_ast(U)->functions;
 }
 
 struct expression *ast_node_as_expression(morphine_coroutine_t U, struct ast_node *node) {
@@ -71,6 +67,39 @@ struct statement *ast_node_as_statement(morphine_coroutine_t U, struct ast_node 
     }
 
     return (struct statement *) node;
+}
+
+struct ast_function *ast_create_function(
+    morphine_coroutine_t U,
+    size_t closures,
+    size_t args,
+    size_t statics
+) {
+    struct ast *A = get_ast(U);
+
+    size_t size = sizeof(struct ast_function) +
+                  sizeof(strtable_index_t) * closures +
+                  sizeof(struct expression *) * args +
+                  sizeof(strtable_index_t) * statics;
+
+    struct ast_function *function = mapi_allocator_uni(
+        mapi_instance(U),
+        NULL,
+        size
+    );
+
+    function->closures_size = closures;
+    function->args_size = args;
+    function->statics_size = statics;
+
+    function->closures = ((void *) function) + sizeof(struct ast_function);
+    function->arguments = ((void *) function->closures) + sizeof(strtable_index_t) * closures;
+    function->statics = ((void *) function->arguments) + sizeof(struct expression *) * args;
+
+    function->prev = A->functions;
+    A->functions = function;
+
+    return function;
 }
 
 static void setup_node(
@@ -394,24 +423,7 @@ function_expression_as(call_self)
 
 // function
 
-struct expression_function *ast_create_expression_function(
-    morphine_coroutine_t U, ml_line line, size_t closures, size_t args, size_t statics
-) {
-    size_t extend_size = sizeof(strtable_index_t) * closures +
-                         sizeof(struct expression *) * args +
-                         sizeof(strtable_index_t) * statics;
-    struct expression_function *result = body_expression_create(function, U, line, extend_size);
-
-    result->closures_size = closures;
-    result->args_size = args;
-    result->statics_size = statics;
-
-    result->closures = ((void *) result) + sizeof(struct expression_function);
-    result->arguments = ((void *) result->closures) + sizeof(strtable_index_t) * closures;
-    result->statics = ((void *) result->arguments) + sizeof(struct expression *) * args;
-
-    return result;
-}
+function_expression_create(function)
 
 function_expression_as(function)
 
