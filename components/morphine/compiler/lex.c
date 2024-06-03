@@ -463,7 +463,7 @@ static struct token lex_operator(morphine_coroutine_t U, struct lex *L) {
     }
 }
 
-struct token lex_next(morphine_coroutine_t U) {
+struct token lex_step(morphine_coroutine_t U) {
     struct lex *L = get_lex(U);
 
     char current;

@@ -8,6 +8,7 @@
 #include "morphine/compiler/lex.h"
 #include "morphine/compiler/parser.h"
 #include "morphine/compiler/printer.h"
+#include "morphine/compiler/codegen.h"
 
 static void string(morphine_coroutine_t U) {
     nb_function(U)
@@ -20,7 +21,7 @@ static void string(morphine_coroutine_t U) {
             strtable(U);
             lex(U, text, size);
             parser(U);
-            while (parser_next(U)) { }
+            while (parser_step(U)) { }
             mapi_rotate(U, 5);
             mapi_pop(U, 2);
             mapi_rotate(U, 2);
@@ -32,6 +33,8 @@ static void string(morphine_coroutine_t U) {
 
             mapi_rotate(U, 2);
             printer_ast(U);
+
+            codegen(U);
 
             nb_leave();
     nb_end

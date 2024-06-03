@@ -108,7 +108,7 @@ struct token {
 };
 
 void lex(morphine_coroutine_t, const char *, size_t);
-struct token lex_next(morphine_coroutine_t);
+struct token lex_step(morphine_coroutine_t);
 
 const char *lex_operator2str(morphine_coroutine_t, enum token_operator);
 const char *lex_predefined2str(morphine_coroutine_t, enum token_predefined_word);

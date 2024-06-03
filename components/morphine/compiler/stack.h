@@ -11,6 +11,7 @@
 #define stack_get_typed(T, U, S, i) ((T *) stack_get((U), (S), (i)))
 #define stack_is_empty(S)           ((S).used == 0)
 #define stack_size(S)               ((S).used)
+#define stack_iterator(T, S, n)     for(T *n = (T *) (S).array; n < ((T *) ((S).array)) + (S).used; n ++)
 
 struct stack {
     size_t type_size;

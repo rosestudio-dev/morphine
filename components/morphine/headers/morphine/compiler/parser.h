@@ -7,4 +7,4 @@
 #include <morphine.h>
 
 void parser(morphine_coroutine_t);
-bool parser_next(morphine_coroutine_t);
+bool parser_step(morphine_coroutine_t);
