@@ -99,7 +99,10 @@ void execute(
         .read = NULL,
         .flush = NULL,
         .open = NULL,
-        .close = NULL
+        .close = NULL,
+        .seek = NULL,
+        .tell = NULL,
+        .eos = NULL
     };
 
     morphine_sio_interface_t error_interface = {
@@ -107,7 +110,10 @@ void execute(
         .read = NULL,
         .flush = NULL,
         .open = NULL,
-        .close = NULL
+        .close = NULL,
+        .seek = NULL,
+        .tell = NULL,
+        .eos = NULL
     };
 
     struct platform instance_platform = {

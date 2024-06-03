@@ -37,8 +37,8 @@ static struct sio_accessor get_accessor(morphine_instance_t I) {
     };
 }
 
-static void close(morphine_instance_t I, struct sio *sio, bool require) {
-    if (require && !sio->opened) {
+static void close(morphine_instance_t I, struct sio *sio, bool force) {
+    if (!force && !sio->opened) {
         throwI_error(I, "SIO already closed");
     }
 
@@ -49,7 +49,7 @@ static void close(morphine_instance_t I, struct sio *sio, bool require) {
 }
 
 void sioI_free(morphine_instance_t I, struct sio *sio) {
-    close(I, sio, false);
+    close(I, sio, true);
     allocI_free(I, sio);
 }
 
@@ -80,25 +80,29 @@ bool sioI_is_opened(morphine_instance_t I, struct sio *sio) {
     return sio->opened;
 }
 
-void sioI_close(morphine_instance_t I, struct sio *sio) {
+void sioI_close(morphine_instance_t I, struct sio *sio, bool force) {
     if (sio == NULL) {
         throwI_error(I, "SIO is null");
     }
 
-    close(I, sio, true);
+    close(I, sio, force);
 }
 
-size_t sioI_read(morphine_instance_t I, struct sio *sio, uint8_t *buffer, size_t size) {
+static void checks(morphine_instance_t I, struct sio *sio) {
     if (sio == NULL) {
         throwI_error(I, "SIO is null");
-    }
-
-    if (sio->interface.read == NULL) {
-        throwI_error(I, "SIO is write only");
     }
 
     if (!sio->opened) {
         throwI_error(I, "SIO isn't opened");
+    }
+}
+
+size_t sioI_read(morphine_instance_t I, struct sio *sio, uint8_t *buffer, size_t size) {
+    checks(I, sio);
+
+    if (sio->interface.read == NULL) {
+        throwI_error(I, "SIO is write only");
     }
 
     struct sio_accessor A = get_accessor(I);
@@ -106,16 +110,10 @@ size_t sioI_read(morphine_instance_t I, struct sio *sio, uint8_t *buffer, size_t
 }
 
 size_t sioI_write(morphine_instance_t I, struct sio *sio, const uint8_t *buffer, size_t size) {
-    if (sio == NULL) {
-        throwI_error(I, "SIO is null");
-    }
+    checks(I, sio);
 
     if (sio->interface.write == NULL) {
         throwI_error(I, "SIO is read only");
-    }
-
-    if (!sio->opened) {
-        throwI_error(I, "SIO isn't opened");
     }
 
     struct sio_accessor A = get_accessor(I);
@@ -123,18 +121,66 @@ size_t sioI_write(morphine_instance_t I, struct sio *sio, const uint8_t *buffer,
 }
 
 void sioI_flush(morphine_instance_t I, struct sio *sio) {
-    if (sio == NULL) {
-        throwI_error(I, "SIO is null");
-    }
-
-    if (!sio->opened) {
-        throwI_error(I, "SIO isn't opened");
-    }
+    checks(I, sio);
 
     if (sio->interface.flush != NULL) {
         struct sio_accessor A = get_accessor(I);
         return sio->interface.flush(&A, sio->data);
     }
+}
+
+static inline bool sio_seek(
+    morphine_instance_t I,
+    struct sio *sio,
+    size_t offset,
+    morphine_sio_seek_mode_t mode
+) {
+    checks(I, sio);
+
+    if (sio->interface.seek == NULL) {
+        return false;
+    }
+
+    struct sio_accessor A = get_accessor(I);
+    return sio->interface.seek(&A, sio->data, offset, mode);
+}
+
+bool sioI_seek_set(morphine_instance_t I, struct sio *sio, size_t offset) {
+    return sio_seek(I, sio, offset, MORPHINE_SIO_SEEK_MODE_SET);
+}
+
+bool sioI_seek_cur(morphine_instance_t I, struct sio *sio, size_t offset) {
+    return sio_seek(I, sio, offset, MORPHINE_SIO_SEEK_MODE_CUR);
+}
+
+bool sioI_seek_prv(morphine_instance_t I, struct sio *sio, size_t offset) {
+    return sio_seek(I, sio, offset, MORPHINE_SIO_SEEK_MODE_PRV);
+}
+
+bool sioI_seek_end(morphine_instance_t I, struct sio *sio, size_t offset) {
+    return sio_seek(I, sio, offset, MORPHINE_SIO_SEEK_MODE_END);
+}
+
+size_t sioI_tell(morphine_instance_t I, struct sio *sio) {
+    checks(I, sio);
+
+    if (sio->interface.tell == NULL) {
+        return 0;
+    }
+
+    struct sio_accessor A = get_accessor(I);
+    return sio->interface.tell(&A, sio->data);
+}
+
+bool sioI_eos(morphine_instance_t I, struct sio *sio) {
+    checks(I, sio);
+
+    if (sio->interface.eos == NULL) {
+        return false;
+    }
+
+    struct sio_accessor A = get_accessor(I);
+    return sio->interface.eos(&A, sio->data);
 }
 
 size_t sioI_print(morphine_instance_t I, struct sio *sio, const char *str) {

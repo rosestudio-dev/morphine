@@ -57,6 +57,79 @@ static size_t vector_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer
     return read;
 }
 
+static bool vector_seek(
+    morphine_sio_accessor_t A,
+    void *data,
+    size_t offset,
+    morphine_sio_seek_mode_t mode
+) {
+    (void) A;
+    struct vector_data *vdata = data;
+
+    switch (mode) {
+        case MORPHINE_SIO_SEEK_MODE_SET: {
+            if (offset > vdata->size) {
+                return false;
+            } else {
+                vdata->pointer = offset;
+                return true;
+            }
+        }
+        case MORPHINE_SIO_SEEK_MODE_CUR: {
+            if (vdata->pointer > vdata->size) {
+                vdata->pointer = vdata->size;
+            }
+
+            if (offset > vdata->size - vdata->pointer) {
+                return false;
+            } else {
+                vdata->pointer += offset;
+                return true;
+            }
+        }
+        case MORPHINE_SIO_SEEK_MODE_PRV: {
+            if (vdata->pointer > vdata->size) {
+                vdata->pointer = vdata->size;
+            }
+
+            if (offset > vdata->pointer) {
+                return false;
+            } else {
+                vdata->pointer -= offset;
+                return true;
+            }
+        }
+        case MORPHINE_SIO_SEEK_MODE_END: {
+            if (offset > vdata->size) {
+                return false;
+            } else {
+                vdata->pointer = vdata->size - offset;
+                return true;
+            }
+        }
+    }
+
+    return false;
+}
+
+static size_t vector_tell(morphine_sio_accessor_t A, void *data) {
+    (void) A;
+    struct vector_data *vdata = data;
+
+    if (vdata->pointer > vdata->size) {
+        return vdata->size;
+    } else {
+        return vdata->pointer;
+    }
+}
+
+static bool vector_eos(morphine_sio_accessor_t A, void *data) {
+    (void) A;
+    struct vector_data *vdata = data;
+
+    return vdata->pointer >= vdata->size;
+}
+
 MORPHINE_AUX void maux_push_sio_vector(
     morphine_coroutine_t U, const uint8_t *vector, size_t size, bool hold
 ) {
@@ -73,6 +146,9 @@ MORPHINE_AUX void maux_push_sio_vector(
         .read = vector_read,
         .write = NULL,
         .flush = NULL,
+        .seek = vector_seek,
+        .tell = vector_tell,
+        .eos = vector_eos,
     };
 
     mapi_push_sio(U, interface);

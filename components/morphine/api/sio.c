@@ -35,14 +35,14 @@ MORPHINE_API bool mapi_sio_is_opened(morphine_coroutine_t U) {
     return sioI_is_opened(U->I, sio);
 }
 
-MORPHINE_API void mapi_sio_close(morphine_coroutine_t U) {
+MORPHINE_API void mapi_sio_close(morphine_coroutine_t U, bool force) {
     struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
 
     if (sio == U->I->sio.io || sio == U->I->sio.error) {
         return;
     }
 
-    sioI_close(U->I, sio);
+    sioI_close(U->I, sio, force);
 }
 
 MORPHINE_API size_t mapi_sio_read(morphine_coroutine_t U, uint8_t *buffer, size_t size) {
@@ -58,6 +58,36 @@ MORPHINE_API size_t mapi_sio_write(morphine_coroutine_t U, const uint8_t *buffer
 MORPHINE_API void mapi_sio_flush(morphine_coroutine_t U) {
     struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
     sioI_flush(U->I, sio);
+}
+
+MORPHINE_API bool mapi_sio_seek_set(morphine_coroutine_t U, size_t offset) {
+    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
+    return sioI_seek_set(U->I, sio, offset);
+}
+
+MORPHINE_API bool mapi_sio_seek_cur(morphine_coroutine_t U, size_t offset) {
+    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
+    return sioI_seek_cur(U->I, sio, offset);
+}
+
+MORPHINE_API bool mapi_sio_seek_prv(morphine_coroutine_t U, size_t offset) {
+    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
+    return sioI_seek_prv(U->I, sio, offset);
+}
+
+MORPHINE_API bool mapi_sio_seek_end(morphine_coroutine_t U, size_t offset) {
+    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
+    return sioI_seek_end(U->I, sio, offset);
+}
+
+MORPHINE_API size_t mapi_sio_tell(morphine_coroutine_t U) {
+    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
+    return sioI_tell(U->I, sio);
+}
+
+MORPHINE_API bool mapi_sio_eos(morphine_coroutine_t U) {
+    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
+    return sioI_eos(U->I, sio);
 }
 
 MORPHINE_API size_t mapi_sio_print(morphine_coroutine_t U, const char *str) {

@@ -40,8 +40,8 @@ morphine_instance_t instanceI_open(struct platform platform, struct settings set
 }
 
 void instanceI_close(morphine_instance_t I) {
-    sioI_close(I, I->sio.io);
-    sioI_close(I, I->sio.error);
+    sioI_close(I, I->sio.io, true);
+    sioI_close(I, I->sio.error, true);
 
     gcI_destruct(I, I->G);
     I->platform.functions.free(I);
