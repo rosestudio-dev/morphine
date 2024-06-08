@@ -3,10 +3,16 @@
 //
 
 #include <execute.h>
+#include <morphinec/lib.h>
 #include <loaders.h>
 #include <stdlib.h>
 #include <setjmp.h>
 #include <stdio.h>
+
+struct require_loader userlibs[] = {
+    { "compiler", mlib_compiler_loader },
+    { NULL, NULL }
+};
 
 static struct allocator *pallocator;
 static jmp_buf abort_jmp;
@@ -133,6 +139,8 @@ void execute(
     }
 
     morphine_instance_t I = mapi_open(instance_platform, settings, &data);
+    mapi_userlibs(I, userlibs);
+
     morphine_coroutine_t U = mapi_coroutine(I);
 
     ml_size argc_size = mapi_csize2size(U, argc);

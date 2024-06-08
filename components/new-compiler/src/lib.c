@@ -1,14 +1,13 @@
 //
-// Created by why-iskra on 02.06.2024.
+// Created by why-iskra on 08.06.2024.
 //
 
-#include <morphine.h>
-#include "morphine/libs/loader.h"
-#include "morphine/compiler/strtable.h"
-#include "morphine/compiler/lex.h"
-#include "morphine/compiler/parser.h"
-#include "morphine/compiler/printer.h"
-#include "morphine/compiler/codegen.h"
+#include "morphinec/lib.h"
+#include "morphinec/strtable.h"
+#include "morphinec/lex.h"
+#include "morphinec/parser.h"
+#include "morphinec/printer.h"
+#include "morphinec/codegen.h"
 
 static void string(morphine_coroutine_t U) {
     nb_function(U)
@@ -45,7 +44,7 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_compiler_loader(morphine_coroutine_t U) {
+MORPHINE_LIB void mlib_compiler_loader(morphine_coroutine_t U) {
     maux_construct(U, table, "compiler.");
 }
 

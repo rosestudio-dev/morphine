@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/limits.h"
+#include <morphine/limits.h>
 
 #define PARSER_LIMIT_STACK_CONTEXTS   262144
 #define PARSER_LIMIT_STACK_ELEMENTS   262144

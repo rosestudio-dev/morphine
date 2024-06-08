@@ -288,3 +288,8 @@ MORPHINE_API void mapi_sio_accessor_errorf(morphine_sio_accessor_t, const char *
 // operations
 
 MORPHINE_API bool mapi_op(morphine_coroutine_t, const char *op);
+
+// platform
+
+MORPHINE_API bool mapi_platform_str2int(const char *, ml_integer *);
+MORPHINE_API bool mapi_platform_str2dec(const char *, ml_decimal *);

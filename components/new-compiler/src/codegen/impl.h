@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/compiler/ast.h"
+#include "morphinec/ast.h"
 #include "support/controller.h"
 
 void gen_expression(struct codegen_controller *C, struct expression *expression, size_t state);

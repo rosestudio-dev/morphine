@@ -2,9 +2,9 @@
 // Created by why-iskra on 02.06.2024.
 //
 
-#include "morphine/compiler/printer.h"
-#include "morphine/compiler/strtable.h"
-#include "morphine/compiler/ast.h"
+#include "morphinec/printer.h"
+#include "morphinec/strtable.h"
+#include "morphinec/ast.h"
 
 #define printn(str, s) do { mapi_sio_write(U, (const uint8_t *) (str), (s)); } while(false)
 #define printf(args...) do { mapi_sio_printf(U, args); } while(false)

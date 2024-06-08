@@ -4,8 +4,7 @@
 
 #include <string.h>
 #include <ctype.h>
-#include "morphine/compiler/lex.h"
-#include "morphine/platform/conversions.h"
+#include "morphinec/lex.h"
 
 #define MORPHINE_TYPE "lex"
 
@@ -238,8 +237,8 @@ static struct token lex_number(morphine_coroutine_t U, struct lex *L) {
 
     ml_integer int_res = 0;
     ml_decimal dec_res = 0;
-    bool int_success = platformI_string2integer(buffer, &int_res);
-    bool dec_success = platformI_string2decimal(buffer, &dec_res);
+    bool int_success = mapi_platform_str2int(buffer, &int_res);
+    bool dec_success = mapi_platform_str2dec(buffer, &dec_res);
 
     if (!int_success && !dec_success) {
         lex_error(U, L, "invalid number");

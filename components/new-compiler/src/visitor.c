@@ -4,9 +4,9 @@
 
 #include <string.h>
 #include <setjmp.h>
-#include "morphine/compiler/visitor.h"
-#include "stack.h"
-#include "config.h"
+#include "morphinec/visitor.h"
+#include "morphinec/stack.h"
+#include "morphinec/config.h"
 
 #define MORPHINE_TYPE "visitor"
 

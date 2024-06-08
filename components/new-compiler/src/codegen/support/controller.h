@@ -4,6 +4,8 @@
 
 #pragma once
 
+#include "morphinec/ast.h"
+
 enum codegen_argument_type {
     CAT_VARIABLE,
     CAT_TEMPORARY,

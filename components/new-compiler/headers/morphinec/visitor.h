@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/compiler/ast.h"
+#include "ast.h"
 
 struct visitor_controller;
 

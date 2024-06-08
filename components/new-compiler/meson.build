@@ -9,8 +9,6 @@ installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
 morphine = subproject('morphine').get_variable('morphine_dep')
-ncompiler_lib = subproject('new-compiler').get_variable('ncompiler_dep')
-compiler_lib = subproject('compiler').get_variable('compiler_lib_shared_dep')
 
 sources = run_command(
     'python',
@@ -20,7 +18,8 @@ sources = run_command(
     check : true
 ).stdout().strip().split('\n')
 
-include = include_directories('include')
+public_include = include_directories('include')
+private_include = include_directories('headers')
 
 warning_flags = [
     '-Wall',
@@ -52,20 +51,31 @@ sanitize_flags = [
     '-fsanitize=undefined'
 ]
 
+shared_flags = [
+    '-DMORPHINE_LIBRARY'
+]
+
 compiler_args = warning_flags + common_flags
 
 if sanitize.enabled()
     compiler_args += sanitize_flags
 endif
 
-executable(
-    'morphine', sources,
-    include_directories : include,
-    dependencies : [morphine, ncompiler_lib, compiler_lib],
+ncompiler = both_libraries(
+    'new-compiler', sources,
+    include_directories : [private_include, public_include],
     c_args : compiler_args,
+    dependencies : morphine,
+    c_shared_args : shared_flags,
 
     install : installdir != 'undefined',
-    install_dir : installdir
+    install_dir : installdir / 'libs'
+)
+
+ncompiler_dep = declare_dependency(
+    include_directories : [public_include],
+    link_with : ncompiler.get_static_lib(),
+    version : version
 )
 
 summary(

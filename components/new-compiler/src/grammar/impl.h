@@ -6,7 +6,7 @@
 
 #include "support/matcher.h"
 #include "support/elements.h"
-#include "morphine/compiler/ast.h"
+#include "morphinec/ast.h"
 
 struct grammar_quantum {
     enum reduce_type type;

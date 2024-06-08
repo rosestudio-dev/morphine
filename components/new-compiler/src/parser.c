@@ -4,12 +4,12 @@
 
 #include <string.h>
 #include <setjmp.h>
-#include "morphine/compiler/parser.h"
+#include "morphinec/parser.h"
+#include "morphinec/stack.h"
+#include "morphinec/config.h"
 #include "grammar/support/matcher.h"
 #include "grammar/support/elements.h"
 #include "grammar/impl.h"
-#include "stack.h"
-#include "config.h"
 
 #define MORPHINE_TYPE "parser"
 

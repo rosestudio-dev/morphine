@@ -3,13 +3,13 @@
 //
 
 #include <string.h>
-#include "morphine/compiler/codegen.h"
-#include "morphine/compiler/ast.h"
-#include "morphine/compiler/visitor.h"
+#include "morphinec/codegen.h"
+#include "morphinec/ast.h"
+#include "morphinec/visitor.h"
 #include "codegen/impl.h"
 #include "codegen/support/controller.h"
-#include "stack.h"
-#include "config.h"
+#include "morphinec/stack.h"
+#include "morphinec/config.h"
 
 #define MORPHINE_TYPE "codegen"
 
@@ -303,10 +303,28 @@ static void visit(struct visitor_controller *visitor_controller, struct ast_node
     }
 }
 
+static void codegen_free_functions(morphine_instance_t I, struct codegen_function *functions) {
+    struct codegen_function *function = functions;
+    while (function != NULL) {
+        struct codegen_function *prev = function->prev;
+
+        stack_free(I, &function->instructions);
+        stack_free(I, &function->anchors);
+        stack_free(I, &function->temporary);
+        stack_free(I, &function->variables);
+        stack_free(I, &function->scopes);
+
+        mapi_allocator_free(I, function);
+
+        function = prev;
+    }
+}
+
 static void codegen_free(morphine_instance_t I, void *p) {
     struct codegen *C = p;
 
-    mapi_allocator_free(I, C->functions);
+    codegen_free_functions(I, C->functions);
+    codegen_free_functions(I, C->compiled);
 }
 
 static struct codegen *get_codegen(morphine_coroutine_t U) {
@@ -324,7 +342,7 @@ void codegen(morphine_coroutine_t U) {
     struct codegen *C = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct codegen));
 
     *C = (struct codegen) {
-        .U = NULL,
+        .U = U,
         .current_function = NULL,
         .functions = NULL,
         .compiled = NULL

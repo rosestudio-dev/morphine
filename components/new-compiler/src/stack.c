@@ -2,7 +2,7 @@
 // Created by why-iskra on 02.06.2024.
 //
 
-#include "stack.h"
+#include "morphinec/stack.h"
 
 void stack_init(struct stack *S, size_t type_size, size_t expansion_factor, size_t limit) {
     *S = (struct stack) {
