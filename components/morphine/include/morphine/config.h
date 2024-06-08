@@ -7,7 +7,6 @@
 // modules
 
 #define MORPHINE_ENABLE_JUMPTABLE
-//#define MORPHINE_ENABLE_DEBUGGER
 
 // tags
 
@@ -32,8 +31,3 @@
 // attrs
 
 #define morphine_noret __attribute__((noreturn))
-
-// compile-time parameters
-
-#define TABLE_GROW_PERCENTAGE 80
-#define VECTOR_AMORTIZATION 24

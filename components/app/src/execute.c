@@ -10,7 +10,7 @@
 #include <stdio.h>
 
 struct require_loader userlibs[] = {
-    { "compiler", mlib_compiler_loader },
+    { "compiler", mclib_compiler_loader },
     { NULL, NULL }
 };
 
@@ -71,7 +71,6 @@ static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_
 }
 
 void execute(
-    struct libcompiler *libcompiler,
     struct allocator *allocator,
     const char *path,
     bool binary,
@@ -82,10 +81,6 @@ void execute(
     if (setjmp(abort_jmp) != 0) {
         return;
     }
-
-    struct vmdata data = {
-        .libcompiler = libcompiler
-    };
 
     struct settings settings = {
         .gc.limit_bytes = alloc_limit,
@@ -138,7 +133,7 @@ void execute(
         instance_platform.functions.free = dfree;
     }
 
-    morphine_instance_t I = mapi_open(instance_platform, settings, &data);
+    morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
     mapi_userlibs(I, userlibs);
 
     morphine_coroutine_t U = mapi_coroutine(I);

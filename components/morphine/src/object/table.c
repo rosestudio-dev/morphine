@@ -10,6 +10,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
+#include "morphine/params.h"
 
 #define ROOT(tree) (&(tree)->root)
 #define NIL_LEAF(tree) (&(tree)->nil_leaf)
@@ -483,7 +484,7 @@ static void redblacktree_init(struct tree *tree) {
 
 static void resize(morphine_instance_t I, struct hashmap *hashmap) {
     bool need = hashmap->hashing.size > 0 &&
-                ((hashmap->hashing.used * 10) / hashmap->hashing.size) < (TABLE_GROW_PERCENTAGE / 10);
+                ((hashmap->hashing.used * 10) / hashmap->hashing.size) < (MORPHINE_TABLE_GROW_PERCENTAGE / 10);
     if (likely(need || hashmap->hashing.size >= 131070)) {
         return;
     }

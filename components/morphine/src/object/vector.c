@@ -9,6 +9,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/params.h"
 
 struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
     struct vector *result = allocI_uni(I, NULL, sizeof(struct vector));
@@ -129,18 +130,18 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
 
     if (vector->size.accessible == vector->size.real) {
         size_t rollback = gcI_safe_value(I, value);
-        if (VECTOR_AMORTIZATION > MLIMIT_SIZE_MAX - vector->size.real) {
+        if (MORPHINE_VECTOR_AMORTIZATION > MLIMIT_SIZE_MAX - vector->size.real) {
             throwI_error(I, "Vector size exceeded limit");
         }
 
         vector->values = allocI_vec(
             I,
             vector->values,
-            vector->size.real + VECTOR_AMORTIZATION,
+            vector->size.real + MORPHINE_VECTOR_AMORTIZATION,
             sizeof(struct value)
         );
 
-        vector->size.real += VECTOR_AMORTIZATION;
+        vector->size.real += MORPHINE_VECTOR_AMORTIZATION;
         gcI_reset_safe(I, rollback);
     }
 
@@ -181,20 +182,20 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
 
     vector->size.accessible--;
 
-    if (vector->size.real - vector->size.accessible > VECTOR_AMORTIZATION) {
+    if (vector->size.real - vector->size.accessible > MORPHINE_VECTOR_AMORTIZATION) {
         size_t rollback = gcI_safe_value(I, value);
-        if (VECTOR_AMORTIZATION > vector->size.real) {
+        if (MORPHINE_VECTOR_AMORTIZATION > vector->size.real) {
             throwI_error(I, "Vector size exceeded limit");
         }
 
         vector->values = allocI_vec(
             I,
             vector->values,
-            vector->size.real - VECTOR_AMORTIZATION,
+            vector->size.real - MORPHINE_VECTOR_AMORTIZATION,
             sizeof(struct value)
         );
 
-        vector->size.real -= VECTOR_AMORTIZATION;
+        vector->size.real -= MORPHINE_VECTOR_AMORTIZATION;
         gcI_reset_safe(I, rollback);
     }
 

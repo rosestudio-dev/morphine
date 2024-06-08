@@ -5,9 +5,8 @@ project(
         'versioncode=1',
         'installdir=' + meson.source_root() / 'install',
         'morphine:sanitize=disabled',
+        'compiler:sanitize=disabled',
         'app-morphine:sanitize=disabled',
-        'compiler:localgradle=enabled',
-        'compiler:gradledaemon=enabled',
     ],
     subproject_dir : 'components',
 )

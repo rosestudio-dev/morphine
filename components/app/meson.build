@@ -9,8 +9,7 @@ installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
 morphine = subproject('morphine').get_variable('morphine_dep')
-ncompiler_lib = subproject('new-compiler').get_variable('ncompiler_dep')
-compiler_lib = subproject('compiler').get_variable('compiler_lib_shared_dep')
+compiler = subproject('compiler').get_variable('morphinec_dep')
 
 sources = run_command(
     'python',
@@ -61,7 +60,7 @@ endif
 executable(
     'morphine', sources,
     include_directories : include,
-    dependencies : [morphine, ncompiler_lib, compiler_lib],
+    dependencies : [morphine, compiler],
     c_args : compiler_args,
 
     install : installdir != 'undefined',

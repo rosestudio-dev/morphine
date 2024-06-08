@@ -24,8 +24,6 @@ Morphine has the following main features that build the language's ideology:
 - meson
 - python 3
 - cc
-- gradle
-- java
 
 ## License
 > [!NOTE]

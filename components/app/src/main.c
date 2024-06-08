@@ -8,11 +8,8 @@
 #include <millis.h>
 #include <human.h>
 #include "morphine/api.h"
-#include "compiler.h"
 
 int main(int argc, char **argv) {
-    struct libcompiler libcompiler = libcompiler_open("libs/libcompiler.so");
-
     struct args args = parseargs(argc, argv);
 
     if (args.version) {
@@ -30,7 +27,6 @@ int main(int argc, char **argv) {
     uint64_t start_ms = millis();
 
     execute(
-        &libcompiler,
         pallocator,
         args.program_path,
         args.binary,
