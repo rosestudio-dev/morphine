@@ -13,12 +13,15 @@ struct sio {
 
     bool opened;
     void *data;
+    struct value hold_value;
 
     morphine_sio_interface_t interface;
 };
 
 struct sio *sioI_create(morphine_instance_t, morphine_sio_interface_t);
 void sioI_free(morphine_instance_t, struct sio *);
+
+void sioI_hold(morphine_instance_t, struct sio *, struct value);
 
 void sioI_open(morphine_instance_t, struct sio *, void *);
 bool sioI_is_opened(morphine_instance_t, struct sio *);

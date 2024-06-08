@@ -107,14 +107,18 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             return size_iterator(iterator);
         }
+        case OBJ_TYPE_SIO: {
+            struct sio *sio = cast(struct sio *, obj);
+
+            mark_value(I, sio->hold_value);
+
+            return size_sio(sio);
+        }
         case OBJ_TYPE_STRING: {
             return size_string(cast(struct string *, obj));
         }
         case OBJ_TYPE_REFERENCE: {
             return size_reference(cast(struct reference *, obj));
-        }
-        case OBJ_TYPE_SIO: {
-            return size_sio(cast(struct sio *, obj));
         }
     }
 

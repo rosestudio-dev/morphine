@@ -20,6 +20,15 @@ MORPHINE_API void mapi_push_sio(morphine_coroutine_t U, morphine_sio_interface_t
     stackI_push(U, valueI_object(sioI_create(U->I, interface)));
 }
 
+MORPHINE_API void mapi_sio_hold(morphine_coroutine_t U) {
+    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 1));
+    struct value value = stackI_peek(U, 0);
+
+    sioI_hold(U->I, sio, value);
+
+    mapi_pop(U, 1);
+}
+
 MORPHINE_API void mapi_sio_open(morphine_coroutine_t U, void *data) {
     struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
 

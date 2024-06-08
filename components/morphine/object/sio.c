@@ -5,9 +5,10 @@
 #include <string.h>
 #include "morphine/object/sio.h"
 #include "morphine/core/throw.h"
-#include "morphine/gc/allocator.h"
 #include "morphine/object/string.h"
+#include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
+#include "morphine/gc/barrier.h"
 
 struct sio_accessor {
     morphine_instance_t I;
@@ -15,7 +16,7 @@ struct sio_accessor {
 
 struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interface) {
     if (interface.write == NULL && interface.read == NULL) {
-        throwI_error(I, "SIO interface hasn't read/write functions");
+        throwI_error(I, "sio interface hasn't read/write functions");
     }
 
     struct sio *result = allocI_uni(I, NULL, sizeof(struct sio));
@@ -23,7 +24,8 @@ struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interfac
     (*result) = (struct sio) {
         .interface = interface,
         .opened = false,
-        .data = NULL
+        .data = NULL,
+        .hold_value = valueI_nil
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_SIO);
@@ -31,15 +33,13 @@ struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interfac
     return result;
 }
 
-static struct sio_accessor get_accessor(morphine_instance_t I) {
-    return (struct sio_accessor) {
-        .I = I
-    };
+static inline struct sio_accessor get_accessor(morphine_instance_t I) {
+    return (struct sio_accessor) { .I = I };
 }
 
-static void close(morphine_instance_t I, struct sio *sio, bool force) {
+static inline void close(morphine_instance_t I, struct sio *sio, bool force) {
     if (!force && !sio->opened) {
-        throwI_error(I, "SIO already closed");
+        throwI_error(I, "sio already closed");
     }
 
     if (sio->opened && sio->interface.close != NULL) {
@@ -53,13 +53,26 @@ void sioI_free(morphine_instance_t I, struct sio *sio) {
     allocI_free(I, sio);
 }
 
+void sioI_hold(morphine_instance_t I, struct sio *sio, struct value value) {
+    if (sio == NULL) {
+        throwI_error(I, "sio is null");
+    }
+
+    if (!valueI_is_nil(sio->hold_value)) {
+        throwI_error(I, "sio is already holding value");
+    }
+
+    gcI_barrier(I, sio, value);
+    sio->hold_value = value;
+}
+
 void sioI_open(morphine_instance_t I, struct sio *sio, void *arg) {
     if (sio == NULL) {
-        throwI_error(I, "SIO is null");
+        throwI_error(I, "sio is null");
     }
 
     if (sio->opened) {
-        throwI_error(I, "SIO is already opened");
+        throwI_error(I, "sio is already opened");
     }
 
     if (sio->interface.open == NULL) {
@@ -74,7 +87,7 @@ void sioI_open(morphine_instance_t I, struct sio *sio, void *arg) {
 
 bool sioI_is_opened(morphine_instance_t I, struct sio *sio) {
     if (sio == NULL) {
-        throwI_error(I, "SIO is null");
+        throwI_error(I, "sio is null");
     }
 
     return sio->opened;
@@ -82,7 +95,7 @@ bool sioI_is_opened(morphine_instance_t I, struct sio *sio) {
 
 void sioI_close(morphine_instance_t I, struct sio *sio, bool force) {
     if (sio == NULL) {
-        throwI_error(I, "SIO is null");
+        throwI_error(I, "sio is null");
     }
 
     close(I, sio, force);
@@ -90,11 +103,11 @@ void sioI_close(morphine_instance_t I, struct sio *sio, bool force) {
 
 static void checks(morphine_instance_t I, struct sio *sio) {
     if (sio == NULL) {
-        throwI_error(I, "SIO is null");
+        throwI_error(I, "sio is null");
     }
 
     if (!sio->opened) {
-        throwI_error(I, "SIO isn't opened");
+        throwI_error(I, "sio isn't opened");
     }
 }
 
@@ -102,7 +115,7 @@ size_t sioI_read(morphine_instance_t I, struct sio *sio, uint8_t *buffer, size_t
     checks(I, sio);
 
     if (sio->interface.read == NULL) {
-        throwI_error(I, "SIO is write only");
+        throwI_error(I, "sio is write only");
     }
 
     struct sio_accessor A = get_accessor(I);
@@ -113,7 +126,7 @@ size_t sioI_write(morphine_instance_t I, struct sio *sio, const uint8_t *buffer,
     checks(I, sio);
 
     if (sio->interface.write == NULL) {
-        throwI_error(I, "SIO is read only");
+        throwI_error(I, "sio is read only");
     }
 
     struct sio_accessor A = get_accessor(I);
