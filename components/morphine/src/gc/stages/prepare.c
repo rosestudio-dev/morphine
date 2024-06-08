@@ -2,7 +2,7 @@
 // Created by why-iskra on 18.04.2024.
 //
 
-#include "../stages.h"
+#include "impl.h"
 #include "morphine/core/instance.h"
 
 void gcstageI_prepare(morphine_instance_t I) {

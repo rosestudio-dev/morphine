@@ -3,7 +3,7 @@
 //
 
 #include <string.h>
-#include "../functions.h"
+#include "require.h"
 #include "morphine/core/instance.h"
 #include "morphine/libs/loader.h"
 #include "morphine/api.h"

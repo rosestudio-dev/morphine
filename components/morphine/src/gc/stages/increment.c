@@ -2,7 +2,7 @@
 // Created by whyiskra on 3/23/24.
 //
 
-#include "../stages.h"
+#include "impl.h"
 #include "mark.h"
 
 static inline size_t record(morphine_instance_t I) {

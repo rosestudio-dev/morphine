@@ -6,7 +6,7 @@
 #include "morphine/gc/safe.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
-#include "stages.h"
+#include "stages/impl.h"
 
 static inline bool gc_need(morphine_instance_t I, size_t reserved) {
     if (reserved > (SIZE_MAX - I->G.bytes.allocated)) {

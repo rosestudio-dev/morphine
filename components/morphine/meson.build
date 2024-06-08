@@ -19,7 +19,7 @@ sources = run_command(
     prog_python,
     extra_scripts / 'walker.py',
     '-p',
-    '**/*.c',
+    'src/**/*.c',
     check : true
 ).stdout().strip().split('\n')
 

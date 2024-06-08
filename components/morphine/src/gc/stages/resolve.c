@@ -2,7 +2,7 @@
 // Created by why-iskra on 16.04.2024.
 //
 
-#include "../stages.h"
+#include "impl.h"
 #include "mark.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/reference.h"

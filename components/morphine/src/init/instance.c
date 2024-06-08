@@ -3,7 +3,7 @@
 //
 
 #include "morphine/init/instance.h"
-#include "stages.h"
+#include "stages/impl.h"
 
 void initI_instance(morphine_instance_t I) {
     init_sio(I);

@@ -2,8 +2,8 @@
 // Created by why-iskra on 30.03.2024.
 //
 
-#include "../stages.h"
-#include "functions.h"
+#include "impl.h"
+#include "functions/require.h"
 #include "morphine/core/instance.h"
 #include "morphine/misc/registry.h"
 #include "morphine/object/table.h"
