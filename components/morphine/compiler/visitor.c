@@ -19,6 +19,7 @@ enum jump_type {
 
 struct context {
     struct ast_node *node;
+    bool function_root;
     size_t state;
     void *save;
 };
@@ -47,6 +48,10 @@ struct visitor_controller {
     };
 };
 
+bool visitor_has_saved(struct visitor_controller *C) {
+    return C->context->save != NULL;
+}
+
 bool visitor_save(struct visitor_controller *C, size_t size, void **save) {
     if (C->context->save == NULL) {
         C->context->save = mapi_allocator_uni(mapi_instance(C->U), NULL, size);
@@ -64,6 +69,14 @@ void *visitor_prev_save(struct visitor_controller *C) {
 
 void *visitor_data(struct visitor_controller *C) {
     return C->V->data;
+}
+
+ml_line visitor_line(struct visitor_controller *C) {
+    return ast_node_line(C->context->node);
+}
+
+bool visitor_is_function_root(struct visitor_controller *C) {
+    return C->context->function_root;
 }
 
 morphine_noret void visitor_next(struct visitor_controller *C, size_t state) {
@@ -151,6 +164,7 @@ void visitor(morphine_coroutine_t U, visit_func_t visit_func, void *data) {
     *stack_push_typed(struct ast_function *, U, &V->function_stack) = functions;
     *stack_push_typed(struct context, U, &V->context_stack) = (struct context) {
         .save = NULL,
+        .function_root = true,
         .node = ast_as_node(functions->body),
         .state = 0
     };
@@ -189,6 +203,7 @@ bool visitor_step(morphine_coroutine_t U, void *save) {
                 context->state = controller.next_state;
                 *stack_push_typed(struct context, U, &V->context_stack) = (struct context) {
                     .save = NULL,
+                    .function_root = false,
                     .node = ast_as_node(controller.node),
                     .state = 0
                 };
@@ -205,6 +220,7 @@ bool visitor_step(morphine_coroutine_t U, void *save) {
                 *stack_push_typed(struct ast_function *, U, &V->function_stack) = controller.function;
                 *stack_push_typed(struct context, U, &V->context_stack) = (struct context) {
                     .save = NULL,
+                    .function_root = true,
                     .node = ast_as_node(controller.function->body),
                     .state = 0
                 };

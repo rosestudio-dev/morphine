@@ -7,3 +7,4 @@
 #include <morphine.h>
 
 void codegen(morphine_coroutine_t);
+bool codegen_step(morphine_coroutine_t);
