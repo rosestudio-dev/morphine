@@ -7,5 +7,5 @@
 #include "morphinec/ast.h"
 #include "support/controller.h"
 
-void gen_expression(struct codegen_controller *C, struct expression *expression, size_t state);
-void gen_statement(struct codegen_controller *C, struct statement *statement, size_t state);
+void gen_expression(struct codegen_controller *, struct expression *, size_t state);
+void gen_statement(struct codegen_controller *, struct statement *, size_t state);

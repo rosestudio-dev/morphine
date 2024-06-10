@@ -16,6 +16,7 @@
 #define lex_error(U, L, str) lex_cl_error(U, (L)->line, str)
 
 struct lex {
+    struct strtable *T;
     const char *text;
     size_t len;
     size_t pos;
@@ -108,18 +109,21 @@ static struct {
 #undef operator
 };
 
-void lex(morphine_coroutine_t U, const char *text, size_t len) {
+struct lex *lex(morphine_coroutine_t U, struct strtable *T, const char *text, size_t len) {
     struct lex *L = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct lex));
 
     *L = (struct lex) {
+        .T = T,
         .text = text,
         .len = len,
         .pos = 0,
-        .line = 1,
+        .line = 1
     };
+
+    return L;
 }
 
-static struct lex *get_lex(morphine_coroutine_t U) {
+struct lex *get_lex(morphine_coroutine_t U) {
     if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
         return mapi_userdata_pointer(U);
     } else {
@@ -335,9 +339,8 @@ static struct token lex_string(morphine_coroutine_t U, struct lex *L) {
     L->pos = save_pos;
     handle_string(U, L, str);
 
-    mapi_peek(U, 2);
-    strtable_index_t index = strtable_record(U, str, size);
-    mapi_pop(U, 2);
+    strtable_index_t index = strtable_record(U, L->T, str, size);
+    mapi_pop(U, 1);
 
     return (struct token) {
         .type = TT_STRING,
@@ -368,10 +371,7 @@ static struct token handle_word(morphine_coroutine_t U, struct lex *L, size_t fr
         }
     }
 
-
-    mapi_peek(U, 1);
-    strtable_index_t index = strtable_record(U, str, size);
-    mapi_pop(U, 1);
+    strtable_index_t index = strtable_record(U, L->T, str, size);
 
     return (struct token) {
         .type = TT_WORD,
@@ -462,9 +462,7 @@ static struct token lex_operator(morphine_coroutine_t U, struct lex *L) {
     }
 }
 
-struct token lex_step(morphine_coroutine_t U) {
-    struct lex *L = get_lex(U);
-
+struct token lex_step(morphine_coroutine_t U, struct lex *L) {
     char current;
     while (true) {
         current = peek(L, 0);

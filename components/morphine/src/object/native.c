@@ -25,15 +25,16 @@ struct native *nativeI_create(morphine_instance_t I, const char *name, morphine_
     size_t alloc_size = sizeof(struct native) + ((name_len + 1) * sizeof(char));
     struct native *result = allocI_uni(I, NULL, alloc_size);
 
+    char *result_name = ((void *) result) + sizeof(struct native);
     (*result) = (struct native) {
         .function = function,
-        .name = ((void *) result) + sizeof(struct native),
+        .name = result_name,
         .name_len = name_len,
         .registry_key = valueI_nil
     };
 
-    memset(result->name, 0, (name_len + 1) * sizeof(char));
-    strcpy(result->name, name);
+    memcpy(result_name, name, name_len * sizeof(char));
+    result_name[name_len] = '\0';
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_NATIVE);
 

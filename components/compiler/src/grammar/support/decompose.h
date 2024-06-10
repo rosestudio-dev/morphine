@@ -19,6 +19,7 @@ size_t size_decompose(
 
 void insert_decompose(
     morphine_coroutine_t,
+    struct ast *,
     struct elements *,
     bool is_word,
     size_t start_index,

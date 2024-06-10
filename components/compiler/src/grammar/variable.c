@@ -11,7 +11,7 @@ static void function_arguments(struct matcher *M) {
         return;
     }
 
-    struct argument_matcher A = {
+    struct argument_matcher R = {
         .assemble = false,
         .M = M,
         .separator = symbol_operator(TOP_COMMA),
@@ -21,12 +21,12 @@ static void function_arguments(struct matcher *M) {
         .close_symbol = symbol_operator(TOP_RPAREN),
     };
 
-    if (argument_matcher_init(&A, 0)) {
+    if (argument_matcher_init(&R, 0)) {
         do {
             matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        } while (argument_matcher_next(&A));
+        } while (argument_matcher_next(&R));
     }
-    argument_matcher_close(&A);
+    argument_matcher_close(&R);
 
     if (matcher_look(M, symbol_operator(TOP_LBRACE)) || matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
         matcher_reduce(M, REDUCE_TYPE_TABLE);
@@ -42,7 +42,7 @@ static size_t function_arguments_count(
         return 1;
     }
 
-    struct argument_matcher A = {
+    struct argument_matcher R = {
         .assemble = true,
         .E = E,
         .U = U,
@@ -53,14 +53,14 @@ static size_t function_arguments_count(
         .close_symbol = symbol_operator(TOP_RPAREN),
     };
 
-    if (argument_matcher_init(&A, start)) {
+    if (argument_matcher_init(&R, start)) {
         do {
-            argument_matcher_reduce(&A, REDUCE_TYPE_EXPRESSION);
-        } while (argument_matcher_next(&A));
+            argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
+        } while (argument_matcher_next(&R));
     }
-    size_t size = argument_matcher_close(&A);
+    size_t size = argument_matcher_close(&R);
 
-    if (A.pos != elements_size(E)) {
+    if (R.pos != elements_size(E)) {
         return size + 1;
     }
 
@@ -79,7 +79,7 @@ static void function_arguments_insert(
         return;
     }
 
-    struct argument_matcher A = {
+    struct argument_matcher R = {
         .assemble = true,
         .E = E,
         .U = U,
@@ -90,17 +90,17 @@ static void function_arguments_insert(
         .close_symbol = symbol_operator(TOP_RPAREN),
     };
 
-    if (argument_matcher_init(&A, start)) {
+    if (argument_matcher_init(&R, start)) {
         do {
-            struct reduce arg_reduce = argument_matcher_reduce(&A, REDUCE_TYPE_EXPRESSION);
-            expressions[A.count] = ast_node_as_expression(U, arg_reduce.node);
-        } while (argument_matcher_next(&A));
+            struct reduce arg_reduce = argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
+            expressions[R.count] = ast_node_as_expression(U, arg_reduce.node);
+        } while (argument_matcher_next(&R));
     }
-    argument_matcher_close(&A);
+    argument_matcher_close(&R);
 
-    if (A.pos != elements_size(E)) {
-        struct reduce arg_reduce = elements_get_reduce(E, A.pos);
-        expressions[A.count] = ast_node_as_expression(U, arg_reduce.node);
+    if (R.pos != elements_size(E)) {
+        struct reduce arg_reduce = elements_get_reduce(E, R.pos);
+        expressions[R.count] = ast_node_as_expression(U, arg_reduce.node);
     }
 }
 
@@ -141,7 +141,7 @@ bool match_variable(struct matcher *M, bool is_wrapped) {
     return false;
 }
 
-struct ast_node *assemble_variable(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_variable(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     struct reduce reduce = elements_get_reduce(E, 0);
     if (elements_size(E) == 1) {
         return ast_as_node(ast_node_as_expression(U, reduce.node));
@@ -150,7 +150,7 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct elements *E) {
     if (!elements_is_token(E, 1)) {
         struct reduce reduce_arg = elements_get_reduce(E, 1);
 
-        struct expression_call *result = ast_create_expression_call(U, ast_node_line(reduce_arg.node), 1);
+        struct expression_call *result = ast_create_expression_call(U, A, ast_node_line(reduce_arg.node), 1);
         result->expression = ast_node_as_expression(U, reduce.node);
         result->arguments[0] = ast_node_as_expression(U, reduce_arg.node);
 
@@ -162,7 +162,7 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct elements *E) {
     if (matcher_symbol(symbol_operator(TOP_LBRACKET), watch_token)) {
         struct reduce reduce_key = elements_get_reduce(E, 2);
 
-        struct expression_access *result = ast_create_expression_access(U, watch_token.line);
+        struct expression_access *result = ast_create_expression_access(U, A, watch_token.line);
         result->container = ast_node_as_expression(U, reduce.node);
         result->key = ast_node_as_expression(U, reduce_key.node);
 
@@ -170,11 +170,11 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct elements *E) {
     }
 
     if (matcher_symbol(symbol_operator(TOP_DOT), watch_token)) {
-        struct expression_value *key = ast_create_expression_value(U, watch_token.line);
+        struct expression_value *key = ast_create_expression_value(U, A, watch_token.line);
         key->type = EXPRESSION_VALUE_TYPE_STR;
         key->value.string = elements_get_token(E, 2).word;
 
-        struct expression_access *result = ast_create_expression_access(U, watch_token.line);
+        struct expression_access *result = ast_create_expression_access(U, A, watch_token.line);
         result->container = ast_node_as_expression(U, reduce.node);
         result->key = ast_as_expression(key);
 
@@ -184,7 +184,7 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct elements *E) {
     if (matcher_symbol(symbol_operator(TOP_LPAREN), watch_token)) {
         size_t count = function_arguments_count(U, E, 1);
 
-        struct expression_call *result = ast_create_expression_call(U, watch_token.line, count);
+        struct expression_call *result = ast_create_expression_call(U, A, watch_token.line, count);
         result->expression = ast_node_as_expression(U, reduce.node);
         function_arguments_insert(U, E, 1, result->arguments);
 
@@ -201,7 +201,7 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct elements *E) {
             access_node = elements_get_reduce(E, 3).node;
             start_index = 5;
         } else if (matcher_symbol(symbol_word, access_token)) {
-            struct expression_value *value = ast_create_expression_value(U, access_token.line);
+            struct expression_value *value = ast_create_expression_value(U, A, access_token.line);
             access_node = ast_as_node(value);
             value->type = EXPRESSION_VALUE_TYPE_STR;
             value->value.string = access_token.word;
@@ -212,7 +212,7 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct elements *E) {
 
         size_t count = function_arguments_count(U, E, start_index);
 
-        struct expression_call_self *result = ast_create_expression_call_self(U, watch_token.line, count);
+        struct expression_call_self *result = ast_create_expression_call_self(U, A, watch_token.line, count);
         result->self = ast_node_as_expression(U, reduce.node);
         result->callable = ast_node_as_expression(U, access_node);
         result->extract_callable = matcher_symbol(symbol_operator(TOP_COLON), watch_token);

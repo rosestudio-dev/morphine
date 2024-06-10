@@ -62,6 +62,7 @@ struct ast_function {
     struct ast_function *prev;
     ml_line line;
 
+    bool recursive;
     bool anonymous;
     strtable_index_t name;
 
@@ -71,7 +72,7 @@ struct ast_function {
     size_t statics_size;
 
     strtable_index_t *closures;
-    struct expression **arguments;
+    strtable_index_t *arguments;
     strtable_index_t *statics;
 
     struct statement *body;
@@ -87,14 +88,19 @@ struct expression {
     enum expression_type type;
 };
 
-void ast(morphine_coroutine_t);
-struct ast_function *ast_functions(morphine_coroutine_t);
+struct ast;
+
+struct ast *ast(morphine_coroutine_t);
+struct ast *get_ast(morphine_coroutine_t);
+
+struct ast_function *ast_functions(struct ast *);
 
 struct expression *ast_node_as_expression(morphine_coroutine_t, struct ast_node *);
 struct statement *ast_node_as_statement(morphine_coroutine_t, struct ast_node *);
 
 struct ast_function *ast_create_function(
-    morphine_coroutine_t U,
+    morphine_coroutine_t,
+    struct ast *,
     size_t closures,
     size_t args,
     size_t statics
@@ -272,11 +278,7 @@ enum expression_binary_type {
     EXPRESSION_BINARY_TYPE_DIV,
     EXPRESSION_BINARY_TYPE_MOD,
     EXPRESSION_BINARY_TYPE_EQUAL,
-    EXPRESSION_BINARY_TYPE_NOT_EQUAL,
     EXPRESSION_BINARY_TYPE_LESS,
-    EXPRESSION_BINARY_TYPE_MORE,
-    EXPRESSION_BINARY_TYPE_MORE_EQUAL,
-    EXPRESSION_BINARY_TYPE_LESS_EQUAL,
     EXPRESSION_BINARY_TYPE_CONCAT,
     EXPRESSION_BINARY_TYPE_AND,
     EXPRESSION_BINARY_TYPE_OR,
@@ -423,7 +425,7 @@ struct expression_if {
 #define ast_node_empty_args
 #define ast_node_args(args ...) , args
 #define ast_node_functions(type, name, args) \
-struct type##_##name *ast_create_##type##_##name(morphine_coroutine_t, ml_line line args); \
+struct type##_##name *ast_create_##type##_##name(morphine_coroutine_t, struct ast *, ml_line line args); \
 struct type##_##name *ast_as_##type##_##name(morphine_coroutine_t, struct ast_node *);
 
 ast_node_functions(statement, block, ast_node_args(size_t size))

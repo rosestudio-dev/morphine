@@ -21,7 +21,7 @@ void match_declaration(struct matcher *M) {
     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
 }
 
-struct ast_node *assemble_declaration(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_declaration(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     if (!elements_is_token(E, 0)) {
         struct reduce reduce = elements_get_reduce(E, 0);
         struct expression_function *function = ast_as_expression_function(U, reduce.node);
@@ -29,7 +29,7 @@ struct ast_node *assemble_declaration(morphine_coroutine_t U, struct elements *E
             elements_error(E, 0, "cannot declare anonymous function");
         }
 
-        struct statement_declaration *result = ast_create_statement_declaration(U, reduce.node->line, 0);
+        struct statement_declaration *result = ast_create_statement_declaration(U, A, reduce.node->line, 0);
         result->mutable = false;
         result->expression = ast_as_expression(function);
         result->name = function->ref->name;
@@ -40,14 +40,14 @@ struct ast_node *assemble_declaration(morphine_coroutine_t U, struct elements *E
     size_t index = 0;
     size_t size = size_decompose(U, E, true, 1, &index);
 
-    struct statement_declaration *result = ast_create_statement_declaration(U, elements_line(E, 0), size);
+    struct statement_declaration *result = ast_create_statement_declaration(U, A, elements_line(E, 0), size);
     result->mutable = elements_look(E, 0, symbol_predef_word(TPW_var));
     result->expression = ast_node_as_expression(U, elements_get_reduce(E, index + 1).node);
 
     if (size == 0) {
-        insert_decompose(U, E, true, 1, &result->name, NULL, NULL);
+        insert_decompose(U, A, E, true, 1, &result->name, NULL, NULL);
     } else {
-        insert_decompose(U, E, true, 1, result->multi.names, NULL, result->multi.keys);
+        insert_decompose(U, A, E, true, 1, result->multi.names, NULL, result->multi.keys);
     }
 
     return ast_as_node(result);

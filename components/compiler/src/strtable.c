@@ -29,15 +29,7 @@ static void strtable_free(morphine_instance_t I, void *p) {
     mapi_allocator_free(I, T->entries);
 }
 
-static struct strtable *get_strtable(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        return mapi_userdata_pointer(U);
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
-}
-
-void strtable(morphine_coroutine_t U) {
+struct strtable *strtable(morphine_coroutine_t U) {
     struct strtable *T = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct strtable));
 
     *T = (struct strtable) {
@@ -47,11 +39,19 @@ void strtable(morphine_coroutine_t U) {
     };
 
     mapi_userdata_set_free(U, strtable_free);
+
+    return T;
 }
 
-strtable_index_t strtable_record(morphine_coroutine_t U, const char *str, size_t size) {
-    struct strtable *T = get_strtable(U);
+struct strtable *get_strtable(morphine_coroutine_t U) {
+    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
+        return mapi_userdata_pointer(U);
+    } else {
+        mapi_error(U, "expected "MORPHINE_TYPE);
+    }
+}
 
+strtable_index_t strtable_record(morphine_coroutine_t U, struct strtable *T, const char *str, size_t size) {
     for (size_t i = 0; i < T->used; i++) {
         struct entry entry = T->entries[i];
 
@@ -79,13 +79,14 @@ strtable_index_t strtable_record(morphine_coroutine_t U, const char *str, size_t
         T->size += STRTABLE_EXPANSION_FACTOR;
     }
 
-    char *buffer = mapi_allocator_uni(mapi_instance(U), NULL, size);
+    char *buffer = mapi_allocator_vec(mapi_instance(U), NULL, size + 1, sizeof(char));
     struct entry entry = {
         .string = buffer,
         .size = size
     };
 
-    memcpy(buffer, str, size);
+    memcpy(buffer, str, size * sizeof(char));
+    buffer[size] = '\0';
 
     T->entries[T->used] = entry;
     T->used++;
@@ -93,9 +94,7 @@ strtable_index_t strtable_record(morphine_coroutine_t U, const char *str, size_t
     return T->used - 1;
 }
 
-bool strtable_has(morphine_coroutine_t U, strtable_index_t index) {
-    struct strtable *T = get_strtable(U);
-
+bool strtable_has(struct strtable *T, strtable_index_t index) {
     if (index >= T->used) {
         return false;
     }
@@ -103,9 +102,7 @@ bool strtable_has(morphine_coroutine_t U, strtable_index_t index) {
     return true;
 }
 
-struct strtable_entry strtable_get(morphine_coroutine_t U, strtable_index_t index) {
-    struct strtable *T = get_strtable(U);
-
+struct strtable_entry strtable_get(morphine_coroutine_t U, struct strtable *T, strtable_index_t index) {
     if (index >= T->used) {
         mapi_error(U, "string not found");
     }

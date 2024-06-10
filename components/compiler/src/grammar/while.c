@@ -12,9 +12,9 @@ void match_while(struct matcher *M) {
     matcher_reduce(M, REDUCE_TYPE_STATEMENT_BLOCK);
 }
 
-struct ast_node *assemble_while(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_while(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     ml_line line = elements_get_token(E, 0).line;
-    struct statement_while *result = ast_create_statement_while(U, line);
+    struct statement_while *result = ast_create_statement_while(U, A, line);
 
     struct reduce reduce_expression = elements_get_reduce(E, 2);
     struct reduce reduce_statement = elements_get_reduce(E, 4);

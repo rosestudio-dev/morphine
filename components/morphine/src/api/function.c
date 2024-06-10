@@ -6,13 +6,33 @@
 #include "morphine/object/function.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
-#include "morphine/misc/loader.h"
 #include "morphine/instruction.h"
+#include "morphine/instruction/info.h"
 
-MORPHINE_API void mapi_push_function(morphine_coroutine_t U) {
-    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
-    struct function *result = loaderI_load(U, sio);
-    stackI_push(U, valueI_object(result));
+MORPHINE_API void mapi_push_function(
+    morphine_coroutine_t U,
+    const char *name,
+    ml_line line,
+    ml_size constants_count,
+    ml_size instructions_count,
+    ml_size statics_count,
+    ml_size arguments_count,
+    ml_size slots_count,
+    ml_size params_count
+) {
+    struct function *function = functionI_create(
+        U->I,
+        name,
+        line,
+        constants_count,
+        instructions_count,
+        statics_count,
+        arguments_count,
+        slots_count,
+        params_count
+    );
+
+    stackI_push(U, valueI_object(function));
 }
 
 MORPHINE_API void mapi_function_complete(morphine_coroutine_t U) {
@@ -23,6 +43,31 @@ MORPHINE_API void mapi_function_complete(morphine_coroutine_t U) {
 MORPHINE_API bool mapi_function_is_complete(morphine_coroutine_t U) {
     struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
     return function->complete;
+}
+
+MORPHINE_API const char *mapi_function_name(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    return function->name;
+}
+
+MORPHINE_API ml_line mapi_function_line(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    return function->complete;
+}
+
+MORPHINE_API ml_size mapi_function_arguments(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    return function->arguments_count;
+}
+
+MORPHINE_API ml_size mapi_function_slots(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    return function->slots_count;
+}
+
+MORPHINE_API ml_size mapi_function_params(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    return function->params_count;
 }
 
 MORPHINE_API void mapi_static_get(morphine_coroutine_t U, ml_size index) {
@@ -76,4 +121,15 @@ MORPHINE_API void mapi_instruction_set(
 MORPHINE_API ml_size mapi_instruction_size(morphine_coroutine_t U) {
     struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
     return function->instructions_count;
+}
+
+MORPHINE_API uint8_t mapi_opcode_args(morphine_coroutine_t U, morphine_opcode_t opcode) {
+    bool valid = false;
+    uint8_t result = instructionI_opcode_args(opcode, &valid);
+
+    if (!valid) {
+        mapi_error(U, "invalid opcode");
+    }
+
+    return result;
 }

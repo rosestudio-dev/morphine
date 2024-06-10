@@ -33,6 +33,9 @@ void loader_source_file(morphine_coroutine_t U, const char *path) {
     const char *source = userdata_readfile(U, path);
 
     mcapi_compile(U, source, strlen(source));
+    mapi_vector_peek(U);
+    mapi_rotate(U, 2);
+    mapi_pop(U, 1);
 
     mapi_rotate(U, 2);
     mapi_pop(U, 1);
@@ -51,7 +54,7 @@ void loader_binary_file(morphine_coroutine_t U, const char *path) {
 
     mapi_push_sio(U, interface);
     mapi_sio_open(U, file);
-    mapi_push_function(U);
+//    mapi_push_function(U);
 
     mapi_rotate(U, 3);
     mapi_pop(U, 2);

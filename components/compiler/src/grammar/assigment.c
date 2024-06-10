@@ -41,7 +41,7 @@ void match_assigment(struct matcher *M) {
     }
 }
 
-struct ast_node *assemble_assigment(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_assigment(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     size_t index = 0;
     size_t size = size_decompose(U, E, false, 0, &index);
 
@@ -49,7 +49,7 @@ struct ast_node *assemble_assigment(morphine_coroutine_t U, struct elements *E) 
         struct ast_node *node = elements_get_reduce(E, 0).node;
         struct expression *expression = ast_node_as_expression(U, node);
 
-        struct statement_eval *result = ast_create_statement_eval(U, elements_line(E, 0));
+        struct statement_eval *result = ast_create_statement_eval(U, A, elements_line(E, 0));
 
         enum expression_type type = ast_expression_type(expression);
         result->implicit = type != EXPRESSION_TYPE_call &&
@@ -61,13 +61,13 @@ struct ast_node *assemble_assigment(morphine_coroutine_t U, struct elements *E) 
         return ast_as_node(result);
     }
 
-    struct statement_assigment *result = ast_create_statement_assigment(U, elements_line(E, 0), size);
+    struct statement_assigment *result = ast_create_statement_assigment(U, A, elements_line(E, 0), size);
     result->expression = ast_node_as_expression(U, elements_get_reduce(E, index + 1).node);
 
     if (size == 0) {
-        insert_decompose(U, E, false, 0, NULL, &result->container, NULL);
+        insert_decompose(U, A, E, false, 0, NULL, &result->container, NULL);
     } else {
-        insert_decompose(U, E, false, 0, NULL, result->multi.containers, result->multi.keys);
+        insert_decompose(U, A, E, false, 0, NULL, result->multi.containers, result->multi.keys);
     }
 
     struct token eq = elements_get_token(E, index);
@@ -86,7 +86,7 @@ struct ast_node *assemble_assigment(morphine_coroutine_t U, struct elements *E) 
             return NULL;
         }
 
-        struct expression_binary *binary = ast_create_expression_binary(U, elements_line(E, index));
+        struct expression_binary *binary = ast_create_expression_binary(U, A, elements_line(E, index));
         binary->type = type;
         binary->a = result->container;
         binary->b = result->expression;

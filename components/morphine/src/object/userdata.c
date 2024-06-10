@@ -26,8 +26,9 @@ static struct userdata *create(
     size_t alloc_size = sizeof(struct userdata) + ((name_len + 1) * sizeof(char));
     struct userdata *result = allocI_uni(I, NULL, alloc_size);
 
+    char *result_name = ((void *) result) + sizeof(struct userdata);
     (*result) = (struct userdata) {
-        .name = ((void *) result) + sizeof(struct userdata),
+        .name = result_name,
         .name_len = name_len,
         .size = 0,
         .data = NULL,
@@ -36,8 +37,8 @@ static struct userdata *create(
         .metatable = NULL,
     };
 
-    memset(result->name, 0, (name_len + 1) * sizeof(char));
-    strcpy(result->name, name);
+    memcpy(result_name, name, name_len * sizeof(char));
+    result_name[name_len] = '\0';
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_USERDATA);
 

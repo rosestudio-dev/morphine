@@ -21,7 +21,7 @@ void match_prefix(struct matcher *M) {
     }
 }
 
-struct ast_node *assemble_prefix(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_prefix(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     if (elements_size(E) == 1) {
         struct reduce reduce = elements_get_reduce(E, 0);
         return ast_as_node(ast_node_as_expression(U, reduce.node));
@@ -32,7 +32,7 @@ struct ast_node *assemble_prefix(morphine_coroutine_t U, struct elements *E) {
 
     if (matcher_symbol(symbol_operator(TOP_PLUSPLUS), watch_token) ||
         matcher_symbol(symbol_operator(TOP_MINUSMINUS), watch_token)) {
-        struct expression_increment *result = ast_create_expression_increment(U, watch_token.line);
+        struct expression_increment *result = ast_create_expression_increment(U, A, watch_token.line);
         result->is_postfix = false;
         result->is_decrement = matcher_symbol(symbol_operator(TOP_MINUSMINUS), watch_token);
         result->container = ast_node_as_expression(U, reduce.node);
@@ -40,7 +40,7 @@ struct ast_node *assemble_prefix(morphine_coroutine_t U, struct elements *E) {
         return ast_as_node(result);
     }
 
-    struct expression_unary *result = ast_create_expression_unary(U, watch_token.line);
+    struct expression_unary *result = ast_create_expression_unary(U, A, watch_token.line);
     result->expression = ast_node_as_expression(U, reduce.node);
 
     if (matcher_symbol(symbol_operator(TOP_MINUS), watch_token)) {

@@ -109,14 +109,70 @@ bool match_binary_multiplicative(struct matcher *M, bool is_wrapped) {
     return matched;
 }
 
-struct ast_node *assemble_binary(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_binary(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     struct reduce reduce_a = elements_get_reduce(E, 0);
     if (elements_size(E) == 1) {
         return ast_as_node(ast_node_as_expression(U, reduce_a.node));
     }
 
     struct token watch_token = elements_get_token(E, 1);
-    struct expression_binary *result = ast_create_expression_binary(U, watch_token.line);
+    struct reduce reduce_b = elements_get_reduce(E, 2);
+
+    if (matcher_symbol(symbol_operator(TOP_GT), watch_token)) {
+        struct expression_binary *result = ast_create_expression_binary(U, A, watch_token.line);
+        result->type = EXPRESSION_BINARY_TYPE_LESS;
+        result->b = ast_node_as_expression(U, reduce_a.node);
+        result->a = ast_node_as_expression(U, reduce_b.node);
+
+        return ast_as_node(result);
+    } else if (matcher_symbol(symbol_operator(TOP_LTEQ), watch_token)) {
+        struct expression_binary *less = ast_create_expression_binary(U, A, watch_token.line);
+        less->type = EXPRESSION_BINARY_TYPE_LESS;
+        less->a = ast_node_as_expression(U, reduce_a.node);
+        less->b = ast_node_as_expression(U, reduce_b.node);
+
+        struct expression_binary *eq = ast_create_expression_binary(U, A, watch_token.line);
+        eq->type = EXPRESSION_BINARY_TYPE_EQUAL;
+        eq->a = ast_node_as_expression(U, reduce_a.node);
+        eq->b = ast_node_as_expression(U, reduce_b.node);
+
+        struct expression_binary *result = ast_create_expression_binary(U, A, watch_token.line);
+        result->type = EXPRESSION_BINARY_TYPE_OR;
+        result->a = ast_as_expression(less);
+        result->b = ast_as_expression(eq);
+
+        return ast_as_node(result);
+    } else if (matcher_symbol(symbol_operator(TOP_GTEQ), watch_token)) {
+        struct expression_binary *less = ast_create_expression_binary(U, A, watch_token.line);
+        less->type = EXPRESSION_BINARY_TYPE_LESS;
+        less->b = ast_node_as_expression(U, reduce_a.node);
+        less->a = ast_node_as_expression(U, reduce_b.node);
+
+        struct expression_binary *eq = ast_create_expression_binary(U, A, watch_token.line);
+        eq->type = EXPRESSION_BINARY_TYPE_EQUAL;
+        eq->a = ast_node_as_expression(U, reduce_a.node);
+        eq->b = ast_node_as_expression(U, reduce_b.node);
+
+        struct expression_binary *result = ast_create_expression_binary(U, A, watch_token.line);
+        result->type = EXPRESSION_BINARY_TYPE_OR;
+        result->a = ast_as_expression(less);
+        result->b = ast_as_expression(eq);
+
+        return ast_as_node(result);
+    } else if (matcher_symbol(symbol_operator(TOP_EXCLEQ), watch_token)) {
+        struct expression_binary *binary = ast_create_expression_binary(U, A, watch_token.line);
+        binary->type = EXPRESSION_BINARY_TYPE_EQUAL;
+        binary->a = ast_node_as_expression(U, reduce_a.node);
+        binary->b = ast_node_as_expression(U, reduce_b.node);
+
+        struct expression_unary *result = ast_create_expression_unary(U, A, watch_token.line);
+        result->type = EXPRESSION_UNARY_TYPE_NOT;
+        result->expression = ast_as_expression(binary);
+
+        return ast_as_node(result);
+    }
+
+    struct expression_binary *result = ast_create_expression_binary(U, A, watch_token.line);
 
     if (matcher_symbol(symbol_operator(TOP_PLUS), watch_token)) {
         result->type = EXPRESSION_BINARY_TYPE_ADD;
@@ -130,16 +186,8 @@ struct ast_node *assemble_binary(morphine_coroutine_t U, struct elements *E) {
         result->type = EXPRESSION_BINARY_TYPE_MOD;
     } else if (matcher_symbol(symbol_operator(TOP_EQEQ), watch_token)) {
         result->type = EXPRESSION_BINARY_TYPE_EQUAL;
-    } else if (matcher_symbol(symbol_operator(TOP_EXCLEQ), watch_token)) {
-        result->type = EXPRESSION_BINARY_TYPE_NOT_EQUAL;
     } else if (matcher_symbol(symbol_operator(TOP_LT), watch_token)) {
         result->type = EXPRESSION_BINARY_TYPE_LESS;
-    } else if (matcher_symbol(symbol_operator(TOP_GT), watch_token)) {
-        result->type = EXPRESSION_BINARY_TYPE_MORE;
-    } else if (matcher_symbol(symbol_operator(TOP_LTEQ), watch_token)) {
-        result->type = EXPRESSION_BINARY_TYPE_LESS_EQUAL;
-    } else if (matcher_symbol(symbol_operator(TOP_GTEQ), watch_token)) {
-        result->type = EXPRESSION_BINARY_TYPE_MORE_EQUAL;
     } else if (matcher_symbol(symbol_operator(TOP_DOTDOT), watch_token)) {
         result->type = EXPRESSION_BINARY_TYPE_CONCAT;
     } else if (matcher_symbol(symbol_predef_word(TPW_and), watch_token)) {
@@ -149,8 +197,6 @@ struct ast_node *assemble_binary(morphine_coroutine_t U, struct elements *E) {
     } else {
         return NULL;
     }
-
-    struct reduce reduce_b = elements_get_reduce(E, 2);
 
     result->a = ast_node_as_expression(U, reduce_a.node);
     result->b = ast_node_as_expression(U, reduce_b.node);

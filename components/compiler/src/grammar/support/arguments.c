@@ -5,103 +5,103 @@
 #include "arguments.h"
 
 struct token argument_matcher_consume(
-    struct argument_matcher *A,
+    struct argument_matcher *R,
     struct matcher_symbol symbol
 ) {
-    if (A->assemble) {
-        struct token token = elements_get_token(A->E, A->pos);
+    if (R->assemble) {
+        struct token token = elements_get_token(R->E, R->pos);
         if (!matcher_symbol(symbol, token)) {
-            mapi_error(A->U, "unexpected argument pattern while assembling");
+            mapi_error(R->U, "unexpected argument pattern while assembling");
         }
 
-        A->pos++;
+        R->pos++;
         return token;
     } else {
-        return matcher_consume(A->M, symbol);
+        return matcher_consume(R->M, symbol);
     }
 }
 
 bool argument_matcher_match(
-    struct argument_matcher *A,
+    struct argument_matcher *R,
     struct matcher_symbol symbol
 ) {
-    if (A->assemble) {
-        if (!elements_is_token(A->E, A->pos)) {
+    if (R->assemble) {
+        if (!elements_is_token(R->E, R->pos)) {
             return false;
         }
 
-        struct token token = elements_get_token(A->E, A->pos);
+        struct token token = elements_get_token(R->E, R->pos);
         bool eq = matcher_symbol(symbol, token);
         if (eq) {
-            A->pos++;
+            R->pos++;
         }
 
         return eq;
     } else {
-        return matcher_match(A->M, symbol);
+        return matcher_match(R->M, symbol);
     }
 }
 
 struct reduce argument_matcher_reduce(
-    struct argument_matcher *A,
+    struct argument_matcher *R,
     enum reduce_type type
 ) {
-    if (!A->assemble) {
-        matcher_error(A->M, "argument matcher isn't in assemble mode");
+    if (!R->assemble) {
+        matcher_error(R->M, "argument matcher isn't in assemble mode");
     }
 
-    struct reduce reduce = elements_get_reduce(A->E, A->pos);
+    struct reduce reduce = elements_get_reduce(R->E, R->pos);
 
     if (reduce.type != type) {
-        mapi_error(A->U, "unexpected argument pattern while assembling");
+        mapi_error(R->U, "unexpected argument pattern while assembling");
     }
 
-    A->pos++;
+    R->pos++;
     return reduce;
 }
 
-bool argument_matcher_init(struct argument_matcher *A, size_t init_pos) {
-    A->pos = init_pos;
-    A->count = 0;
-    A->closed = false;
-    A->opened = false;
+bool argument_matcher_init(struct argument_matcher *R, size_t init_pos) {
+    R->pos = init_pos;
+    R->count = 0;
+    R->closed = false;
+    R->opened = false;
 
-    if (A->has_open_close) {
-        if (A->consume_open) {
-            argument_matcher_consume(A, A->open_symbol);
-            A->opened = true;
+    if (R->has_open_close) {
+        if (R->consume_open) {
+            argument_matcher_consume(R, R->open_symbol);
+            R->opened = true;
         } else {
-            A->opened = argument_matcher_match(A, A->open_symbol);
+            R->opened = argument_matcher_match(R, R->open_symbol);
         }
     }
 
-    if (A->opened && argument_matcher_match(A, A->close_symbol)) {
-        A->closed = true;
+    if (R->opened && argument_matcher_match(R, R->close_symbol)) {
+        R->closed = true;
         return false;
     }
 
     return true;
 }
 
-bool argument_matcher_next(struct argument_matcher *A) {
-    A->count++;
+bool argument_matcher_next(struct argument_matcher *R) {
+    R->count++;
 
-    if (A->closed || !argument_matcher_match(A, A->separator)) {
+    if (R->closed || !argument_matcher_match(R, R->separator)) {
         return false;
     }
 
-    if (A->opened && argument_matcher_match(A, A->close_symbol)) {
-        A->closed = true;
+    if (R->opened && argument_matcher_match(R, R->close_symbol)) {
+        R->closed = true;
         return false;
     }
 
     return true;
 }
 
-size_t argument_matcher_close(struct argument_matcher *A) {
-    if (A->opened && !A->closed) {
-        argument_matcher_consume(A, A->close_symbol);
+size_t argument_matcher_close(struct argument_matcher *R) {
+    if (R->opened && !R->closed) {
+        argument_matcher_consume(R, R->close_symbol);
     }
 
-    return A->count;
+    return R->count;
 }

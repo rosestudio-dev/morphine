@@ -13,7 +13,7 @@ struct userdata {
         bool metatable_locked;
     } mode;
 
-    char *name;
+    const char *name;
     size_t name_len;
 
     size_t size;

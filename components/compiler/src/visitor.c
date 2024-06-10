@@ -24,13 +24,23 @@ struct context {
     void *save;
 };
 
+define_stack(function, struct ast_function *)
+define_stack_push(function, struct ast_function *)
+define_stack(context, struct context)
+
+define_stack_push(context, struct context)
+define_stack_pop(context, struct context)
+define_stack_peek(context, struct context)
+define_stack_get(context, struct context)
+
 struct visitor {
+    bool inited;
+
     void *data;
     visit_func_t visit_func;
-    struct ast_function *functions;
 
-    struct stack function_stack;
-    struct stack context_stack;
+    struct stack_function function_stack;
+    struct stack_context context_stack;
 };
 
 struct visitor_controller {
@@ -115,24 +125,17 @@ morphine_noret void visitor_return(struct visitor_controller *C) {
 static void visitor_free(morphine_instance_t I, void *p) {
     struct visitor *V = p;
 
-    stack_iterator(struct context, V->context_stack, context) {
+    stack_iterator(V->context_stack, index) {
+        struct context *context = stack_it(V->context_stack, index);
         mapi_allocator_free(I, context->save);
     }
 
-    stack_free(I, &V->function_stack);
-    stack_free(I, &V->context_stack);
+    stack_function_free(I, &V->function_stack);
+    stack_context_free(I, &V->context_stack);
 }
 
-static struct visitor *get_visitor(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        return (struct visitor *) mapi_userdata_pointer(U);
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
-}
-
-void visitor(morphine_coroutine_t U, visit_func_t visit_func, void *data) {
-    struct ast_function *functions = ast_functions(U);
+struct visitor *visitor(morphine_coroutine_t U, struct ast *A) {
+    struct ast_function *functions = ast_functions(A);
     if (functions == NULL) {
         mapi_error(U, "empty ast");
     }
@@ -140,43 +143,64 @@ void visitor(morphine_coroutine_t U, visit_func_t visit_func, void *data) {
     struct visitor *V = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct visitor));
 
     *V = (struct visitor) {
-        .visit_func = visit_func,
-        .functions = functions,
-        .data = data
+        .inited = false,
+        .visit_func = NULL,
+        .data = NULL,
     };
 
-    stack_init(
+    stack_context_init(
         &V->context_stack,
-        sizeof(struct ast_function *),
         VISITOR_STACK_EXPANSION_FACTOR,
         VISITOR_LIMIT_STACK_FUNCTIONS
     );
 
-    stack_init(
+    stack_function_init(
         &V->function_stack,
-        sizeof(struct context),
         VISITOR_STACK_EXPANSION_FACTOR,
         VISITOR_LIMIT_STACK_CONTEXTS
     );
 
     mapi_userdata_set_free(U, visitor_free);
 
-    *stack_push_typed(struct ast_function *, U, &V->function_stack) = functions;
-    *stack_push_typed(struct context, U, &V->context_stack) = (struct context) {
+    *stack_function_push(U, &V->function_stack) = functions;
+    *stack_context_push(U, &V->context_stack) = (struct context) {
         .save = NULL,
         .function_root = true,
         .node = ast_as_node(functions->body),
         .state = 0
     };
+
+    return V;
 }
 
-bool visitor_step(morphine_coroutine_t U, void *save) {
-    struct visitor *V = get_visitor(U);
+struct visitor *get_visitor(morphine_coroutine_t U) {
+    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
+        return (struct visitor *) mapi_userdata_pointer(U);
+    } else {
+        mapi_error(U, "expected "MORPHINE_TYPE);
+    }
+}
+
+void visitor_setup(morphine_coroutine_t U, struct visitor *V, visit_func_t func, void *data) {
+    if (V->inited) {
+        mapi_error(U, "visitor is already inited");
+    }
+
+    V->visit_func = func;
+    V->data = data;
+    V->inited = true;
+}
+
+bool visitor_step(morphine_coroutine_t U, struct visitor *V, void *save) {
+    if (!V->inited) {
+        mapi_error(U, "visitor isn't inited");
+    }
+
     if (stack_size(V->context_stack) == 0) {
         return false;
     }
 
-    struct context *context = stack_peek_typed(struct context, U, &V->context_stack);
+    struct context *context = stack_context_peek(U, &V->context_stack);
 
     struct visitor_controller controller = {
         .U = U,
@@ -185,8 +209,7 @@ bool visitor_step(morphine_coroutine_t U, void *save) {
     };
 
     if (stack_size(V->context_stack) > 1) {
-        struct context prev_context = *stack_get_typed(
-            struct context,
+        struct context prev_context = *stack_context_get(
             U,
             &V->context_stack,
             stack_size(V->context_stack) - 2
@@ -201,7 +224,7 @@ bool visitor_step(morphine_coroutine_t U, void *save) {
         switch (controller.jump_type) {
             case JT_VISIT_NODE: {
                 context->state = controller.next_state;
-                *stack_push_typed(struct context, U, &V->context_stack) = (struct context) {
+                *stack_context_push(U, &V->context_stack) = (struct context) {
                     .save = NULL,
                     .function_root = false,
                     .node = ast_as_node(controller.node),
@@ -210,15 +233,16 @@ bool visitor_step(morphine_coroutine_t U, void *save) {
                 break;
             }
             case JT_VISIT_FUNCTION: {
-                stack_iterator(struct ast_function *, V->function_stack, function) {
-                    if (*function == controller.function) {
+                stack_iterator(V->function_stack, index) {
+                    struct ast_function *fun = *stack_it(V->function_stack, index);
+                    if (fun == controller.function) {
                         mapi_error(U, "ast recursion");
                     }
                 }
 
                 context->state = controller.next_state;
-                *stack_push_typed(struct ast_function *, U, &V->function_stack) = controller.function;
-                *stack_push_typed(struct context, U, &V->context_stack) = (struct context) {
+                *stack_function_push(U, &V->function_stack) = controller.function;
+                *stack_context_push(U, &V->context_stack) = (struct context) {
                     .save = NULL,
                     .function_root = true,
                     .node = ast_as_node(controller.function->body),
@@ -231,7 +255,7 @@ bool visitor_step(morphine_coroutine_t U, void *save) {
                 break;
             }
             case JT_RETURN: {
-                stack_pop(U, &V->context_stack, 1);
+                stack_context_pop(U, &V->context_stack, 1);
                 mapi_allocator_free(mapi_instance(U), context->save);
                 break;
             }

@@ -13,7 +13,8 @@
 
 struct function *functionI_create(
     morphine_instance_t I,
-    ml_size name_len,
+    const char *name,
+    ml_line line,
     ml_size constants_count,
     ml_size instructions_count,
     ml_size statics_count,
@@ -21,16 +22,36 @@ struct function *functionI_create(
     ml_size slots_count,
     ml_size params_count
 ) {
+    if (name == NULL) {
+        throwI_error(I, "Function name is null");
+    }
+
+    size_t name_len = strlen(name);
     if (name_len > MLIMIT_FUNCTION_NAME) {
         throwI_error(I, "Function name too big");
     }
 
-    struct function *result = allocI_uni(I, NULL, sizeof(struct function));
+    if (arguments_count > MLIMIT_CALLABLE_ARGS) {
+        throwI_error(I, "Too many args");
+    }
 
+    if (params_count > MLIMIT_CALLABLE_PARAMS) {
+        throwI_error(I, "Too many params");
+    }
+
+    if (slots_count > MLIMIT_CALLABLE_SLOTS) {
+        throwI_error(I, "Too many slots");
+    }
+
+    size_t size = sizeof(struct function) + ((name_len + 1) * sizeof(char));
+    struct function *result = allocI_uni(I, NULL, size);
+
+    char *result_name = ((void *) result) + sizeof(struct function);
     (*result) = (struct function) {
         .complete = false,
-        .name = NULL,
-        .name_len = 0,
+        .name = result_name,
+        .name_len = name_len,
+        .line = line,
         .constants_count = 0,
         .instructions_count = 0,
         .statics_count = 0,
@@ -43,13 +64,12 @@ struct function *functionI_create(
         .registry_key = valueI_nil
     };
 
+    memcpy(result_name, name, name_len * sizeof(char));
+    result_name[name_len] = '\0';
+
     objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);
 
     size_t rollback = gcI_safe_obj(I, objectI_cast(result));
-
-    result->name = allocI_vec(I, NULL, name_len + 1, sizeof(char));
-    result->name_len = name_len;
-    memset(result->name, 0, (name_len + 1) * sizeof(char));
 
     result->instructions = allocI_vec(I, NULL, instructions_count, sizeof(morphine_instruction_t));
     result->instructions_count = instructions_count;
@@ -81,7 +101,6 @@ struct function *functionI_create(
 }
 
 void functionI_free(morphine_instance_t I, struct function *function) {
-    allocI_free(I, function->name);
     allocI_free(I, function->instructions);
     allocI_free(I, function->constants);
     allocI_free(I, function->statics);
@@ -143,43 +162,6 @@ void functionI_instruction_set(
     }
 
     function->instructions[index] = instruction;
-}
-
-ml_line functionI_line_get(
-    morphine_instance_t I,
-    struct function *function,
-    ml_size index
-) {
-    if (function == NULL) {
-        throwI_error(I, "Function is null");
-    }
-
-    if (index >= function->instructions_count) {
-        throwI_error(I, "Instruction index was out of bounce");
-    }
-
-    return function->instructions[index].line;
-}
-
-void functionI_line_set(
-    morphine_instance_t I,
-    struct function *function,
-    ml_size index,
-    ml_line line
-) {
-    if (function == NULL) {
-        throwI_error(I, "Function is null");
-    }
-
-    if (function->complete) {
-        throwI_error(I, "Function is complete");
-    }
-
-    if (index >= function->instructions_count) {
-        throwI_error(I, "Instruction index was out of bounce");
-    }
-
-    function->instructions[index].line = line;
 }
 
 struct value functionI_constant_get(

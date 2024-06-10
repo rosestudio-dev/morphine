@@ -22,6 +22,7 @@ size_t match_sblock(
 
 size_t get_sblock(
     morphine_coroutine_t U,
+    struct ast *A,
     struct elements *E,
     size_t closes_size,
     struct matcher_symbol *closes,
@@ -43,7 +44,7 @@ size_t get_sblock(
     }
 
 exit:;
-    struct statement_block *block = ast_create_statement_block(U, elements_line(E, start_index), size);
+    struct statement_block *block = ast_create_statement_block(U, A, elements_line(E, start_index), size);
 
     for (size_t i = 0; i < size; i++) {
         struct reduce reduce = elements_get_reduce(E, start_index + i);
@@ -79,6 +80,7 @@ size_t match_eblock(
 
 size_t get_eblock(
     morphine_coroutine_t U,
+    struct ast *A,
     struct elements *E,
     size_t closes_size,
     struct matcher_symbol *closes,
@@ -106,7 +108,7 @@ exit:
         size--;
     }
 
-    struct expression_block *block = ast_create_expression_block(U, elements_line(E, start_index), size);
+    struct expression_block *block = ast_create_expression_block(U, A, elements_line(E, start_index), size);
 
     for (size_t i = 0; i < size; i++) {
         struct reduce reduce = elements_get_reduce(E, start_index + i);

@@ -34,14 +34,27 @@ struct context {
     enum reduce_type type;
 };
 
+define_stack(context, struct context)
+define_stack_push(context, struct context)
+define_stack_pop(context, struct context)
+define_stack_peek(context, struct context)
+
+define_stack(element, struct element)
+define_stack_push(element, struct element)
+define_stack_pop(element, struct element)
+define_stack_get(element, struct element)
+
 struct parser {
+    struct lex *L;
+    struct ast *A;
+
     struct {
         bool has;
         struct token token;
     } lookahead;
 
-    struct stack contexts;
-    struct stack elements;
+    struct stack_context context_stack;
+    struct stack_element element_stack;
 };
 
 struct matcher {
@@ -143,7 +156,7 @@ bool matcher_symbol(struct matcher_symbol symbol, struct token token) {
 
 static size_t matcher_get_stack_position(struct matcher *M) {
     size_t stack_position = M->context.from + M->position;
-    if (stack_size(M->P->elements) < stack_position) {
+    if (stack_size(M->P->element_stack) < stack_position) {
         mapi_error(M->U, "stack corrupted");
     }
 
@@ -154,23 +167,19 @@ static bool matcher_get_token(struct matcher *M, struct token *result) {
     size_t stack_position = matcher_get_stack_position(M);
 
     struct token token;
-    if (stack_size(M->P->elements) == stack_position) {
+    if (stack_size(M->P->element_stack) == stack_position) {
         if (M->P->lookahead.has) {
             token = M->P->lookahead.token;
         } else {
-            mapi_peek(M->U, 3);
-            mapi_peek(M->U, 3);
-            token = lex_step(M->U);
-            mapi_pop(M->U, 2);
+            token = lex_step(M->U, M->P->L);
         }
 
         M->P->lookahead.token = token;
         M->P->lookahead.has = true;
     } else {
-        struct element element = *stack_get_typed(
-            struct element,
+        struct element element = *stack_element_get(
             M->U,
-            &M->P->elements,
+            &M->P->element_stack,
             stack_position
         );
 
@@ -181,10 +190,7 @@ static bool matcher_get_token(struct matcher *M, struct token *result) {
         token = element.token;
     }
 
-    if (result != NULL) {
-        *result = token;
-    }
-
+    *result = token;
     return true;
 }
 
@@ -193,7 +199,7 @@ static void matcher_push(struct matcher *M) {
 
     M->position++;
 
-    if (stack_size(M->P->elements) != stack_position) {
+    if (stack_size(M->P->element_stack) != stack_position) {
         return;
     }
 
@@ -202,13 +208,10 @@ static void matcher_push(struct matcher *M) {
         M->P->lookahead.has = false;
         token = M->P->lookahead.token;
     } else {
-        mapi_peek(M->U, 3);
-        mapi_peek(M->U, 3);
-        token = lex_step(M->U);
-        mapi_pop(M->U, 2);
+        token = lex_step(M->U, M->P->L);
     }
 
-    *stack_push_typed(struct element, M->U, &M->P->elements) = (struct element) {
+    *stack_element_push(M->U, &M->P->element_stack) = (struct element) {
         .is_token = true,
         .token = token
     };
@@ -221,10 +224,9 @@ static ml_line matcher_get_line(struct matcher *M) {
     } else {
         size_t stack_position = matcher_get_stack_position(M);
 
-        struct element element = *stack_get_typed(
-            struct element,
+        struct element element = *stack_element_get(
             M->U,
-            &M->P->elements,
+            &M->P->element_stack,
             stack_position
         );
 
@@ -296,15 +298,14 @@ struct token matcher_consume(struct matcher *M, struct matcher_symbol symbol) {
 void matcher_reduce(struct matcher *M, enum reduce_type type) {
     size_t stack_position = matcher_get_stack_position(M);
 
-    if (stack_size(M->P->elements) == stack_position) {
+    if (stack_size(M->P->element_stack) == stack_position) {
         M->push_context_reduce_type = type;
         longjmp(M->push_context_jump, 1);
     }
 
-    struct element element = *stack_get_typed(
-        struct element,
+    struct element element = *stack_element_get(
         M->U,
-        &M->P->elements,
+        &M->P->element_stack,
         stack_position
     );
 
@@ -318,14 +319,13 @@ void matcher_reduce(struct matcher *M, enum reduce_type type) {
 bool matcher_is_reduced(struct matcher *M, enum reduce_type type) {
     size_t stack_position = matcher_get_stack_position(M);
 
-    if (stack_size(M->P->elements) == stack_position) {
+    if (stack_size(M->P->element_stack) == stack_position) {
         return false;
     }
 
-    struct element element = *stack_get_typed(
-        struct element,
+    struct element element = *stack_element_get(
         M->U,
-        &M->P->elements,
+        &M->P->element_stack,
         stack_position
     );
 
@@ -337,51 +337,48 @@ bool matcher_is_reduced(struct matcher *M, enum reduce_type type) {
 static void parser_free(morphine_instance_t I, void *p) {
     struct parser *P = p;
 
-    stack_free(I, &P->contexts);
-    stack_free(I, &P->elements);
+    stack_context_free(I, &P->context_stack);
+    stack_element_free(I, &P->element_stack);
 }
 
-static struct parser *get_parser(morphine_coroutine_t U) {
-    mapi_peek(U, 1);
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        struct parser *P = mapi_userdata_pointer(U);
-        mapi_pop(U, 1);
-        return P;
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
-}
-
-void parser(morphine_coroutine_t U) {
+struct parser *parser(morphine_coroutine_t U, struct lex *L, struct ast *A) {
     struct parser *P = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct parser));
 
     *P = (struct parser) {
+        .L = L,
+        .A = A,
         .lookahead.has = false
     };
 
-    stack_init(
-        &P->contexts,
-        sizeof(struct context),
+    stack_context_init(
+        &P->context_stack,
         PARSER_STACK_EXPANSION_FACTOR,
         PARSER_LIMIT_STACK_CONTEXTS
     );
 
-    stack_init(
-        &P->elements,
-        sizeof(struct element),
+    stack_element_init(
+        &P->element_stack,
         PARSER_STACK_EXPANSION_FACTOR,
         PARSER_LIMIT_STACK_ELEMENTS
     );
 
     mapi_userdata_set_free(U, parser_free);
 
-    *stack_push_typed(struct context, U, &P->contexts) = (struct context) {
+    *stack_context_push(U, &P->context_stack) = (struct context) {
         .is_wrapped = false,
         .from = 0,
         .type = REDUCE_TYPE_AST
     };
 
-    ast(U);
+    return P;
+}
+
+struct parser *get_parser(morphine_coroutine_t U) {
+    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
+        return mapi_userdata_pointer(U);
+    } else {
+        mapi_error(U, "expected "MORPHINE_TYPE);
+    }
 }
 
 // parse
@@ -396,11 +393,9 @@ static struct grammar_quantum get_grammar_quantum(morphine_coroutine_t U, struct
     mapi_error(U, "rule not found");
 }
 
-bool parser_step(morphine_coroutine_t U) {
-    struct parser *P = get_parser(U);
-
-    if (stack_is_empty(P->contexts)) {
-        struct element element = *stack_get_typed(struct element, U, &P->elements, 0);
+bool parser_step(morphine_coroutine_t U, struct parser *P) {
+    if (stack_is_empty(P->context_stack)) {
+        struct element element = *stack_element_get(U, &P->element_stack, 0);
         if (element.is_token) {
             mapi_error(U, "parse error");
         }
@@ -408,7 +403,7 @@ bool parser_step(morphine_coroutine_t U) {
         return false;
     }
 
-    struct context context = *stack_peek_typed(struct context, U, &P->contexts);
+    struct context context = *stack_context_peek(U, &P->context_stack);
     struct grammar_quantum grammar_quantum = get_grammar_quantum(U, context);
 
     struct matcher matcher = {
@@ -419,9 +414,9 @@ bool parser_step(morphine_coroutine_t U) {
     };
 
     if (setjmp(matcher.push_context_jump) != 0) {
-        *stack_push_typed(struct context, U, &P->contexts) = (struct context) {
+        *stack_context_push(U, &P->context_stack) = (struct context) {
             .is_wrapped = false,
-            .from = stack_size(P->elements),
+            .from = stack_size(P->element_stack),
             .type = matcher.push_context_reduce_type
         };
 
@@ -439,29 +434,29 @@ bool parser_step(morphine_coroutine_t U) {
 
     struct elements elements = {
         .U = U,
-        .array = stack_get_typed(struct element, U, &P->elements, context.from),
-        .size = stack_size(P->elements) - context.from
+        .array = stack_element_get(U, &P->element_stack, context.from),
+        .size = stack_size(P->element_stack) - context.from
     };
 
-    struct ast_node *node = grammar_quantum.assemble(U, &elements);
+    struct ast_node *node = grammar_quantum.assemble(U, P->A, &elements);
 
     if (node == NULL) {
         mapi_errorf(U, "line %"MLIMIT_LINE_PR": error while assemble ast node", line);
     }
 
-    stack_pop(U, &P->elements, matcher.position);
-    stack_pop(U, &P->contexts, 1);
+    stack_element_pop(U, &P->element_stack, matcher.position);
+    stack_context_pop(U, &P->context_stack, 1);
 
-    *stack_push_typed(struct element, U, &P->elements) = (struct element) {
+    *stack_element_push(U, &P->element_stack) = (struct element) {
         .is_token = false,
         .reduce.type = context.type,
         .reduce.node = node
     };
 
     if (push_recursion) {
-        *stack_push_typed(struct context, U, &P->contexts) = (struct context) {
+        *stack_context_push(U, &P->context_stack) = (struct context) {
             .is_wrapped = true,
-            .from = stack_size(P->elements) - 1,
+            .from = stack_size(P->element_stack) - 1,
             .type = context.type
         };
     }

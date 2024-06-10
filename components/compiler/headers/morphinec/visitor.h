@@ -6,12 +6,17 @@
 
 #include "ast.h"
 
+struct visitor;
 struct visitor_controller;
 
 typedef void (*visit_func_t)(struct visitor_controller *, struct ast_node *, size_t state);
 
-void visitor(morphine_coroutine_t, visit_func_t, void *);
-bool visitor_step(morphine_coroutine_t, void *);
+struct visitor *visitor(morphine_coroutine_t, struct ast *);
+struct visitor *get_visitor(morphine_coroutine_t);
+
+void visitor_setup(morphine_coroutine_t, struct visitor *, visit_func_t, void *);
+
+bool visitor_step(morphine_coroutine_t, struct visitor *, void *);
 
 bool visitor_has_saved(struct visitor_controller *);
 bool visitor_save(struct visitor_controller *, size_t, void **);

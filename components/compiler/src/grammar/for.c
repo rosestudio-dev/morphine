@@ -18,9 +18,9 @@ void match_for(struct matcher *M) {
     matcher_reduce(M, REDUCE_TYPE_STATEMENT_BLOCK);
 }
 
-struct ast_node *assemble_for(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_for(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     ml_line line = elements_get_token(E, 0).line;
-    struct statement_for *result = ast_create_statement_for(U, line);
+    struct statement_for *result = ast_create_statement_for(U, A, line);
 
     struct reduce reduce_initial = elements_get_reduce(E, 2);
     struct reduce reduce_condition = elements_get_reduce(E, 4);

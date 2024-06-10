@@ -24,7 +24,7 @@ void match_value(struct matcher *M) {
     matcher_error(M, "unexpected token");
 }
 
-struct ast_node *assemble_value(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_value(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     if (!elements_is_token(E, 0)) {
         return elements_get_reduce(E, 0).node;
     }
@@ -32,7 +32,7 @@ struct ast_node *assemble_value(morphine_coroutine_t U, struct elements *E) {
     struct token watch_token = elements_get_token(E, 0);
 
     if (matcher_symbol(symbol_int, watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, watch_token.line);
+        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
         result->type = EXPRESSION_VALUE_TYPE_INT;
         result->value.integer = watch_token.integer;
 
@@ -40,7 +40,7 @@ struct ast_node *assemble_value(morphine_coroutine_t U, struct elements *E) {
     }
 
     if (matcher_symbol(symbol_dec, watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, watch_token.line);
+        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
         result->type = EXPRESSION_VALUE_TYPE_DEC;
         result->value.decimal = watch_token.decimal;
 
@@ -48,7 +48,7 @@ struct ast_node *assemble_value(morphine_coroutine_t U, struct elements *E) {
     }
 
     if (matcher_symbol(symbol_str, watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, watch_token.line);
+        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
         result->type = EXPRESSION_VALUE_TYPE_STR;
         result->value.string = watch_token.string;
 
@@ -56,21 +56,21 @@ struct ast_node *assemble_value(morphine_coroutine_t U, struct elements *E) {
     }
 
     if (matcher_symbol(symbol_word, watch_token)) {
-        struct expression_variable *result = ast_create_expression_variable(U, watch_token.line);
+        struct expression_variable *result = ast_create_expression_variable(U, A, watch_token.line);
         result->index = watch_token.word;
 
         return ast_as_node(result);
     }
 
     if (matcher_symbol(symbol_predef_word(TPW_nil), watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, watch_token.line);
+        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
         result->type = EXPRESSION_VALUE_TYPE_NIL;
 
         return ast_as_node(result);
     }
 
     if (matcher_symbol(symbol_predef_word(TPW_true), watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, watch_token.line);
+        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
         result->type = EXPRESSION_VALUE_TYPE_BOOL;
         result->value.boolean = true;
 
@@ -78,7 +78,7 @@ struct ast_node *assemble_value(morphine_coroutine_t U, struct elements *E) {
     }
 
     if (matcher_symbol(symbol_predef_word(TPW_false), watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, watch_token.line);
+        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
         result->type = EXPRESSION_VALUE_TYPE_BOOL;
         result->value.boolean = false;
 
@@ -86,14 +86,14 @@ struct ast_node *assemble_value(morphine_coroutine_t U, struct elements *E) {
     }
 
     if (matcher_symbol(symbol_predef_word(TPW_env), watch_token)) {
-        struct expression_global *result = ast_create_expression_global(U, watch_token.line);
+        struct expression_global *result = ast_create_expression_global(U, A, watch_token.line);
         result->type = EXPRESSION_GLOBAL_TYPE_ENV;
 
         return ast_as_node(result);
     }
 
     if (matcher_symbol(symbol_predef_word(TPW_self), watch_token)) {
-        struct expression_global *result = ast_create_expression_global(U, watch_token.line);
+        struct expression_global *result = ast_create_expression_global(U, A, watch_token.line);
         result->type = EXPRESSION_GLOBAL_TYPE_SELF;
 
         return ast_as_node(result);

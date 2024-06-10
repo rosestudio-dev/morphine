@@ -15,18 +15,18 @@ void match_expression_block(struct matcher *M) {
     match_eblock(M, 1, &end);
 }
 
-struct ast_node *assemble_statement_block(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_statement_block(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     struct matcher_symbol end = symbol_predef_word(TPW_end);
     struct statement *result = NULL;
-    get_sblock(U, E, 1, &end, 0, &result, NULL);
+    get_sblock(U, A, E, 1, &end, 0, &result, NULL);
 
     return ast_as_node(result);
 }
 
-struct ast_node *assemble_expression_block(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_expression_block(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     struct matcher_symbol end = symbol_predef_word(TPW_end);
     struct expression *result = NULL;
-    get_eblock(U, E, 1, &end, 0, &result, NULL);
+    get_eblock(U, A, E, 1, &end, 0, &result, NULL);
 
     return ast_as_node(result);
 }
@@ -41,7 +41,9 @@ void match_implicit_block_elem(struct matcher *M) {
     matcher_match(M, symbol_operator(TOP_SEMICOLON));
 }
 
-struct ast_node *assemble_block_elem(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_block_elem(morphine_coroutine_t U, struct ast *A, struct elements *E) {
+    (void) A;
+
     struct reduce reduce = elements_get_reduce(E, 0);
     struct statement *statement = ast_node_as_statement(U, reduce.node);
     if (ast_statement_type(statement) == STATEMENT_TYPE_eval) {
@@ -54,7 +56,9 @@ struct ast_node *assemble_block_elem(morphine_coroutine_t U, struct elements *E)
     return ast_as_node(statement);
 }
 
-struct ast_node *assemble_implicit_block_elem(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_implicit_block_elem(morphine_coroutine_t U, struct ast *A, struct elements *E) {
+    (void) A;
+
     struct reduce reduce = elements_get_reduce(E, 0);
     return ast_as_node(ast_node_as_statement(U, reduce.node));
 }

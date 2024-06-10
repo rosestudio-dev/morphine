@@ -188,10 +188,26 @@ MORPHINE_API size_t mapi_closure_size(morphine_coroutine_t);
 
 // function
 
-MORPHINE_API void mapi_push_function(morphine_coroutine_t);
+MORPHINE_API void mapi_push_function(
+    morphine_coroutine_t,
+    const char *,
+    ml_line line,
+    ml_size constants_count,
+    ml_size instructions_count,
+    ml_size statics_count,
+    ml_size arguments_count,
+    ml_size slots_count,
+    ml_size params_count
+);
 
 MORPHINE_API void mapi_function_complete(morphine_coroutine_t);
 MORPHINE_API bool mapi_function_is_complete(morphine_coroutine_t);
+
+MORPHINE_API const char *mapi_function_name(morphine_coroutine_t);
+MORPHINE_API ml_line mapi_function_line(morphine_coroutine_t);
+MORPHINE_API ml_size mapi_function_arguments(morphine_coroutine_t);
+MORPHINE_API ml_size mapi_function_slots(morphine_coroutine_t);
+MORPHINE_API ml_size mapi_function_params(morphine_coroutine_t);
 
 MORPHINE_API void mapi_static_get(morphine_coroutine_t, ml_size index);
 MORPHINE_API void mapi_static_set(morphine_coroutine_t, ml_size index);
@@ -204,6 +220,8 @@ MORPHINE_API ml_size mapi_constant_size(morphine_coroutine_t);
 MORPHINE_API morphine_instruction_t mapi_instruction_get(morphine_coroutine_t, ml_size index);
 MORPHINE_API void mapi_instruction_set(morphine_coroutine_t, ml_size index, morphine_instruction_t);
 MORPHINE_API ml_size mapi_instruction_size(morphine_coroutine_t);
+
+MORPHINE_API uint8_t mapi_opcode_args(morphine_coroutine_t, morphine_opcode_t);
 
 // allocation
 

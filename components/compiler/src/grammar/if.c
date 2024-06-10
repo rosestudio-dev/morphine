@@ -98,10 +98,10 @@ static size_t count_elif(struct elements *E) {
     return count;
 }
 
-struct ast_node *assemble_statement_if(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_statement_if(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     size_t elifs = count_elif(E);
 
-    struct statement_if *result = ast_create_statement_if(U, elements_line(E, 0), elifs);
+    struct statement_if *result = ast_create_statement_if(U, A, elements_line(E, 0), elifs);
     result->if_condition = ast_node_as_expression(U, elements_get_reduce(E, 2).node);
     result->else_statement = NULL;
 
@@ -114,7 +114,7 @@ struct ast_node *assemble_statement_if(morphine_coroutine_t U, struct elements *
     size_t end_index = 0;
 
     size_t if_closed = get_sblock(
-        U, E, table_size(if_closes), if_closes, 4,
+        U, A, E, table_size(if_closes), if_closes, 4,
         &result->if_statement, &end_index
     );
 
@@ -131,7 +131,7 @@ struct ast_node *assemble_statement_if(morphine_coroutine_t U, struct elements *
         );
 
         size_t elif_closed = get_sblock(
-            U, E, table_size(if_closes), if_closes, end_index + 4,
+            U, A, E, table_size(if_closes), if_closes, end_index + 4,
             result->elif_statements + count, &end_index
         );
 
@@ -152,17 +152,17 @@ match_else:;
     };
 
     get_sblock(
-        U, E, table_size(else_closes), else_closes, end_index + 1,
+        U, A, E, table_size(else_closes), else_closes, end_index + 1,
         &result->else_statement, NULL
     );
 
     return ast_as_node(result);
 }
 
-struct ast_node *assemble_expression_if(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_expression_if(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     size_t elifs = count_elif(E);
 
-    struct expression_if *result = ast_create_expression_if(U, elements_line(E, 0), elifs);
+    struct expression_if *result = ast_create_expression_if(U, A, elements_line(E, 0), elifs);
     result->if_condition = ast_node_as_expression(U, elements_get_reduce(E, 2).node);
     result->else_expression = NULL;
 
@@ -174,7 +174,7 @@ struct ast_node *assemble_expression_if(morphine_coroutine_t U, struct elements 
     size_t end_index = 0;
 
     size_t if_closed = get_eblock(
-        U, E, table_size(if_closes), if_closes, 4,
+        U, A, E, table_size(if_closes), if_closes, 4,
         &result->if_expression, &end_index
     );
 
@@ -189,7 +189,7 @@ struct ast_node *assemble_expression_if(morphine_coroutine_t U, struct elements 
         );
 
         size_t elif_closed = get_eblock(
-            U, E, table_size(if_closes), if_closes, end_index + 4,
+            U, A, E, table_size(if_closes), if_closes, end_index + 4,
             result->elif_expressions + count, &end_index
         );
 
@@ -206,7 +206,7 @@ match_else:;
     };
 
     get_eblock(
-        U, E, table_size(else_closes), else_closes, end_index + 1,
+        U, A, E, table_size(else_closes), else_closes, end_index + 1,
         &result->else_expression, NULL
     );
 

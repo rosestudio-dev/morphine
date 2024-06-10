@@ -6,12 +6,32 @@
 #include "morphinec/codegen.h"
 #include "morphinec/ast.h"
 #include "morphinec/visitor.h"
-#include "codegen/impl.h"
-#include "codegen/support/controller.h"
 #include "morphinec/stack.h"
 #include "morphinec/config.h"
+#include "codegen/impl.h"
+#include "codegen/support/controller.h"
 
 #define MORPHINE_TYPE "codegen"
+
+enum codegen_constant_type {
+    CCT_NIL,
+    CCT_INTEGER,
+    CCT_DECIMAL,
+    CCT_STRING,
+    CCT_BOOLEAN,
+    CCT_FUNCTION
+};
+
+struct codegen_constant {
+    enum codegen_constant_type type;
+    union {
+        ml_integer integer;
+        ml_decimal decimal;
+        strtable_index_t string;
+        bool boolean;
+        struct ast_function *function;
+    } value;
+};
 
 struct codegen_instruction {
     ml_line line;
@@ -31,33 +51,71 @@ struct codegen_variable {
 };
 
 struct codegen_scope {
-    size_t start;
     size_t count;
+
+    bool break_continue_inited;
+    struct codegen_argument_anchor break_anchor;
+    struct codegen_argument_anchor continue_anchor;
 };
 
 struct codegen_temporary {
     size_t size;
 };
 
+define_stack(temporary, struct codegen_temporary)
+define_stack_push(temporary, struct codegen_temporary)
+define_stack_pop(temporary, struct codegen_temporary)
+define_stack_peek(temporary, struct codegen_temporary)
+
+define_stack(scope, struct codegen_scope)
+define_stack_push(scope, struct codegen_scope)
+define_stack_pop(scope, struct codegen_scope)
+define_stack_peek(scope, struct codegen_scope)
+
+define_stack(variable, struct codegen_variable)
+define_stack_push(variable, struct codegen_variable)
+define_stack_pop(variable, struct codegen_variable)
+
+define_stack(anchor, struct codegen_anchor)
+define_stack_push(anchor, struct codegen_anchor)
+define_stack_get(anchor, struct codegen_anchor)
+
+define_stack(instruction, struct codegen_instruction)
+define_stack_push(instruction, struct codegen_instruction)
+
+define_stack(constant, struct codegen_constant)
+define_stack_push(constant, struct codegen_constant)
+
+define_stack(closure, struct codegen_closure)
+define_stack_push(closure, struct codegen_closure)
+define_stack_get(closure, struct codegen_closure)
+
 struct codegen_function {
     struct ast_function *ref;
 
-    struct stack temporary;
-    struct stack scopes;
-    struct stack variables;
-    struct stack anchors;
-    struct stack instructions;
+    bool process;
+    bool compiled;
+
+    struct stack_temporary temporary_stack;
+    struct stack_scope scopes_stack;
+    struct stack_variable variables_stack;
+    struct stack_anchor anchors_stack;
+    struct stack_instruction instructions_stack;
+    struct stack_constant constants_stack;
+    struct stack_closure closures_stack;
 
     struct codegen_function *prev;
     struct codegen_function *stack_prev;
+    struct codegen_function *stack_next;
 };
 
 struct codegen {
     morphine_coroutine_t U;
+    struct strtable *T;
+    struct visitor *V;
 
     struct codegen_function *current_function;
     struct codegen_function *functions;
-    struct codegen_function *compiled;
 };
 
 struct codegen_controller {
@@ -67,59 +125,315 @@ struct codegen_controller {
 
 struct codegen_save {
     bool has_result;
-    struct codegen_argument result;
+    struct codegen_argument_slot result;
 };
-
-static void prepare_function(struct codegen *C) {
-    *stack_push_typed(
-        struct codegen_temporary,
-        C->U,
-        &C->current_function->temporary
-    ) = (struct codegen_temporary) {
-        .size = 0
-    };
-
-    *stack_push_typed(
-        struct codegen_scope,
-        C->U,
-        &C->current_function->scopes
-    ) = (struct codegen_scope) {
-        .start = 0,
-        .count = 0
-    };
-}
 
 static void visit_node_prepare(
     struct codegen_controller *N,
     bool has_result,
-    struct codegen_argument result
+    struct codegen_argument_slot result
 ) {
     struct codegen_save *save;
     visitor_save(N->visitor_controller, sizeof(struct codegen_save), (void **) &save);
     save->has_result = has_result;
     save->result = result;
 
-    struct codegen_temporary temporary = *stack_peek_typed(
-        struct codegen_temporary,
+    struct codegen_temporary temporary = *stack_temporary_peek(
         N->C->U,
-        &N->C->current_function->temporary
+        &N->C->current_function->temporary_stack
     );
 
-    *stack_push_typed(
-        struct codegen_temporary,
+    *stack_temporary_push(
         N->C->U,
-        &N->C->current_function->temporary
+        &N->C->current_function->temporary_stack
     ) = temporary;
+}
+
+static size_t add_constant(struct codegen_controller *N, struct codegen_constant constant) {
+    stack_iterator(N->C->current_function->constants_stack, index) {
+        struct codegen_constant *cnst = stack_it(
+            N->C->current_function->constants_stack, index
+        );
+
+        if (constant.type == cnst->type) {
+            switch (constant.type) {
+                case CCT_NIL:
+                    return index;
+                case CCT_INTEGER:
+                    if (constant.value.integer == cnst->value.integer) {
+                        return index;
+                    }
+                    break;
+                case CCT_DECIMAL:
+                    if (constant.value.decimal == cnst->value.decimal) {
+                        return index;
+                    }
+                    break;
+                case CCT_STRING:
+                    if (constant.value.string == cnst->value.string) {
+                        return index;
+                    }
+                    break;
+                case CCT_BOOLEAN:
+                    if (constant.value.boolean == cnst->value.boolean) {
+                        return index;
+                    }
+                    break;
+                case CCT_FUNCTION:
+                    if (constant.value.function == cnst->value.function) {
+                        return index;
+                    }
+                    break;
+            }
+        }
+    }
+
+    size_t result = stack_size(N->C->current_function->constants_stack);
+
+    *stack_constant_push(
+        N->C->U,
+        &N->C->current_function->constants_stack
+    ) = constant;
+
+    return result;
+}
+
+static struct codegen_variable_info get_variable(
+    strtable_index_t index,
+    struct codegen_function *cf
+) {
+    stack_iterator(cf->variables_stack, i) {
+        struct codegen_variable *variable = stack_it_invert(cf->variables_stack, i);
+
+        if (variable->index == index) {
+            return (struct codegen_variable_info) {
+                .type = CVT_VARIABLE,
+                .mutable = variable->mutable,
+                .variable = (struct codegen_argument_slot) {
+                    .is_variable = true,
+                    .index = stack_idx_invert(cf->variables_stack, i)
+                }
+            };
+        }
+    }
+
+    for (size_t i = 0; i < cf->ref->statics_size; i++) {
+        if (cf->ref->statics[i] == index) {
+            return (struct codegen_variable_info) {
+                .type = CVT_STATIC,
+                .mutable = true,
+                .static_variable = (struct codegen_argument_index) {
+                    .index = i
+                }
+            };
+        }
+    }
+
+    for (size_t i = 0; i < cf->ref->args_size; i++) {
+        if (cf->ref->arguments[i] == index) {
+            return (struct codegen_variable_info) {
+                .type = CVT_VARIABLE,
+                .mutable = true,
+                .static_variable = (struct codegen_argument_index) {
+                    .index = i
+                }
+            };
+        }
+    }
+
+    if (cf->ref->recursive && !cf->ref->anonymous && cf->ref->name == index) {
+        return (struct codegen_variable_info) {
+            .type = CVT_RECURSION,
+            .mutable = false,
+        };
+    }
+
+    stack_iterator(cf->closures_stack, i) {
+        struct codegen_closure *closure = stack_it(cf->closures_stack, i);
+
+        if (closure->index == index) {
+            return (struct codegen_variable_info) {
+                .type = CVT_CLOSURE,
+                .mutable = closure->mutable,
+                .closure = (struct codegen_argument_index) {
+                    .index = i
+                }
+            };
+        }
+    }
+
+    return (struct codegen_variable_info) {
+        .type = CVT_NOT_FOUND,
+        .mutable = true
+    };
+}
+
+static struct codegen_variable_info deep_variable(
+    struct codegen *C,
+    strtable_index_t index,
+    struct codegen_function *head
+) {
+    struct codegen_function *cf = head;
+    struct codegen_variable_info info;
+    while (cf != NULL) {
+        info = get_variable(index, cf);
+
+        if (info.type != CVT_NOT_FOUND) {
+            break;
+        } else if (!cf->ref->auto_closure) {
+            return (struct codegen_variable_info) {
+                .type = CVT_NOT_FOUND,
+                .mutable = true
+            };
+        }
+
+        cf = cf->stack_prev;
+    }
+
+    if (cf == NULL) {
+        return (struct codegen_variable_info) {
+            .type = CVT_NOT_FOUND,
+            .mutable = true
+        };
+    } else if (cf == head) {
+        return info;
+    }
+
+    do {
+        cf = cf->stack_next;
+
+        *stack_closure_push(
+            C->U,
+            &cf->closures_stack
+        ) = (struct codegen_closure) {
+            .index = index,
+            .mutable = info.mutable
+        };
+    } while (cf != head);
+
+    return (struct codegen_variable_info) {
+        .type = CVT_CLOSURE,
+        .mutable = info.mutable,
+        .closure = (struct codegen_argument_index) {
+            .index = stack_size(cf->closures_stack) - 1
+        }
+    };
+}
+
+static void enter_function(struct codegen *C, struct codegen_function *cf) {
+    if (C->current_function != NULL) {
+        C->current_function->stack_next = cf;
+    }
+
+    cf->stack_prev = C->current_function;
+    C->current_function = cf;
+
+    if (cf->process) {
+        mapi_error(C->U, "codegen recursion");
+    }
+
+    cf->process = true;
+
+    *stack_temporary_push(
+        C->U,
+        &cf->temporary_stack
+    ) = (struct codegen_temporary) {
+        .size = 0
+    };
+
+    *stack_scope_push(
+        C->U,
+        &cf->scopes_stack
+    ) = (struct codegen_scope) {
+        .count = 0
+    };
+
+    for (size_t i = 0; i < cf->ref->args_size; i++) {
+        strtable_index_t arg = cf->ref->arguments[i];
+        size_t count = 0;
+        for (size_t j = 0; j < cf->ref->args_size; j++) {
+            if (arg == cf->ref->arguments[j]) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            mapi_error(C->U, "arguments duplicates");
+        }
+    }
+
+    for (size_t i = 0; i < cf->ref->statics_size; i++) {
+        strtable_index_t static_idx = cf->ref->statics[i];
+        size_t count = 0;
+        for (size_t j = 0; j < cf->ref->statics_size; j++) {
+            if (static_idx == cf->ref->statics[j]) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            mapi_error(C->U, "static duplicates");
+        }
+    }
+
+    for (size_t i = 0; i < cf->ref->closures_size; i++) {
+        strtable_index_t closure = cf->ref->closures[i];
+        size_t count = 0;
+        for (size_t j = 0; j < cf->ref->closures_size; j++) {
+            if (closure == cf->ref->closures[j]) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            mapi_error(C->U, "closure duplicates");
+        }
+
+        struct codegen_variable_info info = deep_variable(C, closure, cf->stack_prev);
+
+        if (info.type == CVT_NOT_FOUND) {
+            mapi_error(C->U, "closure not found");
+        } else {
+            *stack_closure_push(
+                C->U,
+                &cf->closures_stack
+            ) = (struct codegen_closure) {
+                .index = closure,
+                .mutable = info.mutable
+            };
+        }
+    }
+}
+
+static void exit_function(struct codegen *C) {
+    C->current_function = C->current_function->stack_prev;
+    if (C->current_function != NULL) {
+        C->current_function->stack_next = NULL;
+    }
+}
+
+morphine_coroutine_t codegen_U(struct codegen_controller *N) {
+    return N->C->U;
 }
 
 morphine_noret void codegen_error(struct codegen_controller *N, const char *str) {
     mapi_error(N->C->U, str);
 }
 
+bool codegen_save(struct codegen_controller *N, size_t size, void **container) {
+    void *save;
+    bool result = visitor_save(N->visitor_controller, sizeof(struct codegen_save) + size, &save);
+
+    save += sizeof(struct codegen_save);
+    *container = save;
+
+    return result;
+}
+
 morphine_noret void codegen_visit_expression(
     struct codegen_controller *N,
     struct expression *expression,
-    struct codegen_argument result,
+    struct codegen_argument_slot result,
     size_t state
 ) {
     visit_node_prepare(N, true, result);
@@ -131,12 +445,9 @@ morphine_noret void codegen_visit_statement(
     struct statement *statement,
     size_t state
 ) {
-    struct codegen_argument argument = {
-        .type = CAT_STABLE,
-        .stable = 0
-    };
+    struct codegen_argument_slot result = { .is_variable = false, .index = 0 };
 
-    visit_node_prepare(N, false, argument);
+    visit_node_prepare(N, false, result);
     visitor_node(N->visitor_controller, state, ast_as_node(statement));
 }
 
@@ -158,10 +469,7 @@ morphine_noret void codegen_visit_function(
         codegen_error(N, "function not found");
     }
 
-    cf->stack_prev = N->C->current_function;
-    N->C->current_function = cf;
-
-    prepare_function(N->C);
+    enter_function(N->C, cf);
 
     visitor_function(N->visitor_controller, state, function);
 }
@@ -172,68 +480,129 @@ morphine_noret void codegen_visit_next(struct codegen_controller *N, size_t stat
 
 morphine_noret void codegen_visit_return(struct codegen_controller *N) {
     if (visitor_is_function_root(N->visitor_controller)) {
-        struct codegen_function *cf_prev = NULL;
-        struct codegen_function *cf = N->C->functions;
-        while (cf != NULL) {
-            if (cf == N->C->current_function) {
-                break;
-            }
-
-            cf_prev = cf;
-            cf = cf->prev;
-        }
-
-        if (cf == NULL) {
-            codegen_error(N, "function not found");
-        }
-
-        if (cf_prev == NULL) {
-            N->C->functions = cf->prev;
-        } else {
-            cf_prev->prev = cf->prev;
-        }
-
-        cf->prev = N->C->compiled;
-        N->C->compiled = cf;
+        N->C->current_function->compiled = true;
+        exit_function(N->C);
     } else {
-        stack_pop(N->C->U, &N->C->current_function->temporary, 1);
+        stack_temporary_pop(N->C->U, &N->C->current_function->temporary_stack, 1);
     }
 
     visitor_return(N->visitor_controller);
 }
 
-struct codegen_argument codegen_anchor(struct codegen_controller *N) {
-    size_t pos = stack_size(N->C->current_function->instructions);
-    size_t anchor = stack_size(N->C->current_function->anchors);
+struct codegen_argument_slot codegen_result(struct codegen_controller *N) {
+    struct codegen_save *save = visitor_prev_save(N->visitor_controller);
 
-    *stack_push_typed(
-        struct codegen_anchor,
+    if (save == NULL || !save->has_result) {
+        codegen_error(N, "cannot get result");
+    }
+
+    return save->result;
+}
+
+struct codegen_argument_anchor codegen_anchor(struct codegen_controller *N) {
+    size_t pos = stack_size(N->C->current_function->instructions_stack);
+    size_t anchor = stack_size(N->C->current_function->anchors_stack);
+
+    *stack_anchor_push(
         N->C->U,
-        &N->C->current_function->anchors
+        &N->C->current_function->anchors_stack
     ) = (struct codegen_anchor) {
         .instruction = pos
     };
 
-    return (struct codegen_argument) {
-        .type = CAT_ANCHOR,
-        .anchor = anchor
+    return (struct codegen_argument_anchor) {
+        .index = anchor
     };
 }
 
-struct codegen_argument codegen_temporary(struct codegen_controller *N) {
-    struct codegen_temporary *temporary = stack_peek_typed(
-        struct codegen_temporary,
+void codegen_anchor_change(
+    struct codegen_controller *N,
+    struct codegen_argument_anchor anchor
+) {
+    stack_anchor_get(
         N->C->U,
-        &N->C->current_function->temporary
+        &N->C->current_function->anchors_stack,
+        anchor.index
+    )->instruction = stack_size(N->C->current_function->instructions_stack);
+}
+
+void codegen_init_break_continue(struct codegen_controller *N) {
+    struct codegen_scope *scope = stack_scope_peek(
+        N->C->U, &N->C->current_function->scopes_stack
+    );
+
+    if (scope->break_continue_inited) {
+        codegen_error(N, "block anchors are already initialized");
+    }
+
+    struct codegen_argument_anchor break_anchor = codegen_anchor(N);
+    struct codegen_argument_anchor continue_anchor = codegen_anchor(N);
+
+    scope->break_anchor = break_anchor;
+    scope->continue_anchor = continue_anchor;
+    scope->break_continue_inited = true;
+}
+
+void codegen_break_change(struct codegen_controller *N) {
+    struct codegen_scope *scope = stack_scope_peek(
+        N->C->U, &N->C->current_function->scopes_stack
+    );
+
+    if (!scope->break_continue_inited) {
+        codegen_error(N, "block anchors aren't initialized");
+    }
+
+    codegen_anchor_change(N, scope->break_anchor);
+}
+
+void codegen_continue_change(struct codegen_controller *N) {
+    struct codegen_scope *scope = stack_scope_peek(
+        N->C->U, &N->C->current_function->scopes_stack
+    );
+
+    if (!scope->break_continue_inited) {
+        codegen_error(N, "block anchors aren't initialized");
+    }
+
+    codegen_anchor_change(N, scope->continue_anchor);
+}
+
+struct codegen_argument_anchor codegen_break_get(struct codegen_controller *N) {
+    struct codegen_scope *scope = stack_scope_peek(
+        N->C->U, &N->C->current_function->scopes_stack
+    );
+
+    if (!scope->break_continue_inited) {
+        codegen_error(N, "block anchors aren't initialized");
+    }
+
+    return scope->break_anchor;
+}
+
+struct codegen_argument_anchor codegen_continue_get(struct codegen_controller *N) {
+    struct codegen_scope *scope = stack_scope_peek(
+        N->C->U, &N->C->current_function->scopes_stack
+    );
+
+    if (!scope->break_continue_inited) {
+        codegen_error(N, "block anchors aren't initialized");
+    }
+
+    return scope->continue_anchor;
+}
+
+struct codegen_argument_slot codegen_temporary(struct codegen_controller *N) {
+    struct codegen_temporary *temporary = stack_temporary_peek(
+        N->C->U, &N->C->current_function->temporary_stack
     );
 
     if (temporary->size >= CODEGEN_TEMPORARY_LIMIT) {
         codegen_error(N, "temporary slots limit reached");
     }
 
-    struct codegen_argument result = {
-        .type = CAT_TEMPORARY,
-        .temporary = temporary->size
+    struct codegen_argument_slot result = {
+        .is_variable = false,
+        .index = temporary->size
     };
 
     temporary->size++;
@@ -241,29 +610,141 @@ struct codegen_argument codegen_temporary(struct codegen_controller *N) {
     return result;
 }
 
-void codegen_scope_enter(struct codegen_controller *N) {
-    struct codegen_scope *scope = stack_peek_typed(
-        struct codegen_scope,
-        N->C->U,
-        &N->C->current_function->scopes
-    );
+struct codegen_argument_index codegen_constant_nil(struct codegen_controller *N) {
+    struct codegen_constant constant = {
+        .type = CCT_NIL
+    };
 
-    *stack_push_typed(
-        struct codegen_scope,
-        N->C->U,
-        &N->C->current_function->scopes
+    size_t index = add_constant(N, constant);
+    return (struct codegen_argument_index) {
+        .index = index
+    };
+}
+
+struct codegen_argument_index codegen_constant_int(struct codegen_controller *N, ml_integer integer) {
+    struct codegen_constant constant = {
+        .type = CCT_INTEGER,
+        .value.integer = integer
+    };
+
+    size_t index = add_constant(N, constant);
+    return (struct codegen_argument_index) {
+        .index = index
+    };
+}
+
+struct codegen_argument_index codegen_constant_dec(struct codegen_controller *N, ml_decimal decimal) {
+    struct codegen_constant constant = {
+        .type = CCT_DECIMAL,
+        .value.decimal = decimal
+    };
+
+    size_t index = add_constant(N, constant);
+    return (struct codegen_argument_index) {
+        .index = index
+    };
+}
+
+struct codegen_argument_index codegen_constant_str(struct codegen_controller *N, strtable_index_t str) {
+    struct codegen_constant constant = {
+        .type = CCT_STRING,
+        .value.string = str
+    };
+
+    size_t index = add_constant(N, constant);
+    return (struct codegen_argument_index) {
+        .index = index
+    };
+}
+
+struct codegen_argument_index codegen_constant_bool(struct codegen_controller *N, bool boolean) {
+    struct codegen_constant constant = {
+        .type = CCT_BOOLEAN,
+        .value.boolean = boolean
+    };
+
+    size_t index = add_constant(N, constant);
+    return (struct codegen_argument_index) {
+        .index = index
+    };
+}
+
+struct codegen_argument_index codegen_constant_fun(struct codegen_controller *N, struct ast_function *fun) {
+    struct codegen_constant constant = {
+        .type = CCT_FUNCTION,
+        .value.function = fun
+    };
+
+    size_t index = add_constant(N, constant);
+    return (struct codegen_argument_index) {
+        .index = index
+    };
+}
+
+void codegen_scope_enter(struct codegen_controller *N) {
+    *stack_scope_push(
+        N->C->U, &N->C->current_function->scopes_stack
     ) = (struct codegen_scope) {
-        .start = scope->start + scope->count,
-        .count = 0
+        .count = 0,
+        .break_continue_inited = false
     };
 }
 
 void codegen_scope_exit(struct codegen_controller *N) {
-    stack_pop(N->C->U, &N->C->current_function->scopes, 1);
+    struct codegen_scope *scope = stack_scope_peek(
+        N->C->U, &N->C->current_function->scopes_stack
+    );
+
+    stack_variable_pop(N->C->U, &N->C->current_function->variables_stack, scope->count);
+    stack_scope_pop(N->C->U, &N->C->current_function->scopes_stack, 1);
 }
 
-//void codegen_declare_variable(struct codegen_controller *N);
-//void codegen_get_variable(struct codegen_controller *N);
+void codegen_closure(
+    struct codegen_controller *N,
+    struct ast_function *function,
+    size_t *size,
+    struct codegen_closure **closures
+) {
+    struct codegen_function *cf = N->C->functions;
+    while (cf != NULL) {
+        if (cf->ref == function) {
+            break;
+        }
+
+        cf = cf->prev;
+    }
+
+    if (cf == NULL) {
+        codegen_error(N, "function not found");
+    }
+
+    *size = stack_size(cf->closures_stack);
+
+    if (*size == 0) {
+        *closures = NULL;
+    } else {
+        *closures = stack_closure_get(N->C->U, &cf->closures_stack, 0);
+    }
+}
+
+void codegen_declare_variable(struct codegen_controller *N, strtable_index_t index, bool mutable) {
+    struct codegen_scope *scope = stack_scope_peek(
+        N->C->U, &N->C->current_function->scopes_stack
+    );
+
+    *stack_variable_push(
+        N->C->U, &N->C->current_function->variables_stack
+    ) = (struct codegen_variable) {
+        .index = index,
+        .mutable = mutable
+    };
+
+    scope->count++;
+}
+
+struct codegen_variable_info codegen_get_variable(struct codegen_controller *N, strtable_index_t index) {
+    return deep_variable(N->C, index, N->C->current_function);
+}
 
 void codegen_instruction(
     struct codegen_controller *N,
@@ -272,10 +753,8 @@ void codegen_instruction(
     struct codegen_argument a2,
     struct codegen_argument a3
 ) {
-    *stack_push_typed(
-        struct codegen_instruction,
-        N->C->U,
-        &N->C->current_function->instructions
+    *stack_instruction_push(
+        N->C->U, &N->C->current_function->instructions_stack
     ) = (struct codegen_instruction) {
         .opcode = opcode,
         .argument1 = a1,
@@ -291,28 +770,30 @@ static void visit(struct visitor_controller *visitor_controller, struct ast_node
         .visitor_controller = visitor_controller
     };
 
-    (void) controller;
-    (void) state;
     switch (ast_node_type(node)) {
         case AST_NODE_TYPE_EXPRESSION:
-//            gen_expression(&controller, ast_as_expression(node), state);
+            gen_expression(&controller, ast_as_expression(node), state);
             break;
         case AST_NODE_TYPE_STATEMENT:
-//            gen_statement(&controller, ast_as_statement(node), state);
+            gen_statement(&controller, ast_as_statement(node), state);
             break;
     }
 }
 
-static void codegen_free_functions(morphine_instance_t I, struct codegen_function *functions) {
-    struct codegen_function *function = functions;
+static void codegen_free(morphine_instance_t I, void *p) {
+    struct codegen *C = p;
+
+    struct codegen_function *function = C->functions;
     while (function != NULL) {
         struct codegen_function *prev = function->prev;
 
-        stack_free(I, &function->instructions);
-        stack_free(I, &function->anchors);
-        stack_free(I, &function->temporary);
-        stack_free(I, &function->variables);
-        stack_free(I, &function->scopes);
+        stack_instruction_free(I, &function->instructions_stack);
+        stack_anchor_free(I, &function->anchors_stack);
+        stack_temporary_free(I, &function->temporary_stack);
+        stack_variable_free(I, &function->variables_stack);
+        stack_scope_free(I, &function->scopes_stack);
+        stack_constant_free(I, &function->constants_stack);
+        stack_closure_free(I, &function->closures_stack);
 
         mapi_allocator_free(I, function);
 
@@ -320,40 +801,22 @@ static void codegen_free_functions(morphine_instance_t I, struct codegen_functio
     }
 }
 
-static void codegen_free(morphine_instance_t I, void *p) {
-    struct codegen *C = p;
-
-    codegen_free_functions(I, C->functions);
-    codegen_free_functions(I, C->compiled);
-}
-
-static struct codegen *get_codegen(morphine_coroutine_t U) {
-    mapi_peek(U, 1);
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        struct codegen *C = mapi_userdata_pointer(U);
-        mapi_pop(U, 1);
-        return C;
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
-}
-
-void codegen(morphine_coroutine_t U) {
+struct codegen *codegen(morphine_coroutine_t U, struct strtable *T, struct ast *A, struct visitor *V) {
     struct codegen *C = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct codegen));
 
     *C = (struct codegen) {
         .U = U,
+        .V = V,
+        .T = T,
         .current_function = NULL,
-        .functions = NULL,
-        .compiled = NULL
+        .functions = NULL
     };
 
     mapi_userdata_set_free(U, codegen_free);
 
-    mapi_rotate(U, 2);
-    struct ast_function *functions = ast_functions(U);
-    mapi_rotate(U, 2);
+    struct codegen_function *main = NULL;
 
+    struct ast_function *functions = ast_functions(A);
     while (functions != NULL) {
         struct codegen_function *cf = mapi_allocator_uni(
             mapi_instance(U),
@@ -363,62 +826,310 @@ void codegen(morphine_coroutine_t U) {
 
         *cf = (struct codegen_function) {
             .ref = functions,
-            .stack_prev = NULL
+            .process = false,
+            .compiled = false,
+            .stack_prev = NULL,
+            .stack_next = NULL
         };
 
-        stack_init(
-            &cf->instructions,
-            sizeof(struct codegen_instruction),
+        stack_instruction_init(
+            &cf->instructions_stack,
             CODEGEN_STACK_EXPANSION_FACTOR,
             CODEGEN_LIMIT_STACK_INSTRUCTIONS
         );
 
-        stack_init(
-            &cf->scopes,
-            sizeof(struct codegen_scope),
+        stack_scope_init(
+            &cf->scopes_stack,
             CODEGEN_STACK_EXPANSION_FACTOR,
             CODEGEN_LIMIT_STACK_SCOPES
         );
 
-        stack_init(
-            &cf->variables,
-            sizeof(struct codegen_variable),
+        stack_variable_init(
+            &cf->variables_stack,
             CODEGEN_STACK_EXPANSION_FACTOR,
             CODEGEN_LIMIT_STACK_VARIABLES
         );
 
-        stack_init(
-            &cf->anchors,
-            sizeof(struct codegen_anchor),
+        stack_anchor_init(
+            &cf->anchors_stack,
             CODEGEN_STACK_EXPANSION_FACTOR,
             CODEGEN_LIMIT_STACK_ANCHORS
         );
 
-        stack_init(
-            &cf->temporary,
-            sizeof(struct codegen_temporary),
-            CODEGEN_LIMIT_STACK_TEMPORARY,
-            CODEGEN_LIMIT_STACK_ANCHORS
+        stack_temporary_init(
+            &cf->temporary_stack,
+            CODEGEN_STACK_EXPANSION_FACTOR,
+            CODEGEN_LIMIT_STACK_TEMPORARY
+        );
+
+        stack_constant_init(
+            &cf->constants_stack,
+            CODEGEN_STACK_EXPANSION_FACTOR,
+            CODEGEN_LIMIT_STACK_CONSTANTS
+        );
+
+        stack_closure_init(
+            &cf->closures_stack,
+            CODEGEN_STACK_EXPANSION_FACTOR,
+            CODEGEN_LIMIT_STACK_CLOSURES
         );
 
         cf->prev = C->functions;
         C->functions = cf;
 
+        if (main == NULL) {
+            main = cf;
+        }
+
         functions = functions->prev;
     }
 
-    C->current_function = C->functions;
-    prepare_function(C);
+    if (C->functions == NULL || main == NULL) {
+        mapi_error(U, "empty ast");
+    }
 
-    mapi_rotate(U, 2);
-    visitor(U, visit, C);
-    mapi_rotate(U, 2);
-    mapi_rotate(U, 3);
+    enter_function(C, main);
+
+    visitor_setup(U, V, visit, C);
+    return C;
 }
 
-bool codegen_step(morphine_coroutine_t U) {
-    struct codegen *C = get_codegen(U);
+struct codegen *get_codegen(morphine_coroutine_t U) {
+    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
+        return mapi_userdata_pointer(U);
+    } else {
+        mapi_error(U, "expected "MORPHINE_TYPE);
+    }
+}
+
+bool codegen_step(morphine_coroutine_t U, struct codegen *C) {
     C->U = U;
 
-    return visitor_step(U, NULL);
+    if (C->current_function == NULL) {
+        return false;
+    }
+
+    return visitor_step(U, C->V, NULL);
+}
+
+static inline void update_slot_argument(
+    struct codegen_argument argument,
+    size_t *variables,
+    size_t *temporaries
+) {
+    if (argument.type == CAT_slot) {
+        size_t *update;
+        if (argument.value.slot.is_variable) {
+            update = variables;
+        } else {
+            update = temporaries;
+        }
+
+        if (*update < argument.value.slot.index + 1) {
+            *update = argument.value.slot.index + 1;
+        }
+    }
+}
+
+static inline ml_argument argument_normalize(
+    morphine_coroutine_t U,
+    struct codegen_function *function,
+    struct codegen_argument argument,
+    size_t variables
+) {
+    switch (argument.type) {
+        case CAT_stub:
+            return 0;
+        case CAT_index:
+            if (argument.value.index.index > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "index too big");
+            }
+            return (ml_argument) argument.value.index.index;
+        case CAT_count:
+            if (argument.value.count.count > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "count too big");
+            }
+            return (ml_argument) argument.value.count.count;
+        case CAT_slot: {
+            size_t slot;
+            if (argument.value.slot.is_variable) {
+                slot = argument.value.slot.index;
+            } else {
+                slot = argument.value.slot.index + variables;
+            }
+
+            if (slot > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "slot too big");
+            }
+
+            return (ml_argument) slot;
+        }
+        case CAT_anchor: {
+            struct codegen_anchor anchor = *stack_anchor_get(
+                U, &function->anchors_stack, argument.value.anchor.index
+            );
+
+            if (anchor.instruction > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "position too big");
+            }
+
+            return (ml_argument) anchor.instruction;
+        }
+    }
+
+    mapi_error(U, "undefined argument");
+}
+
+static inline void load_instructions(
+    morphine_coroutine_t U,
+    struct codegen_function *function,
+    size_t variables
+) {
+    stack_iterator(function->instructions_stack, index) {
+        struct codegen_instruction instruction = *stack_it(function->instructions_stack, index);
+
+        morphine_instruction_t instr = {
+            .opcode = instruction.opcode,
+            .line = instruction.line,
+            .argument1 = argument_normalize(U, function, instruction.argument1, variables),
+            .argument2 = argument_normalize(U, function, instruction.argument2, variables),
+            .argument3 = argument_normalize(U, function, instruction.argument3, variables),
+        };
+
+        mapi_instruction_set(U, mapi_csize2index(U, index), instr);
+    }
+}
+
+static inline void load_constants(
+    morphine_coroutine_t U,
+    struct strtable *T,
+    struct codegen_function *pool,
+    struct codegen_function *function
+) {
+    stack_iterator(function->constants_stack, index) {
+        struct codegen_constant constant = *stack_it(function->constants_stack, index);
+
+        switch (constant.type) {
+            case CCT_NIL:
+                mapi_push_nil(U);
+                mapi_constant_set(U, mapi_csize2index(U, index));
+                break;
+            case CCT_INTEGER:
+                mapi_push_integer(U, constant.value.integer);
+                mapi_constant_set(U, mapi_csize2index(U, index));
+                break;
+            case CCT_DECIMAL:
+                mapi_push_decimal(U, constant.value.decimal);
+                mapi_constant_set(U, mapi_csize2index(U, index));
+                break;
+            case CCT_STRING: {
+                struct strtable_entry string = strtable_get(U, T, constant.value.string);
+                mapi_push_stringn(U, string.string, string.size);
+                mapi_constant_set(U, mapi_csize2index(U, index));
+                break;
+            }
+            case CCT_BOOLEAN:
+                mapi_push_boolean(U, constant.value.boolean);
+                mapi_constant_set(U, mapi_csize2index(U, index));
+                break;
+            case CCT_FUNCTION: {
+                ml_size fun_index = 0;
+                struct codegen_function *current = pool;
+                while (current != NULL) {
+                    if (current->ref == constant.value.function) {
+                        break;
+                    }
+
+                    index++;
+                    current = current->prev;
+                }
+
+                if (current == NULL) {
+                    mapi_error(U, "function not found");
+                }
+
+                mapi_peek(U, 1);
+                mapi_vector_get(U, fun_index);
+                mapi_rotate(U, 2);
+                mapi_pop(U, 1);
+
+                mapi_constant_set(U, mapi_csize2index(U, index));
+                break;
+            }
+        }
+    }
+}
+
+void codegen_construct(morphine_coroutine_t U, struct codegen *C) {
+    ml_size count = 0;
+    struct codegen_function *function = C->functions;
+    while (function != NULL) {
+        if (!function->compiled) {
+            mapi_error(U, "uncompiled function");
+        }
+
+        count++;
+        function = function->prev;
+    }
+
+    mapi_push_vector(U, count);
+
+    ml_size index = 0;
+    function = C->functions;
+    while (function != NULL) {
+        size_t params = 0;
+        size_t variables = 0;
+        size_t temporaries = 0;
+        stack_iterator(function->instructions_stack, it) {
+            struct codegen_instruction *instruction = stack_it(function->instructions_stack, it);
+
+            if (instruction->opcode == MORPHINE_OPCODE_PARAM) {
+                if (params < instruction->argument2.value.index.index + 1) {
+                    params = instruction->argument2.value.index.index + 1;
+                }
+            }
+
+            update_slot_argument(instruction->argument1, &variables, &temporaries);
+            update_slot_argument(instruction->argument2, &variables, &temporaries);
+            update_slot_argument(instruction->argument3, &variables, &temporaries);
+        }
+
+        const char *name;
+        if (function->ref->anonymous) {
+            name = "anonymous";
+        } else {
+            name = strtable_get(U, C->T, function->ref->name).string;
+        }
+
+        mapi_push_function(
+            U,
+            name,
+            function->ref->line,
+            mapi_csize2size(U, stack_size(function->constants_stack)),
+            mapi_csize2size(U, stack_size(function->instructions_stack)),
+            mapi_csize2size(U, function->ref->statics_size),
+            mapi_csize2size(U, function->ref->args_size),
+            mapi_csize2size(U, variables + temporaries),
+            mapi_csize2size(U, params)
+        );
+
+        load_instructions(U, function, variables);
+
+        mapi_vector_set(U, index);
+
+        index++;
+        function = function->prev;
+    }
+
+    index = 0;
+    function = C->functions;
+    while (function != NULL) {
+        mapi_vector_get(U, index);
+        load_constants(U, C->T, C->functions, function);
+        mapi_function_complete(U);
+        mapi_pop(U, 1);
+
+        index++;
+        function = function->prev;
+    }
 }

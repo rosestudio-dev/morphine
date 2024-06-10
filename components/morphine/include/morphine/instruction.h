@@ -14,17 +14,17 @@
 
 typedef enum {
     MORPHINE_OPCODE_YIELD,           //                                                               yield
-    MORPHINE_OPCODE_LOAD,            // [src (const), dest (slot)]                                    get from (src) and set to (dest)
+    MORPHINE_OPCODE_LOAD,            // [src (index), dest (slot)]                                    get from constants by (src) and set to (dest)
     MORPHINE_OPCODE_MOVE,            // [src (slot), dest (slot)]                                     get from (src) and set to (dest)
-    MORPHINE_OPCODE_PARAM,           // [src (slot), dest (param)]                                    get from (src) and set to (param)
-    MORPHINE_OPCODE_ARG,             // [src (arg), dest (slot)]                                      get from (src) and set to (dest)
+    MORPHINE_OPCODE_PARAM,           // [src (slot), dest (index)]                                    get from (src) and set to params by (dest)
+    MORPHINE_OPCODE_ARG,             // [arg (index), dest (slot)]                                    get from args by (arg) and set to (dest)
     MORPHINE_OPCODE_CLEAR,           // [from (index), count (count)]                                 sets nil to slots starting (from) in amount (count)
 
     MORPHINE_OPCODE_ENV,             // [dest (slot)]                                                 move env to (dest)
     MORPHINE_OPCODE_SELF,            // [dest (slot)]                                                 move self to (dest)
     MORPHINE_OPCODE_RECURSION,       // [dest (slot)]                                                 move callable to (dest)
 
-    MORPHINE_OPCODE_VECTOR,          // [dest (slot), size (num)]                                     create vector in (dest) with (size)
+    MORPHINE_OPCODE_VECTOR,          // [dest (slot), size (count)]                                   create vector in (dest) with (size)
     MORPHINE_OPCODE_TABLE,           // [dest (slot)]                                                 create table in (dest)
     MORPHINE_OPCODE_GET,             // [container (slot), key (slot), dest (slot)]                   get from (container) by (key) to (dest)
     MORPHINE_OPCODE_SET,             // [container (slot), key (slot), src (slot)]                    set (src) to (container) by (key)
@@ -43,9 +43,9 @@ typedef enum {
     MORPHINE_OPCODE_GET_CLOSURE,     // [closure (slot), closure (index), dest (slot)]                get closure by (index) from (closure) to (dest)
     MORPHINE_OPCODE_SET_CLOSURE,     // [closure (slot), closure (index), src (slot)]                 set (src) to (closure) by (index)
 
-    MORPHINE_OPCODE_CLOSURE,         // [function (slot), params (num), dest (slot)]                  create closure for (function) with params (size) in (dest)
-    MORPHINE_OPCODE_CALL,            // [function (slot), params (num)]                               call (function) with params (size) and self as nil
-    MORPHINE_OPCODE_SCALL,           // [function (slot), params (num), self (slot)]                  call (function) with params (size) and (self)
+    MORPHINE_OPCODE_CLOSURE,         // [function (slot), params (count), dest (slot)]                create closure for (function) with count (params) in (dest)
+    MORPHINE_OPCODE_CALL,            // [function (slot), params (count)]                             call (function) with count (params) and self as nil
+    MORPHINE_OPCODE_SCALL,           // [function (slot), params (count), self (slot)]                call (function) with count (params) and (self)
     MORPHINE_OPCODE_LEAVE,           // [return (slot)]                                               leave with (return)
     MORPHINE_OPCODE_RESULT,          // [dest (slot)]                                                 set result value to (dest)
 

@@ -7,7 +7,7 @@
 
 bool match_decompose(struct matcher *M, bool is_word) {
     if (matcher_match(M, symbol_predef_word(TPW_decompose))) {
-        struct argument_matcher A = {
+        struct argument_matcher R = {
             .assemble = false,
             .M = M,
             .separator = symbol_operator(TOP_COMMA),
@@ -17,28 +17,28 @@ bool match_decompose(struct matcher *M, bool is_word) {
             .close_symbol = symbol_operator(TOP_RPAREN),
         };
 
-        if (argument_matcher_init(&A, 0)) {
+        if (argument_matcher_init(&R, 0)) {
             do {
                 if (is_word) {
                     matcher_consume(M, symbol_word);
                 } else {
                     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
                 }
-            } while (argument_matcher_next(&A));
+            } while (argument_matcher_next(&R));
         }
-        size_t size = argument_matcher_close(&A);
+        size_t size = argument_matcher_close(&R);
 
         if (size == 0) {
             matcher_error(M, "empty decomposition");
         }
 
         if (matcher_match(M, symbol_predef_word(TPW_as))) {
-            if (argument_matcher_init(&A, 0)) {
+            if (argument_matcher_init(&R, 0)) {
                 do {
                     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-                } while (argument_matcher_next(&A));
+                } while (argument_matcher_next(&R));
             }
-            size_t as_size = argument_matcher_close(&A);
+            size_t as_size = argument_matcher_close(&R);
 
             if (size != as_size) {
                 matcher_error(M, "keys for decomposition aren't defined correctly");
@@ -63,7 +63,7 @@ size_t size_decompose(
     size_t *end_index
 ) {
     if (elements_look(E, start_index, symbol_predef_word(TPW_decompose))) {
-        struct argument_matcher A = {
+        struct argument_matcher R = {
             .assemble = true,
             .E = E,
             .U = U,
@@ -74,24 +74,24 @@ size_t size_decompose(
             .close_symbol = symbol_operator(TOP_RPAREN),
         };
 
-        if (argument_matcher_init(&A, start_index + 1)) {
+        if (argument_matcher_init(&R, start_index + 1)) {
             do {
                 if (is_word) {
-                    argument_matcher_consume(&A, symbol_word);
+                    argument_matcher_consume(&R, symbol_word);
                 } else {
-                    argument_matcher_reduce(&A, REDUCE_TYPE_EXPRESSION);
+                    argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
                 }
-            } while (argument_matcher_next(&A));
+            } while (argument_matcher_next(&R));
         }
-        size_t size = argument_matcher_close(&A);
+        size_t size = argument_matcher_close(&R);
 
-        if (elements_look(E, A.pos, symbol_predef_word(TPW_as))) {
-            if (argument_matcher_init(&A, A.pos + 1)) {
+        if (elements_look(E, R.pos, symbol_predef_word(TPW_as))) {
+            if (argument_matcher_init(&R, R.pos + 1)) {
                 do {
-                    argument_matcher_reduce(&A, REDUCE_TYPE_EXPRESSION);
-                } while (argument_matcher_next(&A));
+                    argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
+                } while (argument_matcher_next(&R));
             }
-            size_t as_size = argument_matcher_close(&A);
+            size_t as_size = argument_matcher_close(&R);
 
             if (size != as_size) {
                 elements_error(E, 0, "keys for decomposition aren't defined correctly");
@@ -99,7 +99,7 @@ size_t size_decompose(
         }
 
         if (end_index != NULL) {
-            *end_index = A.pos;
+            *end_index = R.pos;
         }
 
         return size;
@@ -114,6 +114,7 @@ size_t size_decompose(
 
 void insert_decompose(
     morphine_coroutine_t U,
+    struct ast *A,
     struct elements *E,
     bool is_word,
     size_t start_index,
@@ -122,7 +123,7 @@ void insert_decompose(
     struct expression **keys
 ) {
     if (elements_look(E, start_index, symbol_predef_word(TPW_decompose))) {
-        struct argument_matcher A = {
+        struct argument_matcher R = {
             .assemble = true,
             .E = E,
             .U = U,
@@ -133,27 +134,27 @@ void insert_decompose(
             .close_symbol = symbol_operator(TOP_RPAREN),
         };
 
-        if (argument_matcher_init(&A, start_index + 1)) {
+        if (argument_matcher_init(&R, start_index + 1)) {
             do {
                 if (is_word) {
-                    struct token token = argument_matcher_consume(&A, symbol_word);
-                    names[A.count] = token.word;
+                    struct token token = argument_matcher_consume(&R, symbol_word);
+                    names[R.count] = token.word;
                 } else {
-                    struct ast_node *node = argument_matcher_reduce(&A, REDUCE_TYPE_EXPRESSION).node;
-                    expressions[A.count] = ast_node_as_expression(U, node);
+                    struct ast_node *node = argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION).node;
+                    expressions[R.count] = ast_node_as_expression(U, node);
                 }
-            } while (argument_matcher_next(&A));
+            } while (argument_matcher_next(&R));
         }
-        size_t size = argument_matcher_close(&A);
+        size_t size = argument_matcher_close(&R);
 
-        if (elements_look(E, A.pos, symbol_predef_word(TPW_as))) {
-            if (argument_matcher_init(&A, A.pos + 1)) {
+        if (elements_look(E, R.pos, symbol_predef_word(TPW_as))) {
+            if (argument_matcher_init(&R, R.pos + 1)) {
                 do {
-                    struct ast_node *node = argument_matcher_reduce(&A, REDUCE_TYPE_EXPRESSION).node;
-                    keys[A.count] = ast_node_as_expression(U, node);
-                } while (argument_matcher_next(&A));
+                    struct ast_node *node = argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION).node;
+                    keys[R.count] = ast_node_as_expression(U, node);
+                } while (argument_matcher_next(&R));
             }
-            size_t as_size = argument_matcher_close(&A);
+            size_t as_size = argument_matcher_close(&R);
 
             if (size != as_size) {
                 elements_error(E, 0, "keys for decomposition aren't defined correctly");
@@ -161,7 +162,7 @@ void insert_decompose(
         } else {
             for (size_t i = 0; i < size; i++) {
                 struct expression_value *value = ast_create_expression_value(
-                    U, elements_line(E, start_index)
+                    U, A, elements_line(E, start_index)
                 );
 
                 value->type = EXPRESSION_VALUE_TYPE_INT;

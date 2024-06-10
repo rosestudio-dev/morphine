@@ -15,6 +15,7 @@ size_t match_sblock(
 
 size_t get_sblock(
     morphine_coroutine_t,
+    struct ast *,
     struct elements *,
     size_t closes_size,
     struct matcher_symbol *closes,
@@ -31,6 +32,7 @@ size_t match_eblock(
 
 size_t get_eblock(
     morphine_coroutine_t,
+    struct ast *,
     struct elements *,
     size_t closes_size,
     struct matcher_symbol *closes,

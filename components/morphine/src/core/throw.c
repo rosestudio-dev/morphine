@@ -50,11 +50,11 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
             sioI_printf(
                 I,
                 error,
-                "[line: %"MLIMIT_LINE_PR", p: %zu] function %s (%p)\n",
+                "[line: %"MLIMIT_LINE_PR", p: %zu] function %s (line: %"MLIMIT_LINE_PR")\n",
                 line,
                 position,
                 function->name,
-                function
+                function->line
             );
         } else if (valueI_is_native(callable)) {
             struct native *native = valueI_as_native(callable);

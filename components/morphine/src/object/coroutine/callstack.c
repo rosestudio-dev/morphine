@@ -44,20 +44,6 @@ static inline void stackI_call(
         params_count = function->params_count;
     }
 
-    // checks
-
-    if (unlikely(argc > MLIMIT_CALLABLE_ARGS)) {
-        throwI_error(I, "Too many args");
-    }
-
-    if (unlikely(params_count > MLIMIT_CALLABLE_PARAMS)) {
-        throwI_error(I, "Too many params");
-    }
-
-    if (unlikely(slots_count > MLIMIT_CALLABLE_SLOTS)) {
-        throwI_error(I, "Too many slots");
-    }
-
     // get env
 
     struct value env;

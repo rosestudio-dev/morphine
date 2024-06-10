@@ -33,7 +33,9 @@ void match_primary(struct matcher *M) {
     matcher_reduce(M, REDUCE_TYPE_VARIABLE);
 }
 
-struct ast_node *assemble_primary(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_primary(morphine_coroutine_t U, struct ast *A, struct elements *E) {
+    (void) A;
+
     if (!elements_is_token(E, 0)) {
         return elements_get_reduce(E, 0).node;
     }

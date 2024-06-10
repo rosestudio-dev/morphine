@@ -15,7 +15,7 @@ bool match_postfix(struct matcher *M, bool is_wrapped) {
     return matched;
 }
 
-struct ast_node *assemble_postfix(morphine_coroutine_t U, struct elements *E) {
+struct ast_node *assemble_postfix(morphine_coroutine_t U, struct ast *A, struct elements *E) {
     struct reduce reduce = elements_get_reduce(E, 0);
     if (elements_size(E) == 1) {
         return ast_as_node(ast_node_as_expression(U, reduce.node));
@@ -23,7 +23,7 @@ struct ast_node *assemble_postfix(morphine_coroutine_t U, struct elements *E) {
 
     struct token watch_token = elements_get_token(E, 1);
 
-    struct expression_increment *result = ast_create_expression_increment(U, watch_token.line);
+    struct expression_increment *result = ast_create_expression_increment(U, A, watch_token.line);
     result->is_postfix = true;
     result->container = ast_node_as_expression(U, reduce.node);
 
