@@ -186,20 +186,59 @@ static void write(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void buffer(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            if (mapi_args(U) != 4) {
+                maux_expect_args(U, 3);
+            }
+
+            mapi_push_arg(U, 0);
+            ml_size factor = mapi_get_size(U);
+
+            mapi_push_arg(U, 1);
+            bool read = mapi_get_boolean(U);
+
+            mapi_push_arg(U, 2);
+            bool write = mapi_get_boolean(U);
+
+            if (mapi_args(U) == 4) {
+                mapi_push_arg(U, 3);
+            } else {
+                mapi_push_string(U, "");
+            }
+
+            maux_push_sio_buffer(U, factor, read, write);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void extractstring(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_sio_extract_string(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static struct maux_construct_field table[] = {
-    { "isopened", isopened },
-    { "close",    close },
-    { "flush",    flush },
-    { "read",     read },
-    { "write",    write },
-    { "seekset",  seekset },
-    { "seekcur",  seekcur },
-    { "seekprv",  seekprv },
-    { "seekend",  seekend },
-    { "tell",     tell },
-    { "eos",      eos },
-    { "io",       io },
-    { "error",    error },
+    { "isopened",      isopened },
+    { "close",         close },
+    { "flush",         flush },
+    { "read",          read },
+    { "write",         write },
+    { "seekset",       seekset },
+    { "seekcur",       seekcur },
+    { "seekprv",       seekprv },
+    { "seekend",       seekend },
+    { "tell",          tell },
+    { "eos",           eos },
+    { "io",            io },
+    { "error",         error },
+    { "buffer",        buffer },
+    { "extractstring", extractstring },
     { NULL, NULL }
 };
 

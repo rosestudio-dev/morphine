@@ -5,7 +5,6 @@
 #pragma once
 
 #include "morphine/platform.h"
-#include "morphine/config.h"
 
 struct maux_construct_field {
     const char *name;
