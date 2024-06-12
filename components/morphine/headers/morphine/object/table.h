@@ -72,6 +72,9 @@ void tableI_set(morphine_instance_t, struct table *, struct value key, struct va
 struct value tableI_get(morphine_instance_t, struct table *, struct value key, bool *has);
 struct value tableI_remove(morphine_instance_t, struct table *, struct value key, bool *has);
 
+void tableI_idx_set(morphine_instance_t, struct table *, ml_size, struct value);
+struct pair tableI_idx_get(morphine_instance_t, struct table *, ml_size, bool *has);
+
 void tableI_clear(morphine_instance_t, struct table *);
 struct table *tableI_copy(morphine_instance_t, struct table *);
 

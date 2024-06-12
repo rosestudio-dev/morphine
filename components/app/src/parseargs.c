@@ -24,7 +24,7 @@ static void help(const char *program, const char *message, bool disable_usage) {
         printf("    -b            Binary program\n");
         printf("    -r            Run program\n");
         printf("    -e            Export program\n");
-        printf("    -d            Decompile program\n");
+        printf("    -d            Disassembly program\n");
         printf("    -l bytes [8M] Limit of allocation in bytes (suffixes: K, M, G)\n");
         printf("    -m, -M        Enable executing time measure (Use uppercase for pretty printing)\n");
         printf("    -a, -A        Use debug allocator (Use uppercase for pretty printing)\n");
@@ -72,8 +72,8 @@ struct args parseargs(int argc, char **argv) {
         .custom_alloc_pretty = false,
         .binary = false,
         .run = false,
-        .export = false,
-        .decompile = false,
+        .disassembly = false,
+        .export_path = NULL,
         .program_path = NULL,
         .argc = 0,
         .args = NULL,
@@ -152,10 +152,15 @@ struct args parseargs(int argc, char **argv) {
                     args.run = true;
                     break;
                 case 'e':
-                    args.export = true;
+                    offset++;
+                    if (parsed + offset >= argc) {
+                        help(program, "export path expected", true);
+                    }
+
+                    args.export_path = argv[parsed + offset];
                     break;
                 case 'd':
-                    args.decompile = true;
+                    args.disassembly = true;
                     break;
                 case 'v':
                     args.version = true;

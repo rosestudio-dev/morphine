@@ -74,9 +74,9 @@ static inline int compare(morphine_instance_t I, struct value a, struct value b)
             struct string *str_a = valueI_as_string(a);
             struct string *str_b = valueI_as_string(b);
 
-            if(str_a->size == str_b->size) {
+            if (str_a->size == str_b->size) {
                 return memcmp(str_a->chars, str_b->chars, sizeof(char) * str_a->size);
-            } else if(str_a->size > str_b->size) {
+            } else if (str_a->size > str_b->size) {
                 return 1;
             } else {
                 return -1;
@@ -712,6 +712,65 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
     }
 }
 
+void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, struct value value) {
+    if (table == NULL) {
+        throwI_error(I, "Table is null");
+    }
+
+    if (!table->mode.mutable) {
+        throwI_error(I, "Table is immutable");
+    }
+
+    struct hashmap *hashmap = &table->hashmap;
+
+    if (index >= table->hashmap.buckets.count) {
+        throwI_error(I, "Table index out of bounce");
+    }
+
+    struct bucket *current = hashmap->buckets.tail;
+    for (ml_size i = 0; i < index && current != NULL; i++) {
+        current = current->ll.next;
+    }
+
+    if (current == NULL) {
+        throwI_error(I, "Table buckets corrupted");
+    }
+
+    gcI_barrier(I, table, value);
+    current->pair.value = value;
+}
+
+struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index, bool *has) {
+    if (table == NULL) {
+        throwI_error(I, "Table is null");
+    }
+
+    struct hashmap *hashmap = &table->hashmap;
+
+    if (index >= table->hashmap.buckets.count) {
+        if (has != NULL) {
+            (*has) = false;
+        }
+
+        return valueI_pair(valueI_nil, valueI_nil);
+    }
+
+    struct bucket *current = hashmap->buckets.tail;
+    for (ml_size i = 0; i < index && current != NULL; i++) {
+        current = current->ll.next;
+    }
+
+    if (current == NULL) {
+        throwI_error(I, "Table buckets corrupted");
+    }
+
+    if (has != NULL) {
+        (*has) = true;
+    }
+
+    return current->pair;
+}
+
 struct value tableI_remove(morphine_instance_t I, struct table *table, struct value key, bool *has) {
     if (table == NULL) {
         throwI_error(I, "Table is null");
@@ -728,11 +787,7 @@ struct value tableI_remove(morphine_instance_t I, struct table *table, struct va
     struct hashmap *hashmap = &table->hashmap;
 
     if (hashmap->hashing.size == 0) {
-        if (has != NULL) {
-            *has = false;
-        }
-
-        return valueI_nil;
+        goto notfound;
     }
 
     uint64_t hash = hashcode(I, key);
@@ -741,11 +796,7 @@ struct value tableI_remove(morphine_instance_t I, struct table *table, struct va
     struct tree *tree = hashmap->hashing.trees + index;
     struct bucket *bucket = redblacktree_delete(I, tree, key);
     if (bucket == NULL) {
-        if (has != NULL) {
-            *has = false;
-        }
-
-        return valueI_nil;
+        goto notfound;
     }
 
     struct value value = bucket->pair.value;
@@ -758,6 +809,13 @@ struct value tableI_remove(morphine_instance_t I, struct table *table, struct va
     }
 
     return value;
+
+notfound:
+    if (has != NULL) {
+        *has = false;
+    }
+
+    return valueI_nil;
 }
 
 void tableI_clear(morphine_instance_t I, struct table *table) {

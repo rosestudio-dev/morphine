@@ -4,11 +4,13 @@
 
 #include <execute.h>
 #include <morphinec/lib.h>
+#include <morphinec/disassembler.h>
+#include <morphinec/binary.h>
 #include <loaders.h>
 #include <stdlib.h>
 #include <setjmp.h>
 #include <stdio.h>
-#include "morphinec/decompiler.h"
+#include "sio/file.h"
 
 struct require_loader userlibs[] = {
     { "compiler", mclib_compiler_loader },
@@ -88,15 +90,14 @@ static void init_args(morphine_coroutine_t U, size_t argc, char **args) {
 void execute(
     struct allocator *allocator,
     const char *path,
+    const char *export_path,
     bool binary,
     bool run,
-    bool export,
-    bool decompile,
+    bool disassembly,
     size_t alloc_limit,
     size_t argc,
     char **args
 ) {
-    (void) export;
     if (setjmp(abort_jmp) != 0) {
         return;
     }
@@ -160,14 +161,26 @@ void execute(
     init_args(U, argc, args);
     load_program(U, path, binary);
 
-    if (decompile) {
+    if (export_path != NULL) {
+        mapi_vector_peek_front(U);
+        sio_file(U, export_path, false, true, true);
+        mapi_rotate(U, 2);
+
+        mcapi_to_binary(U);
+
+        mapi_pop(U, 1);
+        mapi_sio_close(U, false);
+        mapi_pop(U, 1);
+    }
+
+    if (disassembly) {
         ml_size count = mapi_vector_len(U);
         for (ml_size i = 0; i < count; i++) {
             mapi_vector_get(U, i);
             mapi_push_sio_io(U);
             mapi_rotate(U, 2);
 
-            mcapi_decompile(U);
+            mcapi_disassembly(U);
 
             mapi_pop(U, 1);
             mapi_sio_print(U, "\n");

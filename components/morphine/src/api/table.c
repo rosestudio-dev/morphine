@@ -68,7 +68,6 @@ MORPHINE_API void mapi_table_set(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
 
     tableI_set(U->I, valueI_as_table_or_error(U->I, table), key, value);
-
     stackI_pop(U, 2);
 }
 
@@ -92,6 +91,60 @@ MORPHINE_API bool mapi_table_remove(morphine_coroutine_t U) {
     stackI_replace(U, 0, result);
 
     return has;
+}
+
+MORPHINE_API void mapi_table_idx_set(morphine_coroutine_t U, ml_size index) {
+    struct value table = stackI_peek(U, 1);
+    struct value value = stackI_peek(U, 0);
+
+    tableI_idx_set(U->I, valueI_as_table_or_error(U->I, table), index, value);
+    stackI_pop(U, 1);
+}
+
+MORPHINE_API bool mapi_table_idx_get(morphine_coroutine_t U, ml_size index) {
+    struct value table = stackI_peek(U, 0);
+
+    bool has = false;
+    struct value result = tableI_idx_get(U->I, valueI_as_table_or_error(U->I, table), index, &has).value;
+    stackI_push(U, result);
+
+    return has;
+}
+
+MORPHINE_API bool mapi_table_idx_key(morphine_coroutine_t U, ml_size index) {
+    struct value table = stackI_peek(U, 0);
+
+    bool has = false;
+    struct value result = tableI_idx_get(U->I, valueI_as_table_or_error(U->I, table), index, &has).key;
+    stackI_push(U, result);
+
+    return has;
+}
+
+MORPHINE_API void mapi_table_idx_getoe(morphine_coroutine_t U, ml_size index) {
+    struct value table = stackI_peek(U, 0);
+
+    bool has = false;
+    struct value result = tableI_idx_get(U->I, valueI_as_table_or_error(U->I, table), index, &has).value;
+
+    if (has) {
+        stackI_push(U, result);
+    } else {
+        throwI_errorf(U->I, "Cannot get value from table by index %"MLIMIT_SIZE_PR, index);
+    }
+}
+
+MORPHINE_API void mapi_table_idx_keyoe(morphine_coroutine_t U, ml_size index) {
+    struct value table = stackI_peek(U, 0);
+
+    bool has = false;
+    struct value result = tableI_idx_get(U->I, valueI_as_table_or_error(U->I, table), index, &has).key;
+
+    if (has) {
+        stackI_push(U, result);
+    } else {
+        throwI_errorf(U->I, "Cannot get key from table by index %"MLIMIT_SIZE_PR, index);
+    }
 }
 
 MORPHINE_API void mapi_table_getoe(morphine_coroutine_t U) {

@@ -3,7 +3,7 @@
 //
 
 #include <string.h>
-#include "morphinec/decompiler.h"
+#include "morphinec/disassembler.h"
 
 #define printn(str, s) do { mapi_peek(U, 1); mapi_sio_write(U, (const uint8_t *) (str), (s)); mapi_pop(U, 1); } while(false)
 #define printf(args...) do { mapi_peek(U, 1); mapi_sio_printf(U, args); mapi_pop(U, 1); } while(false)
@@ -348,7 +348,7 @@ static void print_constants(morphine_coroutine_t U) {
     }
 }
 
-MORPHINE_API void mcapi_decompile(morphine_coroutine_t U) {
+MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
     if (!mapi_function_is_complete(U)) {
         printf("incomplete ");
     }

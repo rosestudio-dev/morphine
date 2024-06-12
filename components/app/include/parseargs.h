@@ -16,8 +16,8 @@ struct args {
     bool custom_alloc_pretty;
     bool binary;
     bool run;
-    bool export;
-    bool decompile;
+    bool disassembly;
+    const char *export_path;
     const char *program_path;
     size_t argc;
     char **args;

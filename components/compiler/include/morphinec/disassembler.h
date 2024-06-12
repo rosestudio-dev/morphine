@@ -6,4 +6,4 @@
 
 #include <morphine.h>
 
-MORPHINE_API void mcapi_decompile(morphine_coroutine_t);
+MORPHINE_API void mcapi_disassembly(morphine_coroutine_t);

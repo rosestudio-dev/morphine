@@ -16,7 +16,7 @@
 #define valueI_integer(x) valueI_create(INTEGER, integer, x)
 #define valueI_decimal(x) valueI_create(DECIMAL, decimal, x)
 #define valueI_boolean(x) valueI_create(BOOLEAN, boolean, x)
-#define valueI_raw(x)     valueI_create(RAW, raw, x)
+#define valueI_raw(x)     valueI_create(RAW, raw, (uintptr_t) (x))
 #define valueI_object(x)  ({struct object *_obj = objectI_cast(x); ((struct value) { .type = (enum value_type) (_obj->type), .object.header = _obj });})
 
 // is
@@ -129,7 +129,7 @@ struct value {
         ml_integer integer;
         ml_decimal decimal;
         bool boolean;
-        void *raw;
+        uintptr_t raw;
 
         union {
             struct object *header;

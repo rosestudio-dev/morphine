@@ -10,10 +10,10 @@
 void execute(
     struct allocator *allocator,
     const char *path,
+    const char *export_path,
     bool binary,
     bool run,
-    bool export,
-    bool decompile,
+    bool disassembly,
     size_t alloc_limit,
     size_t argc,
     char **args

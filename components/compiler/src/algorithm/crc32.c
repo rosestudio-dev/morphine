@@ -2,7 +2,7 @@
 // Created by whyiskra on 09.12.23.
 //
 
-#include "morphine/algorithm/crc32.h"
+#include "morphinec/algorithm/crc32.h"
 
 //static const uint32_t POLY = 0xedb88320;
 static const uint32_t INITIAL = 0xffffffff;

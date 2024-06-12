@@ -59,7 +59,7 @@ MORPHINE_API bool mapi_get_boolean(morphine_coroutine_t U) {
     return valueI_as_boolean_or_error(U->I, stackI_peek(U, 0));
 }
 
-MORPHINE_API void *mapi_get_raw(morphine_coroutine_t U) {
+MORPHINE_API uintptr_t mapi_get_raw(morphine_coroutine_t U) {
     return valueI_as_raw_or_error(U->I, stackI_peek(U, 0));
 }
 

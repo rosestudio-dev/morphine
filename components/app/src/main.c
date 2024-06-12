@@ -29,10 +29,10 @@ int main(int argc, char **argv) {
     execute(
         pallocator,
         args.program_path,
+        args.export_path,
         args.binary,
         args.run,
-        args.export,
-        args.decompile,
+        args.disassembly,
         args.alloc_limit,
         args.argc,
         args.args

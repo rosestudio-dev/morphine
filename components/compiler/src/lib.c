@@ -4,7 +4,9 @@
 
 #include "morphinec/lib.h"
 #include "morphinec/compiler.h"
-#include "morphinec/decompiler.h"
+#include "morphinec/disassembler.h"
+#include "morphinec/binary.h"
+#include "morphinec/rollout.h"
 
 static void string(morphine_coroutine_t U) {
     nb_function(U)
@@ -28,7 +30,7 @@ static void string(morphine_coroutine_t U) {
     nb_end
 }
 
-static void decompile(morphine_coroutine_t U) {
+static void disassembly(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
             maux_expect_args(U, 2);
@@ -53,7 +55,7 @@ static void decompile(morphine_coroutine_t U) {
                 mapi_rotate(U, 2);
                 mapi_pop(U, 1);
 
-                mcapi_decompile(U);
+                mcapi_disassembly(U);
 
                 mapi_pop(U, 1);
                 mapi_sio_print(U, "\n");
@@ -63,9 +65,49 @@ static void decompile(morphine_coroutine_t U) {
     nb_end
 }
 
+static void tobinary(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 2);
+
+            mapi_push_arg(U, 0);
+
+            mapi_push_arg(U, 1);
+            mapi_extract_callable(U);
+            mapi_rotate(U, 2);
+            mapi_pop(U, 1);
+
+            mcapi_to_binary(U);
+            nb_leave();
+    nb_end
+}
+
+static void frombinary(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mcapi_from_binary(U);
+            nb_return();
+    nb_end
+}
+
+static void rollout(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mcapi_rollout_as_vector(U);
+            nb_return();
+    nb_end
+}
+
 static struct maux_construct_field table[] = {
-    { "string",    string },
-    { "decompile", decompile },
+    { "string",      string },
+    { "disassembly", disassembly },
+    { "tobinary",    tobinary },
+    { "frombinary",  frombinary },
+    { "rollout",     rollout },
     { NULL, NULL }
 };
 

@@ -3,31 +3,12 @@
 //
 
 #include <loaders.h>
-#include <stdio.h>
 #include <string.h>
 #include "morphinec/compiler.h"
 #include "userdata/readfile.h"
-#include "userdata/tbcfile.h"
-
-static size_t file_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
-    FILE *file = (FILE *) data;
-
-    size_t read = 0;
-    for(size_t i = 0; i < size; i ++) {
-        if(feof(file)) {
-            buffer[i] = 0;
-        } else {
-            buffer[i] = (uint8_t) fgetc(file);
-            read ++;
-        }
-
-        if (ferror(file)) {
-            mapi_sio_accessor_error(A, "Error while reading");
-        }
-    }
-
-    return read;
-}
+#include "sio/file.h"
+#include "morphinec/binary.h"
+#include "morphinec/rollout.h"
 
 void loader_source_file(morphine_coroutine_t U, const char *path) {
     const char *source = userdata_readfile(U, path);
@@ -39,20 +20,11 @@ void loader_source_file(morphine_coroutine_t U, const char *path) {
 }
 
 void loader_binary_file(morphine_coroutine_t U, const char *path) {
-    FILE *file = userdata_tbc_file(U, path, "r");
+    sio_file(U, path, true, false, true);
+    mcapi_from_binary(U);
+    mcapi_rollout_as_vector(U);
 
-    morphine_sio_interface_t interface = {
-        .read = file_read,
-        .open = NULL,
-        .close = NULL,
-        .write = NULL,
-        .flush = NULL,
-    };
-
-    mapi_push_sio(U, interface);
-    mapi_sio_open(U, file);
-//    mapi_push_function(U);
-
-    mapi_rotate(U, 3);
-    mapi_pop(U, 2);
+    mapi_rotate(U, 2);
+    mapi_sio_close(U, false);
+    mapi_rotate(U, 2);
 }

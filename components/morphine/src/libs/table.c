@@ -36,6 +36,56 @@ static void rawset(morphine_coroutine_t U) {
     nb_end
 }
 
+static void idxget(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 2);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "table");
+
+            mapi_push_arg(U, 1);
+            ml_size index = mapi_get_index(U);
+
+            mapi_table_idx_get(U, index);
+            nb_return();
+    nb_end
+}
+
+static void idxkey(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 2);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "table");
+
+            mapi_push_arg(U, 1);
+            ml_size index = mapi_get_index(U);
+
+            mapi_table_idx_key(U, index);
+            nb_return();
+    nb_end
+}
+
+static void idxset(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 3);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "table");
+
+            mapi_push_arg(U, 1);
+            ml_size index = mapi_get_index(U);
+
+            mapi_push_arg(U, 2);
+
+            mapi_table_idx_set(U, index);
+            nb_return();
+    nb_end
+}
+
 static void clear(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
@@ -254,6 +304,9 @@ static void tostr(morphine_coroutine_t U) {
 static struct maux_construct_field table[] = {
     { "rawget",            rawget },
     { "rawset",            rawset },
+    { "idxget",            idxget },
+    { "idxkey",            idxkey },
+    { "idxset",            idxset },
     { "clear",             clear },
     { "copy",              copy },
     { "has",               has },
