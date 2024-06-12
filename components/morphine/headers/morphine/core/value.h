@@ -107,20 +107,18 @@
 #define valueI_as_sio_or_error(I, x)       valueI_as_or_error(I, sio, x)
 #define valueI_as_object_or_error(I, x)    valueI_as_or_error(I, object, x)
 
+// size
+
+#define valueI_integer2namedsize(I, x, name)  ({ml_integer _i = (x); if(unlikely(_i < 0 || (_i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to "name, _i); ((ml_size) _i);})
+#define valueI_csize2namedsize(I, x, name)    ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to "name, _s); ((ml_size) _s);})
+
+#define valueI_size(x)                  valueI_integer((ml_integer) (x))
+#define valueI_csize2size(I, x)         valueI_csize2namedsize(I, x, "size")
+#define valueI_csize2index(I, x)        valueI_csize2namedsize(I, x, "index")
+#define valueI_integer2size(I, x)       valueI_integer2namedsize(I, x, "size")
+#define valueI_integer2index(I, x)      valueI_integer2namedsize(I, x, "index")
+
 // other
-
-#define valueI_integer2namedsize(I, x, name) ({ml_integer _i = (x); if(unlikely(_i < 0 || ((ml_size) _i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to "name, _i); ((ml_size) _i);})
-#define valueI_csize2namedsize(I, x, name) ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to "name, _s); ((ml_size) _s);})
-#define valueI_csize2namedinteger(I, x, name) ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to "name, _s); valueI_integer((ml_integer) _s);})
-
-#define valueI_csize2integer(I, x) valueI_csize2namedinteger(I, x, "integer")
-#define valueI_csize2indexinteger(I, x) valueI_csize2namedinteger(I, x, "index")
-
-#define valueI_csize2size(I, x) valueI_csize2namedsize(I, x, "size")
-#define valueI_csize2index(I, x) valueI_csize2namedsize(I, x, "index")
-
-#define valueI_integer2size(I, x) valueI_integer2namedsize(I, x, "size")
-#define valueI_integer2index(I, x) valueI_integer2namedsize(I, x, "index")
 
 #define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
 

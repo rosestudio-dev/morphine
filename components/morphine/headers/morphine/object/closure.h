@@ -11,12 +11,12 @@ struct closure {
 
     struct value callable;
 
-    size_t size;
+    ml_size size;
     struct value *values;
 };
 
-struct closure *closureI_create(morphine_instance_t, struct value callable, size_t size);
+struct closure *closureI_create(morphine_instance_t, struct value callable, ml_size size);
 void closureI_free(morphine_instance_t, struct closure *);
 
-struct value closureI_get(morphine_instance_t, struct closure *, size_t index);
-void closureI_set(morphine_instance_t, struct closure *, size_t index, struct value value);
+struct value closureI_get(morphine_instance_t, struct closure *, ml_size index);
+void closureI_set(morphine_instance_t, struct closure *, ml_size index, struct value value);

@@ -9,11 +9,11 @@
 
 // common
 
-typedef int32_t ml_integer;
-#define MLIMIT_INTEGER_PR  PRId32
-#define MLIMIT_INTEGER_SC  SCNi32
-#define MLIMIT_INTEGER_MAX INT32_MAX
-#define MLIMIT_INTEGER_MIN INT32_MIN
+typedef int64_t ml_integer;
+#define MLIMIT_INTEGER_PR  PRId64
+#define MLIMIT_INTEGER_SC  SCNi64
+#define MLIMIT_INTEGER_MAX INT64_MAX
+#define MLIMIT_INTEGER_MIN INT64_MIN
 
 typedef double ml_decimal;
 #define MLIMIT_DECIMAL_PR "lg"
@@ -24,7 +24,7 @@ typedef double ml_decimal;
 typedef uint32_t ml_size;
 #define MLIMIT_SIZE_PR  PRIu32
 #define MLIMIT_SIZE_SC  SCNu32
-#define MLIMIT_SIZE_MAX INT32_MAX
+#define MLIMIT_SIZE_MAX UINT32_MAX
 
 // instruction
 
@@ -49,7 +49,8 @@ typedef uint32_t ml_line;
 
 // checks
 
+_Static_assert((sizeof(size_t) <= sizeof(uintmax_t)) && (4 <= sizeof(size_t)), "incompatible arch");
+
 _Static_assert(sizeof(ml_size) <= sizeof(size_t), "ml_size incompatible with arch");
-_Static_assert(sizeof(ml_size) <= sizeof(ml_integer), "ml_size incompatible with ml_integer");
-_Static_assert(sizeof(ml_argument) <= sizeof(ml_size), "ml_argument incompatible with ml_size");
-_Static_assert(sizeof(size_t) <= sizeof(uintmax_t) && 4 <= sizeof(size_t), "incompatible arch");
+_Static_assert((sizeof(ml_size) <= sizeof(ml_integer)) && (MLIMIT_SIZE_MAX <= MLIMIT_INTEGER_MAX), "ml_size incompatible with ml_integer");
+_Static_assert(sizeof(ml_argument) < sizeof(ml_size), "ml_argument incompatible with ml_size");

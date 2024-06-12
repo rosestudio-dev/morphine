@@ -23,5 +23,5 @@ MORPHINE_AUX void maux_construct_call(
     struct maux_construct_field *table,
     const char *prefix,
     const char *name,
-    size_t argc
+    ml_size argc
 );

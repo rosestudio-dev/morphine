@@ -881,6 +881,6 @@ void mlib_string_loader(morphine_coroutine_t U) {
     maux_construct(U, table, "string.");
 }
 
-MORPHINE_LIB void mlib_string_call(morphine_coroutine_t U, const char *name, size_t argc) {
+MORPHINE_LIB void mlib_string_call(morphine_coroutine_t U, const char *name, ml_size argc) {
     maux_construct_call(U, table, "string.", name, argc);
 }

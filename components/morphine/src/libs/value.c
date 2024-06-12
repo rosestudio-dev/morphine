@@ -69,6 +69,6 @@ void mlib_value_loader(morphine_coroutine_t U) {
     maux_construct(U, table, "value.");
 }
 
-MORPHINE_LIB void mlib_value_call(morphine_coroutine_t U, const char *name, size_t argc) {
+MORPHINE_LIB void mlib_value_call(morphine_coroutine_t U, const char *name, ml_size argc) {
     maux_construct_call(U, table, "value.", name, argc);
 }

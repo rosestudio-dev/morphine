@@ -400,6 +400,6 @@ void mlib_math_loader(morphine_coroutine_t U) {
     mapi_table_set(U);
 }
 
-MORPHINE_LIB void mlib_math_call(morphine_coroutine_t U, const char *name, size_t argc) {
+MORPHINE_LIB void mlib_math_call(morphine_coroutine_t U, const char *name, ml_size argc) {
     maux_construct_call(U, table, "math.", name, argc);
 }

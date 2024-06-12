@@ -54,8 +54,8 @@
 
 // other
 
-static inline void clear_params(struct callinfo *C, size_t count) {
-    for (size_t i = 0; i < count; i++) {
+static inline void clear_params(struct callinfo *C, ml_size count) {
+    for (ml_size i = 0; i < count; i++) {
         param(C, i) = valueI_nil;
     }
 }
@@ -258,7 +258,7 @@ sp_case(MORPHINE_OPCODE_SET_CLOSURE)
             }
 sp_case(MORPHINE_OPCODE_CLOSURE)
             {
-                size_t count = arg2;
+                ml_size count = arg2;
                 struct value callable = slot(C, arg1);
 
                 struct closure *closure = closureI_create(U->I, callable, count);
@@ -266,7 +266,7 @@ sp_case(MORPHINE_OPCODE_CLOSURE)
                 struct value *params = &param(C, 0);
                 struct value result = valueI_object(closure);
 
-                for (size_t i = 0; i < count; i++) {
+                for (ml_size i = 0; i < count; i++) {
                     closureI_set(U->I, closure, i, params[i]);
                 }
 
@@ -283,7 +283,7 @@ sp_case(MORPHINE_OPCODE_CALL)
                 }
 
                 struct value callable = slot(C, arg1);
-                size_t count = arg2;
+                ml_size count = arg2;
 
                 callstackI_continue(U, 1);
 
@@ -295,7 +295,7 @@ sp_case(MORPHINE_OPCODE_CALL)
                     0
                 );
 
-                clear_params(C, 0);
+                clear_params(C, count);
                 sp_yield();
             }
 sp_case(MORPHINE_OPCODE_SCALL)
@@ -307,7 +307,7 @@ sp_case(MORPHINE_OPCODE_SCALL)
 
                 struct value callable = slot(C, arg1);
                 struct value self = slot(C, arg3);
-                size_t count = arg2;
+                ml_size count = arg2;
 
                 callstackI_continue(U, 1);
 
@@ -319,7 +319,7 @@ sp_case(MORPHINE_OPCODE_SCALL)
                     0
                 );
 
-                clear_params(C, 0);
+                clear_params(C, count);
                 sp_yield();
             }
 sp_case(MORPHINE_OPCODE_LEAVE)

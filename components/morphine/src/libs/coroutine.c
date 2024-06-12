@@ -100,7 +100,7 @@ static void launch(morphine_coroutine_t U) {
 
             mapi_push_nil(coroutine);
             mapi_rotate(coroutine, 2);
-            for (size_t i = 1; i < mapi_args(U); i++) {
+            for (ml_size i = 1; i < mapi_args(U); i++) {
                 mapi_push_arg(U, i);
                 mapi_move(U, coroutine);
             }
@@ -239,6 +239,6 @@ void mlib_coroutine_loader(morphine_coroutine_t U) {
     maux_construct(U, table, "coroutine.");
 }
 
-MORPHINE_LIB void mlib_coroutine_call(morphine_coroutine_t U, const char *name, size_t argc) {
+MORPHINE_LIB void mlib_coroutine_call(morphine_coroutine_t U, const char *name, ml_size argc) {
     maux_construct_call(U, table, "coroutine.", name, argc);
 }

@@ -82,6 +82,14 @@ void vectorI_mode_lock(morphine_instance_t I, struct vector *vector) {
     vector->mode.locked = true;
 }
 
+ml_size vectorI_size(morphine_instance_t I, struct vector *vector) {
+    if (vector == NULL) {
+        throwI_error(I, "Vector is null");
+    }
+
+    return vector->size.accessible;
+}
+
 struct value vectorI_get(morphine_instance_t I, struct vector *vector, ml_size index) {
     if (vector == NULL) {
         throwI_error(I, "Vector is null");
@@ -303,10 +311,10 @@ struct pair vectorI_next(
     }
 
     if (has_next) {
-        (*key) = valueI_csize2integer(I, index + 1);
+        (*key) = valueI_size(valueI_csize2index(I, index + 1));
     } else {
         (*key) = valueI_nil;
     }
 
-    return valueI_pair(valueI_csize2integer(I, index), vector->values[index]);
+    return valueI_pair(valueI_size(index), vector->values[index]);
 }

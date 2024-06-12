@@ -118,13 +118,13 @@ static void getdefaultmetatable(morphine_coroutine_t U) {
 static void scall(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t count = mapi_args(U);
+            ml_size count = mapi_args(U);
 
             mapi_push_arg(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "callable");
 
-            for (size_t i = 2; i < count; i++) {
+            for (ml_size i = 2; i < count; i++) {
                 mapi_push_arg(U, i);
             }
 
@@ -138,12 +138,12 @@ static void scall(morphine_coroutine_t U) {
 static void pcall(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t count = mapi_args(U);
+            ml_size count = mapi_args(U);
 
             mapi_push_arg(U, 0);
             maux_expect(U, "callable");
 
-            for (size_t i = 1; i < count; i++) {
+            for (ml_size i = 1; i < count; i++) {
                 mapi_push_arg(U, i);
             }
 
@@ -179,13 +179,13 @@ static void pcall(morphine_coroutine_t U) {
 static void pscall(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t count = mapi_args(U);
+            ml_size count = mapi_args(U);
 
             mapi_push_arg(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "callable");
 
-            for (size_t i = 2; i < count; i++) {
+            for (ml_size i = 2; i < count; i++) {
                 mapi_push_arg(U, i);
             }
 
@@ -258,6 +258,6 @@ void mlib_base_loader(morphine_coroutine_t U) {
     maux_construct(U, table, "base.");
 }
 
-MORPHINE_LIB void mlib_base_call(morphine_coroutine_t U, const char *name, size_t argc) {
+MORPHINE_LIB void mlib_base_call(morphine_coroutine_t U, const char *name, ml_size argc) {
     maux_construct_call(U, table, "base.", name, argc);
 }

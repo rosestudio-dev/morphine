@@ -207,6 +207,6 @@ void mlib_sio_loader(morphine_coroutine_t U) {
     maux_construct(U, table, "sio.");
 }
 
-MORPHINE_LIB void mlib_sio_call(morphine_coroutine_t U, const char *name, size_t argc) {
+MORPHINE_LIB void mlib_sio_call(morphine_coroutine_t U, const char *name, ml_size argc) {
     maux_construct_call(U, table, "sio.", name, argc);
 }

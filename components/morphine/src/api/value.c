@@ -8,7 +8,6 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
-#include "morphine/misc/metatable.h"
 
 MORPHINE_API void mapi_push_nil(morphine_coroutine_t U) {
     stackI_push(U, valueI_nil);
@@ -19,11 +18,11 @@ MORPHINE_API void mapi_push_integer(morphine_coroutine_t U, ml_integer value) {
 }
 
 MORPHINE_API void mapi_push_size(morphine_coroutine_t U, size_t value) {
-    stackI_push(U, valueI_csize2integer(U->I, value));
+    stackI_push(U, valueI_size(valueI_csize2size(U->I, value)));
 }
 
 MORPHINE_API void mapi_push_index(morphine_coroutine_t U, size_t value) {
-    stackI_push(U, valueI_csize2indexinteger(U->I, value));
+    stackI_push(U, valueI_size(valueI_csize2index(U->I, value)));
 }
 
 MORPHINE_API void mapi_push_decimal(morphine_coroutine_t U, ml_decimal value) {

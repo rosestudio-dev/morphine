@@ -24,7 +24,7 @@
  * ## mapi_call
  * ### Prototype
  * ```c
- * void mapi_call(morphine_coroutine_t U, size_t argc)
+ * void mapi_call(morphine_coroutine_t U, ml_size argc)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -39,9 +39,9 @@
  * > After calling this api function, the coroutine switches to another call
  * {{end}}
  */
-MORPHINE_API void mapi_call(morphine_coroutine_t U, size_t argc) {
+MORPHINE_API void mapi_call(morphine_coroutine_t U, ml_size argc) {
     struct value callable = stackI_peek(U, argc);
-    callstackI_call_stack(U, callable, valueI_nil, 0, argc, argc + 1);
+    callstackI_call_stack(U, callable, valueI_nil, 0, argc, ((size_t) argc) + 1);
 }
 
 /*
@@ -50,7 +50,7 @@ MORPHINE_API void mapi_call(morphine_coroutine_t U, size_t argc) {
  * ## mapi_calli
  * ### Prototype
  * ```c
- * void mapi_calli(morphine_coroutine_t U, size_t argc)
+ * void mapi_calli(morphine_coroutine_t U, ml_size argc)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -65,9 +65,9 @@ MORPHINE_API void mapi_call(morphine_coroutine_t U, size_t argc) {
  * > After calling this api function, the coroutine switches to another call
  * {{end}}
  */
-MORPHINE_API void mapi_calli(morphine_coroutine_t U, size_t argc) {
+MORPHINE_API void mapi_calli(morphine_coroutine_t U, ml_size argc) {
     struct value callable = stackI_peek(U, 0);
-    callstackI_call_stack(U, callable, valueI_nil, 1, argc, argc + 1);
+    callstackI_call_stack(U, callable, valueI_nil, 1, argc, ((size_t) argc) + 1);
 }
 
 /*
@@ -76,7 +76,7 @@ MORPHINE_API void mapi_calli(morphine_coroutine_t U, size_t argc) {
  * ## mapi_callself
  * ### Prototype
  * ```c
- * void mapi_callself(morphine_coroutine_t U, size_t argc)
+ * void mapi_callself(morphine_coroutine_t U, ml_size argc)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -91,10 +91,10 @@ MORPHINE_API void mapi_calli(morphine_coroutine_t U, size_t argc) {
  * > After calling this api function, the coroutine switches to another call
  * {{end}}
  */
-MORPHINE_API void mapi_callself(morphine_coroutine_t U, size_t argc) {
+MORPHINE_API void mapi_callself(morphine_coroutine_t U, ml_size argc) {
     struct value self = stackI_peek(U, argc + 1);
     struct value callable = stackI_peek(U, argc);
-    callstackI_call_stack(U, callable, self, 0, argc, argc + 2);
+    callstackI_call_stack(U, callable, self, 0, argc, ((size_t) argc) + 2);
 }
 
 /*
@@ -103,7 +103,7 @@ MORPHINE_API void mapi_callself(morphine_coroutine_t U, size_t argc) {
  * ## mapi_callselfi
  * ### Prototype
  * ```c
- * void mapi_callselfi(morphine_coroutine_t U, size_t argc)
+ * void mapi_callselfi(morphine_coroutine_t U, ml_size argc)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -118,10 +118,10 @@ MORPHINE_API void mapi_callself(morphine_coroutine_t U, size_t argc) {
  * > After calling this api function, the coroutine switches to another call
  * {{end}}
  */
-MORPHINE_API void mapi_callselfi(morphine_coroutine_t U, size_t argc) {
+MORPHINE_API void mapi_callselfi(morphine_coroutine_t U, ml_size argc) {
     struct value callable = stackI_peek(U, 1);
     struct value self = stackI_peek(U, 0);
-    callstackI_call_stack(U, callable, self, 2, argc, argc + 2);
+    callstackI_call_stack(U, callable, self, 2, argc, ((size_t) argc) + 2);
 }
 
 /*
@@ -260,7 +260,7 @@ MORPHINE_API size_t mapi_callstate(morphine_coroutine_t U) {
  * ## mapi_args
  * ### Prototype
  * ```c
- * size_t mapi_args(morphine_coroutine_t U)
+ * ml_size mapi_args(morphine_coroutine_t U)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -270,7 +270,7 @@ MORPHINE_API size_t mapi_callstate(morphine_coroutine_t U) {
  * Gets count of arguments
  * {{end}}
  */
-MORPHINE_API size_t mapi_args(morphine_coroutine_t U) {
+MORPHINE_API ml_size mapi_args(morphine_coroutine_t U) {
     return callstackI_info_or_error(U)->arguments_count;
 }
 
@@ -280,7 +280,7 @@ MORPHINE_API size_t mapi_args(morphine_coroutine_t U) {
  * ## mapi_push_arg
  * ### Prototype
  * ```c
- * void mapi_push_arg(morphine_coroutine_t U, size_t index)
+ * void mapi_push_arg(morphine_coroutine_t U, ml_size index)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -289,7 +289,7 @@ MORPHINE_API size_t mapi_args(morphine_coroutine_t U) {
  * Pushes the argument onto the stack
  * {{end}}
  */
-MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, size_t index) {
+MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, ml_size index) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
     if (index >= callinfo->arguments_count) {
         throwI_error(U->I, "Argument index out of bounce");

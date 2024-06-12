@@ -16,11 +16,20 @@
 #include "morphine/gc/safe.h"
 #include "morphine/misc/metatable.h"
 #include "morphine/misc/registry.h"
+#include "morphine/utils/overflow.h"
 
 static inline void stackI_call(
-    morphine_coroutine_t U, struct value callable, struct value self, size_t argc, size_t pop_size
+    morphine_coroutine_t U,
+    struct value callable,
+    struct value self,
+    ml_size argc,
+    size_t pop_size
 ) {
     morphine_instance_t I = U->I;
+
+    if (argc > MLIMIT_CALLABLE_ARGS) {
+        throwI_error(I, "Too many args");
+    }
 
     // get source and calc values size
 
@@ -66,7 +75,7 @@ static inline void stackI_call(
 
     U->callstack.uninit_callinfo = callinfo;
 
-    size_t raise_size = 7 + argc + slots_count + params_count;
+    size_t raise_size = slots_count + params_count + argc + 7;
     struct value *base = stackI_raise(U, raise_size);
 
     (*callinfo) = (struct callinfo) {
@@ -106,7 +115,7 @@ static inline void stackI_call(
     U->callstack.uninit_callinfo = NULL;
 }
 
-static inline struct callinfo *checkargs(morphine_coroutine_t U, size_t argc) {
+static inline struct callinfo *checkargs(morphine_coroutine_t U, ml_size argc) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
 
     if (argc != callinfo->arguments_count) {
@@ -116,10 +125,10 @@ static inline struct callinfo *checkargs(morphine_coroutine_t U, size_t argc) {
     return callinfo;
 }
 
-static inline void stackI_set_args_unsafe(morphine_coroutine_t U, struct value *args, size_t argc) {
+static inline void stackI_set_args_unsafe(morphine_coroutine_t U, struct value *args, ml_size argc) {
     struct callinfo *callinfo = checkargs(U, argc);
 
-    for (size_t i = 0; i < argc; i++) {
+    for (ml_size i = 0; i < argc; i++) {
         callinfo->s.args[i] = args[i];
     }
 }
@@ -154,7 +163,7 @@ void callstackI_call_unsafe(
     struct value callable,
     struct value self,
     struct value *args,
-    size_t argc,
+    ml_size argc,
     size_t pop_size
 ) {
     struct value mt_field;
@@ -163,8 +172,8 @@ void callstackI_call_unsafe(
         struct value args_table = valueI_object(table);
         size_t rollback = gcI_safe_value(U->I, args_table);
 
-        for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_csize2integer(U->I, i);
+        for (ml_size i = 0; i < argc; i++) {
+            struct value key = valueI_size(i);
             struct value arg = args[i];
 
             tableI_set(U->I, table, key, arg);
@@ -187,7 +196,7 @@ void callstackI_call_stack(
     struct value callable,
     struct value self,
     size_t offset,
-    size_t argc,
+    ml_size argc,
     size_t pop_size
 ) {
     struct value mt_field;
@@ -196,9 +205,14 @@ void callstackI_call_stack(
         struct value args_table = valueI_object(table);
         size_t rollback = gcI_safe_value(U->I, args_table);
 
-        for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_csize2integer(U->I, i);
-            struct value arg = stackI_peek(U, argc - i - 1 + offset);
+        for (ml_size i = 0; i < argc; i++) {
+            struct value key = valueI_size(i);
+            size_t index = argc - i - 1;
+            overflow_add(index, offset, SIZE_MAX) {
+                throwI_error(U->I, "stack index out of bounce");
+            }
+
+            struct value arg = stackI_peek(U, index + offset);
 
             tableI_set(U->I, table, key, arg);
         }
@@ -214,7 +228,12 @@ void callstackI_call_stack(
         stackI_call(U, callable, self, argc, pop_size);
 
         for (size_t i = 0; i < argc; i++) {
-            struct value arg = stackI_callinfo_peek(U, callinfo, argc - i - 1 + offset);
+            size_t index = argc - i - 1;
+            overflow_add(index, offset, SIZE_MAX) {
+                throwI_error(U->I, "stack index out of bounce");
+            }
+
+            struct value arg = stackI_callinfo_peek(U, callinfo, index + offset);
             callstackI_info(U)->s.args[i] = arg;
         }
     }
@@ -224,7 +243,7 @@ void callstackI_call_params(
     morphine_coroutine_t U,
     struct value callable,
     struct value self,
-    size_t argc,
+    ml_size argc,
     size_t pop_size
 ) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
@@ -240,8 +259,8 @@ void callstackI_call_params(
         struct value args_table = valueI_object(table);
         size_t rollback = gcI_safe_value(U->I, args_table);
 
-        for (size_t i = 0; i < argc; i++) {
-            struct value key = valueI_csize2integer(U->I, i);
+        for (ml_size i = 0; i < argc; i++) {
+            struct value key = valueI_size(i);
             struct value arg = callinfo->s.params[i];
 
             tableI_set(U->I, table, key, arg);
@@ -256,7 +275,7 @@ void callstackI_call_params(
     } else {
         stackI_call(U, callable, self, argc, pop_size);
 
-        for (size_t i = 0; i < argc; i++) {
+        for (ml_size i = 0; i < argc; i++) {
             struct value arg = callinfo->s.params[i];
             callstackI_info(U)->s.args[i] = arg;
         }

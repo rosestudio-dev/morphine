@@ -331,6 +331,6 @@ void mlib_vector_loader(morphine_coroutine_t U) {
     maux_construct(U, table, "vector.");
 }
 
-MORPHINE_LIB void mlib_vector_call(morphine_coroutine_t U, const char *name, size_t argc) {
+MORPHINE_LIB void mlib_vector_call(morphine_coroutine_t U, const char *name, ml_size argc) {
     maux_construct_call(U, table, "vector.", name, argc);
 }

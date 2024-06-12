@@ -31,7 +31,7 @@ struct callinfo {
 
     size_t pop_size;
 
-    size_t arguments_count;
+    ml_size arguments_count;
 
     struct {
         size_t position;
@@ -64,7 +64,7 @@ void callstackI_call_unsafe(
     struct value callable,
     struct value self,
     struct value *args,
-    size_t argc,
+    ml_size argc,
     size_t pop_size
 );
 
@@ -73,7 +73,7 @@ void callstackI_call_stack(
     struct value callable,
     struct value self,
     size_t offset,
-    size_t argc,
+    ml_size argc,
     size_t pop_size
 );
 
@@ -81,7 +81,7 @@ void callstackI_call_params(
     morphine_coroutine_t U,
     struct value callable,
     struct value self,
-    size_t argc,
+    ml_size argc,
     size_t pop_size
 );
 

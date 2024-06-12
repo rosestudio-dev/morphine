@@ -23,10 +23,10 @@ MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t);
 
 // callstack
 
-MORPHINE_API void mapi_call(morphine_coroutine_t, size_t argc);
-MORPHINE_API void mapi_calli(morphine_coroutine_t, size_t argc);
-MORPHINE_API void mapi_callself(morphine_coroutine_t, size_t argc);
-MORPHINE_API void mapi_callselfi(morphine_coroutine_t, size_t argc);
+MORPHINE_API void mapi_call(morphine_coroutine_t, ml_size argc);
+MORPHINE_API void mapi_calli(morphine_coroutine_t, ml_size argc);
+MORPHINE_API void mapi_callself(morphine_coroutine_t, ml_size argc);
+MORPHINE_API void mapi_callselfi(morphine_coroutine_t, ml_size argc);
 MORPHINE_API void mapi_push_callable(morphine_coroutine_t);
 MORPHINE_API void mapi_extract_callable(morphine_coroutine_t);
 MORPHINE_API void mapi_push_result(morphine_coroutine_t);
@@ -34,8 +34,8 @@ MORPHINE_API void mapi_return(morphine_coroutine_t);
 MORPHINE_API void mapi_leave(morphine_coroutine_t);
 MORPHINE_API void mapi_continue(morphine_coroutine_t, size_t callstate);
 MORPHINE_API size_t mapi_callstate(morphine_coroutine_t);
-MORPHINE_API size_t mapi_args(morphine_coroutine_t);
-MORPHINE_API void mapi_push_arg(morphine_coroutine_t, size_t index);
+MORPHINE_API ml_size mapi_args(morphine_coroutine_t);
+MORPHINE_API void mapi_push_arg(morphine_coroutine_t, ml_size index);
 MORPHINE_API void mapi_push_env(morphine_coroutine_t);
 MORPHINE_API void mapi_push_self(morphine_coroutine_t);
 MORPHINE_API void mapi_change_env(morphine_coroutine_t);
@@ -181,10 +181,10 @@ MORPHINE_API void mapi_iterator_next(morphine_coroutine_t);
 
 // closure
 
-MORPHINE_API void mapi_push_closure(morphine_coroutine_t, size_t size);
-MORPHINE_API void mapi_closure_get(morphine_coroutine_t, size_t index);
-MORPHINE_API void mapi_closure_set(morphine_coroutine_t, size_t index);
-MORPHINE_API size_t mapi_closure_size(morphine_coroutine_t);
+MORPHINE_API void mapi_push_closure(morphine_coroutine_t, ml_size size);
+MORPHINE_API void mapi_closure_get(morphine_coroutine_t, ml_size index);
+MORPHINE_API void mapi_closure_set(morphine_coroutine_t, ml_size index);
+MORPHINE_API ml_size mapi_closure_size(morphine_coroutine_t);
 
 // function
 
