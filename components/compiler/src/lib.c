@@ -3,12 +3,8 @@
 //
 
 #include "morphinec/lib.h"
-#include "morphinec/strtable.h"
-#include "morphinec/lex.h"
-#include "morphinec/parser.h"
-#include "morphinec/printer.h"
-#include "morphinec/codegen.h"
 #include "morphinec/compiler.h"
+#include "morphinec/decompiler.h"
 
 static void string(morphine_coroutine_t U) {
     nb_function(U)
@@ -19,13 +15,35 @@ static void string(morphine_coroutine_t U) {
             size_t size = mapi_string_len(U);
 
             mcapi_compile(U, text, size);
+            nb_return();
+    nb_end
+}
 
+static void decompile(morphine_coroutine_t U) {
+    nb_function(U)
+        nb_init
+            maux_expect_args(U, 2);
+            mapi_push_arg(U, 1);
+
+            ml_size count = mapi_vector_len(U);
+            for (ml_size i = 0; i < count; i++) {
+                mapi_vector_get(U, i);
+                mapi_push_arg(U, 0);
+                mapi_rotate(U, 2);
+
+                mcapi_decompile(U);
+
+                mapi_pop(U, 1);
+                mapi_sio_print(U, "\n");
+                mapi_pop(U, 1);
+            }
             nb_leave();
     nb_end
 }
 
 static struct maux_construct_field table[] = {
-    { "string", string },
+    { "string",    string },
+    { "decompile", decompile },
     { NULL, NULL }
 };
 

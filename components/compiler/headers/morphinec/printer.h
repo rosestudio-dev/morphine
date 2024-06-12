@@ -5,6 +5,8 @@
 #pragma once
 
 #include <morphine.h>
+#include "morphinec/strtable.h"
+#include "morphinec/ast.h"
 
-void printer_strtable(morphine_coroutine_t);
-void printer_ast(morphine_coroutine_t);
+void printer_strtable(morphine_coroutine_t, struct strtable *);
+void printer_ast(morphine_coroutine_t, struct strtable *, struct ast *);

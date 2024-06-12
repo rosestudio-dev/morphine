@@ -14,7 +14,7 @@
 
 typedef enum {
     MORPHINE_OPCODE_YIELD,           //                                                               yield
-    MORPHINE_OPCODE_LOAD,            // [src (index), dest (slot)]                                    get from constants by (src) and set to (dest)
+    MORPHINE_OPCODE_LOAD,            // [src (index), dest (slot)]                                    get from constant by (src) and set to (dest)
     MORPHINE_OPCODE_MOVE,            // [src (slot), dest (slot)]                                     get from (src) and set to (dest)
     MORPHINE_OPCODE_PARAM,           // [src (slot), dest (index)]                                    get from (src) and set to params by (dest)
     MORPHINE_OPCODE_ARG,             // [arg (index), dest (slot)]                                    get from args by (arg) and set to (dest)

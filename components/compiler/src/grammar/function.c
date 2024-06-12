@@ -46,6 +46,7 @@ void match_function(struct matcher *M) {
     }
     argument_matcher_close(&R);
 
+    R.consume_open = false;
     if (matcher_match(M, symbol_predef_word(TPW_static))) {
         if (argument_matcher_init(&R, 0)) {
             do {
@@ -122,6 +123,7 @@ static struct ast_function *create_function(morphine_coroutine_t U, struct ast *
     }
     size_t args = argument_matcher_close(&R);
 
+    R.consume_open = false;
     size_t statics = 0;
     if (elements_look(E, R.pos, symbol_predef_word(TPW_static))) {
         if (argument_matcher_init(&R, R.pos + 1)) {
@@ -205,6 +207,7 @@ struct ast_node *assemble_function(morphine_coroutine_t U, struct ast *A, struct
     }
     argument_matcher_close(&R);
 
+    R.consume_open = false;
     if (elements_look(E, R.pos, symbol_predef_word(TPW_static))) {
         if (argument_matcher_init(&R, R.pos + 1)) {
             do {

@@ -62,6 +62,149 @@ static const char *opcode2str(morphine_opcode_t opcode) {
     return "?";
 }
 
+static void print_description(morphine_coroutine_t U, morphine_instruction_t instr) {
+#define APR "%"MLIMIT_ARGUMENT_PR
+#define SLOT "slot "APR
+#define arg(n) instr.argument##n
+    switch (instr.opcode) {
+        case MORPHINE_OPCODE_YIELD:
+            printf("yield");
+            return;
+        case MORPHINE_OPCODE_LOAD:
+            printf(SLOT" = constant "APR, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_MOVE:
+            printf(SLOT" = "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_PARAM:
+            printf("param "APR" = "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_ARG:
+            printf(SLOT" = arg "APR, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_CLEAR:
+            printf("slots from "APR" amount "APR" = nil", arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_ENV:
+            printf(SLOT" = env", arg(1));
+            return;
+        case MORPHINE_OPCODE_SELF:
+            printf(SLOT" = self", arg(1));
+            return;
+        case MORPHINE_OPCODE_RECURSION:
+            printf(SLOT" = callable", arg(1));
+            return;
+        case MORPHINE_OPCODE_VECTOR:
+            printf(SLOT" = vector with size "APR, arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_TABLE:
+            printf(SLOT" = table", arg(1));
+            return;
+        case MORPHINE_OPCODE_GET:
+            printf(SLOT" = ("SLOT")["SLOT"]", arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_SET:
+            printf("("SLOT")["SLOT"] = "SLOT, arg(1), arg(2), arg(3));
+            return;
+        case MORPHINE_OPCODE_ITERATOR:
+            printf(SLOT" = iterator from "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_ITERATOR_INIT:
+            printf("init iterator in "SLOT, arg(1));
+            return;
+        case MORPHINE_OPCODE_ITERATOR_HAS:
+            printf(SLOT" = iterator has in "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_ITERATOR_NEXT:
+            printf(SLOT" = iterator next in "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_JUMP:
+            printf("jump to "APR, arg(1));
+            return;
+        case MORPHINE_OPCODE_JUMP_IF:
+            printf("jump if "SLOT" to "APR" else "APR, arg(1), arg(2), arg(3));
+            return;
+        case MORPHINE_OPCODE_GET_STATIC:
+            printf(SLOT" = static "APR" from "SLOT, arg(3), arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_SET_STATIC:
+            printf("static "APR" from "SLOT" = "SLOT, arg(2), arg(1), arg(3));
+            return;
+        case MORPHINE_OPCODE_GET_CLOSURE:
+            printf(SLOT" = closure "APR" from "SLOT, arg(3), arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_SET_CLOSURE:
+            printf("closure "APR" from "SLOT" = "SLOT, arg(2), arg(1), arg(3));
+            return;
+        case MORPHINE_OPCODE_CLOSURE:
+            printf(SLOT" = closure from "SLOT" with size "APR, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_CALL:
+            printf("call "SLOT" with "APR" args", arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_SCALL:
+            printf("call(self "SLOT") "SLOT" with "APR" args", arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_LEAVE:
+            printf("leave");
+            return;
+        case MORPHINE_OPCODE_RESULT:
+            printf(SLOT" = call result", arg(1));
+            return;
+        case MORPHINE_OPCODE_ADD:
+            printf(SLOT" = "SLOT" + "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_SUB:
+            printf(SLOT" = "SLOT" - "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_MUL:
+            printf(SLOT" = "SLOT" * "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_DIV:
+            printf(SLOT" = "SLOT" / "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_MOD:
+            printf(SLOT" = "SLOT" %% "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_EQUAL:
+            printf(SLOT" = "SLOT" == "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_LESS:
+            printf(SLOT" = "SLOT" < "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_LESS_EQUAL:
+            printf(SLOT" = "SLOT" <= "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_AND:
+            printf(SLOT" = "SLOT" and "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_OR:
+            printf(SLOT" = "SLOT" or "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_CONCAT:
+            printf(SLOT" = "SLOT" .. "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_TYPE:
+            printf(SLOT" = type "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_NEGATIVE:
+            printf(SLOT" = - "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_NOT:
+            printf(SLOT" = not "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_REF:
+            printf(SLOT" = ref "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_DEREF:
+            printf(SLOT" = deref "SLOT, arg(2), arg(1));
+            return;
+        case MORPHINE_OPCODE_LENGTH:
+            printf(SLOT" = len "SLOT, arg(2), arg(1));
+            return;
+    }
+}
+
 static inline size_t numlen(size_t num) {
     size_t len = 1;
     while (num > 9) {
@@ -126,31 +269,37 @@ static void print_instructions(morphine_coroutine_t U) {
         printf("[line: %"MLIMIT_LINE_PR"] ", instruction.line);
         spaces(U, numlen(instruction.line), line_len);
 
-        printf("%s ", opcode2str(instruction.opcode));
+        printf("%s    ", opcode2str(instruction.opcode));
         spaces(U, strlen(opcode2str(instruction.opcode)), name_len);
 
         size_t args = mapi_opcode_args(U, instruction.opcode);
 
         if (args > 0) {
             printf("%"MLIMIT_ARGUMENT_PR" ", instruction.argument1);
+            spaces(U, numlen(instruction.argument1), arg1_len);
         } else {
             printn(" ", 1);
+            spaces(U, 0, arg1_len);
         }
-        spaces(U, numlen(instruction.argument1), arg1_len);
 
         if (args > 1) {
             printf("%"MLIMIT_ARGUMENT_PR" ", instruction.argument2);
+            spaces(U, numlen(instruction.argument2), arg2_len);
         } else {
             printn(" ", 1);
+            spaces(U, 0, arg2_len);
         }
-        spaces(U, numlen(instruction.argument2), arg2_len);
 
         if (args > 2) {
-            printf("%"MLIMIT_ARGUMENT_PR" ", instruction.argument3);
+            printf("%"MLIMIT_ARGUMENT_PR, instruction.argument3);
+            spaces(U, numlen(instruction.argument3), arg3_len);
         } else {
-            printn(" ", 1);
+            spaces(U, 0, arg3_len);
         }
-        spaces(U, numlen(instruction.argument3), arg3_len);
+
+        printn("    ; ", 6);
+
+        print_description(U, instruction);
 
         printn("\n", 1);
     }

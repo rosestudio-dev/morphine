@@ -320,7 +320,7 @@ static struct codegen_variable_info deep_variable(
     };
 }
 
-static void enter_function(struct codegen *C, struct codegen_function *cf) {
+static void enter_function(struct codegen *C, struct codegen_controller *N, struct codegen_function *cf) {
     if (C->current_function != NULL) {
         C->current_function->stack_next = cf;
     }
@@ -329,7 +329,11 @@ static void enter_function(struct codegen *C, struct codegen_function *cf) {
     C->current_function = cf;
 
     if (cf->process) {
-        mapi_error(C->U, "codegen recursion");
+        if (N != NULL) {
+            codegen_error(N, "codegen recursion");
+        } else {
+            mapi_error(C->U, "codegen recursion");
+        }
     }
 
     cf->process = true;
@@ -358,7 +362,11 @@ static void enter_function(struct codegen *C, struct codegen_function *cf) {
         }
 
         if (count > 1) {
-            mapi_error(C->U, "arguments duplicates");
+            if (N != NULL) {
+                codegen_error(N, "arguments duplicates");
+            } else {
+                mapi_error(C->U, "arguments duplicates");
+            }
         }
     }
 
@@ -372,7 +380,11 @@ static void enter_function(struct codegen *C, struct codegen_function *cf) {
         }
 
         if (count > 1) {
-            mapi_error(C->U, "static duplicates");
+            if (N != NULL) {
+                codegen_error(N, "static duplicates");
+            } else {
+                mapi_error(C->U, "static duplicates");
+            }
         }
     }
 
@@ -386,13 +398,21 @@ static void enter_function(struct codegen *C, struct codegen_function *cf) {
         }
 
         if (count > 1) {
-            mapi_error(C->U, "closure duplicates");
+            if (N != NULL) {
+                codegen_error(N, "closure duplicates");
+            } else {
+                mapi_error(C->U, "closure duplicates");
+            }
         }
 
         struct codegen_variable_info info = deep_variable(C, closure, cf->stack_prev);
 
         if (info.type == CVT_NOT_FOUND) {
-            mapi_error(C->U, "closure not found");
+            if (N != NULL) {
+                codegen_error(N, "closure not found");
+            } else {
+                mapi_error(C->U, "closure not found");
+            }
         } else {
             *stack_closure_push(
                 C->U,
@@ -412,12 +432,43 @@ static void exit_function(struct codegen *C) {
     }
 }
 
+static struct codegen_scope *get_anchor_scope(struct codegen_controller *N) {
+    struct stack_scope stack = N->C->current_function->scopes_stack;
+    stack_iterator(stack, index) {
+        struct codegen_scope *scope = stack_it_invert(stack, index);
+
+        if (scope->break_continue_inited) {
+            return scope;
+        }
+    }
+
+    codegen_error(N, "block anchors aren't initialized");
+}
+
 morphine_coroutine_t codegen_U(struct codegen_controller *N) {
     return N->C->U;
 }
 
 morphine_noret void codegen_error(struct codegen_controller *N, const char *str) {
-    mapi_error(N->C->U, str);
+    mapi_errorf(N->C->U, "line %"MLIMIT_LINE_PR": %s", visitor_line(N->visitor_controller), str);
+}
+
+morphine_noret void codegen_errorf(struct codegen_controller *N, const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    mapi_push_stringv(N->C->U, str, args);
+    va_end(args);
+
+    mapi_errorf(
+        N->C->U,
+        "line %"MLIMIT_LINE_PR": %s",
+        visitor_line(N->visitor_controller),
+        mapi_get_string(N->C->U)
+    );
+}
+
+struct strtable_entry codegen_string(struct codegen_controller *N, strtable_index_t index) {
+    return strtable_get(N->C->U, N->C->T, index);
 }
 
 bool codegen_save(struct codegen_controller *N, size_t size, void **container) {
@@ -469,7 +520,7 @@ morphine_noret void codegen_visit_function(
         codegen_error(N, "function not found");
     }
 
-    enter_function(N->C, cf);
+    enter_function(N->C, N, cf);
 
     visitor_function(N->visitor_controller, state, function);
 }
@@ -544,51 +595,19 @@ void codegen_init_break_continue(struct codegen_controller *N) {
 }
 
 void codegen_break_change(struct codegen_controller *N) {
-    struct codegen_scope *scope = stack_scope_peek(
-        N->C->U, &N->C->current_function->scopes_stack
-    );
-
-    if (!scope->break_continue_inited) {
-        codegen_error(N, "block anchors aren't initialized");
-    }
-
-    codegen_anchor_change(N, scope->break_anchor);
+    codegen_anchor_change(N, get_anchor_scope(N)->break_anchor);
 }
 
 void codegen_continue_change(struct codegen_controller *N) {
-    struct codegen_scope *scope = stack_scope_peek(
-        N->C->U, &N->C->current_function->scopes_stack
-    );
-
-    if (!scope->break_continue_inited) {
-        codegen_error(N, "block anchors aren't initialized");
-    }
-
-    codegen_anchor_change(N, scope->continue_anchor);
+    codegen_anchor_change(N, get_anchor_scope(N)->continue_anchor);
 }
 
 struct codegen_argument_anchor codegen_break_get(struct codegen_controller *N) {
-    struct codegen_scope *scope = stack_scope_peek(
-        N->C->U, &N->C->current_function->scopes_stack
-    );
-
-    if (!scope->break_continue_inited) {
-        codegen_error(N, "block anchors aren't initialized");
-    }
-
-    return scope->break_anchor;
+    return get_anchor_scope(N)->break_anchor;
 }
 
 struct codegen_argument_anchor codegen_continue_get(struct codegen_controller *N) {
-    struct codegen_scope *scope = stack_scope_peek(
-        N->C->U, &N->C->current_function->scopes_stack
-    );
-
-    if (!scope->break_continue_inited) {
-        codegen_error(N, "block anchors aren't initialized");
-    }
-
-    return scope->continue_anchor;
+    return get_anchor_scope(N)->continue_anchor;
 }
 
 struct codegen_argument_slot codegen_temporary(struct codegen_controller *N) {
@@ -888,7 +907,7 @@ struct codegen *codegen(morphine_coroutine_t U, struct strtable *T, struct ast *
         mapi_error(U, "empty ast");
     }
 
-    enter_function(C, main);
+    enter_function(C, NULL, main);
 
     visitor_setup(U, V, visit, C);
     return C;
@@ -1040,7 +1059,7 @@ static inline void load_constants(
                         break;
                     }
 
-                    index++;
+                    fun_index++;
                     current = current->prev;
                 }
 

@@ -98,6 +98,8 @@ void codegen_instruction(
 
 morphine_coroutine_t codegen_U(struct codegen_controller *);
 morphine_noret void codegen_error(struct codegen_controller *, const char *);
+morphine_noret void codegen_errorf(struct codegen_controller *, const char *, ...);
+struct strtable_entry codegen_string(struct codegen_controller *, strtable_index_t);
 bool codegen_save(struct codegen_controller *, size_t, void **);
 morphine_noret void codegen_visit_next(struct codegen_controller *, size_t state);
 morphine_noret void codegen_visit_return(struct codegen_controller *);

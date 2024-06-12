@@ -85,23 +85,23 @@ static void get_variable(
     switch (info.type) {
         case CVT_VARIABLE:
             codegen_instruction_MOVE(N, info.variable, result);
-            codegen_visit_return(N);
+            break;
         case CVT_ARGUMENT:
             codegen_instruction_ARG(N, info.argument, result);
-            codegen_visit_return(N);
+            break;
         case CVT_RECURSION:
             codegen_instruction_RECURSION(N, result);
-            codegen_visit_return(N);
+            break;
         case CVT_CLOSURE:
             codegen_instruction_RECURSION(N, result);
-            codegen_instruction_GET_STATIC(N, result, info.closure, result);
-            codegen_visit_return(N);
+            codegen_instruction_GET_CLOSURE(N, result, info.closure, result);
+            break;
         case CVT_STATIC:
             codegen_instruction_RECURSION(N, result);
             codegen_instruction_GET_STATIC(N, result, info.static_variable, result);
-            codegen_visit_return(N);
+            break;
         default:
-            codegen_error(N, "variable not found");
+            codegen_errorf(N, "variable %s not found", codegen_string(N, variable).string);
     }
 }
 
@@ -115,7 +115,7 @@ static void set_variable(
     struct codegen_variable_info info = codegen_get_variable(N, variable);
 
     if (!ignore_mutable && !info.mutable) {
-        codegen_error(N, "immutable variable");
+        codegen_errorf(N, "immutable variable %s", codegen_string(N, variable).string);
     }
 
     switch (info.type) {
@@ -147,7 +147,7 @@ static void set_variable(
             break;
         }
         default:
-            codegen_error(N, "variable not found");
+            codegen_errorf(N, "variable %s not found", codegen_string(N, variable).string);
     }
 }
 
@@ -434,7 +434,7 @@ gen_func_dec(statement, iterator) {
                 codegen_declare_variable(N, iterator->name, false);
                 set_variable(N, iterator->name, true, data->container, NULL);
 
-                codegen_visit_next(N, 3);
+                codegen_visit_next(N, 4);
             } else {
                 for (size_t i = 0; i < iterator->size; i++) {
                     codegen_declare_variable(N, iterator->multi.names[i], false);
@@ -459,7 +459,7 @@ gen_func_dec(statement, iterator) {
             codegen_visit_next(N, 2);
         }
         case 4: {
-            codegen_visit_statement(N, iterator->statement, 4);
+            codegen_visit_statement(N, iterator->statement, 5);
         }
         case 5: {
             codegen_instruction_JUMP(N, codegen_continue_get(N));
@@ -478,6 +478,7 @@ struct gen_sif_data {
     struct codegen_argument_slot slot;
     struct codegen_argument_anchor anchor_if;
     struct codegen_argument_anchor anchor_else;
+    struct codegen_argument_anchor anchor_exit;
 };
 
 gen_func_dec_named(statement, if, sif) {
@@ -491,6 +492,7 @@ gen_func_dec_named(statement, if, sif) {
             data->slot = codegen_temporary(N);
             data->anchor_if = codegen_anchor(N);
             data->anchor_else = codegen_anchor(N);
+            data->anchor_exit = codegen_anchor(N);
 
             codegen_visit_expression(N, sif->if_condition, data->slot, 1);
         }
@@ -500,15 +502,14 @@ gen_func_dec_named(statement, if, sif) {
             codegen_visit_statement(N, sif->if_statement, 2);
         }
         case 2: {
+            codegen_instruction_JUMP(N, data->anchor_exit);
             codegen_anchor_change(N, data->anchor_else);
 
             if (data->index < sif->size) {
                 data->anchor_if = codegen_anchor(N);
                 data->anchor_else = codegen_anchor(N);
 
-                size_t index = data->index;
-                data->index++;
-                codegen_visit_expression(N, sif->elif_conditions[index], data->slot, 3);
+                codegen_visit_expression(N, sif->elif_conditions[data->index], data->slot, 3);
             } else if (sif->else_statement != NULL) {
                 codegen_visit_statement(N, sif->else_statement, 4);
             } else {
@@ -518,10 +519,15 @@ gen_func_dec_named(statement, if, sif) {
         case 3: {
             codegen_instruction_JUMP_IF(N, data->slot, data->anchor_if, data->anchor_else);
             codegen_anchor_change(N, data->anchor_if);
-            codegen_visit_statement(N, sif->elif_statements[data->index], 2);
+
+            size_t index = data->index;
+            data->index++;
+            codegen_visit_statement(N, sif->elif_statements[index], 2);
         }
-        case 4:
+        case 4: {
+            codegen_anchor_change(N, data->anchor_exit);
             codegen_visit_return(N);
+        }
         default:
             break;
     }
@@ -836,6 +842,7 @@ gen_func_dec(expression, increment) {
 gen_func_dec(expression, variable) {
     (void) state;
     get_variable(N, variable->index, codegen_result(N));
+    codegen_visit_return(N);
 }
 
 gen_func_dec(expression, global) {
@@ -1151,6 +1158,7 @@ struct gen_eif_data {
     size_t index;
     struct codegen_argument_anchor anchor_if;
     struct codegen_argument_anchor anchor_else;
+    struct codegen_argument_anchor anchor_exit;
 };
 
 gen_func_dec_named(expression, if, eif) {
@@ -1163,6 +1171,7 @@ gen_func_dec_named(expression, if, eif) {
         case 0: {
             data->anchor_if = codegen_anchor(N);
             data->anchor_else = codegen_anchor(N);
+            data->anchor_exit = codegen_anchor(N);
 
             codegen_visit_expression(N, eif->if_condition, codegen_result(N), 1);
         }
@@ -1172,15 +1181,13 @@ gen_func_dec_named(expression, if, eif) {
             codegen_visit_expression(N, eif->if_expression, codegen_result(N), 2);
         }
         case 2: {
+            codegen_instruction_JUMP(N, data->anchor_exit);
             codegen_anchor_change(N, data->anchor_else);
 
             if (data->index < eif->size) {
                 data->anchor_if = codegen_anchor(N);
                 data->anchor_else = codegen_anchor(N);
-
-                size_t index = data->index;
-                data->index++;
-                codegen_visit_expression(N, eif->elif_conditions[index], codegen_result(N), 3);
+                codegen_visit_expression(N, eif->elif_conditions[data->index], codegen_result(N), 3);
             } else {
                 codegen_visit_expression(N, eif->else_expression, codegen_result(N), 4);
             }
@@ -1188,10 +1195,15 @@ gen_func_dec_named(expression, if, eif) {
         case 3: {
             codegen_instruction_JUMP_IF(N, codegen_result(N), data->anchor_if, data->anchor_else);
             codegen_anchor_change(N, data->anchor_if);
-            codegen_visit_expression(N, eif->elif_expressions[data->index], codegen_result(N), 2);
+
+            size_t index = data->index;
+            data->index++;
+            codegen_visit_expression(N, eif->elif_expressions[index], codegen_result(N), 2);
         }
-        case 4:
+        case 4: {
+            codegen_anchor_change(N, data->anchor_exit);
             codegen_visit_return(N);
+        }
         default:
             break;
     }
