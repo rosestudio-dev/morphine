@@ -176,7 +176,7 @@ void execute(
     }
 
     if (run) {
-        mapi_vector_peek(U);
+        mapi_vector_peek_front(U);
 
         mapi_rotate(U, 2);
         mapi_pop(U, 1);

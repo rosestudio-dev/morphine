@@ -90,9 +90,10 @@ struct expression {
 
 struct ast;
 
-struct ast *ast(morphine_coroutine_t);
+struct ast *ast(morphine_coroutine_t, strtable_index_t main_name);
 struct ast *get_ast(morphine_coroutine_t);
 
+strtable_index_t ast_get_main_name(struct ast *);
 struct ast_function *ast_functions(struct ast *);
 
 struct expression *ast_node_as_expression(morphine_coroutine_t, struct ast_node *);

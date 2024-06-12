@@ -10,6 +10,8 @@
 struct ast {
     struct ast_node *nodes;
     struct ast_function *functions;
+
+    strtable_index_t main_name;
 };
 
 static void ast_free(morphine_instance_t I, void *p) {
@@ -30,12 +32,13 @@ static void ast_free(morphine_instance_t I, void *p) {
     }
 }
 
-struct ast *ast(morphine_coroutine_t U) {
+struct ast *ast(morphine_coroutine_t U, strtable_index_t main_name) {
     struct ast *A = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct ast));
 
     *A = (struct ast) {
         .nodes = NULL,
-        .functions = NULL
+        .functions = NULL,
+        .main_name = main_name
     };
 
     mapi_userdata_set_free(U, ast_free);
@@ -49,6 +52,10 @@ struct ast *get_ast(morphine_coroutine_t U) {
     } else {
         mapi_error(U, "expected "MORPHINE_TYPE);
     }
+}
+
+strtable_index_t ast_get_main_name(struct ast *A) {
+    return A->main_name;
 }
 
 struct ast_function *ast_functions(struct ast *A) {

@@ -1022,6 +1022,7 @@ static inline void load_instructions(
 static inline void load_constants(
     morphine_coroutine_t U,
     struct strtable *T,
+    ml_size count,
     struct codegen_function *pool,
     struct codegen_function *function
 ) {
@@ -1068,7 +1069,7 @@ static inline void load_constants(
                 }
 
                 mapi_peek(U, 1);
-                mapi_vector_get(U, fun_index);
+                mapi_vector_get(U, count - fun_index - 1);
                 mapi_rotate(U, 2);
                 mapi_pop(U, 1);
 
@@ -1134,7 +1135,7 @@ void codegen_construct(morphine_coroutine_t U, struct codegen *C) {
 
         load_instructions(U, function, variables);
 
-        mapi_vector_set(U, index);
+        mapi_vector_set(U, count - index - 1);
 
         index++;
         function = function->prev;
@@ -1143,8 +1144,8 @@ void codegen_construct(morphine_coroutine_t U, struct codegen *C) {
     index = 0;
     function = C->functions;
     while (function != NULL) {
-        mapi_vector_get(U, index);
-        load_constants(U, C->T, C->functions, function);
+        mapi_vector_get(U, count - index - 1);
+        load_constants(U, C->T, count, C->functions, function);
         mapi_function_complete(U);
         mapi_pop(U, 1);
 

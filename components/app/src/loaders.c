@@ -32,7 +32,7 @@ static size_t file_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, 
 void loader_source_file(morphine_coroutine_t U, const char *path) {
     const char *source = userdata_readfile(U, path);
 
-    mcapi_compile(U, source, strlen(source));
+    mcapi_compile(U, "main", source, strlen(source));
 
     mapi_rotate(U, 2);
     mapi_pop(U, 1);

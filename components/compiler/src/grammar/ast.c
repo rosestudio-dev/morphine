@@ -26,7 +26,8 @@ struct ast_node *assemble_ast(morphine_coroutine_t U, struct ast *A, struct elem
     struct ast_function *function = ast_create_function(U, A, 0, 0, 0);
     function->line = 1;
     function->recursive = false;
-    function->anonymous = true;
+    function->anonymous = false;
+    function->name = ast_get_main_name(A);
     function->auto_closure = false;
     function->body = ast_as_statement(block);
 
