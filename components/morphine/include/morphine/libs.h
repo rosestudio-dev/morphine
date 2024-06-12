@@ -6,6 +6,7 @@
 
 #include "platform.h"
 #include "config.h"
+#include "libs/require.h"
 
 MORPHINE_LIB void mlib_base_call(morphine_coroutine_t, const char *name, ml_size argc);
 MORPHINE_LIB void mlib_value_call(morphine_coroutine_t, const char *name, ml_size argc);
@@ -18,3 +19,4 @@ MORPHINE_LIB void mlib_userdata_call(morphine_coroutine_t, const char *name, ml_
 MORPHINE_LIB void mlib_vector_call(morphine_coroutine_t, const char *name, ml_size argc);
 MORPHINE_LIB void mlib_registry_call(morphine_coroutine_t, const char *name, ml_size argc);
 MORPHINE_LIB void mlib_sio_call(morphine_coroutine_t, const char *name, ml_size argc);
+MORPHINE_LIB void mlib_bitwise_call(morphine_coroutine_t, const char *name, ml_size argc);

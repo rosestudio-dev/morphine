@@ -3,10 +3,10 @@
 //
 
 #include <string.h>
-#include "require.h"
+#include "morphine/libs/require.h"
+#include "morphine/api.h"
 #include "morphine/core/instance.h"
 #include "morphine/libs/loader.h"
-#include "morphine/api.h"
 #include "morphine/auxiliary.h"
 
 static struct require_loader table[] = {
@@ -21,6 +21,7 @@ static struct require_loader table[] = {
     { "value",     mlib_value_loader },
     { "registry",  mlib_registry_loader },
     { "sio",       mlib_sio_loader },
+    { "bitwise",   mlib_bitwise_loader },
     { NULL, NULL }
 };
 
@@ -37,23 +38,21 @@ static inline struct require_loader *search(struct require_loader *loader, const
     return NULL;
 }
 
-void require(morphine_coroutine_t U) {
+MORPHINE_LIB void mlib_require(morphine_coroutine_t U) {
     nb_function(U)
         nb_init
-            size_t args = mapi_args(U);
+            bool force = false;
+            if(mapi_args(U) == 2) {
+                mapi_push_arg(U, 1);
+                force = mapi_get_boolean(U);
+            } else {
+                maux_expect_args(U, 1);
+            }
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
             const char *id = mapi_get_string(U);
 
             bool has = mapi_registry_get(U);
-            bool force = false;
-            if (args > 1) {
-                maux_expect_args(U, 2);
-                mapi_push_arg(U, 1);
-                maux_expect(U, "boolean");
-                force = mapi_get_boolean(U);
-            }
 
             if (!has | force) {
                 mapi_pop(U, 1);

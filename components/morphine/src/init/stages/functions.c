@@ -3,7 +3,7 @@
 //
 
 #include "impl.h"
-#include "functions/require.h"
+#include "morphine/libs/require.h"
 #include "morphine/core/instance.h"
 #include "morphine/misc/registry.h"
 #include "morphine/object/table.h"
@@ -12,7 +12,7 @@
 
 static void init_require(morphine_instance_t I) {
     struct value name = valueI_object(stringI_create(I, "require"));
-    struct value native = valueI_object(nativeI_create(I, "require", require));
+    struct value native = valueI_object(nativeI_create(I, "require", mlib_require));
     registryI_set_key(I, native, name);
     tableI_set(I, I->env, name, native);
 }
