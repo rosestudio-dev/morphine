@@ -12,11 +12,11 @@
 MORPHINE_API const char *mapi_version(void);
 MORPHINE_API int mapi_version_code(void);
 
-MORPHINE_API morphine_instance_t mapi_open(struct platform, struct settings, void *data);
+MORPHINE_API morphine_instance_t mapi_open(morphine_platform_t, morphine_settings_t, void *data);
 MORPHINE_API void *mapi_instance_data(morphine_instance_t);
 MORPHINE_API void mapi_interpreter(morphine_instance_t);
 MORPHINE_API void mapi_close(morphine_instance_t);
-MORPHINE_API void mapi_userlibs(morphine_instance_t, struct require_loader *table);
+MORPHINE_API void mapi_userlibs(morphine_instance_t, morphine_require_entry_t *);
 
 MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t);
 MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t);

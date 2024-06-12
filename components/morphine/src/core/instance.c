@@ -8,7 +8,7 @@
 #include "morphine/gc/control.h"
 #include "morphine/object/sio.h"
 
-morphine_instance_t instanceI_open(struct platform platform, struct settings settings, void *data) {
+morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settings_t settings, void *data) {
     if (sizeof(struct instance) >= settings.gc.limit_bytes) {
         platform.functions.signal(NULL);
     }
@@ -23,7 +23,7 @@ morphine_instance_t instanceI_open(struct platform platform, struct settings set
         .platform = platform,
         .settings = settings,
         .E = interpreterI_prototype(),
-        .require_loader_table = NULL,
+        .require_table = NULL,
         .data = data,
         .env = NULL,
         .registry = NULL,
@@ -47,6 +47,6 @@ void instanceI_close(morphine_instance_t I) {
     I->platform.functions.free(I);
 }
 
-void instanceI_require_table(morphine_instance_t I, struct require_loader *table) {
-    I->require_loader_table = table;
+void instanceI_require_table(morphine_instance_t I, morphine_require_entry_t *table) {
+    I->require_table = table;
 }

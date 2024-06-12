@@ -9,7 +9,7 @@
 #include "morphine/libs/loader.h"
 #include "morphine/auxiliary.h"
 
-static struct require_loader table[] = {
+static morphine_require_entry_t table[] = {
     { "base",      mlib_base_loader },
     { "gc",        mlib_gc_loader },
     { "coroutine", mlib_coroutine_loader },
@@ -25,8 +25,8 @@ static struct require_loader table[] = {
     { NULL, NULL }
 };
 
-static inline struct require_loader *search(struct require_loader *loader, const char *str_id) {
-    struct require_loader *current = loader;
+static inline morphine_require_entry_t *search(morphine_require_entry_t *entries, const char *str_id) {
+    morphine_require_entry_t *current = entries;
     while (current->name != NULL) {
         if (strcmp(str_id, current->name) == 0) {
             return current;
@@ -57,9 +57,9 @@ MORPHINE_LIB void mlib_require(morphine_coroutine_t U) {
             if (!has | force) {
                 mapi_pop(U, 1);
 
-                struct require_loader *result = search(table, id);
-                if (result == NULL && mapi_instance(U)->require_loader_table != NULL) {
-                    result = search(mapi_instance(U)->require_loader_table, id);
+                morphine_require_entry_t *result = search(table, id);
+                if (result == NULL && mapi_instance(U)->require_table != NULL) {
+                    result = search(mapi_instance(U)->require_table, id);
                 }
 
                 if (result == NULL) {

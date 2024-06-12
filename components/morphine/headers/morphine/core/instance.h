@@ -11,9 +11,9 @@
 #include "morphine/misc/metatable.h"
 
 struct instance {
-    struct platform platform;
-    struct settings settings;
-    struct require_loader *require_loader_table;
+    morphine_platform_t platform;
+    morphine_settings_t settings;
+    morphine_require_entry_t *require_table;
     void *data;
 
     struct garbage_collector G;
@@ -33,7 +33,7 @@ struct instance {
     } sio;
 };
 
-morphine_instance_t instanceI_open(struct platform, struct settings, void *data);
+morphine_instance_t instanceI_open(morphine_platform_t, morphine_settings_t, void *data);
 void instanceI_close(morphine_instance_t);
 
-void instanceI_require_table(morphine_instance_t, struct require_loader *table);
+void instanceI_require_table(morphine_instance_t, morphine_require_entry_t *);

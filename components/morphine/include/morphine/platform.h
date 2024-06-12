@@ -48,7 +48,7 @@ typedef struct {
 
 // platform
 
-struct platform {
+typedef struct {
     struct {
         void *(*malloc)(size_t);
         void *(*realloc)(void *, size_t);
@@ -58,29 +58,29 @@ struct platform {
 
     morphine_sio_interface_t sio_io_interface;
     morphine_sio_interface_t sio_error_interface;
-};
+} morphine_platform_t;
 
-struct gc_settings {
+typedef struct {
     size_t limit_bytes;
     size_t threshold;
     uint16_t grow;
     uint16_t deal;
     uint8_t pause;
     size_t cache_callinfo_holding;
-};
+} morphine_gc_settings_t;
 
-struct coroutine_settings {
+typedef struct {
     size_t stack_limit;
     size_t stack_grow;
-};
+} morphine_coroutine_settings_t;
 
-struct settings {
-    struct gc_settings gc;
-    struct coroutine_settings states;
-    struct coroutine_settings finalizer;
-};
+typedef struct {
+    morphine_gc_settings_t gc;
+    morphine_coroutine_settings_t states;
+    morphine_coroutine_settings_t finalizer;
+} morphine_settings_t;
 
-struct require_loader {
+typedef struct {
     const char *name;
     void (*loader)(morphine_coroutine_t);
-};
+} morphine_require_entry_t;

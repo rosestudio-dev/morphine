@@ -23,7 +23,7 @@
  * ## mapi_open
  * ### Prototype
  * ```c
- * morphine_instance_t mapi_open(struct platform platform, struct settings settings, void *data)
+ * morphine_instance_t mapi_open(morphine_platform_t platform, morphine_settings_t settings, void *data)
  * ```
  * ### Parameters
  * * `platform` - struct of platform
@@ -35,7 +35,7 @@
  * Creates vm instance
  * {{end}}
  */
-MORPHINE_API morphine_instance_t mapi_open(struct platform platform, struct settings settings, void *data) {
+MORPHINE_API morphine_instance_t mapi_open(morphine_platform_t platform, morphine_settings_t settings, void *data) {
     return instanceI_open(platform, settings, data);
 }
 
@@ -101,7 +101,7 @@ MORPHINE_API void mapi_close(morphine_instance_t I) {
  * ## mapi_userlibs
  * ### Prototype
  * ```c
- * void mapi_userlibs(morphine_instance_t I, struct require_loader *table)
+ * void mapi_userlibs(morphine_instance_t I, struct morphine_require_entry_t *table)
  * ```
  * ### Parameters
  * * `I` - instance
@@ -110,7 +110,7 @@ MORPHINE_API void mapi_close(morphine_instance_t I) {
  * Sets table of users loaders
  * {{end}}
  */
-MORPHINE_API void mapi_userlibs(morphine_instance_t I, struct require_loader *table) {
+MORPHINE_API void mapi_userlibs(morphine_instance_t I, morphine_require_entry_t *table) {
     instanceI_require_table(I, table);
 }
 

@@ -12,7 +12,7 @@
 #include <stdio.h>
 #include "sio/file.h"
 
-struct require_loader userlibs[] = {
+static morphine_require_entry_t userlibs[] = {
     { "compiler", mclib_compiler_loader },
     { NULL, NULL }
 };
@@ -102,7 +102,7 @@ void execute(
         return;
     }
 
-    struct settings settings = {
+    morphine_settings_t settings = {
         .gc.limit_bytes = alloc_limit,
         .gc.threshold = 16384,
         .gc.grow = 150,
@@ -137,7 +137,7 @@ void execute(
         .eos = NULL
     };
 
-    struct platform instance_platform = {
+    morphine_platform_t instance_platform = {
         .functions.malloc = malloc,
         .functions.realloc = realloc,
         .functions.free = free,
