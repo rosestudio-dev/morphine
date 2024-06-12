@@ -7,34 +7,34 @@
 #include "morphine/libs/loader.h"
 
 static void kill(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
             mapi_coroutine_kill(coroutine);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void status(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
             mapi_push_stringf(U, mapi_coroutine_status(coroutine));
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void priority(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
@@ -44,13 +44,13 @@ static void priority(morphine_coroutine_t U) {
             maux_expect(U, "integer");
             ml_integer priority = mapi_get_integer(U);
             mapi_coroutine_priority(coroutine, (priority_t) priority);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void wait(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
@@ -58,42 +58,42 @@ static void wait(morphine_coroutine_t U) {
 
             if (mapi_coroutine_is_alive(coroutine)) {
                 mapi_pop(U, 2);
-                nb_continue(0);
+                maux_nb_continue(0);
             } else {
-                nb_leave();
+                maux_nb_leave();
             }
-    nb_end
+    maux_nb_end
 }
 
 static void suspend(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
             mapi_coroutine_suspend(coroutine);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void resume(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
             mapi_coroutine_resume(coroutine);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void launch(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
@@ -108,13 +108,13 @@ static void launch(morphine_coroutine_t U) {
             mapi_callself(coroutine, mapi_args(U) - 1);
 
             mapi_attach(coroutine);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void create(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "callable");
@@ -123,13 +123,13 @@ static void create(morphine_coroutine_t U) {
             mapi_copy(U, coroutine, 0);
             mapi_rotate(U, 2);
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void guardlock(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 0);
             mapi_push_self(U);
             maux_expect(U, "table");
@@ -142,26 +142,26 @@ static void guardlock(morphine_coroutine_t U) {
                 mapi_pop(U, 1);
             }
 
-            nb_immediately_continue(1);
-        nb_immediately_state(1)
+            maux_nb_immediately_continue(1);
+        maux_nb_immediately_state(1)
             mapi_push_string(U, "islocked");
             mapi_table_getoe(U);
             if (mapi_get_boolean(U)) {
                 mapi_pop(U, 1);
-                nb_continue(1);
+                maux_nb_continue(1);
             } else {
                 mapi_pop(U, 1);
                 mapi_push_string(U, "islocked");
                 mapi_push_boolean(U, true);
                 mapi_table_set(U);
-                nb_leave();
+                maux_nb_leave();
             }
-    nb_end
+    maux_nb_end
 }
 
 static void guardunlock(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 0);
             mapi_push_self(U);
             maux_expect(U, "table");
@@ -177,13 +177,13 @@ static void guardunlock(morphine_coroutine_t U) {
             mapi_push_string(U, "islocked");
             mapi_push_boolean(U, false);
             mapi_table_set(U);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void guard(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 0);
 
             mapi_push_table(U);
@@ -218,8 +218,8 @@ static void guard(morphine_coroutine_t U) {
             mapi_table_mode_fixed(U, true);
             mapi_table_mode_lock_metatable(U);
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static struct maux_construct_field table[] = {

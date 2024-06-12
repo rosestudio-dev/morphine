@@ -6,8 +6,8 @@
 #include "morphine/libs/loader.h"
 
 static void tostr(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
@@ -19,42 +19,42 @@ static void tostr(morphine_coroutine_t U) {
                 mlib_table_call(U, "tostr", 1);
             } else {
                 mapi_to_string(U);
-                nb_return();
+                maux_nb_return();
             }
-        nb_state(1)
+        maux_nb_state(1)
             mapi_push_result(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void toint(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_to_integer(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void todec(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_to_decimal(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void tobool(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_to_boolean(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static struct maux_construct_field table[] = {

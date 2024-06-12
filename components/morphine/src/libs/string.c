@@ -12,8 +12,8 @@ static inline bool checkblank(char c) {
 }
 
 static void substring(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -42,13 +42,13 @@ static void substring(morphine_coroutine_t U) {
             }
 
             mapi_push_stringn(U, string + start, end - start);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void chars(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -64,13 +64,13 @@ static void chars(morphine_coroutine_t U) {
                 mapi_vector_set(U, i);
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void codeat(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -89,13 +89,13 @@ static void codeat(morphine_coroutine_t U) {
             }
 
             mapi_push_integer(U, string[at]);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void charat(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -114,13 +114,13 @@ static void charat(morphine_coroutine_t U) {
             }
 
             mapi_push_stringf(U, "%c", string[at]);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void isempty(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -130,13 +130,13 @@ static void isempty(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             mapi_push_boolean(U, len == 0);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void isblankstr(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -155,13 +155,13 @@ static void isblankstr(morphine_coroutine_t U) {
             }
 
             mapi_push_boolean(U, isblank);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void repeat(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -180,13 +180,13 @@ static void repeat(morphine_coroutine_t U) {
                 mapi_string_concat(U);
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void startswith(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -204,13 +204,13 @@ static void startswith(morphine_coroutine_t U) {
             bool result = strlen >= plen && memcmp(string, prefix, plen) == 0;
 
             mapi_push_boolean(U, result);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void endswith(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -228,13 +228,13 @@ static void endswith(morphine_coroutine_t U) {
             bool result = strlen >= slen && memcmp(string + (strlen - slen), suffix, slen) == 0;
 
             mapi_push_boolean(U, result);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void tolowercase(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -256,13 +256,13 @@ static void tolowercase(morphine_coroutine_t U) {
                 mapi_push_string(U, "");
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void touppercase(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -284,13 +284,13 @@ static void touppercase(morphine_coroutine_t U) {
                 mapi_push_string(U, "");
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void split(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -308,7 +308,7 @@ static void split(morphine_coroutine_t U) {
             mapi_push_vector(U, 0);
             mapi_vector_mode_fixed(U, false);
             if (strlen < seplen) {
-                nb_return();
+                maux_nb_return();
             }
 
             size_t start = 0;
@@ -343,13 +343,13 @@ static void split(morphine_coroutine_t U) {
             }
             mapi_vector_push(U);
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void contains(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -375,13 +375,13 @@ static void contains(morphine_coroutine_t U) {
             }
 
             mapi_push_boolean(U, found);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void indexof(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -413,13 +413,13 @@ static void indexof(morphine_coroutine_t U) {
             } else {
                 mapi_push_nil(U);
             }
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void lastindexof(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -451,13 +451,13 @@ static void lastindexof(morphine_coroutine_t U) {
             } else {
                 mapi_push_nil(U);
             }
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void trim(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -494,13 +494,13 @@ static void trim(morphine_coroutine_t U) {
                 mapi_push_string(U, "");
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void trimstart(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -527,13 +527,13 @@ static void trimstart(morphine_coroutine_t U) {
                 mapi_push_string(U, "");
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void trimend(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -560,13 +560,13 @@ static void trimend(morphine_coroutine_t U) {
                 mapi_push_string(U, "");
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void replacefirst(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -586,7 +586,7 @@ static void replacefirst(morphine_coroutine_t U) {
 
             if (findlen > strlen) {
                 mapi_pop(U, 1);
-                nb_return();
+                maux_nb_return();
             }
 
             for (size_t i = 0; i <= strlen - findlen; i++) {
@@ -608,13 +608,13 @@ static void replacefirst(morphine_coroutine_t U) {
                 }
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void replacelast(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -634,7 +634,7 @@ static void replacelast(morphine_coroutine_t U) {
 
             if (findlen > strlen) {
                 mapi_pop(U, 1);
-                nb_return();
+                maux_nb_return();
             }
 
             bool found = false;
@@ -662,13 +662,13 @@ static void replacelast(morphine_coroutine_t U) {
                 mapi_string_concat(U);
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void replace(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -688,7 +688,7 @@ static void replace(morphine_coroutine_t U) {
 
             if (findlen > strlen) {
                 mapi_pop(U, 1);
-                nb_return();
+                maux_nb_return();
             }
 
             bool found = false;
@@ -740,13 +740,13 @@ static void replace(morphine_coroutine_t U) {
                 mapi_pop(U, 1);
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void format(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -842,8 +842,8 @@ static void format(morphine_coroutine_t U) {
                 mapi_pop(U, 1);
             }
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static struct maux_construct_field table[] = {

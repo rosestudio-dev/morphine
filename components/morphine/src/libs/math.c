@@ -11,22 +11,22 @@
 
 #define math_func_1(name) \
 static void math_##name(morphine_coroutine_t U) { \
-    nb_function(U) \
-        nb_init \
+    maux_nb_function(U) \
+        maux_nb_init \
             maux_expect_args(U, 1); \
             mapi_push_arg(U, 0); \
             mapi_to_decimal(U); \
             ml_decimal a = mapi_get_decimal(U); \
             mapi_pop(U, 1); \
             mapi_push_decimal(U, name(a)); \
-            nb_return(); \
-    nb_end \
+            maux_nb_return(); \
+    maux_nb_end \
 }
 
 #define math_func_2(name) \
 static void math_##name(morphine_coroutine_t U) { \
-    nb_function(U) \
-        nb_init \
+    maux_nb_function(U) \
+        maux_nb_init \
             maux_expect_args(U, 2); \
             mapi_push_arg(U, 0); \
             mapi_to_decimal(U); \
@@ -36,8 +36,8 @@ static void math_##name(morphine_coroutine_t U) { \
             ml_decimal b = mapi_get_decimal(U); \
             mapi_pop(U, 2); \
             mapi_push_decimal(U, name(a, b)); \
-            nb_return(); \
-    nb_end \
+            maux_nb_return(); \
+    maux_nb_end \
 }
 
 /*
@@ -156,8 +156,8 @@ math_func_1(fabs)
  */
 
 static void math_modf(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -178,13 +178,13 @@ static void math_modf(morphine_coroutine_t U) {
             mapi_push_decimal(U, fraction);
             mapi_table_set(U);
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void math_rad(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -193,13 +193,13 @@ static void math_rad(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             mapi_push_decimal(U, a * PI_CONST / 180);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void math_deg(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -208,13 +208,13 @@ static void math_deg(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             mapi_push_decimal(U, a * 180 / PI_CONST);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void math_imax(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -228,13 +228,13 @@ static void math_imax(morphine_coroutine_t U) {
             mapi_pop(U, 2);
 
             mapi_push_integer(U, a > b ? a : b);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void math_imin(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -248,13 +248,13 @@ static void math_imin(morphine_coroutine_t U) {
             mapi_pop(U, 2);
 
             mapi_push_integer(U, a > b ? b : a);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void math_dmax(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -268,13 +268,13 @@ static void math_dmax(morphine_coroutine_t U) {
             mapi_pop(U, 2);
 
             mapi_push_decimal(U, a > b ? a : b);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void math_dmin(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -288,13 +288,13 @@ static void math_dmin(morphine_coroutine_t U) {
             mapi_pop(U, 2);
 
             mapi_push_decimal(U, a > b ? b : a);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void math_isnan(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -304,13 +304,13 @@ static void math_isnan(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             mapi_push_boolean(U, isnan(a));
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void math_isinf(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -320,8 +320,8 @@ static void math_isinf(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             mapi_push_boolean(U, isinf(a));
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static struct maux_construct_field table[] = {

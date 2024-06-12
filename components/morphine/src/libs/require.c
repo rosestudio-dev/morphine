@@ -39,8 +39,8 @@ static inline morphine_require_entry_t *search(morphine_require_entry_t *entries
 }
 
 MORPHINE_LIB void mlib_require(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             bool force = false;
             if(mapi_args(U) == 2) {
                 mapi_push_arg(U, 1);
@@ -71,6 +71,6 @@ MORPHINE_LIB void mlib_require(morphine_coroutine_t U) {
                 mapi_peek(U, 1);
                 mapi_registry_set(U);
             }
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }

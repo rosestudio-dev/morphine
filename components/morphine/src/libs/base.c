@@ -6,22 +6,22 @@
 #include "morphine/libs/loader.h"
 
 static void version(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 0);
             mapi_push_string(U, mapi_version());
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void print(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
             mlib_value_call(U, "tostr", 1);
-        nb_state(1)
+        maux_nb_state(1)
             mapi_push_result(U);
 
             const uint8_t *string = (const uint8_t *) mapi_get_string(U);
@@ -30,13 +30,13 @@ static void print(morphine_coroutine_t U) {
             mapi_sio_write(U, string, size);
 
             mapi_pop(U, 1);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void println(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             size_t args = mapi_args(U);
             if (args == 0) {
                 mapi_push_sio_io(U);
@@ -47,7 +47,7 @@ static void println(morphine_coroutine_t U) {
             }
 
             mlib_value_call(U, "tostr", 1);
-        nb_state(1)
+        maux_nb_state(1)
             mapi_push_result(U);
 
             const uint8_t *string = (const uint8_t *) mapi_get_string(U);
@@ -57,14 +57,14 @@ static void println(morphine_coroutine_t U) {
             mapi_sio_write(U, (const uint8_t *) "\n", 1);
 
             mapi_pop(U, 1);
-            nb_leave();
-        nb_state(3)
-    nb_end
+            maux_nb_leave();
+        maux_nb_state(3)
+    maux_nb_end
 }
 
 static void setmetatable(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -72,52 +72,52 @@ static void setmetatable(morphine_coroutine_t U) {
             mapi_push_arg(U, 1);
 
             mapi_set_metatable(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void getmetatable(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
             maux_expect(U, "meta");
 
             mapi_get_metatable(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void setdefaultmetatable(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
             const char *type = mapi_type(U);
             mapi_push_arg(U, 1);
             mapi_set_default_metatable(U, type);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void getdefaultmetatable(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
             const char *type = mapi_type(U);
             mapi_pop(U, 1);
             mapi_get_default_metatable(U, type);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void scall(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             ml_size count = mapi_args(U);
 
             mapi_push_arg(U, 1);
@@ -129,15 +129,15 @@ static void scall(morphine_coroutine_t U) {
             }
 
             mapi_callself(U, count - 2);
-        nb_state(1)
+        maux_nb_state(1)
             mapi_push_result(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void pcall(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             ml_size count = mapi_args(U);
 
             mapi_push_arg(U, 0);
@@ -149,7 +149,7 @@ static void pcall(morphine_coroutine_t U) {
 
             mapi_catchable(U, 2);
             mapi_call(U, count - 1);
-        nb_state(1)
+        maux_nb_state(1)
             mapi_push_table(U);
 
             mapi_push_stringf(U, "result");
@@ -160,8 +160,8 @@ static void pcall(morphine_coroutine_t U) {
             mapi_push_nil(U);
             mapi_table_set(U);
 
-            nb_return();
-        nb_state(2)
+            maux_nb_return();
+        maux_nb_state(2)
             mapi_push_table(U);
 
             mapi_push_stringf(U, "result");
@@ -172,13 +172,13 @@ static void pcall(morphine_coroutine_t U) {
             mapi_push_thrown(U);
             mapi_table_set(U);
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void pscall(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             ml_size count = mapi_args(U);
 
             mapi_push_arg(U, 1);
@@ -191,7 +191,7 @@ static void pscall(morphine_coroutine_t U) {
 
             mapi_catchable(U, 2);
             mapi_callself(U, count - 2);
-        nb_state(1)
+        maux_nb_state(1)
             mapi_push_table(U);
 
             mapi_push_stringf(U, "result");
@@ -202,8 +202,8 @@ static void pscall(morphine_coroutine_t U) {
             mapi_push_nil(U);
             mapi_table_set(U);
 
-            nb_return();
-        nb_state(2)
+            maux_nb_return();
+        maux_nb_state(2)
             mapi_push_table(U);
 
             mapi_push_stringf(U, "result");
@@ -214,28 +214,28 @@ static void pscall(morphine_coroutine_t U) {
             mapi_push_thrown(U);
             mapi_table_set(U);
 
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void error(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_error(U, NULL);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void changeenv(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_change_env(U);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static struct maux_construct_field table[] = {

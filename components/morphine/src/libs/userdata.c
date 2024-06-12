@@ -6,40 +6,40 @@
 #include "morphine/libs/loader.h"
 
 static void ctype(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "userdata");
 
             mapi_push_string(U, mapi_userdata_type(U));
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void lockmetatable(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "userdata");
 
             mapi_userdata_mode_lock_metatable(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void metatableislocked(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "userdata");
 
             bool value = mapi_userdata_mode_metatable_is_locked(U);
             mapi_push_boolean(U, value);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static struct maux_construct_field table[] = {

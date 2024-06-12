@@ -9,8 +9,8 @@
 #include "morphinec/rollout.h"
 
 static void string(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             const char *main_name;
             if (mapi_args(U) == 2) {
                 mapi_push_arg(U, 0);
@@ -26,13 +26,13 @@ static void string(morphine_coroutine_t U) {
             size_t size = mapi_string_len(U);
 
             mcapi_compile(U, main_name, text, size);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void disassembly(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
             mapi_push_arg(U, 1);
 
@@ -61,13 +61,13 @@ static void disassembly(morphine_coroutine_t U) {
                 mapi_sio_print(U, "\n");
                 mapi_pop(U, 1);
             }
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void tobinary(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -78,28 +78,28 @@ static void tobinary(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             mcapi_to_binary(U);
-            nb_leave();
-    nb_end
+            maux_nb_leave();
+    maux_nb_end
 }
 
 static void frombinary(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mcapi_from_binary(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static void rollout(morphine_coroutine_t U) {
-    nb_function(U)
-        nb_init
+    maux_nb_function(U)
+        maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mcapi_rollout_as_vector(U);
-            nb_return();
-    nb_end
+            maux_nb_return();
+    maux_nb_end
 }
 
 static struct maux_construct_field table[] = {
