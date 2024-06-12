@@ -200,6 +200,11 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct ast *A, struct
         if (matcher_symbol(symbol_operator(TOP_LBRACKET), access_token)) {
             access_node = elements_get_reduce(E, 3).node;
             start_index = 5;
+        } else if (matcher_symbol(symbol_operator(TOP_RARROW), watch_token) && matcher_symbol(symbol_word, access_token)) {
+            struct expression_variable *variable = ast_create_expression_variable(U, A, access_token.line);
+            access_node = ast_as_node(variable);
+            variable->index = access_token.word;
+            start_index = 3;
         } else if (matcher_symbol(symbol_word, access_token)) {
             struct expression_value *value = ast_create_expression_value(U, A, access_token.line);
             access_node = ast_as_node(value);

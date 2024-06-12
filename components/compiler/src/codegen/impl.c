@@ -1034,16 +1034,20 @@ gen_func_dec(expression, call_self) {
 
     if (codegen_save(N, size, (void **) &data)) {
         data->index = 0;
-        data->args = ((void *) data) + sizeof(struct gen_call_data);
+        data->args = ((void *) data) + sizeof(struct gen_call_self_data);
     }
 
     switch (state) {
-        case 0:
+        case 0: {
+            data->slot = codegen_temporary(N);
             codegen_visit_expression(N, call_self->self, codegen_result(N), 1);
+        }
         case 1:
             codegen_visit_expression(N, call_self->callable, data->slot, 2);
         case 2: {
-            codegen_instruction_GET(N, data->slot, codegen_result(N), codegen_result(N));
+            if (call_self->extract_callable) {
+                codegen_instruction_GET(N, codegen_result(N), data->slot, data->slot);
+            }
 
             for (size_t i = 0; i < call_self->args_size; i++) {
                 data->args[i] = codegen_temporary(N);
@@ -1073,7 +1077,7 @@ gen_func_dec(expression, call_self) {
                 .count = call_self->args_size
             };
 
-            codegen_instruction_SCALL(N, codegen_result(N), count, data->slot);
+            codegen_instruction_SCALL(N, data->slot, count, codegen_result(N));
             codegen_instruction_RESULT(N, codegen_result(N));
             codegen_visit_return(N);
         }

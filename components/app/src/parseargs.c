@@ -18,20 +18,20 @@ static void help(const char *program, const char *message, bool disable_usage) {
     if (!disable_usage) {
         printf("Usage: %s [options] [program [args]]\n", program);
         printf("Positional arguments:\n");
-        printf("    program       path to program\n");
-        printf("    args          program arguments\n");
+        printf("    program         path to program\n");
+        printf("    args            program arguments\n");
         printf("Optional arguments:\n");
-        printf("    -b            Binary program\n");
-        printf("    -r            Run program\n");
-        printf("    -e            Export program\n");
-        printf("    -d            Disassembly program\n");
-        printf("    -l bytes [8M] Limit of allocation in bytes (suffixes: K, M, G)\n");
-        printf("    -m, -M        Enable executing time measure (Use uppercase for pretty printing)\n");
-        printf("    -a, -A        Use debug allocator (Use uppercase for pretty printing)\n");
-        printf("    -L bytes [8M] Limit of allocation for debug allocator in bytes (suffixes: K, M, G)\n");
-        printf("    -v            Print version\n");
-        printf("    -h            Usage info\n");
-        printf("    --            Stop handling options\n");
+        printf("    -b              Binary program\n");
+        printf("    -r              Run program\n");
+        printf("    -e              Export program\n");
+        printf("    -d              Disassembly program\n");
+        printf("    -l bytes [256M] Limit of allocation in bytes (suffixes: K, M, G)\n");
+        printf("    -m, -M          Enable executing time measure (Use uppercase for pretty printing)\n");
+        printf("    -a, -A          Use debug allocator (Use uppercase for pretty printing)\n");
+        printf("    -L bytes [256M] Limit of allocation for debug allocator in bytes (suffixes: K, M, G)\n");
+        printf("    -v              Print version\n");
+        printf("    -h              Usage info\n");
+        printf("    --              Stop handling options\n");
     }
 
     exit(1);
@@ -64,8 +64,8 @@ static size_t read_bytes(const char *str, const char *program) {
 
 struct args parseargs(int argc, char **argv) {
     struct args args = {
-        .alloc_limit = 1024 * 1024 * 8,
-        .custom_alloc_limit = 1024 * 1024 * 8,
+        .alloc_limit = 1024 * 1024 * 256,
+        .custom_alloc_limit = 1024 * 1024 * 256,
         .measure_time = false,
         .measure_time_pretty = false,
         .custom_alloc = false,
