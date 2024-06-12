@@ -7,6 +7,7 @@
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
+#include "morphine/utils/overflow.h"
 
 static inline void callstack_recover(struct coroutine *U, struct value *stack) {
     struct callinfo *current = U->callstack.callinfo;
@@ -117,7 +118,9 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
 
         size_t new_size = stack->size + grow;
 
-        if (unlikely(grow > SIZE_MAX - stack->size || new_size >= U->stack.settings.limit)) {
+        if (unlikely(
+            overflow_condition_add(grow, stack->size, SIZE_MAX) ||
+            new_size >= U->stack.settings.limit)) {
             throwI_error(I, "Stack overflow");
         }
 

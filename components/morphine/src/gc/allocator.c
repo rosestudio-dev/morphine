@@ -6,6 +6,7 @@
 #include "morphine/core/instance.h"
 #include "morphine/gc/control.h"
 #include "morphine/gc/allocator.h"
+#include "morphine/utils/overflow.h"
 
 struct metadata {
     size_t size;
@@ -15,28 +16,28 @@ static inline void change_allocated_size(morphine_instance_t I, size_t grow_size
     size_t alloc = I->G.bytes.allocated;
 
     if (plus) {
-        if ((SIZE_MAX - alloc) >= grow_size) {
-            I->G.bytes.allocated += grow_size;
-        } else {
+        overflow_add(alloc, grow_size, SIZE_MAX) {
             throwI_panic(I, "Allocation size overflow");
         }
+
+        I->G.bytes.allocated += grow_size;
     } else {
-        if (alloc >= grow_size) {
-            I->G.bytes.allocated -= grow_size;
-        } else {
+        overflow_sub(alloc, grow_size, 0) {
             throwI_panic(I, "Allocation size corrupted");
         }
+
+        I->G.bytes.allocated -= grow_size;
     }
 }
 
-static inline void calculate_max_alloc_size(morphine_instance_t I) {
+static inline void update_max_alloc_size(morphine_instance_t I) {
     if (I->G.bytes.max_allocated < I->G.bytes.allocated) {
         I->G.bytes.max_allocated = I->G.bytes.allocated;
     }
 }
 
 static inline size_t safe_mul(morphine_instance_t I, size_t a, size_t b) {
-    if (a > SIZE_MAX / b) {
+    overflow_mul(a, b, SIZE_MAX) {
         throwI_error(I, "Allocation overflow");
     }
 
@@ -44,7 +45,7 @@ static inline size_t safe_mul(morphine_instance_t I, size_t a, size_t b) {
 }
 
 static inline size_t safe_add(morphine_instance_t I, size_t a, size_t b) {
-    if (a > SIZE_MAX - b) {
+    overflow_add(a, b, SIZE_MAX) {
         throwI_error(I, "Allocation overflow");
     }
 
@@ -64,7 +65,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
     nsize = safe_add(I, nsize, sizeof(struct metadata));
 
     struct metadata *result;
-    if (likely(p == NULL)) {
+    if (p == NULL) {
         gcI_work(I, nsize);
 
         change_allocated_size(I, nsize, true);
@@ -88,7 +89,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
         throwI_panic(I, "Allocation fault");
     }
 
-    calculate_max_alloc_size(I);
+    update_max_alloc_size(I);
 
     result->size = nsize;
 
@@ -96,9 +97,11 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
 }
 
 void allocI_free(morphine_instance_t I, void *p) {
-    if (likely(p != NULL)) {
-        struct metadata *metadata = p - sizeof(struct metadata);
-        change_allocated_size(I, metadata->size, false);
-        I->platform.functions.free(metadata);
+    if (p == NULL) {
+        return;
     }
+
+    struct metadata *metadata = p - sizeof(struct metadata);
+    change_allocated_size(I, metadata->size, false);
+    I->platform.functions.free(metadata);
 }

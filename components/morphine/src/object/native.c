@@ -17,7 +17,6 @@ struct native *nativeI_create(morphine_instance_t I, const char *name, morphine_
     }
 
     size_t name_len = strlen(name);
-
     if (name_len > MLIMIT_NATIVE_NAME) {
         throwI_error(I, "Native name too big");
     }

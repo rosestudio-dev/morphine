@@ -63,6 +63,7 @@ warning_flags = [
     '-Wmissing-prototypes',
     '-Wcast-qual',
     '-Wcast-align',
+    '-Woverflow',
 ]
 
 common_flags = [

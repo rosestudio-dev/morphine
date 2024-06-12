@@ -5,6 +5,7 @@
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
+#include "morphine/utils/overflow.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -18,9 +19,9 @@ static inline uint64_t hash(size_t size, const char *str) {
 }
 
 static struct string *create(morphine_instance_t I, size_t size, char **buffer) {
-    bool check1 = size > MLIMIT_SIZE_MAX - 1;
-    bool check2 = (size + 1) > SIZE_MAX / sizeof(char);
-    bool check3 = (size + 1) * sizeof(char) > SIZE_MAX - sizeof(struct string);
+    bool check1 = overflow_condition_add(size, 1, MLIMIT_SIZE_MAX);
+    bool check2 = overflow_condition_mul(size + 1, sizeof(char), SIZE_MAX);
+    bool check3 = overflow_condition_add(size + 1 * sizeof(char), sizeof(struct string), SIZE_MAX);
     if (check1 || check2 || check3) {
         throwI_error(I, "String size too big");
     }
@@ -99,6 +100,10 @@ void stringI_free(morphine_instance_t I, struct string *string) {
 struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
     if (a == NULL || b == NULL) {
         throwI_error(I, "String is null");
+    }
+
+    overflow_add(a->size, b->size, MLIMIT_SIZE_MAX) {
+        throwI_error(I, "Too big concat string length");
     }
 
     char *buffer;

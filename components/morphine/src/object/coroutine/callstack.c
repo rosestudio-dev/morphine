@@ -292,7 +292,7 @@ void callstackI_fix_uninit(morphine_coroutine_t U) {
 struct value callstackI_extract_callable(morphine_instance_t I, struct value callable) {
     size_t counter = 0;
 repeat:;
-    if (counter > 1000000) {
+    if (counter > MLIMIT_EXTRACT_CALLABLE_DEEP) {
         throwI_error(I, "Possible recursion while extracting callable");
     }
 
@@ -313,7 +313,7 @@ repeat:;
 bool callstackI_is_callable(morphine_instance_t I, struct value callable) {
     size_t counter = 0;
 repeat:;
-    if (counter > 1000000) {
+    if (counter > MLIMIT_EXTRACT_CALLABLE_DEEP) {
         throwI_error(I, "Possible recursion while checking callable");
     }
 

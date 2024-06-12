@@ -130,18 +130,18 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
 
     if (vector->size.accessible == vector->size.real) {
         size_t rollback = gcI_safe_value(I, value);
-        if (MORPHINE_VECTOR_AMORTIZATION > MLIMIT_SIZE_MAX - vector->size.real) {
+        if (MPARAM_VECTOR_AMORTIZATION > MLIMIT_SIZE_MAX - vector->size.real) {
             throwI_error(I, "Vector size exceeded limit");
         }
 
         vector->values = allocI_vec(
             I,
             vector->values,
-            vector->size.real + MORPHINE_VECTOR_AMORTIZATION,
+            vector->size.real + MPARAM_VECTOR_AMORTIZATION,
             sizeof(struct value)
         );
 
-        vector->size.real += MORPHINE_VECTOR_AMORTIZATION;
+        vector->size.real += MPARAM_VECTOR_AMORTIZATION;
         gcI_reset_safe(I, rollback);
     }
 
@@ -182,20 +182,20 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
 
     vector->size.accessible--;
 
-    if (vector->size.real - vector->size.accessible > MORPHINE_VECTOR_AMORTIZATION) {
+    if (vector->size.real - vector->size.accessible > MPARAM_VECTOR_AMORTIZATION) {
         size_t rollback = gcI_safe_value(I, value);
-        if (MORPHINE_VECTOR_AMORTIZATION > vector->size.real) {
+        if (MPARAM_VECTOR_AMORTIZATION > vector->size.real) {
             throwI_error(I, "Vector size exceeded limit");
         }
 
         vector->values = allocI_vec(
             I,
             vector->values,
-            vector->size.real - MORPHINE_VECTOR_AMORTIZATION,
+            vector->size.real - MPARAM_VECTOR_AMORTIZATION,
             sizeof(struct value)
         );
 
-        vector->size.real -= MORPHINE_VECTOR_AMORTIZATION;
+        vector->size.real -= MPARAM_VECTOR_AMORTIZATION;
         gcI_reset_safe(I, rollback);
     }
 

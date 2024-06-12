@@ -5,8 +5,10 @@
 #include "morphine/gc/safe.h"
 #include "morphine/core/instance.h"
 
+#define safe_stack_size(I) (sizeof((I)->G.safe.stack) / sizeof(struct value))
+
 struct value *gcI_safe(morphine_instance_t I, size_t *rollback) {
-    if (I->G.safe.index >= sizeof(I->G.safe.stack) / sizeof(struct value)) {
+    if (I->G.safe.index >= safe_stack_size(I)) {
         throwI_panic(I, "GC safe stack is full");
     }
 
@@ -33,11 +35,11 @@ size_t gcI_safe_obj(morphine_instance_t I, struct object *object) {
 }
 
 void gcI_reset_safe(morphine_instance_t I, size_t rollback) {
-    if (rollback >= sizeof(I->G.safe.stack) / sizeof(struct value)) {
+    if (rollback >= safe_stack_size(I)) {
         throwI_panic(I, "GC safe rollback out of bounce");
     }
 
-    size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
+    size_t size = safe_stack_size(I);
 
     for (size_t i = rollback; i < size; i++) {
         I->G.safe.stack[i] = valueI_nil;

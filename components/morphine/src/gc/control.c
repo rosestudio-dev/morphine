@@ -7,16 +7,17 @@
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
 #include "stages/impl.h"
+#include "morphine/utils/overflow.h"
 
 static inline bool gc_need(morphine_instance_t I, size_t reserved) {
-    if (reserved > (SIZE_MAX - I->G.bytes.allocated)) {
+    overflow_add(reserved, I->G.bytes.allocated, SIZE_MAX) {
         return true;
     }
 
     size_t alloc_bytes = I->G.bytes.allocated + reserved;
 
     uintmax_t percent_a = (uintmax_t) alloc_bytes;
-    if (unlikely(percent_a > UINTMAX_MAX / 10)) {
+    overflow_mul(percent_a, 10, UINTMAX_MAX) {
         return true;
     }
 
@@ -31,8 +32,8 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
 }
 
 static inline void ofm_check(morphine_instance_t I, size_t reserved) {
-    if (reserved > (SIZE_MAX - I->G.bytes.allocated) ||
-        (I->G.bytes.allocated + reserved) >= I->G.settings.limit) {
+    if (overflow_condition_add(reserved, I->G.bytes.allocated, SIZE_MAX) ||
+        overflow_condition_add(reserved, I->G.bytes.allocated, I->G.settings.limit)) {
         throwI_error(I, "Out of memory");
     }
 }
@@ -41,10 +42,10 @@ static inline bool pause(morphine_instance_t I) {
     if (likely(I->G.bytes.allocated > I->G.stats.prev_allocated)) {
         size_t debt = I->G.bytes.allocated - I->G.stats.prev_allocated;
 
-        if (likely(debt <= SIZE_MAX - I->G.stats.debt)) {
-            I->G.stats.debt += debt;
-        } else {
+        overflow_add(debt, I->G.stats.debt, SIZE_MAX) {
             I->G.stats.debt = SIZE_MAX;
+        } else {
+            I->G.stats.debt += debt;
         }
     }
 
@@ -68,8 +69,8 @@ static inline size_t debt_calc(morphine_instance_t I) {
 }
 
 static inline void step(morphine_instance_t I, size_t reserved) {
-    if (reserved > (SIZE_MAX - I->G.bytes.allocated) ||
-        (I->G.bytes.allocated + reserved) >= I->G.settings.limit) {
+    if (overflow_condition_add(reserved, I->G.bytes.allocated, SIZE_MAX) ||
+        overflow_condition_add(reserved, I->G.bytes.allocated, I->G.settings.limit)) {
         gcI_full(I, reserved);
         return;
     }
