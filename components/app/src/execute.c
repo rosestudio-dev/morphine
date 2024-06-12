@@ -8,6 +8,7 @@
 #include <stdlib.h>
 #include <setjmp.h>
 #include <stdio.h>
+#include "morphinec/decompiler.h"
 
 struct require_loader userlibs[] = {
     { "compiler", mclib_compiler_loader },
@@ -70,14 +71,32 @@ static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_
     return size;
 }
 
+static void init_args(morphine_coroutine_t U, size_t argc, char **args) {
+    ml_size argc_size = mapi_csize2size(U, argc);
+
+    mapi_push_env(U);
+    mapi_push_string(U, "args");
+    mapi_push_vector(U, argc_size);
+    for (ml_size i = 0; i < argc_size; i++) {
+        mapi_push_string(U, args[i]);
+        mapi_vector_set(U, i);
+    }
+    mapi_table_set(U);
+    mapi_pop(U, 1);
+}
+
 void execute(
     struct allocator *allocator,
     const char *path,
     bool binary,
+    bool run,
+    bool export,
+    bool decompile,
     size_t alloc_limit,
     size_t argc,
     char **args
 ) {
+    (void) export;
     if (setjmp(abort_jmp) != 0) {
         return;
     }
@@ -138,19 +157,32 @@ void execute(
 
     morphine_coroutine_t U = mapi_coroutine(I);
 
-    ml_size argc_size = mapi_csize2size(U, argc);
-
-    mapi_push_env(U);
-    mapi_push_string(U, "args");
-    mapi_push_vector(U, argc_size);
-    for (ml_size i = 0; i < argc_size; i++) {
-        mapi_push_string(U, args[i]);
-        mapi_vector_set(U, i);
-    }
-    mapi_table_set(U);
-
+    init_args(U, argc, args);
     load_program(U, path, binary);
-    mapi_call(U, 0);
+
+    if (decompile) {
+        ml_size count = mapi_vector_len(U);
+        for (ml_size i = 0; i < count; i++) {
+            mapi_vector_get(U, i);
+            mapi_push_sio_io(U);
+            mapi_rotate(U, 2);
+
+            mcapi_decompile(U);
+
+            mapi_pop(U, 1);
+            mapi_sio_print(U, "\n");
+            mapi_pop(U, 1);
+        }
+    }
+
+    if (run) {
+        mapi_vector_peek(U);
+
+        mapi_rotate(U, 2);
+        mapi_pop(U, 1);
+
+        mapi_call(U, 0);
+    }
 
     mapi_interpreter(I);
     mapi_close(I);

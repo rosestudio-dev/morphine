@@ -30,6 +30,9 @@ int main(int argc, char **argv) {
         pallocator,
         args.program_path,
         args.binary,
+        args.run,
+        args.export,
+        args.decompile,
         args.alloc_limit,
         args.argc,
         args.args
