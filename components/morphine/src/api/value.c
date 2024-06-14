@@ -108,6 +108,36 @@ MORPHINE_API void mapi_to_integer(morphine_coroutine_t U) {
     stackI_replace(U, 0, result);
 }
 
+MORPHINE_API void mapi_to_size(morphine_coroutine_t U) {
+    struct value value = stackI_peek(U, 0);
+    struct value result = valueI_value2size(U->I, value);
+    stackI_replace(U, 0, result);
+}
+
+MORPHINE_API void mapi_to_index(morphine_coroutine_t U) {
+    struct value value = stackI_peek(U, 0);
+    struct value result = valueI_value2index(U->I, value);
+    stackI_replace(U, 0, result);
+}
+
+MORPHINE_API void mapi_to_based_integer(morphine_coroutine_t U, ml_size base) {
+    struct value value = stackI_peek(U, 0);
+    struct value result = valueI_value2basedinteger(U->I, value, base);
+    stackI_replace(U, 0, result);
+}
+
+MORPHINE_API void mapi_to_based_size(morphine_coroutine_t U, ml_size base) {
+    struct value value = stackI_peek(U, 0);
+    struct value result = valueI_value2basedsize(U->I, value, base);
+    stackI_replace(U, 0, result);
+}
+
+MORPHINE_API void mapi_to_based_index(morphine_coroutine_t U, ml_size base) {
+    struct value value = stackI_peek(U, 0);
+    struct value result = valueI_value2basedindex(U->I, value, base);
+    stackI_replace(U, 0, result);
+}
+
 MORPHINE_API void mapi_to_decimal(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
     struct value result = valueI_value2decimal(U->I, value);

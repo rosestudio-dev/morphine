@@ -65,7 +65,12 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
             return value;
         case VALUE_TYPE_USERDATA:
             return valueI_object(
-                stringI_createf(I, "[object:userdata:%s:%p]", value.object.userdata->name, value.object.userdata)
+                stringI_createf(
+                    I,
+                    "[object:userdata:%p|%s]",
+                    value.object.userdata,
+                    valueI_as_userdata(value)->name
+                )
             );
         case VALUE_TYPE_TABLE:
             return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
@@ -80,9 +85,19 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_REFERENCE:
             return valueI_object(stringI_createf(I, "[object:reference:%p]", value.object.reference));
         case VALUE_TYPE_FUNCTION:
-            return valueI_object(stringI_createf(I, "[object:function:%p|%s]", value.object.function, valueI_as_function(value)->name));
+            return valueI_object(stringI_createf(
+                I,
+                "[object:function:%p|%s]",
+                value.object.function,
+                valueI_as_function(value)->name
+            ));
         case VALUE_TYPE_NATIVE:
-            return valueI_object(stringI_createf(I, "[object:native:%p|%s]", value.object.native, valueI_as_native(value)->name));
+            return valueI_object(stringI_createf(
+                I,
+                "[object:native:%p|%s]",
+                value.object.native,
+                valueI_as_native(value)->name
+            ));
         case VALUE_TYPE_SIO:
             return valueI_object(stringI_createf(I, "[object:sio:%p]", value.object.native));
         case VALUE_TYPE_RAW:
@@ -108,7 +123,7 @@ struct value valueI_value2integer(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         ml_integer integer;
-        if (platformI_string2integer(str->chars, &integer)) {
+        if (platformI_string2integer(str->chars, &integer, 10)) {
             return valueI_integer(integer);
         } else {
             throwI_errorf(I, "Cannot convert string '%s' to integer", str->chars);
@@ -116,6 +131,112 @@ struct value valueI_value2integer(morphine_instance_t I, struct value value) {
     }
 
     throwI_errorf(I, "Cannot convert %s to integer", valueI_type2string(I, value.type));
+}
+
+struct value valueI_value2size(morphine_instance_t I, struct value value) {
+    if (valueI_is_integer(value)) {
+        return valueI_size(valueI_integer2size(I, valueI_as_integer(value)));
+    } else if (valueI_is_decimal(value)) {
+        return valueI_size(valueI_integer2size(I, (ml_integer) valueI_as_decimal(value)));
+    } else if (valueI_is_boolean(value)) {
+        if (valueI_as_boolean(value)) {
+            return valueI_size(1);
+        } else {
+            return valueI_size(0);
+        }
+    }
+
+    struct string *str = valueI_safe_as_string(value, NULL);
+    if (str != NULL) {
+        ml_size size;
+        if (platformI_string2size(str->chars, &size, 10)) {
+            return valueI_size(size);
+        } else {
+            throwI_errorf(I, "Cannot convert string '%s' to size", str->chars);
+        }
+    }
+
+    throwI_errorf(I, "Cannot convert %s to size", valueI_type2string(I, value.type));
+}
+
+struct value valueI_value2index(morphine_instance_t I, struct value value) {
+    if (valueI_is_integer(value)) {
+        return valueI_size(valueI_integer2index(I, valueI_as_integer(value)));
+    } else if (valueI_is_decimal(value)) {
+        return valueI_size(valueI_integer2index(I, (ml_integer) valueI_as_decimal(value)));
+    } else if (valueI_is_boolean(value)) {
+        if (valueI_as_boolean(value)) {
+            return valueI_size(1);
+        } else {
+            return valueI_size(0);
+        }
+    }
+
+    struct string *str = valueI_safe_as_string(value, NULL);
+    if (str != NULL) {
+        ml_size index;
+        if (platformI_string2size(str->chars, &index, 10)) {
+            return valueI_size(index);
+        } else {
+            throwI_errorf(I, "Cannot convert string '%s' to index", str->chars);
+        }
+    }
+
+    throwI_errorf(I, "Cannot convert %s to index", valueI_type2string(I, value.type));
+}
+
+struct value valueI_value2basedinteger(morphine_instance_t I, struct value value, ml_size base) {
+    struct string *str = valueI_safe_as_string(value, NULL);
+    if (str != NULL) {
+        bool check_size = strlen(str->chars) == str->size;
+
+        ml_integer integer;
+        if (check_size && platformI_string2integer(str->chars, &integer, base)) {
+            return valueI_integer(integer);
+        } else {
+            throwI_errorf(
+                I, "Cannot convert string '%s' to integer with base %"MLIMIT_INTEGER_PR, str->chars, base
+            );
+        }
+    }
+
+    throwI_errorf(I, "Cannot convert %s to based integer", valueI_type2string(I, value.type));
+}
+
+struct value valueI_value2basedsize(morphine_instance_t I, struct value value, ml_size base) {
+    struct string *str = valueI_safe_as_string(value, NULL);
+    if (str != NULL) {
+        bool check_size = strlen(str->chars) == str->size;
+
+        ml_size size;
+        if (check_size && platformI_string2size(str->chars, &size, base)) {
+            return valueI_size(size);
+        } else {
+            throwI_errorf(
+                I, "Cannot convert string '%s' to size with base %"MLIMIT_INTEGER_PR, str->chars, base
+            );
+        }
+    }
+
+    throwI_errorf(I, "Cannot convert %s to based size", valueI_type2string(I, value.type));
+}
+
+struct value valueI_value2basedindex(morphine_instance_t I, struct value value, ml_size base) {
+    struct string *str = valueI_safe_as_string(value, NULL);
+    if (str != NULL) {
+        bool check_size = strlen(str->chars) == str->size;
+
+        ml_size index;
+        if (check_size && platformI_string2size(str->chars, &index, base)) {
+            return valueI_size(index);
+        } else {
+            throwI_errorf(
+                I, "Cannot convert string '%s' to index with base %"MLIMIT_INTEGER_PR, str->chars, base
+            );
+        }
+    }
+
+    throwI_errorf(I, "Cannot convert %s to based index", valueI_type2string(I, value.type));
 }
 
 struct value valueI_value2decimal(morphine_instance_t I, struct value value) {

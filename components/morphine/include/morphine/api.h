@@ -68,6 +68,11 @@ MORPHINE_API bool mapi_get_boolean(morphine_coroutine_t);
 MORPHINE_API uintptr_t mapi_get_raw(morphine_coroutine_t);
 
 MORPHINE_API void mapi_to_integer(morphine_coroutine_t);
+MORPHINE_API void mapi_to_size(morphine_coroutine_t);
+MORPHINE_API void mapi_to_index(morphine_coroutine_t);
+MORPHINE_API void mapi_to_based_integer(morphine_coroutine_t, ml_size base);
+MORPHINE_API void mapi_to_based_size(morphine_coroutine_t, ml_size base);
+MORPHINE_API void mapi_to_based_index(morphine_coroutine_t, ml_size base);
 MORPHINE_API void mapi_to_decimal(morphine_coroutine_t);
 MORPHINE_API void mapi_to_boolean(morphine_coroutine_t);
 MORPHINE_API void mapi_to_string(morphine_coroutine_t);
@@ -315,5 +320,6 @@ MORPHINE_API bool mapi_op(morphine_coroutine_t, const char *op);
 
 // platform
 
-MORPHINE_API bool mapi_platform_str2int(const char *, ml_integer *);
+MORPHINE_API bool mapi_platform_str2int(const char *, ml_integer *, ml_size base);
+MORPHINE_API bool mapi_platform_str2size(const char *, ml_size *, ml_size base);
 MORPHINE_API bool mapi_platform_str2dec(const char *, ml_decimal *);

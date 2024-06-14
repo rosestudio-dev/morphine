@@ -5,8 +5,12 @@
 #include "morphine/api.h"
 #include "morphine/platform/conversions.h"
 
-MORPHINE_API bool mapi_platform_str2int(const char *string, ml_integer *container) {
-    return platformI_string2integer(string, container);
+MORPHINE_API bool mapi_platform_str2int(const char *string, ml_integer *container, ml_size base) {
+    return platformI_string2integer(string, container, base);
+}
+
+MORPHINE_API bool mapi_platform_str2size(const char *string, ml_size *container, ml_size base) {
+    return platformI_string2size(string, container, base);
 }
 
 MORPHINE_API bool mapi_platform_str2dec(const char *string, ml_decimal *container) {

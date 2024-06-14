@@ -11,7 +11,6 @@
 
 typedef int64_t ml_integer;
 #define MLIMIT_INTEGER_PR  PRId64
-#define MLIMIT_INTEGER_SC  SCNi64
 #define MLIMIT_INTEGER_MAX INT64_MAX
 #define MLIMIT_INTEGER_MIN INT64_MIN
 
@@ -23,7 +22,6 @@ typedef double ml_decimal;
 
 typedef uint32_t ml_size;
 #define MLIMIT_SIZE_PR  PRIu32
-#define MLIMIT_SIZE_SC  SCNu32
 #define MLIMIT_SIZE_MAX UINT32_MAX
 
 // instruction

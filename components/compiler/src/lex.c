@@ -239,25 +239,28 @@ static struct token lex_number(morphine_coroutine_t U, struct lex *L) {
 
     strncpy(buffer, start, count);
 
-    ml_integer int_res = 0;
-    ml_decimal dec_res = 0;
-    bool int_success = mapi_platform_str2int(buffer, &int_res);
-    bool dec_success = mapi_platform_str2dec(buffer, &dec_res);
-
-    if (!int_success && !dec_success) {
-        lex_error(U, L, "invalid number");
-    }
-
     if (dot) {
+        ml_decimal result = 0;
+        bool success = mapi_platform_str2dec(buffer, &result);
+        if (!success) {
+            lex_error(U, L, "invalid decimal");
+        }
+
         return (struct token) {
             .type = TT_DECIMAL,
-            .decimal = dec_res,
+            .decimal = result,
             .line = L->line
         };
     } else {
+        ml_integer result = 0;
+        bool success = mapi_platform_str2int(buffer, &result, 10);
+        if (!success) {
+            lex_error(U, L, "invalid integer");
+        }
+
         return (struct token) {
             .type = TT_INTEGER,
-            .integer = int_res,
+            .integer = result,
             .line = L->line
         };
     }
