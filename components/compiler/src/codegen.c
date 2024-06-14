@@ -232,9 +232,9 @@ static struct codegen_variable_info get_variable(
     for (size_t i = 0; i < cf->ref->args_size; i++) {
         if (cf->ref->arguments[i] == index) {
             return (struct codegen_variable_info) {
-                .type = CVT_VARIABLE,
+                .type = CVT_ARGUMENT,
                 .mutable = true,
-                .static_variable = (struct codegen_argument_index) {
+                .argument = (struct codegen_argument_index) {
                     .index = i
                 }
             };

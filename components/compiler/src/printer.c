@@ -481,7 +481,7 @@ static void print_ast_statement(
 }
 
 static void print_ast_function(morphine_coroutine_t U, struct strtable *T, struct ast_function *function) {
-    printf("fun{%"MLIMIT_LINE_PR":%p}", function->line, function);
+    printf("    fun{%"MLIMIT_LINE_PR":%p}", function->line, function);
     if (!function->anonymous) {
         printf(" ");
         print_string(U, T, function->name);
@@ -524,7 +524,7 @@ static void print_ast_function(morphine_coroutine_t U, struct strtable *T, struc
         printf(") ");
     }
 
-    print_ast_statement(U, T, 0, function->body);
+    print_ast_statement(U, T, 1, function->body);
     printf("\n");
 }
 
