@@ -9,10 +9,6 @@ versioncode = get_option('versioncode')
 sanitize = get_option('sanitize')
 
 prog_python = find_program('python', required : true)
-
-cc = meson.get_compiler('c')
-m_dep = cc.find_library('m', required : true)
-
 extra_scripts = meson.source_root() / 'extra' / 'scripts'
 
 sources = run_command(
@@ -92,7 +88,6 @@ morphine = both_libraries(
     'morphine', sources,
     include_directories : [private_include, public_include],
     c_args : compiler_args,
-    dependencies : m_dep,
     c_shared_args : shared_flags,
 
     install : installdir != 'undefined',
@@ -102,8 +97,7 @@ morphine = both_libraries(
 morphine_dep = declare_dependency(
     include_directories : [public_include],
     link_with : morphine.get_static_lib(),
-    version : version,
-    dependencies : m_dep
+    version : version
 )
 
 if installdir != 'undefined'
@@ -143,6 +137,8 @@ if installdir != 'undefined'
         command : [
             prog_python,
             extra_scripts / 'cmake-gen.py',
+            '-n',
+            'morphine',
             '-s',
             ':'.join(sources),
             '-i',

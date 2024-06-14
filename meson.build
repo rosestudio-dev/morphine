@@ -6,7 +6,8 @@ project(
         'installdir=' + meson.source_root() / 'install',
         'morphine:sanitize=disabled',
         'compiler:sanitize=disabled',
-        'app-morphine:sanitize=disabled',
+        'nostdlibs:sanitize=disabled',
+        'app:sanitize=disabled',
     ],
     subproject_dir : 'components',
 )

@@ -2,12 +2,14 @@ import argparse
 import sys
 
 parser = argparse.ArgumentParser(prog='Cmake generator')
+parser.add_argument('-n', '--name', default='')
 parser.add_argument('-s', '--sources', default='')
 parser.add_argument('-i', '--publicincludes', default='')
 parser.add_argument('-p', '--privateincludes', default='')
 parser.add_argument('-o', '--output', default='')
 parser.add_argument('-v', '--version', default='')
 parser.add_argument('-c', '--versioncode', default='')
+parser.add_argument('-e', '--extension', default='')
 args = parser.parse_args()
 
 sources = args.sources.split(":")
@@ -22,7 +24,7 @@ f = open(args.output, "w")
 
 f.write(
     """cmake_minimum_required(VERSION 3.16)
-project(morphine)
+project(""" + args.name + """)
 
 include_directories(
 """
@@ -35,7 +37,7 @@ f.write(
     """)
 
 add_library(
-    morphine STATIC
+    """ + args.name + """ STATIC
 """
 )
 
@@ -46,7 +48,7 @@ f.write(
     """)
 
 target_include_directories(
-    morphine INTERFACE
+    """ + args.name + """ INTERFACE
 """
 )
 
@@ -56,10 +58,8 @@ for i in public_includes:
 f.write(
     """)
 
-target_link_libraries(morphine PRIVATE m)
-
 target_compile_definitions(
-    morphine PUBLIC
+    """ + args.name + """ PUBLIC
     MORPHINE_VERSION=\""""
 )
 f.write(args.version)
@@ -70,8 +70,12 @@ f.write(
 f.write(args.versioncode)
 f.write(
     """
+    MORPHINE_LIBRARY
 )
-"""
+
+# extension
+
+""" + args.extension + "\n"
 )
 
 f.close()

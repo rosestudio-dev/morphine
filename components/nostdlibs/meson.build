@@ -1,5 +1,5 @@
 project(
-    'morphinec', 'c',
+    'nostdlibs', 'c',
     default_options : ['c_std=c17']
 )
 
@@ -12,6 +12,9 @@ prog_python = find_program('python', required : true)
 extra_scripts = meson.source_root() / 'extra' / 'scripts'
 
 morphine = subproject('morphine').get_variable('morphine_dep')
+
+cc = meson.get_compiler('c')
+m_dep = cc.find_library('m', required : true)
 
 sources = run_command(
     prog_python,
@@ -85,20 +88,20 @@ if sanitize.enabled()
     compiler_args += sanitize_flags
 endif
 
-morphinec = both_libraries(
-    'morphinec', sources,
+morphine_nostd_libs = both_libraries(
+    'morphinenostdlibs', sources,
     include_directories : [private_include, public_include],
     c_args : compiler_args,
-    dependencies : morphine,
+    dependencies : [morphine, m_dep],
     c_shared_args : shared_flags,
 
     install : installdir != 'undefined',
     install_dir : installdir / 'libs'
 )
 
-morphinec_dep = declare_dependency(
+morphine_nostd_libs_dep = declare_dependency(
     include_directories : [public_include],
-    link_with : morphinec.get_static_lib(),
+    link_with : morphine_nostd_libs.get_static_lib(),
     version : version
 )
 
@@ -118,7 +121,7 @@ if installdir != 'undefined'
         install_subdir(
             d,
             follow_symlinks : false,
-            install_dir : installdir / 'cmake' / 'morphinec',
+            install_dir : installdir / 'cmake' / 'morphine-nostd-libs',
             strip_directory : false,
         )
     endforeach
@@ -131,18 +134,19 @@ if installdir != 'undefined'
         install_data(
             f,
             follow_symlinks : false,
-            install_dir : installdir / 'cmake' / 'morphinec'
+            install_dir : installdir / 'cmake' / 'morphine-nostd-libs'
         )
     endforeach
 
-    extension = 'target_link_libraries(morphinec PRIVATE morphine)'
+    extension = '''target_link_libraries(morphine-nostd-libs PRIVATE morphine)
+target_link_libraries(morphine-nostd-libs PRIVATE m)'''
 
     custom_target(
         command : [
             prog_python,
             extra_scripts / 'cmake-gen.py',
             '-n',
-            'morphinec',
+            'morphine-nostd-libs',
             '-s',
             ':'.join(sources),
             '-i',
@@ -162,7 +166,7 @@ if installdir != 'undefined'
         console : true,
         output : 'CMakeLists.txt',
         install : installdir != 'undefined',
-        install_dir : installdir / 'cmake' / 'morphinec'
+        install_dir : installdir / 'cmake' / 'morphine-nostd-libs'
     )
 endif
 

@@ -3,9 +3,8 @@
 //
 
 #include <execute.h>
-#include <morphinec/lib.h>
-#include <morphinec/disassembler.h>
-#include <morphinec/binary.h>
+#include <morphinec.h>
+#include <morphinenostdlibs.h>
 #include <loaders.h>
 #include <stdlib.h>
 #include <setjmp.h>
@@ -14,6 +13,7 @@
 
 static morphine_require_entry_t userlibs[] = {
     { "compiler", mclib_compiler_loader },
+    { "math",     mnostdlib_math_loader },
     { NULL, NULL }
 };
 

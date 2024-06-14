@@ -13,7 +13,6 @@ static morphine_require_entry_t table[] = {
     { "base",      mlib_base_loader },
     { "gc",        mlib_gc_loader },
     { "coroutine", mlib_coroutine_loader },
-    { "math",      mlib_math_loader },
     { "string",    mlib_string_loader },
     { "table",     mlib_table_loader },
     { "userdata",  mlib_userdata_loader },

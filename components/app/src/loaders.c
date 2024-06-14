@@ -4,11 +4,9 @@
 
 #include <loaders.h>
 #include <string.h>
-#include "morphinec/compiler.h"
+#include <morphinec.h>
 #include "userdata/readfile.h"
 #include "sio/file.h"
-#include "morphinec/binary.h"
-#include "morphinec/rollout.h"
 
 void loader_source_file(morphine_coroutine_t U, const char *path) {
     const char *source = userdata_readfile(U, path);

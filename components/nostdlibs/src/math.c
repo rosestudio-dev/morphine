@@ -2,9 +2,8 @@
 // Created by whyiskra on 30.12.23.
 //
 
-#include <morphine.h>
 #include <math.h>
-#include "morphine/libs/loader.h"
+#include "morphinenostdlibs/math.h"
 
 #define PI_CONST 3.14159265358979323846
 #define E_CONST  2.7182818284590452354
@@ -380,7 +379,7 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_math_loader(morphine_coroutine_t U) {
+MORPHINE_LIB void mnostdlib_math_loader(morphine_coroutine_t U) {
     maux_construct(U, table, "math.");
 
     mapi_push_stringf(U, "pi");
@@ -400,6 +399,6 @@ void mlib_math_loader(morphine_coroutine_t U) {
     mapi_table_set(U);
 }
 
-MORPHINE_LIB void mlib_math_call(morphine_coroutine_t U, const char *name, ml_size argc) {
+MORPHINE_LIB void mnostdlib_math_call(morphine_coroutine_t U, const char *name, ml_size argc) {
     maux_construct_call(U, table, "math.", name, argc);
 }
