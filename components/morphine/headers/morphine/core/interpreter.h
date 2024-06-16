@@ -12,7 +12,7 @@ struct interpreter {
     morphine_coroutine_t running;
     morphine_coroutine_t next;
 
-    uint16_t circle;
+    ml_size circle;
     struct throw throw;
 };
 

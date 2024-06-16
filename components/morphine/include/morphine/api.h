@@ -9,8 +9,9 @@
 #include "platform.h"
 #include "instruction.h"
 
-MORPHINE_API const char *mapi_version(void);
-MORPHINE_API int mapi_version_code(void);
+MORPHINE_API const char *mapi_version_name(void);
+MORPHINE_API ml_version mapi_version(void);
+MORPHINE_API ml_version mapi_bytecode_version(void);
 
 MORPHINE_API morphine_instance_t mapi_open(morphine_platform_t, morphine_settings_t, void *data);
 MORPHINE_API void *mapi_instance_data(morphine_instance_t);
@@ -83,6 +84,8 @@ MORPHINE_API bool mapi_is_type(morphine_coroutine_t, const char *type);
 MORPHINE_API bool mapi_is_callable(morphine_coroutine_t);
 MORPHINE_API bool mapi_is_metatype(morphine_coroutine_t);
 MORPHINE_API bool mapi_is_iterable(morphine_coroutine_t);
+MORPHINE_API bool mapi_is_size(morphine_coroutine_t);
+MORPHINE_API bool mapi_is_index(morphine_coroutine_t);
 
 MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t, size_t value);
 MORPHINE_API ml_size mapi_csize2index(morphine_coroutine_t, size_t value);
@@ -178,7 +181,7 @@ MORPHINE_API void mapi_attach(morphine_coroutine_t);
 MORPHINE_API void mapi_coroutine_suspend(morphine_coroutine_t);
 MORPHINE_API void mapi_coroutine_kill(morphine_coroutine_t);
 MORPHINE_API void mapi_coroutine_resume(morphine_coroutine_t);
-MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t, priority_t priority);
+MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t, ml_size priority);
 MORPHINE_API const char *mapi_coroutine_status(morphine_coroutine_t);
 MORPHINE_API bool mapi_coroutine_is_alive(morphine_coroutine_t);
 

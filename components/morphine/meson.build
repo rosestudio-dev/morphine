@@ -3,9 +3,11 @@ project(
     default_options : ['c_std=c17']
 )
 
-installdir = get_option('installdir')
+version_name = get_option('version-name')
 version = get_option('version')
-versioncode = get_option('versioncode')
+bytecode_version = get_option('bytecode-version')
+
+installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
 prog_python = find_program('python', required : true)
@@ -65,8 +67,7 @@ warning_flags = [
 common_flags = [
     '-fno-common',
     '-fwrapv',
-    '-DMORPHINE_VERSION="' + version + '"',
-    '-DMORPHINE_VERSION_CODE=' + versioncode
+    '-flto'
 ]
 
 sanitize_flags = [
@@ -84,11 +85,35 @@ if sanitize.enabled()
     compiler_args += sanitize_flags
 endif
 
+mversions_target = custom_target(
+    command : [
+        prog_python,
+        extra_scripts / 'version.py',
+        '-n',
+        version_name,
+        '-v',
+        version,
+        '-b',
+        bytecode_version,
+        '-o',
+        '@OUTPUT@'
+    ],
+    console : true,
+    output : 'mversion.h',
+    install : installdir != 'undefined',
+    install_dir : installdir / 'cmake' / 'morphine' / 'headers'
+)
+
+mversions_dep = declare_dependency(
+    sources : [mversions_target]
+)
+
 morphine = both_libraries(
     'morphine', sources,
     include_directories : [private_include, public_include],
     c_args : compiler_args,
     c_shared_args : shared_flags,
+    dependencies : [mversions_dep],
 
     install : installdir != 'undefined',
     install_dir : installdir / 'libs'
@@ -97,7 +122,7 @@ morphine = both_libraries(
 morphine_dep = declare_dependency(
     include_directories : [public_include],
     link_with : morphine.get_static_lib(),
-    version : version
+    version : version_name
 )
 
 if installdir != 'undefined'
@@ -145,10 +170,6 @@ if installdir != 'undefined'
             'include',
             '-p',
             'headers',
-            '-v',
-            version,
-            '-c',
-            versioncode,
             '-o',
             '@OUTPUT@'
         ],
@@ -162,8 +183,9 @@ endif
 
 summary(
     {
+        'version-name' : version_name,
         'version' : version,
-        'version_code' : versioncode,
+        'bytecode-version' : bytecode_version,
         'install' : installdir != 'undefined',
         'install-dir' : installdir,
         'sanitize' : sanitize,

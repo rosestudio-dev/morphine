@@ -41,9 +41,9 @@ static void priority(morphine_coroutine_t U) {
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "integer");
-            ml_integer priority = mapi_get_integer(U);
-            mapi_coroutine_priority(coroutine, (priority_t) priority);
+            maux_expect(U, "index");
+            ml_size priority = mapi_get_index(U);
+            mapi_coroutine_priority(coroutine, priority);
             maux_nb_leave();
     maux_nb_end
 }

@@ -6,6 +6,7 @@
 #include "impl.h"
 #include "morphinec/algorithm/crc32.h"
 #include "morphinec/rollout.h"
+#include "morphinec/binary.h"
 
 struct data {
     morphine_coroutine_t U;
@@ -38,6 +39,7 @@ write_type(ml_line, ml_line)
 write_type(ml_argument, ml_argument)
 write_type(ml_integer, ml_integer)
 write_type(ml_decimal, ml_decimal)
+write_type(ml_version, ml_version)
 write_type(char, char)
 write_type(bool, bool)
 write_type(uint8_t, uint8)
@@ -61,15 +63,19 @@ static void write_format_tag(struct data *D) {
 }
 
 static void write_prob(struct data *D) {
-    const char *version = mapi_version();
+    const char *version = mapi_version_name();
 
     write_string(D, version, strlen(version));
+    write_uint8(D, sizeof(ml_version));
     write_uint8(D, sizeof(ml_integer));
     write_uint8(D, sizeof(ml_decimal));
     write_uint8(D, sizeof(ml_size));
     write_uint8(D, sizeof(ml_argument));
     write_uint8(D, sizeof(ml_line));
 
+    write_ml_version(D, mcapi_binary_version());
+    write_ml_version(D, mapi_version());
+    write_ml_version(D, mapi_bytecode_version());
     write_ml_integer(D, PROB_INTEGER);
     write_ml_size(D, PROB_SIZE);
     write_ml_decimal(D, PROB_DECIMAL);

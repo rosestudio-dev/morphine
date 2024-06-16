@@ -13,7 +13,7 @@ int main(int argc, char **argv) {
     struct args args = parseargs(argc, argv);
 
     if (args.version) {
-        printf("Morphine version: %s\n", mapi_version());
+        printf("Morphine version: %s\n", mapi_version_name());
         return 0;
     }
 

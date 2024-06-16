@@ -1,8 +1,9 @@
 project(
     'morphine',
     default_options : [
-        'version=0.0.1',
-        'versioncode=1',
+        'version-name=0.0.1',
+        'version=1',
+        'bytecode-version=1',
         'installdir=' + meson.source_root() / 'install',
         'morphine:sanitize=disabled',
         'compiler:sanitize=disabled',

@@ -9,7 +9,7 @@ static void version(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 0);
-            mapi_push_string(U, mapi_version());
+            mapi_push_string(U, mapi_version_name());
             maux_nb_return();
     maux_nb_end
 }

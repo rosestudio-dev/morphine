@@ -5,6 +5,7 @@
 #include <string.h>
 #include "impl.h"
 #include "morphinec/algorithm/crc32.h"
+#include "morphinec/binary.h"
 
 #define get_type(t, n) static inline t get_##n(struct data *D) { \
     union { \
@@ -40,6 +41,7 @@ get_type(ml_line, ml_line)
 get_type(ml_argument, ml_argument)
 get_type(ml_integer, ml_integer)
 get_type(ml_decimal, ml_decimal)
+get_type(ml_version, ml_version)
 get_type(char, char)
 get_type(bool, bool)
 get_type(uint8_t, uint8)
@@ -207,21 +209,23 @@ static void check_tag(struct data *D) {
 }
 
 static void check_prob(struct data *D) {
-    const char *expected_version = mapi_version();
+    const char *expected_version = mapi_version_name();
 
     get_string(D);
     const char *got_version = mapi_get_string(D->U);
-    if (strcmp(expected_version, got_version) != 0) {
-        mapi_error(D->U, "unsupported binary version");
-    }
+    if (strcmp(expected_version, got_version) != 0) { mapi_error(D->U, "unsupported morphine version"); }
     mapi_pop(D->U, 1);
 
+    if (get_uint8(D) != sizeof(ml_version)) { goto error; }
     if (get_uint8(D) != sizeof(ml_integer)) { goto error; }
     if (get_uint8(D) != sizeof(ml_decimal)) { goto error; }
     if (get_uint8(D) != sizeof(ml_size)) { goto error; }
     if (get_uint8(D) != sizeof(ml_argument)) { goto error; }
     if (get_uint8(D) != sizeof(ml_line)) { goto error; }
 
+    if (get_ml_version(D) != mcapi_binary_version()) { mapi_error(D->U, "unsupported binary version"); }
+    if (get_ml_version(D) != mapi_version()) { mapi_error(D->U, "unsupported morphine version"); }
+    if (get_ml_version(D) != mapi_bytecode_version()) { mapi_error(D->U, "unsupported bytecode version"); }
     if (get_ml_integer(D) != PROB_INTEGER) { goto error; }
     if (get_ml_size(D) != PROB_SIZE) { goto error; }
     if (get_ml_decimal(D) != PROB_DECIMAL) { goto error; }

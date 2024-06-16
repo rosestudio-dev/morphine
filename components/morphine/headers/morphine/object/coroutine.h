@@ -21,7 +21,7 @@ struct coroutine {
     struct object header;
 
     enum coroutine_status status;
-    priority_t priority;
+    ml_size priority;
 
     struct stack stack;
     struct callstack callstack;
@@ -41,7 +41,7 @@ morphine_coroutine_t coroutineI_custom_create(
 morphine_coroutine_t coroutineI_create(morphine_instance_t, struct value env);
 void coroutineI_free(morphine_instance_t, morphine_coroutine_t coroutine);
 
-void coroutineI_priority(morphine_coroutine_t, priority_t);
+void coroutineI_priority(morphine_coroutine_t, ml_size priority);
 void coroutineI_attach(morphine_coroutine_t);
 void coroutineI_suspend(morphine_coroutine_t);
 void coroutineI_resume(morphine_coroutine_t);

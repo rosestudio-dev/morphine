@@ -3,8 +3,6 @@ project(
     default_options : ['c_std=c17']
 )
 
-version = get_option('version')
-versioncode = get_option('versioncode')
 installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
@@ -98,8 +96,7 @@ morphinec = both_libraries(
 
 morphinec_dep = declare_dependency(
     include_directories : [public_include],
-    link_with : morphinec.get_static_lib(),
-    version : version
+    link_with : morphinec.get_static_lib()
 )
 
 if installdir != 'undefined'
@@ -149,10 +146,6 @@ if installdir != 'undefined'
             'include',
             '-p',
             'headers',
-            '-v',
-            version,
-            '-c',
-            versioncode,
             '-o',
             '@OUTPUT@',
             '-e',
@@ -168,8 +161,6 @@ endif
 
 summary(
     {
-        'version' : version,
-        'version_code' : versioncode,
         'install' : installdir != 'undefined',
         'install-dir' : installdir,
         'sanitize' : sanitize,

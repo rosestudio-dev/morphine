@@ -9,12 +9,12 @@
 #include "config.h"
 #include "limits.h"
 
+typedef uint32_t ml_version;
+
 typedef struct coroutine *morphine_coroutine_t;
 typedef struct instance *morphine_instance_t;
 typedef void (*morphine_native_t)(morphine_coroutine_t);
 typedef void (*morphine_free_t)(morphine_instance_t, void *);
-
-typedef uint8_t priority_t;
 
 // sio types
 

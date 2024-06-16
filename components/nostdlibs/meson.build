@@ -3,8 +3,6 @@ project(
     default_options : ['c_std=c17']
 )
 
-version = get_option('version')
-versioncode = get_option('versioncode')
 installdir = get_option('installdir')
 sanitize = get_option('sanitize')
 
@@ -101,8 +99,7 @@ morphine_nostd_libs = both_libraries(
 
 morphine_nostd_libs_dep = declare_dependency(
     include_directories : [public_include],
-    link_with : morphine_nostd_libs.get_static_lib(),
-    version : version
+    link_with : morphine_nostd_libs.get_static_lib()
 )
 
 if installdir != 'undefined'
@@ -153,10 +150,6 @@ target_link_libraries(morphine-nostd-libs PRIVATE m)'''
             'include',
             '-p',
             'headers',
-            '-v',
-            version,
-            '-c',
-            versioncode,
             '-o',
             '@OUTPUT@',
             '-e',
@@ -172,8 +165,6 @@ endif
 
 summary(
     {
-        'version' : version,
-        'version_code' : versioncode,
         'install' : installdir != 'undefined',
         'install-dir' : installdir,
         'sanitize' : sanitize,

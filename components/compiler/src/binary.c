@@ -5,6 +5,10 @@
 #include "morphinec/binary.h"
 #include "binary/impl.h"
 
+MORPHINE_API ml_version mcapi_binary_version(void) {
+    return MORPHINEC_BINARY_VERSION;
+}
+
 MORPHINE_API void mcapi_to_binary(morphine_coroutine_t U) {
     binary_to(U);
 }

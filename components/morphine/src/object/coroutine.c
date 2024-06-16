@@ -102,7 +102,7 @@ void coroutineI_free(morphine_instance_t I, morphine_coroutine_t coroutine) {
     allocI_free(I, coroutine);
 }
 
-void coroutineI_priority(morphine_coroutine_t U, priority_t priority) {
+void coroutineI_priority(morphine_coroutine_t U, ml_size priority) {
     if (priority <= 0) {
         U->priority = 1;
     } else {

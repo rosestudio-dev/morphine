@@ -1,4 +1,5 @@
 option('sanitize', type : 'feature', value : 'disabled')
 option('installdir', type : 'string', yield : true)
+option('version-name', type : 'string', yield : true)
 option('version', type : 'string', yield : true)
-option('versioncode', type : 'string', yield : true)
+option('bytecode-version', type : 'string', yield : true)

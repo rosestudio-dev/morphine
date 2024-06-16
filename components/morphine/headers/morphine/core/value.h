@@ -117,6 +117,8 @@
 #define valueI_csize2index(I, x)        valueI_csize2namedsize(I, x, "index")
 #define valueI_integer2size(I, x)       valueI_integer2namedsize(I, x, "size")
 #define valueI_integer2index(I, x)      valueI_integer2namedsize(I, x, "index")
+#define valueI_is_size(x)               ({struct value _temp = (x); (valueI_is_integer(_temp) && ((valueI_as_integer(_temp) >= 0) && (valueI_as_integer(_temp) <= MLIMIT_SIZE_MAX)));})
+#define valueI_is_index(x)              valueI_is_size(x)
 
 // other
 

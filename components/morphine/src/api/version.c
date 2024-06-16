@@ -7,11 +7,30 @@
  * path:vm/api-version
  * # Version API
  * ## Description
- * API for getting the virtual machine version
+ * API for versions
  * {{end}}
  */
 
 #include "morphine/api.h"
+#include "mversion.h"
+
+/*
+ * {{docs body}}
+ * path:vm/api-version
+ * ## mapi_version_name
+ * ### Prototype
+ * ```c
+ * const char *mapi_version_name(void)
+ * ```
+ * ### Result
+ * Name of version
+ * ### Description
+ * Getting name of the virtual machine version
+ * {{end}}
+ */
+MORPHINE_API const char *mapi_version_name(void) {
+    return MORPHINE_VERSION_NAME;
+}
 
 /*
  * {{docs body}}
@@ -19,32 +38,32 @@
  * ## mapi_version
  * ### Prototype
  * ```c
- * const char *mapi_version(void)
+ * ml_version mapi_version(void)
  * ```
  * ### Result
- * String of version
+ * Version
  * ### Description
  * Getting the virtual machine version
  * {{end}}
  */
-MORPHINE_API const char *mapi_version(void) {
+MORPHINE_API ml_version mapi_version(void) {
     return MORPHINE_VERSION;
 }
 
 /*
  * {{docs body}}
  * path:vm/api-version
- * ## mapi_version_code
+ * ## mapi_bytecode_version
  * ### Prototype
  * ```c
- * int mapi_version_code(void)
+ * ml_version mapi_bytecode_version(void)
  * ```
  * ### Result
- * Version code
+ * Bytecode version
  * ### Description
- * Getting the virtual machine version code
+ * Getting the bytecode version
  * {{end}}
  */
-MORPHINE_API int mapi_version_code(void) {
-    return MORPHINE_VERSION_CODE;
+MORPHINE_API ml_version mapi_bytecode_version(void) {
+    return MORPHINE_BYTECODE_VERSION;
 }

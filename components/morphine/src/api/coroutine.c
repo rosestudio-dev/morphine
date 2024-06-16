@@ -144,16 +144,16 @@ MORPHINE_API void mapi_coroutine_resume(morphine_coroutine_t U) {
  * ## mapi_coroutine_priority
  * ### Prototype
  * ```c
- * void mapi_coroutine_priority(morphine_coroutine_t U, priority_t priority)
+ * void mapi_coroutine_priority(morphine_coroutine_t U, ml_size priority)
  * ```
  * ### Parameters
  * * `U` - coroutine
- * * `priority` - priority (0 until 256)
+ * * `priority` - priority (from 1)
  * ### Description
  * Changes the coroutine's priority
  * {{end}}
  */
-MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t U, priority_t priority) {
+MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t U, ml_size priority) {
     coroutineI_priority(U, priority);
 }
 
