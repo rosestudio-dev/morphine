@@ -7,18 +7,24 @@
 #include "size.h"
 #include "morphine/gc/pools.h"
 
-static inline void mark_object(morphine_instance_t I, struct object *object) {
+static inline bool mark_object(morphine_instance_t I, struct object *object) {
     if (object->color == OBJ_COLOR_WHITE) {
         object->color = OBJ_COLOR_GREY;
         gcI_pools_remove(object, &I->G.pools.allocated);
         gcI_pools_insert(object, &I->G.pools.grey);
+
+        return true;
     }
+
+    return false;
 }
 
-static inline void mark_value(morphine_instance_t I, struct value value) {
+static inline bool mark_value(morphine_instance_t I, struct value value) {
     if (valueI_is_object(value)) {
-        mark_object(I, valueI_as_object(value));
+        return mark_object(I, valueI_as_object(value));
     }
+
+    return false;
 }
 
 static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
