@@ -6,6 +6,7 @@
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
 #include "morphine/object/coroutine.h"
+#include "morphine/utils/overflow.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
@@ -671,7 +672,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
         throwI_error(I, "Table is fixed");
     }
 
-    if (unlikely(hashmap->buckets.count > MLIMIT_SIZE_MAX - 1)) {
+    overflow_add(hashmap->buckets.count, 1, MLIMIT_SIZE_MAX) {
         throwI_error(I, "Table size too big");
     }
 

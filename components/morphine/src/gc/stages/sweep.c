@@ -6,6 +6,7 @@
 #include "mark.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/reference.h"
+#include "morphine/utils/overflow.h"
 
 bool gcstageI_sweep(morphine_instance_t I, size_t debt) {
     size_t checked = 0;
@@ -16,7 +17,7 @@ bool gcstageI_sweep(morphine_instance_t I, size_t debt) {
             struct object *prev = current->prev;
 
             size_t size = size_obj(I, current);
-            if (unlikely(size > SIZE_MAX - checked)) {
+            overflow_add(size, checked, SIZE_MAX) {
                 checked = SIZE_MAX;
             } else {
                 checked += size;

@@ -106,7 +106,7 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
     morphine_instance_t I = U->I;
     struct stack *stack = &U->stack;
 
-    if (unlikely(size > SIZE_MAX - stack->top)) {
+    overflow_add(size, stack->top, SIZE_MAX) {
         throwI_error(I, "Stack overflow");
     }
 

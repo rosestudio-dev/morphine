@@ -10,6 +10,7 @@
 #include "morphine/gc/safe.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/params.h"
+#include "morphine/utils/overflow.h"
 
 struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
     struct vector *result = allocI_uni(I, NULL, sizeof(struct vector));
@@ -138,7 +139,7 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
 
     if (vector->size.accessible == vector->size.real) {
         size_t rollback = gcI_safe_value(I, value);
-        if (MPARAM_VECTOR_AMORTIZATION > MLIMIT_SIZE_MAX - vector->size.real) {
+        overflow_add(MPARAM_VECTOR_AMORTIZATION, vector->size.real, MLIMIT_SIZE_MAX) {
             throwI_error(I, "Vector size exceeded limit");
         }
 

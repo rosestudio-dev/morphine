@@ -5,6 +5,7 @@
 #include <string.h>
 #include "morphine/auxiliary/sio.h"
 #include "morphine/api.h"
+#include "morphine/utils/overflow.h"
 
 struct buffer_data {
     bool closed;
@@ -63,7 +64,7 @@ static size_t buffer_write(morphine_sio_accessor_t A, void *data, const uint8_t 
 
     for (size_t i = 0; i < size; i++) {
         if (B->pointer >= B->size) {
-            if (B->size > SIZE_MAX - 1) {
+            overflow_add(B->size, 1, SIZE_MAX) {
                 mapi_sio_accessor_error(A, "sio buffer overflow");
             }
 
@@ -71,7 +72,7 @@ static size_t buffer_write(morphine_sio_accessor_t A, void *data, const uint8_t 
         }
 
         if (B->size >= B->allocated) {
-            if (B->allocated > SIZE_MAX - B->factor) {
+            overflow_add(B->allocated, B->factor, SIZE_MAX) {
                 mapi_sio_accessor_error(A, "sio buffer overflow");
             }
 

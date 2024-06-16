@@ -61,7 +61,7 @@ static inline size_t debt_calc(morphine_instance_t I) {
     }
 
     size_t percent = I->G.settings.deal;
-    if (unlikely(conv > SIZE_MAX / percent)) {
+    overflow_mul(conv, percent, SIZE_MAX) {
         return SIZE_MAX;
     }
 

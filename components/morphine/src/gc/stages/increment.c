@@ -4,6 +4,7 @@
 
 #include "impl.h"
 #include "mark.h"
+#include "morphine/utils/overflow.h"
 
 static inline size_t record(morphine_instance_t I) {
     size_t checked = 0;
@@ -103,7 +104,7 @@ bool gcstageI_increment(morphine_instance_t I, size_t debt) {
             }
 
             size_t size = mark_internal(I, current);
-            if (unlikely(size > SIZE_MAX - checked)) {
+            overflow_add(size, checked, SIZE_MAX) {
                 checked = SIZE_MAX;
             } else {
                 checked += size;
