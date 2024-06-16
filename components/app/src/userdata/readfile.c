@@ -38,7 +38,7 @@ void *userdata_readfile(morphine_coroutine_t U, const char *path) {
     readfile->file = fopen(path, "r");
 
     if (readfile->file == NULL) {
-        mapi_errorf(U, "Cannot open file %s", path);
+        mapi_errorf(U, "cannot open file %s", path);
     }
 
     // get size
@@ -50,7 +50,7 @@ void *userdata_readfile(morphine_coroutine_t U, const char *path) {
         size = ftell(readfile->file);
 
         if (size < 0 || fseek_end_res != 0) {
-            mapi_errorf(U, "Cannot get file size");
+            mapi_errorf(U, "cannot get file size");
         }
 
         int fseek_set_res = fseek(readfile->file, 0, SEEK_SET);
@@ -79,5 +79,5 @@ void *userdata_readfile(morphine_coroutine_t U, const char *path) {
     return readfile->data;
 
 cannot_read:
-    mapi_errorf(U, "Cannot read file");
+    mapi_errorf(U, "cannot read file");
 }

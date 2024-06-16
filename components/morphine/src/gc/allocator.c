@@ -17,13 +17,13 @@ static inline void change_allocated_size(morphine_instance_t I, size_t grow_size
 
     if (plus) {
         overflow_add(alloc, grow_size, SIZE_MAX) {
-            throwI_panic(I, "Allocation size overflow");
+            throwI_panic(I, "allocation size overflow");
         }
 
         I->G.bytes.allocated += grow_size;
     } else {
         overflow_sub(alloc, grow_size, 0) {
-            throwI_panic(I, "Allocation size corrupted");
+            throwI_panic(I, "allocation size corrupted");
         }
 
         I->G.bytes.allocated -= grow_size;
@@ -38,7 +38,7 @@ static inline void update_max_alloc_size(morphine_instance_t I) {
 
 static inline size_t safe_mul(morphine_instance_t I, size_t a, size_t b) {
     overflow_mul(a, b, SIZE_MAX) {
-        throwI_error(I, "Allocation overflow");
+        throwI_error(I, "allocation overflow");
     }
 
     return a * b;
@@ -46,7 +46,7 @@ static inline size_t safe_mul(morphine_instance_t I, size_t a, size_t b) {
 
 static inline size_t safe_add(morphine_instance_t I, size_t a, size_t b) {
     overflow_add(a, b, SIZE_MAX) {
-        throwI_error(I, "Allocation overflow");
+        throwI_error(I, "allocation overflow");
     }
 
     return a + b;
@@ -86,7 +86,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
     }
 
     if (unlikely(result == NULL)) {
-        throwI_panic(I, "Allocation fault");
+        throwI_panic(I, "allocation fault");
     }
 
     update_max_alloc_size(I);

@@ -10,7 +10,7 @@ void gcstageI_prepare(morphine_instance_t I) {
                  I->G.pools.black != NULL ||
                  I->G.pools.black_coroutines != NULL ||
                  I->G.pools.sweep != NULL)) {
-        throwI_panic(I, "Corrupted gc pools");
+        throwI_panic(I, "corrupted gc pools");
     }
 
     struct object *current = I->G.pools.allocated;

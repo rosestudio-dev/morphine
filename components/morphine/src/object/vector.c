@@ -48,11 +48,11 @@ void vectorI_free(morphine_instance_t I, struct vector *vector) {
 
 void vectorI_mode_fixed(morphine_instance_t I, struct vector *vector, bool is_fixed) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (vector->mode.locked) {
-        throwI_error(I, "Vector is locked");
+        throwI_error(I, "vector is locked");
     }
 
     if (!vector->mode.fixed && is_fixed) {
@@ -65,11 +65,11 @@ void vectorI_mode_fixed(morphine_instance_t I, struct vector *vector, bool is_fi
 
 void vectorI_mode_mutable(morphine_instance_t I, struct vector *vector, bool is_mutable) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (vector->mode.locked) {
-        throwI_error(I, "Vector is locked");
+        throwI_error(I, "vector is locked");
     }
 
     vector->mode.mutable = is_mutable;
@@ -77,7 +77,7 @@ void vectorI_mode_mutable(morphine_instance_t I, struct vector *vector, bool is_
 
 void vectorI_mode_lock(morphine_instance_t I, struct vector *vector) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     vector->mode.locked = true;
@@ -85,7 +85,7 @@ void vectorI_mode_lock(morphine_instance_t I, struct vector *vector) {
 
 ml_size vectorI_size(morphine_instance_t I, struct vector *vector) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     return vector->size.accessible;
@@ -93,11 +93,11 @@ ml_size vectorI_size(morphine_instance_t I, struct vector *vector) {
 
 struct value vectorI_get(morphine_instance_t I, struct vector *vector, ml_size index) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (index >= vector->size.accessible) {
-        throwI_error(I, "Vector index out of bounce");
+        throwI_error(I, "vector index out of bounce");
     }
 
     return vector->values[index];
@@ -105,15 +105,15 @@ struct value vectorI_get(morphine_instance_t I, struct vector *vector, ml_size i
 
 void vectorI_set(morphine_instance_t I, struct vector *vector, ml_size index, struct value value) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (!vector->mode.mutable) {
-        throwI_error(I, "Vector is immutable");
+        throwI_error(I, "vector is immutable");
     }
 
     if (index >= vector->size.accessible) {
-        throwI_error(I, "Vector index out of bounce");
+        throwI_error(I, "vector index out of bounce");
     }
 
     gcI_barrier(I, vector, value);
@@ -122,25 +122,25 @@ void vectorI_set(morphine_instance_t I, struct vector *vector, ml_size index, st
 
 void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, struct value value) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (vector->mode.fixed) {
-        throwI_error(I, "Vector is fixed");
+        throwI_error(I, "vector is fixed");
     }
 
     if (!vector->mode.mutable) {
-        throwI_error(I, "Vector is immutable");
+        throwI_error(I, "vector is immutable");
     }
 
     if (index > vector->size.accessible) {
-        throwI_error(I, "Vector index out of bounce");
+        throwI_error(I, "vector index out of bounce");
     }
 
     if (vector->size.accessible == vector->size.real) {
         size_t rollback = gcI_safe_value(I, value);
         overflow_add(MPARAM_VECTOR_AMORTIZATION, vector->size.real, MLIMIT_SIZE_MAX) {
-            throwI_error(I, "Vector size exceeded limit");
+            throwI_error(I, "vector size exceeded limit");
         }
 
         vector->values = allocI_vec(
@@ -168,19 +168,19 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
 
 struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_size index) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (vector->mode.fixed) {
-        throwI_error(I, "Vector is fixed");
+        throwI_error(I, "vector is fixed");
     }
 
     if (!vector->mode.mutable) {
-        throwI_error(I, "Vector is immutable");
+        throwI_error(I, "vector is immutable");
     }
 
     if (index >= vector->size.accessible) {
-        throwI_error(I, "Vector index out of bounce");
+        throwI_error(I, "vector index out of bounce");
     }
 
     struct value value = vector->values[index];
@@ -194,7 +194,7 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
     if (vector->size.real - vector->size.accessible > MPARAM_VECTOR_AMORTIZATION) {
         size_t rollback = gcI_safe_value(I, value);
         if (MPARAM_VECTOR_AMORTIZATION > vector->size.real) {
-            throwI_error(I, "Vector size exceeded limit");
+            throwI_error(I, "vector size exceeded limit");
         }
 
         vector->values = allocI_vec(
@@ -213,15 +213,15 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
 
 void vectorI_resize(morphine_instance_t I, struct vector *vector, ml_size size) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (vector->mode.fixed) {
-        throwI_error(I, "Vector is fixed");
+        throwI_error(I, "vector is fixed");
     }
 
     if (!vector->mode.mutable) {
-        throwI_error(I, "Vector is immutable");
+        throwI_error(I, "vector is immutable");
     }
 
     vector->values = allocI_vec(
@@ -243,7 +243,7 @@ void vectorI_resize(morphine_instance_t I, struct vector *vector, ml_size size) 
 
 struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     ml_size size = vector->size.accessible;
@@ -263,7 +263,7 @@ struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
 
 struct value vectorI_first(morphine_instance_t I, struct vector *vector, bool *has) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (has != NULL) {
@@ -284,7 +284,7 @@ struct pair vectorI_next(
     bool *next
 ) {
     if (vector == NULL) {
-        throwI_error(I, "Vector is null");
+        throwI_error(I, "vector is null");
     }
 
     if (key == NULL) {

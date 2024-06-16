@@ -52,7 +52,7 @@ static uint64_t hashcode(morphine_instance_t I, struct value value) {
             return (uint64_t) valueI_as_object(value);
     }
 
-    throwI_panic(I, "Unknown value type");
+    throwI_panic(I, "unknown value type");
 }
 
 static inline int compare(morphine_instance_t I, struct value a, struct value b) {
@@ -96,7 +96,7 @@ static inline int compare(morphine_instance_t I, struct value a, struct value b)
             return COMPARE_NUM(a.object.header, b.object.header);
     }
 
-    throwI_panic(I, "Unsupported type");
+    throwI_panic(I, "unsupported type");
 }
 
 // linked list of buckets
@@ -516,7 +516,7 @@ static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
         struct bucket *tree_parent;
 
         if (redblacktree_insert_first(I, tree, current->pair.key, &tree_current, &tree_parent)) {
-            throwI_error(I, "Duplicate while resizing");
+            throwI_error(I, "duplicate while resizing");
         } else {
             redblacktree_insert_second(
                 I,
@@ -582,11 +582,11 @@ void tableI_free(morphine_instance_t I, struct table *table) {
 
 void tableI_mode_fixed(morphine_instance_t I, struct table *table, bool is_fixed) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     if (table->mode.locked) {
-        throwI_error(I, "Table is locked");
+        throwI_error(I, "table is locked");
     }
 
     table->mode.fixed = is_fixed;
@@ -594,11 +594,11 @@ void tableI_mode_fixed(morphine_instance_t I, struct table *table, bool is_fixed
 
 void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mutable) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     if (table->mode.locked) {
-        throwI_error(I, "Table is locked");
+        throwI_error(I, "table is locked");
     }
 
     table->mode.mutable = is_mutable;
@@ -606,11 +606,11 @@ void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mut
 
 void tableI_mode_lock_metatable(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     if (table->mode.locked) {
-        throwI_error(I, "Table is locked");
+        throwI_error(I, "table is locked");
     }
 
     table->mode.metatable_locked = true;
@@ -618,7 +618,7 @@ void tableI_mode_lock_metatable(morphine_instance_t I, struct table *table) {
 
 void tableI_mode_lock(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     table->mode.locked = true;
@@ -626,7 +626,7 @@ void tableI_mode_lock(morphine_instance_t I, struct table *table) {
 
 ml_size tableI_size(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     return table->hashmap.buckets.count;
@@ -634,11 +634,11 @@ ml_size tableI_size(morphine_instance_t I, struct table *table) {
 
 void tableI_set(morphine_instance_t I, struct table *table, struct value key, struct value value) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     if (!table->mode.mutable) {
-        throwI_error(I, "Table is immutable");
+        throwI_error(I, "table is immutable");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -669,11 +669,11 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     }
 
     if (table->mode.fixed) {
-        throwI_error(I, "Table is fixed");
+        throwI_error(I, "table is fixed");
     }
 
     overflow_add(hashmap->buckets.count, 1, MLIMIT_SIZE_MAX) {
-        throwI_error(I, "Table size too big");
+        throwI_error(I, "table size too big");
     }
 
     current = allocI_uni(I, NULL, sizeof(struct bucket));
@@ -695,7 +695,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
 
 struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -715,17 +715,17 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
 
 void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, struct value value) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     if (!table->mode.mutable) {
-        throwI_error(I, "Table is immutable");
+        throwI_error(I, "table is immutable");
     }
 
     struct hashmap *hashmap = &table->hashmap;
 
     if (index >= table->hashmap.buckets.count) {
-        throwI_error(I, "Table index out of bounce");
+        throwI_error(I, "table index out of bounce");
     }
 
     struct bucket *current = hashmap->buckets.tail;
@@ -734,7 +734,7 @@ void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, s
     }
 
     if (current == NULL) {
-        throwI_error(I, "Table buckets corrupted");
+        throwI_error(I, "table buckets corrupted");
     }
 
     gcI_barrier(I, table, value);
@@ -743,7 +743,7 @@ void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, s
 
 struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index, bool *has) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -762,7 +762,7 @@ struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size i
     }
 
     if (current == NULL) {
-        throwI_error(I, "Table buckets corrupted");
+        throwI_error(I, "table buckets corrupted");
     }
 
     if (has != NULL) {
@@ -774,15 +774,15 @@ struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size i
 
 struct value tableI_remove(morphine_instance_t I, struct table *table, struct value key, bool *has) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     if (table->mode.fixed) {
-        throwI_error(I, "Table is fixed");
+        throwI_error(I, "table is fixed");
     }
 
     if (!table->mode.mutable) {
-        throwI_error(I, "Table is immutable");
+        throwI_error(I, "table is immutable");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -821,15 +821,15 @@ notfound:
 
 void tableI_clear(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     if (table->mode.fixed) {
-        throwI_error(I, "Table is fixed");
+        throwI_error(I, "table is fixed");
     }
 
     if (!table->mode.mutable) {
-        throwI_error(I, "Table is immutable");
+        throwI_error(I, "table is immutable");
     }
 
     struct bucket *current = table->hashmap.buckets.head;
@@ -854,7 +854,7 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
 
 struct table *tableI_copy(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     struct table *result = tableI_create(I);
@@ -877,7 +877,7 @@ struct table *tableI_copy(morphine_instance_t I, struct table *table) {
 
 struct value tableI_first(morphine_instance_t I, struct table *table, bool *has) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -896,7 +896,7 @@ struct value tableI_first(morphine_instance_t I, struct table *table, bool *has)
 
 struct pair tableI_next(morphine_instance_t I, struct table *table, struct value *key, bool *next) {
     if (table == NULL) {
-        throwI_error(I, "Table is null");
+        throwI_error(I, "table is null");
     }
 
     if (key == NULL) {

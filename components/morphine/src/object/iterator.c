@@ -13,7 +13,7 @@ struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
     struct table *table = valueI_safe_as_table(value, NULL);
     struct vector *vector = valueI_safe_as_vector(value, NULL);
     if (table == NULL && vector == NULL) {
-        throwI_error(I, "Iterator only supports table");
+        throwI_error(I, "iterator only supports table");
     }
 
     struct iterator *result = allocI_uni(I, NULL, sizeof(struct iterator));
@@ -42,7 +42,7 @@ void iteratorI_free(morphine_instance_t I, struct iterator *iterator) {
 
 void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
     if (iterator == NULL) {
-        throwI_error(I, "Iterator is null");
+        throwI_error(I, "iterator is null");
     }
 
     switch (iterator->type) {
@@ -59,7 +59,7 @@ void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
             );
             break;
         default:
-            throwI_panic(I, "Unknown iterable type");
+            throwI_panic(I, "unknown iterable type");
     }
 
     gcI_barrier(I, iterator, iterator->next.key);
@@ -67,7 +67,7 @@ void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
 
 bool iteratorI_has(morphine_instance_t I, struct iterator *iterator) {
     if (iterator == NULL) {
-        throwI_error(I, "Iterator is null");
+        throwI_error(I, "iterator is null");
     }
 
     return iterator->next.has;
@@ -75,7 +75,7 @@ bool iteratorI_has(morphine_instance_t I, struct iterator *iterator) {
 
 struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
     if (iterator == NULL) {
-        throwI_error(I, "Iterator is null");
+        throwI_error(I, "iterator is null");
     }
 
     struct pair result;
@@ -95,7 +95,7 @@ struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
             );
             break;
         default:
-            throwI_panic(I, "Unknown iterable type");
+            throwI_panic(I, "unknown iterable type");
     }
 
     gcI_barrier(I, iterator, iterator->next.key);

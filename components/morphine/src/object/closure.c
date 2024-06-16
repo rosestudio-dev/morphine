@@ -42,11 +42,11 @@ void closureI_free(morphine_instance_t I, struct closure *closure) {
 
 struct value closureI_get(morphine_instance_t I, struct closure *closure, ml_size index) {
     if (closure == NULL) {
-        throwI_error(I, "Closure is null");
+        throwI_error(I, "closure is null");
     }
 
     if (index >= closure->size) {
-        throwI_error(I, "Closure index was out of bounce");
+        throwI_error(I, "closure index was out of bounce");
     }
 
     return closure->values[index];
@@ -54,11 +54,11 @@ struct value closureI_get(morphine_instance_t I, struct closure *closure, ml_siz
 
 void closureI_set(morphine_instance_t I, struct closure *closure, ml_size index, struct value value) {
     if (closure == NULL) {
-        throwI_error(I, "Closure is null");
+        throwI_error(I, "closure is null");
     }
 
     if (index >= closure->size) {
-        throwI_error(I, "Closure index was out of bounce");
+        throwI_error(I, "closure index was out of bounce");
     }
 
     gcI_barrier(I, closure, value);

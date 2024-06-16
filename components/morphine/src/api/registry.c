@@ -36,7 +36,7 @@ MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t U) {
     if (has) {
         stackI_replace(U, 0, result);
     } else {
-        throwI_errorf(U->I, "Cannot get value from registry by %s", valueI_value2string(U->I, value));
+        throwI_errorf(U->I, "cannot get value from registry by %s", valueI_value2string(U->I, value));
     }
 }
 

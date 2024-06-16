@@ -37,7 +37,7 @@ void registryI_set(morphine_coroutine_t U, struct value key, struct value value)
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {
-        throwI_error(I, "Attempt to set to registry for unsupported callable");
+        throwI_error(I, "attempt to set to registry for unsupported callable");
     }
 
     size_t rollback = gcI_safe_value(I, key);
@@ -67,7 +67,7 @@ struct value registryI_get(morphine_coroutine_t U, struct value key, bool *has) 
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {
-        throwI_error(U->I, "Attempt to get from registry for unsupported callable");
+        throwI_error(U->I, "attempt to get from registry for unsupported callable");
     }
 
     struct value table = tableI_get(U->I, U->I->registry, registry_key, has);
@@ -88,7 +88,7 @@ void registryI_clear(morphine_coroutine_t U) {
     } else if (valueI_is_native(source)) {
         registry_key = valueI_as_native(source)->registry_key;
     } else {
-        throwI_error(U->I, "Attempt to clear registry for unsupported callable");
+        throwI_error(U->I, "attempt to clear registry for unsupported callable");
     }
 
     tableI_remove(U->I, U->I->registry, registry_key, NULL);

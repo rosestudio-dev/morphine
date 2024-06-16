@@ -24,7 +24,7 @@ void referenceI_free(morphine_instance_t I, struct reference *reference) {
 
 struct value *referenceI_get(morphine_instance_t I, struct reference *reference) {
     if (reference == NULL) {
-        throwI_error(I, "Reference is null");
+        throwI_error(I, "reference is null");
     }
 
     return &reference->value;
@@ -32,7 +32,7 @@ struct value *referenceI_get(morphine_instance_t I, struct reference *reference)
 
 void referenceI_set(morphine_instance_t I, struct reference *reference, struct value value) {
     if (reference == NULL) {
-        throwI_error(I, "Reference is null");
+        throwI_error(I, "reference is null");
     }
 
     reference->value = value;

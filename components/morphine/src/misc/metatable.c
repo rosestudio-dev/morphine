@@ -34,7 +34,7 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
         struct table *table = valueI_as_table(value);
 
         if (table->mode.metatable_locked) {
-            throwI_error(I, "Metatable was locked");
+            throwI_error(I, "metatable was locked");
         }
 
         if (metatable != NULL) {
@@ -49,7 +49,7 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
         struct userdata *userdata = valueI_as_userdata(value);
 
         if (userdata->mode.metatable_locked) {
-            throwI_error(I, "Metatable was locked");
+            throwI_error(I, "metatable was locked");
         }
 
         if (metatable != NULL) {
@@ -60,12 +60,12 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
         return;
     }
 
-    throwI_errorf(I, "Metatable cannot be set to %s", valueI_type2string(I, value.type));
+    throwI_errorf(I, "metatable cannot be set to %s", valueI_type2string(I, value.type));
 }
 
 void metatableI_set_default(morphine_instance_t I, enum value_type type, struct table *metatable) {
     if (VALUE_TYPES_START > type || type >= VALUE_TYPES_COUNT) {
-        throwI_panic(I, "Unsupported value type");
+        throwI_panic(I, "unsupported value type");
     }
 
     I->metatable.defaults[type] = metatable;
@@ -73,7 +73,7 @@ void metatableI_set_default(morphine_instance_t I, enum value_type type, struct 
 
 struct value metatableI_get_default(morphine_instance_t I, enum value_type type) {
     if (VALUE_TYPES_START > type || type >= VALUE_TYPES_COUNT) {
-        throwI_panic(I, "Unsupported value type");
+        throwI_panic(I, "unsupported value type");
     }
 
     return extract_metatable(I, I->metatable.defaults[type]);
@@ -86,7 +86,7 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
     } else if (valueI_is_userdata(value)) {
         metatable = valueI_as_userdata(value)->metatable;
     } else {
-        throwI_errorf(I, "Metatable cannot be get from %s", valueI_type2string(I, value.type));
+        throwI_errorf(I, "metatable cannot be get from %s", valueI_type2string(I, value.type));
     }
 
     return extract_metatable(I, metatable);
@@ -99,7 +99,7 @@ bool metatableI_test(
     struct value *result
 ) {
     if (MFS_START > field || field >= MFS_COUNT) {
-        throwI_panic(I, "Unsupported meta field");
+        throwI_panic(I, "unsupported meta field");
     }
 
     struct table *metatable;
@@ -185,7 +185,7 @@ const char *metatableI_field2string(morphine_instance_t I, enum metatable_field 
             return "_mf_iterator_next";
     }
 
-    throwI_panic(I, "Unsupported meta field");
+    throwI_panic(I, "unsupported meta field");
 }
 
 enum metatable_field metatableI_string2field(morphine_instance_t I, const char *name) {
@@ -195,5 +195,5 @@ enum metatable_field metatableI_string2field(morphine_instance_t I, const char *
         }
     }
 
-    throwI_errorf(I, "Unknown type '%s'", name);
+    throwI_errorf(I, "unknown type '%s'", name);
 }

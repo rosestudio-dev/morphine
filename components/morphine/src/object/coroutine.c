@@ -114,9 +114,9 @@ void coroutineI_attach(morphine_coroutine_t U) {
     switch (U->status) {
         case COROUTINE_STATUS_RUNNING:
         case COROUTINE_STATUS_SUSPENDED:
-            throwI_error(U->I, "Coroutine is already attached");
+            throwI_error(U->I, "coroutine is already attached");
         case COROUTINE_STATUS_DEAD:
-            throwI_error(U->I, "Coroutine is dead");
+            throwI_error(U->I, "coroutine is dead");
         case COROUTINE_STATUS_CREATED: {
             attach(U);
             U->status = COROUTINE_STATUS_RUNNING;
@@ -124,7 +124,7 @@ void coroutineI_attach(morphine_coroutine_t U) {
         }
     }
 
-    throwI_panic(U->I, "Unknown coroutine status");
+    throwI_panic(U->I, "unknown coroutine status");
 }
 
 void coroutineI_suspend(morphine_coroutine_t U) {
@@ -135,12 +135,12 @@ void coroutineI_suspend(morphine_coroutine_t U) {
         case COROUTINE_STATUS_SUSPENDED:
             return;
         case COROUTINE_STATUS_DEAD:
-            throwI_error(U->I, "Coroutine is dead");
+            throwI_error(U->I, "coroutine is dead");
         case COROUTINE_STATUS_CREATED:
-            throwI_error(U->I, "Coroutine isn't running");
+            throwI_error(U->I, "coroutine isn't running");
     }
 
-    throwI_panic(U->I, "Unknown coroutine status");
+    throwI_panic(U->I, "unknown coroutine status");
 }
 
 void coroutineI_resume(morphine_coroutine_t U) {
@@ -151,12 +151,12 @@ void coroutineI_resume(morphine_coroutine_t U) {
             U->status = COROUTINE_STATUS_RUNNING;
             return;
         case COROUTINE_STATUS_DEAD:
-            throwI_error(U->I, "Coroutine is dead");
+            throwI_error(U->I, "coroutine is dead");
         case COROUTINE_STATUS_CREATED:
-            throwI_error(U->I, "Coroutine isn't running");
+            throwI_error(U->I, "coroutine isn't running");
     }
 
-    throwI_panic(U->I, "Unknown coroutine status");
+    throwI_panic(U->I, "unknown coroutine status");
 }
 
 void coroutineI_kill(morphine_coroutine_t U) {
@@ -174,7 +174,7 @@ bool coroutineI_isalive(morphine_coroutine_t U) {
             return false;
     }
 
-    throwI_panic(U->I, "Unknown coroutine status");
+    throwI_panic(U->I, "unknown coroutine status");
 }
 
 const char *coroutineI_status2string(morphine_coroutine_t U, enum coroutine_status status) {
@@ -189,7 +189,7 @@ const char *coroutineI_status2string(morphine_coroutine_t U, enum coroutine_stat
             return "created";
     }
 
-    throwI_panic(U->I, "Unknown coroutine status");
+    throwI_panic(U->I, "unknown coroutine status");
 }
 
 enum coroutine_status coroutineI_string2status(morphine_coroutine_t U, const char *name) {
@@ -199,5 +199,5 @@ enum coroutine_status coroutineI_string2status(morphine_coroutine_t U, const cha
         }
     }
 
-    throwI_error(U->I, "Unknown coroutine status");
+    throwI_error(U->I, "unknown coroutine status");
 }

@@ -24,7 +24,7 @@ const char *gcI_status(morphine_instance_t I) {
             return "sweep";
     }
 
-    throwI_panic(I, "Unsupported gc status");
+    throwI_panic(I, "unsupported gc status");
 }
 
 bool gcI_isrunning(morphine_instance_t I) {

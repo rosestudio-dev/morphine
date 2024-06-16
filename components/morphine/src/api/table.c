@@ -130,7 +130,7 @@ MORPHINE_API void mapi_table_idx_getoe(morphine_coroutine_t U, ml_size index) {
     if (has) {
         stackI_push(U, result);
     } else {
-        throwI_errorf(U->I, "Cannot get value from table by index %"MLIMIT_SIZE_PR, index);
+        throwI_errorf(U->I, "cannot get value from table by index %"MLIMIT_SIZE_PR, index);
     }
 }
 
@@ -143,7 +143,7 @@ MORPHINE_API void mapi_table_idx_keyoe(morphine_coroutine_t U, ml_size index) {
     if (has) {
         stackI_push(U, result);
     } else {
-        throwI_errorf(U->I, "Cannot get key from table by index %"MLIMIT_SIZE_PR, index);
+        throwI_errorf(U->I, "cannot get key from table by index %"MLIMIT_SIZE_PR, index);
     }
 }
 
@@ -157,7 +157,7 @@ MORPHINE_API void mapi_table_getoe(morphine_coroutine_t U) {
     if (has) {
         stackI_replace(U, 0, result);
     } else {
-        throwI_errorf(U->I, "Cannot get value from table by %s", valueI_value2string(U->I, value));
+        throwI_errorf(U->I, "cannot get value from table by %s", valueI_value2string(U->I, value));
     }
 }
 
@@ -171,7 +171,7 @@ MORPHINE_API void mapi_table_removeoe(morphine_coroutine_t U) {
     if (has) {
         stackI_replace(U, 0, result);
     } else {
-        throwI_errorf(U->I, "Cannot remove from table by %s", valueI_value2string(U->I, value));
+        throwI_errorf(U->I, "cannot remove from table by %s", valueI_value2string(U->I, value));
     }
 }
 

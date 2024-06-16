@@ -28,7 +28,7 @@ static inline void stackI_call(
     morphine_instance_t I = U->I;
 
     if (argc > MLIMIT_CALLABLE_ARGS) {
-        throwI_error(I, "Too many args");
+        throwI_error(I, "too many args");
     }
 
     // get source and calc values size
@@ -42,11 +42,11 @@ static inline void stackI_call(
         struct function *function = valueI_as_function(source);
 
         if (!function->complete) {
-            throwI_error(I, "Incomplete function");
+            throwI_error(I, "incomplete function");
         }
 
         if (argc != function->arguments_count) {
-            throwI_error(I, "Wrong arguments count");
+            throwI_error(I, "wrong arguments count");
         }
 
         slots_count = function->slots_count;
@@ -65,7 +65,7 @@ static inline void stackI_call(
     // create callinfo
 
     if (pop_size > stackI_space(U)) {
-        throwI_error(I, "Cannot pop values after call");
+        throwI_error(I, "cannot pop values after call");
     }
 
     struct callinfo *callinfo = gcI_cache_callinfo(I);
@@ -119,7 +119,7 @@ static inline struct callinfo *checkargs(morphine_coroutine_t U, ml_size argc) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
 
     if (argc != callinfo->arguments_count) {
-        throwI_error(U->I, "Wrong arguments count");
+        throwI_error(U->I, "wrong arguments count");
     }
 
     return callinfo;
@@ -250,7 +250,7 @@ void callstackI_call_params(
     size_t params_count = valueI_as_function_or_error(U->I, *(callinfo->s.source))->params_count;
 
     if (params_count < argc) {
-        throwI_error(U->I, "Arguments count is greater than params count");
+        throwI_error(U->I, "arguments count is greater than params count");
     }
 
     struct value mt_field;
@@ -312,7 +312,7 @@ struct value callstackI_extract_callable(morphine_instance_t I, struct value cal
     size_t counter = 0;
 repeat:;
     if (counter > MLIMIT_EXTRACT_CALLABLE_DEEP) {
-        throwI_error(I, "Possible recursion while extracting callable");
+        throwI_error(I, "possible recursion while extracting callable");
     }
 
     struct closure *closure = valueI_safe_as_closure(callable, NULL);
@@ -326,14 +326,14 @@ repeat:;
         return callable;
     }
 
-    throwI_error(I, "Cannot extract callable value");
+    throwI_error(I, "cannot extract callable value");
 }
 
 bool callstackI_is_callable(morphine_instance_t I, struct value callable) {
     size_t counter = 0;
 repeat:;
     if (counter > MLIMIT_EXTRACT_CALLABLE_DEEP) {
-        throwI_error(I, "Possible recursion while checking callable");
+        throwI_error(I, "possible recursion while checking callable");
     }
 
     struct closure *closure = valueI_safe_as_closure(callable, NULL);

@@ -34,7 +34,7 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
 static inline void ofm_check(morphine_instance_t I, size_t reserved) {
     if (overflow_condition_add(reserved, I->G.bytes.allocated, SIZE_MAX) ||
         overflow_condition_add(reserved, I->G.bytes.allocated, I->G.settings.limit)) {
-        throwI_error(I, "Out of memory");
+        throwI_error(I, "out of memory");
     }
 }
 
@@ -164,7 +164,7 @@ void gcI_change_threshold(morphine_instance_t I, size_t value) {
 
 void gcI_change_grow(morphine_instance_t I, uint16_t value) {
     if (value <= 100) {
-        throwI_error(I, "GC grow must be greater than 100");
+        throwI_error(I, "gc grow must be greater than 100");
     }
 
     I->G.settings.grow = value / 10;
@@ -172,7 +172,7 @@ void gcI_change_grow(morphine_instance_t I, uint16_t value) {
 
 void gcI_change_deal(morphine_instance_t I, uint16_t value) {
     if (value <= 100) {
-        throwI_error(I, "GC deal must be greater than 100");
+        throwI_error(I, "gc deal must be greater than 100");
     }
 
     I->G.settings.deal = value / 10;
@@ -180,7 +180,7 @@ void gcI_change_deal(morphine_instance_t I, uint16_t value) {
 
 void gcI_change_pause(morphine_instance_t I, uint8_t value) {
     if (value > 31) {
-        throwI_error(I, "GC pause must be less than 32");
+        throwI_error(I, "gc pause must be less than 32");
     }
 
     I->G.settings.pause = ((uint32_t) 1) << value;

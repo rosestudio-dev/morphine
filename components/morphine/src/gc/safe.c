@@ -9,11 +9,11 @@
 
 struct value *gcI_safe(morphine_instance_t I, size_t *rollback) {
     if (I->G.safe.index >= safe_stack_size(I)) {
-        throwI_panic(I, "GC safe stack is full");
+        throwI_panic(I, "gc safe stack is full");
     }
 
     if (rollback == NULL) {
-        throwI_panic(I, "GC safe rollback is null");
+        throwI_panic(I, "gc safe rollback is null");
     } else {
         *rollback = I->G.safe.index;
     }
@@ -36,7 +36,7 @@ size_t gcI_safe_obj(morphine_instance_t I, struct object *object) {
 
 void gcI_reset_safe(morphine_instance_t I, size_t rollback) {
     if (rollback >= safe_stack_size(I)) {
-        throwI_panic(I, "GC safe rollback out of bounce");
+        throwI_panic(I, "gc safe rollback out of bounce");
     }
 
     size_t size = safe_stack_size(I);

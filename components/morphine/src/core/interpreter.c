@@ -538,7 +538,7 @@ static inline void step(morphine_coroutine_t U) {
         struct native *native = valueI_as_native(source);
         native->function(U);
     } else {
-        throwI_error(U->I, "Attempt to execute unsupported callable");
+        throwI_error(U->I, "attempt to execute unsupported callable");
     }
 
     if (unlikely(callinfo->exit)) {
@@ -547,7 +547,7 @@ static inline void step(morphine_coroutine_t U) {
                 callstackI_pop(U);
             }
 
-            throwI_error(U->I, "Callstack corrupted");
+            throwI_error(U->I, "callstack corrupted");
         }
 
         callstackI_pop(U);

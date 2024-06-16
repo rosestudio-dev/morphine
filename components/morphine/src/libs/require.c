@@ -62,7 +62,7 @@ MORPHINE_LIB void mlib_require(morphine_coroutine_t U) {
                 }
 
                 if (result == NULL) {
-                    mapi_errorf(U, "Cannot find '%s' library", id);
+                    mapi_errorf(U, "cannot find '%s' library", id);
                 }
 
                 result->loader(U);

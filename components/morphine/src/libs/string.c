@@ -34,7 +34,7 @@ static void substring(morphine_coroutine_t U) {
             if (start > len || len < end || start > end) {
                 mapi_errorf(
                     U,
-                    "Cannot sub string with len %zu from %zu to %zu",
+                    "cannot sub string with len %zu from %zu to %zu",
                     len,
                     start,
                     end
@@ -85,7 +85,7 @@ static void codeat(morphine_coroutine_t U) {
             mapi_pop(U, 2);
 
             if (at >= len) {
-                mapi_errorf(U, "Cannot get code of char at %zu position", at);
+                mapi_errorf(U, "cannot get code of char at %zu position", at);
             }
 
             mapi_push_integer(U, string[at]);
@@ -110,7 +110,7 @@ static void charat(morphine_coroutine_t U) {
             mapi_pop(U, 2);
 
             if (at >= len) {
-                mapi_errorf(U, "Cannot get char at %zu position", at);
+                mapi_errorf(U, "cannot get char at %zu position", at);
             }
 
             mapi_push_stringf(U, "%c", string[at]);
@@ -787,7 +787,7 @@ static void format(morphine_coroutine_t U) {
                     }
 
                     if (!closed) {
-                        mapi_errorf(U, "Format access key isn't closed");
+                        mapi_errorf(U, "format access key isn't closed");
                     }
 
                     if (index > 0) {

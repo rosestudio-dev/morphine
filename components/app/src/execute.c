@@ -49,7 +49,7 @@ static void dfree(void *ptr) {
 
 static void load_program(morphine_coroutine_t U, const char *path, bool binary) {
     if (path == NULL) {
-        mapi_errorf(U, "Empty file path");
+        mapi_errorf(U, "empty file path");
     } else if (binary) {
         loader_binary_file(U, path);
     } else {

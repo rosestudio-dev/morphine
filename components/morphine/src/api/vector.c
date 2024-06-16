@@ -91,7 +91,7 @@ MORPHINE_API void mapi_vector_push(morphine_coroutine_t U) {
 MORPHINE_API void mapi_vector_pop(morphine_coroutine_t U) {
     struct vector *vector = valueI_as_vector_or_error(U->I, stackI_peek(U, 0));
     if (vector->size.accessible == 0) {
-        throwI_error(U->I, "Cannot pop value from empty vector");
+        throwI_error(U->I, "cannot pop value from empty vector");
     }
 
     stackI_push(U, vectorI_remove(U->I, vector, vector->size.accessible - 1));
@@ -100,7 +100,7 @@ MORPHINE_API void mapi_vector_pop(morphine_coroutine_t U) {
 MORPHINE_API void mapi_vector_peek(morphine_coroutine_t U) {
     struct vector *vector = valueI_as_vector_or_error(U->I, stackI_peek(U, 0));
     if (vector->size.accessible == 0) {
-        throwI_error(U->I, "Cannot peek value from empty vector");
+        throwI_error(U->I, "cannot peek value from empty vector");
     }
 
     stackI_push(U, vectorI_get(U->I, vector, vector->size.accessible - 1));
@@ -116,7 +116,7 @@ MORPHINE_API void mapi_vector_push_front(morphine_coroutine_t U) {
 MORPHINE_API void mapi_vector_pop_front(morphine_coroutine_t U) {
     struct vector *vector = valueI_as_vector_or_error(U->I, stackI_peek(U, 0));
     if (vector->size.accessible == 0) {
-        throwI_error(U->I, "Cannot pop value from front of empty vector");
+        throwI_error(U->I, "cannot pop value from front of empty vector");
     }
 
     stackI_push(U, vectorI_remove(U->I, vector, 0));
@@ -125,7 +125,7 @@ MORPHINE_API void mapi_vector_pop_front(morphine_coroutine_t U) {
 MORPHINE_API void mapi_vector_peek_front(morphine_coroutine_t U) {
     struct vector *vector = valueI_as_vector_or_error(U->I, stackI_peek(U, 0));
     if (vector->size.accessible == 0) {
-        throwI_error(U->I, "Cannot peek value from front of empty vector");
+        throwI_error(U->I, "cannot peek value from front of empty vector");
     }
 
     stackI_push(U, vectorI_get(U->I, vector, 0));

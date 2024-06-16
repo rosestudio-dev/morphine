@@ -66,7 +66,7 @@ static inline op_result_t interpreter_fun_iterator_init(
         return CALLED;
     }
 
-    throwI_error(U->I, "Cannot init iterator");
+    throwI_error(U->I, "cannot init iterator");
 }
 
 static inline op_result_t interpreter_fun_iterator_has(
@@ -93,7 +93,7 @@ static inline op_result_t interpreter_fun_iterator_has(
         return CALLED;
     }
 
-    throwI_error(U->I, "Cannot check next value of iterator");
+    throwI_error(U->I, "cannot check next value of iterator");
 }
 
 static inline op_result_t interpreter_fun_iterator_next(
@@ -127,7 +127,7 @@ static inline op_result_t interpreter_fun_iterator_next(
         return CALLED;
     }
 
-    throwI_error(U->I, "Cannot get next value of iterator");
+    throwI_error(U->I, "cannot get next value of iterator");
 }
 
 static inline op_result_t interpreter_fun_get(
@@ -168,7 +168,7 @@ static inline op_result_t interpreter_fun_get(
         return CALLED;
     }
 
-    throwI_error(U->I, "Get supports only table or vector");
+    throwI_error(U->I, "get supports only table or vector");
 }
 
 static inline op_result_t interpreter_fun_set(
@@ -232,7 +232,7 @@ static inline op_result_t interpreter_fun_add(
         return CALLED;
     }
 
-    throwI_error(U->I, "Add supports only integer or decimal");
+    throwI_error(U->I, "add supports only integer or decimal");
 }
 
 static inline op_result_t interpreter_fun_sub(
@@ -267,7 +267,7 @@ static inline op_result_t interpreter_fun_sub(
         return CALLED;
     }
 
-    throwI_error(U->I, "Sub supports only integer or decimal");
+    throwI_error(U->I, "sub supports only integer or decimal");
 }
 
 static inline op_result_t interpreter_fun_mul(
@@ -302,7 +302,7 @@ static inline op_result_t interpreter_fun_mul(
         return CALLED;
     }
 
-    throwI_error(U->I, "Mul supports only integer or decimal");
+    throwI_error(U->I, "mul supports only integer or decimal");
 }
 
 static inline op_result_t interpreter_fun_div(
@@ -321,7 +321,7 @@ static inline op_result_t interpreter_fun_div(
 
     if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
         if (unlikely(valueI_as_integer(b) == 0)) {
-            throwI_error(U->I, "Attempt to divide by zero");
+            throwI_error(U->I, "attempt to divide by zero");
         }
 
         (*result) = valueI_integer(valueI_as_integer(a) / valueI_as_integer(b));
@@ -331,7 +331,7 @@ static inline op_result_t interpreter_fun_div(
 
     if (valueI_is_decimal(a) && valueI_is_decimal(b)) {
         if (unlikely(valueI_as_decimal(b) == 0)) {
-            throwI_error(U->I, "Attempt to divide by zero");
+            throwI_error(U->I, "attempt to divide by zero");
         }
 
         (*result) = valueI_decimal(valueI_as_decimal(a) / valueI_as_decimal(b));
@@ -347,7 +347,7 @@ static inline op_result_t interpreter_fun_div(
         return CALLED;
     }
 
-    throwI_error(U->I, "Div supports only integer or decimal");
+    throwI_error(U->I, "div supports only integer or decimal");
 }
 
 static inline op_result_t interpreter_fun_mod(
@@ -366,7 +366,7 @@ static inline op_result_t interpreter_fun_mod(
 
     if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
         if (unlikely(valueI_as_integer(b) == 0)) {
-            throwI_error(U->I, "Attempt to divide by zero");
+            throwI_error(U->I, "attempt to divide by zero");
         }
 
         (*result) = valueI_integer(valueI_as_integer(a) % valueI_as_integer(b));
@@ -382,7 +382,7 @@ static inline op_result_t interpreter_fun_mod(
         return CALLED;
     }
 
-    throwI_error(U->I, "Mod supports only integer");
+    throwI_error(U->I, "mod supports only integer");
 }
 
 static inline op_result_t interpreter_fun_equal(
@@ -443,7 +443,7 @@ static inline op_result_t interpreter_fun_less(
         return CALLED;
     }
 
-    throwI_error(U->I, "Less supports only integer or decimal");
+    throwI_error(U->I, "less supports only integer or decimal");
 }
 
 static inline op_result_t interpreter_fun_less_equal(
@@ -478,7 +478,7 @@ static inline op_result_t interpreter_fun_less_equal(
         return CALLED;
     }
 
-    throwI_error(U->I, "Less equal supports only integer or decimal");
+    throwI_error(U->I, "less equal supports only integer or decimal");
 }
 
 static inline op_result_t interpreter_fun_and(
@@ -508,7 +508,7 @@ static inline op_result_t interpreter_fun_and(
         return CALLED;
     }
 
-    throwI_error(U->I, "And supports only boolean");
+    throwI_error(U->I, "and supports only boolean");
 }
 
 static inline op_result_t interpreter_fun_or(
@@ -538,7 +538,7 @@ static inline op_result_t interpreter_fun_or(
         return CALLED;
     }
 
-    throwI_error(U->I, "Or supports only boolean");
+    throwI_error(U->I, "or supports only boolean");
 }
 
 static inline op_result_t interpreter_fun_concat(
@@ -571,7 +571,7 @@ static inline op_result_t interpreter_fun_concat(
         return CALLED;
     }
 
-    throwI_error(U->I, "Concat supports only string");
+    throwI_error(U->I, "concat supports only string");
 }
 
 static inline op_result_t interpreter_fun_type(
@@ -626,7 +626,7 @@ static inline op_result_t interpreter_fun_negative(
         return CALLED;
     }
 
-    throwI_error(U->I, "Negate supports only integer or decimal");
+    throwI_error(U->I, "negate supports only integer or decimal");
 }
 
 static inline op_result_t interpreter_fun_not(
@@ -654,7 +654,7 @@ static inline op_result_t interpreter_fun_not(
         return CALLED;
     }
 
-    throwI_error(U->I, "Not supports only boolean");
+    throwI_error(U->I, "not supports only boolean");
 }
 
 static inline op_result_t interpreter_fun_ref(
@@ -706,7 +706,7 @@ static inline op_result_t interpreter_fun_deref(
         return CALLED;
     }
 
-    throwI_error(U->I, "Deref supports only reference");
+    throwI_error(U->I, "deref supports only reference");
 }
 
 static inline op_result_t interpreter_fun_length(
@@ -744,5 +744,5 @@ static inline op_result_t interpreter_fun_length(
         return CALLED;
     }
 
-    throwI_error(U->I, "Length supports only string, table or vector");
+    throwI_error(U->I, "length supports only string, table or vector");
 }

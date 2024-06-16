@@ -23,7 +23,7 @@ static struct string *create(morphine_instance_t I, size_t size, char **buffer) 
     bool check2 = overflow_condition_mul(size + 1, sizeof(char), SIZE_MAX);
     bool check3 = overflow_condition_add(size + 1 * sizeof(char), sizeof(struct string), SIZE_MAX);
     if (check1 || check2 || check3) {
-        throwI_error(I, "String size too big");
+        throwI_error(I, "string size too big");
     }
 
     size_t alloc_size = sizeof(struct string) + ((size + 1) * sizeof(char));
@@ -69,7 +69,7 @@ struct string *stringI_createva(morphine_instance_t I, const char *str, va_list 
     va_end(temp);
 
     if (rawsize < 0) {
-        throwI_error(I, "Cannot parse cformat");
+        throwI_error(I, "cannot parse cformat");
     }
 
     size_t size = (size_t) rawsize;
@@ -99,11 +99,11 @@ void stringI_free(morphine_instance_t I, struct string *string) {
 
 struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
     if (a == NULL || b == NULL) {
-        throwI_error(I, "String is null");
+        throwI_error(I, "string is null");
     }
 
     overflow_add(a->size, b->size, MLIMIT_SIZE_MAX) {
-        throwI_error(I, "Too big concat string length");
+        throwI_error(I, "too big concat string length");
     }
 
     char *buffer;
@@ -116,7 +116,7 @@ struct string *stringI_concat(morphine_instance_t I, struct string *a, struct st
 
 uint64_t stringI_hash(morphine_instance_t I, struct string *string) {
     if (string == NULL) {
-        throwI_error(I, "String is null");
+        throwI_error(I, "string is null");
     }
 
     if (likely(string->hash.calculated)) {

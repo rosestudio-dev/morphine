@@ -23,24 +23,24 @@ struct function *functionI_create(
     ml_size params_count
 ) {
     if (name == NULL) {
-        throwI_error(I, "Function name is null");
+        throwI_error(I, "function name is null");
     }
 
     size_t name_len = strlen(name);
     if (name_len > MLIMIT_FUNCTION_NAME) {
-        throwI_error(I, "Function name too big");
+        throwI_error(I, "function name too big");
     }
 
     if (arguments_count > MLIMIT_CALLABLE_ARGS) {
-        throwI_error(I, "Too many args");
+        throwI_error(I, "too many args");
     }
 
     if (params_count > MLIMIT_CALLABLE_PARAMS) {
-        throwI_error(I, "Too many params");
+        throwI_error(I, "too many params");
     }
 
     if (slots_count > MLIMIT_CALLABLE_SLOTS) {
-        throwI_error(I, "Too many slots");
+        throwI_error(I, "too many slots");
     }
 
     size_t size = sizeof(struct function) + ((name_len + 1) * sizeof(char));
@@ -109,7 +109,7 @@ void functionI_free(morphine_instance_t I, struct function *function) {
 
 void functionI_complete(morphine_instance_t I, struct function *function) {
     if (function == NULL) {
-        throwI_error(I, "Function is null");
+        throwI_error(I, "function is null");
     }
 
     function->complete = true;
@@ -121,11 +121,11 @@ morphine_instruction_t functionI_instruction_get(
     ml_size index
 ) {
     if (function == NULL) {
-        throwI_error(I, "Function is null");
+        throwI_error(I, "function is null");
     }
 
     if (index >= function->instructions_count) {
-        throwI_error(I, "Instruction index was out of bounce");
+        throwI_error(I, "instruction index was out of bounce");
     }
 
     return function->instructions[index];
@@ -138,15 +138,15 @@ void functionI_instruction_set(
     morphine_instruction_t instruction
 ) {
     if (function == NULL) {
-        throwI_error(I, "Function is null");
+        throwI_error(I, "function is null");
     }
 
     if (function->complete) {
-        throwI_error(I, "Function is complete");
+        throwI_error(I, "function is complete");
     }
 
     if (index >= function->instructions_count) {
-        throwI_error(I, "Instruction index was out of bounce");
+        throwI_error(I, "instruction index was out of bounce");
     }
 
     bool is_valid = instructionI_validate(
@@ -158,7 +158,7 @@ void functionI_instruction_set(
     );
 
     if (!is_valid) {
-        throwI_error(I, "Instruction structure corrupted");
+        throwI_error(I, "instruction structure corrupted");
     }
 
     function->instructions[index] = instruction;
@@ -170,11 +170,11 @@ struct value functionI_constant_get(
     ml_size index
 ) {
     if (function == NULL) {
-        throwI_error(I, "Function is null");
+        throwI_error(I, "function is null");
     }
 
     if (index >= function->constants_count) {
-        throwI_error(I, "Constant index was out of bounce");
+        throwI_error(I, "constant index was out of bounce");
     }
 
     return function->constants[index];
@@ -187,15 +187,15 @@ void functionI_constant_set(
     struct value value
 ) {
     if (function == NULL) {
-        throwI_error(I, "Function is null");
+        throwI_error(I, "function is null");
     }
 
     if (function->complete) {
-        throwI_error(I, "Function is complete");
+        throwI_error(I, "function is complete");
     }
 
     if (index >= function->constants_count) {
-        throwI_error(I, "Constant index was out of bounce");
+        throwI_error(I, "constant index was out of bounce");
     }
 
     gcI_barrier(I, function, value);
@@ -208,11 +208,11 @@ struct value functionI_static_get(
     ml_size index
 ) {
     if (function == NULL) {
-        throwI_error(I, "Function is null");
+        throwI_error(I, "function is null");
     }
 
     if (index >= function->statics_count) {
-        throwI_error(I, "Static index was out of bounce");
+        throwI_error(I, "static index was out of bounce");
     }
 
     return function->statics[index];
@@ -225,11 +225,11 @@ void functionI_static_set(
     struct value value
 ) {
     if (function == NULL) {
-        throwI_error(I, "Function is null");
+        throwI_error(I, "function is null");
     }
 
     if (index >= function->statics_count) {
-        throwI_error(I, "Static index was out of bounce");
+        throwI_error(I, "static index was out of bounce");
     }
 
     gcI_barrier(I, function, value);

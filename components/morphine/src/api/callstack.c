@@ -292,7 +292,7 @@ MORPHINE_API ml_size mapi_args(morphine_coroutine_t U) {
 MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, ml_size index) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
     if (index >= callinfo->arguments_count) {
-        throwI_error(U->I, "Argument index out of bounce");
+        throwI_error(U->I, "argument index out of bounce");
     }
 
     stackI_push(U, callinfo->s.args[index]);

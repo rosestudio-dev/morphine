@@ -137,7 +137,7 @@ static void guardlock(morphine_coroutine_t U) {
             mapi_peek(U, 0);
             mapi_op(U, "type");
             if (strcmp(mapi_get_string(U), "coroutine.guard") != 0) {
-                mapi_error(U, "Expected coroutine.guard");
+                mapi_error(U, "expected coroutine.guard");
             } else {
                 mapi_pop(U, 1);
             }
@@ -169,7 +169,7 @@ static void guardunlock(morphine_coroutine_t U) {
             mapi_peek(U, 0);
             mapi_op(U, "type");
             if (strcmp(mapi_get_string(U), "coroutine.guard") != 0) {
-                mapi_error(U, "Expected coroutine.guard");
+                mapi_error(U, "expected coroutine.guard");
             } else {
                 mapi_pop(U, 1);
             }

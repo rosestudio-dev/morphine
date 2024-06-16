@@ -14,13 +14,13 @@ static struct userdata *create(
     const char *name
 ) {
     if (name == NULL) {
-        throwI_error(I, "Userdata name is null");
+        throwI_error(I, "userdata name is null");
     }
 
     size_t name_len = strlen(name);
 
     if (name_len > MLIMIT_USERDATA_NAME) {
-        throwI_error(I, "Native name too big");
+        throwI_error(I, "native name too big");
     }
 
     size_t alloc_size = sizeof(struct userdata) + ((name_len + 1) * sizeof(char));
@@ -91,7 +91,7 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
 
 void userdataI_set_free(morphine_instance_t I, struct userdata *userdata, morphine_free_t free) {
     if (userdata == NULL) {
-        throwI_error(I, "Userdata is null");
+        throwI_error(I, "userdata is null");
     }
 
     userdata->free = free;
@@ -99,7 +99,7 @@ void userdataI_set_free(morphine_instance_t I, struct userdata *userdata, morphi
 
 void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userdata) {
     if (userdata == NULL) {
-        throwI_error(I, "Userdata is null");
+        throwI_error(I, "userdata is null");
     }
 
     userdata->mode.metatable_locked = true;
@@ -107,7 +107,7 @@ void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userd
 
 void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t size) {
     if (userdata == NULL) {
-        throwI_error(I, "Userdata is null");
+        throwI_error(I, "userdata is null");
     }
 
     userdata->data = allocI_uni(I, userdata->data, size);
@@ -116,7 +116,7 @@ void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t s
 
 void userdataI_resize_vec(morphine_instance_t I, struct userdata *userdata, size_t count, size_t size) {
     if (userdata == NULL) {
-        throwI_error(I, "Userdata is null");
+        throwI_error(I, "userdata is null");
     }
 
     userdata->data = allocI_vec(I, userdata->data, count, size);

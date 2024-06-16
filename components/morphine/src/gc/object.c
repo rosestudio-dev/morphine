@@ -65,5 +65,5 @@ void objectI_free(morphine_instance_t I, struct object *object) {
             return;
     }
 
-    throwI_panic(I, "Unknown object type");
+    throwI_panic(I, "unknown object type");
 }

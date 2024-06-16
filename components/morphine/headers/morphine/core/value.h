@@ -87,7 +87,7 @@
 
 // as or error
 
-#define valueI_as_or_error(I, t, x) ({struct value _a = (x); if(unlikely(!valueI_is_##t(_a))) throwI_error((I), "Expected " #t); valueI_as_##t(_a);})
+#define valueI_as_or_error(I, t, x) ({struct value _a = (x); if(unlikely(!valueI_is_##t(_a))) throwI_error((I), "expected " #t); valueI_as_##t(_a);})
 
 #define valueI_as_nil_or_error(I, x)       valueI_as_or_error(I, nil, x)
 #define valueI_as_integer_or_error(I, x)   valueI_as_or_error(I, integer, x)
@@ -109,8 +109,8 @@
 
 // size
 
-#define valueI_integer2namedsize(I, x, name)  ({ml_integer _i = (x); if(unlikely(_i < 0 || (_i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %"MLIMIT_INTEGER_PR" to "name, _i); ((ml_size) _i);})
-#define valueI_csize2namedsize(I, x, name)    ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "Cannot convert %zu to "name, _s); ((ml_size) _s);})
+#define valueI_integer2namedsize(I, x, name)  ({ml_integer _i = (x); if(unlikely(_i < 0 || (_i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %"MLIMIT_INTEGER_PR" to "name, _i); ((ml_size) _i);})
+#define valueI_csize2namedsize(I, x, name)    ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %zu to "name, _s); ((ml_size) _s);})
 
 #define valueI_size(x)                  valueI_integer((ml_integer) (x))
 #define valueI_csize2size(I, x)         valueI_csize2namedsize(I, x, "size")

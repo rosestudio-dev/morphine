@@ -44,7 +44,7 @@ static inline struct value *stack_peek(morphine_coroutine_t U, struct callinfo *
     }
 
     if (offset >= space_size) {
-        throwI_error(U->I, "Cannot peek value from space");
+        throwI_error(U->I, "cannot peek value from space");
     }
 
     return p - offset - 1;
@@ -68,7 +68,7 @@ static struct value *stack_vector(morphine_coroutine_t U, size_t offset, size_t 
     }
 
     if (offset + size > space_size) {
-        throwI_error(U->I, "Cannot peek vector from space");
+        throwI_error(U->I, "cannot peek vector from space");
     }
 
     return (p - offset - size);
@@ -76,11 +76,11 @@ static struct value *stack_vector(morphine_coroutine_t U, size_t offset, size_t 
 
 struct stack stackI_prototype(morphine_instance_t I, size_t limit, size_t grow) {
     if (grow == 0) {
-        throwI_error(I, "Stack grow size is zero");
+        throwI_error(I, "stack grow size is zero");
     }
 
     if (limit == 0) {
-        throwI_error(I, "Stack limit is zero");
+        throwI_error(I, "stack limit is zero");
     }
 
     return (struct stack) {
@@ -100,14 +100,14 @@ void stackI_destruct(morphine_instance_t I, struct stack *stack) {
 
 struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
     if (size == 0) {
-        throwI_error(U->I, "Raise size is zero");
+        throwI_error(U->I, "raise size is zero");
     }
 
     morphine_instance_t I = U->I;
     struct stack *stack = &U->stack;
 
     overflow_add(size, stack->top, SIZE_MAX) {
-        throwI_error(I, "Stack overflow");
+        throwI_error(I, "stack overflow");
     }
 
     if (stack->top + size >= stack->size) {
@@ -121,7 +121,7 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
         if (unlikely(
             overflow_condition_add(grow, stack->size, SIZE_MAX) ||
             new_size >= U->stack.settings.limit)) {
-            throwI_error(I, "Stack overflow");
+            throwI_error(I, "stack overflow");
         }
 
         struct value *saved = stack->allocated;
@@ -144,7 +144,7 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
 
 struct value *stackI_reduce(morphine_coroutine_t U, size_t size) {
     if (size > U->stack.top) {
-        throwI_error(U->I, "Cannot reduce stack");
+        throwI_error(U->I, "cannot reduce stack");
     }
 
     U->stack.top -= size;
@@ -171,7 +171,7 @@ void stackI_shrink(morphine_coroutine_t U) {
 
 void stackI_set_grow(morphine_coroutine_t U, size_t grow) {
     if (grow == 0) {
-        throwI_error(U->I, "Stack grow size is zero");
+        throwI_error(U->I, "stack grow size is zero");
     }
 
     U->stack.settings.grow = grow;
@@ -179,7 +179,7 @@ void stackI_set_grow(morphine_coroutine_t U, size_t grow) {
 
 void stackI_set_limit(morphine_coroutine_t U, size_t limit) {
     if (limit == 0) {
-        throwI_error(U->I, "Stack limit is zero");
+        throwI_error(U->I, "stack limit is zero");
     }
 
     U->stack.settings.limit = limit;
@@ -216,7 +216,7 @@ void stackI_pop(morphine_coroutine_t U, size_t count) {
         size_t size = U->stack.space_top;
 
         if (count > size) {
-            throwI_error(U->I, "Cannot pop from space");
+            throwI_error(U->I, "cannot pop from space");
         }
 
         U->stack.space_top -= count;
@@ -226,7 +226,7 @@ void stackI_pop(morphine_coroutine_t U, size_t count) {
         size_t size = stackI_callinfo_space(U, callinfo);
 
         if (count > size) {
-            throwI_error(U->I, "Cannot pop from space");
+            throwI_error(U->I, "cannot pop from space");
         }
 
         callinfo->s.top = stackI_reduce(U, count);
@@ -239,7 +239,7 @@ void stackI_rotate(morphine_coroutine_t U, size_t count) {
     }
 
     if (stackI_space(U) == 0) {
-        throwI_error(U->I, "Cannot rotate empty stack");
+        throwI_error(U->I, "cannot rotate empty stack");
     }
 
     struct value *values = stack_vector(U, 0, count);

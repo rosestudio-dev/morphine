@@ -168,7 +168,7 @@ static void load_constants(struct data *D, ml_size index) {
                 mapi_push_boolean(D->U, get_bool(D));
                 break;
             default:
-                mapi_error(D->U, "Unsupported constant tag");
+                mapi_error(D->U, "unsupported constant tag");
         }
 
         mapi_rotate(D->U, 2);
@@ -187,7 +187,7 @@ static void check_csum(struct data *D) {
     uint32_t hash = get_uint32(D);
 
     if (expected != hash) {
-        mapi_error(D->U, "Binary corrupted");
+        mapi_error(D->U, "binary corrupted");
     }
 
     mapi_rotate(D->U, 2);
@@ -202,7 +202,7 @@ static void check_tag(struct data *D) {
     }
 
     if (strcmp(buffer, FORMAT_TAG) != 0) {
-        mapi_error(D->U, "Wrong format tag");
+        mapi_error(D->U, "wrong format tag");
     }
 }
 
