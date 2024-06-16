@@ -446,41 +446,6 @@ static inline op_result_t interpreter_fun_less(
     throwI_error(U->I, "less supports only integer or decimal");
 }
 
-static inline op_result_t interpreter_fun_less_equal(
-    morphine_coroutine_t U,
-    size_t callstate,
-    struct value a,
-    struct value b,
-    struct value *result,
-    size_t pop_size,
-    bool need_return
-) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
-        (*result) = callstackI_result(U);
-        return CALLED_COMPLETE;
-    }
-
-    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        (*result) = valueI_boolean(valueI_as_integer(a) <= valueI_as_integer(b));
-        return NORMAL;
-    }
-
-    if (valueI_is_decimal(a) && valueI_is_decimal(b)) {
-        (*result) = valueI_boolean(valueI_as_decimal(a) <= valueI_as_decimal(b));
-        return NORMAL;
-    }
-
-    struct value mt_field;
-    if (metatableI_test(U->I, a, MF_LESS_EQUAL, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
-    }
-
-    throwI_error(U->I, "less equal supports only integer or decimal");
-}
-
 static inline op_result_t interpreter_fun_and(
     morphine_coroutine_t U,
     size_t callstate,

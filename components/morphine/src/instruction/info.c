@@ -48,7 +48,6 @@ static const uint8_t opcode_args[MORPHINE_OPCODES_COUNT] = {
     3, // OPCODE_MOD
     3, // OPCODE_EQUAL
     3, // OPCODE_LESS
-    3, // OPCODE_LESS_EQUAL,
     3, // OPCODE_AND
     3, // OPCODE_OR
     3, // OPCODE_CONCAT
@@ -198,7 +197,6 @@ bool instructionI_validate(
         case MORPHINE_OPCODE_MOD:
         case MORPHINE_OPCODE_EQUAL:
         case MORPHINE_OPCODE_LESS:
-        case MORPHINE_OPCODE_LESS_EQUAL:
         case MORPHINE_OPCODE_AND:
         case MORPHINE_OPCODE_OR:
         case MORPHINE_OPCODE_CONCAT: {

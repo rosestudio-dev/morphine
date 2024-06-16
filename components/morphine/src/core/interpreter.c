@@ -410,17 +410,6 @@ sp_case(MORPHINE_OPCODE_LESS)
                 slot(C, arg3) = result;
                 sp_end();
             }
-sp_case(MORPHINE_OPCODE_LESS_EQUAL)
-            {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
-                struct value result = valueI_nil;
-
-                complex_fun(interpreter_fun_less_equal, 1, a, b, &result);
-
-                slot(C, arg3) = result;
-                sp_end();
-            }
 sp_case(MORPHINE_OPCODE_AND)
             {
                 struct value a = slot(C, arg1);

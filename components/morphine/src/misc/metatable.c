@@ -155,8 +155,6 @@ const char *metatableI_field2string(morphine_instance_t I, enum metatable_field 
             return "_mf_mod";
         case MF_LESS:
             return "_mf_less";
-        case MF_LESS_EQUAL:
-            return "_mf_less_equal";
         case MF_OR:
             return "_mf_or";
         case MF_AND:

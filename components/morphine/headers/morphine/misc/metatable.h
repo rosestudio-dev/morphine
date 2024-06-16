@@ -23,7 +23,6 @@ enum metatable_field {
     MF_MOD,           // callable
     MF_EQUAL,         // callable
     MF_LESS,          // callable
-    MF_LESS_EQUAL,    // callable
     MF_OR,            // callable
     MF_AND,           // callable
     MF_CONCAT,        // callable

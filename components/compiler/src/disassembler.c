@@ -47,7 +47,6 @@ static const char *opcode2str(morphine_opcode_t opcode) {
         opcode_case(MOD)
         opcode_case(EQUAL)
         opcode_case(LESS)
-        opcode_case(LESS_EQUAL)
         opcode_case(AND)
         opcode_case(OR)
         opcode_case(CONCAT)
@@ -171,9 +170,6 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             return;
         case MORPHINE_OPCODE_LESS:
             printf(SLOT" = "SLOT" < "SLOT, arg(3), arg(1), arg(2));
-            return;
-        case MORPHINE_OPCODE_LESS_EQUAL:
-            printf(SLOT" = "SLOT" <= "SLOT, arg(3), arg(1), arg(2));
             return;
         case MORPHINE_OPCODE_AND:
             printf(SLOT" = "SLOT" and "SLOT, arg(3), arg(1), arg(2));

@@ -238,24 +238,6 @@ static bool opless(morphine_coroutine_t U) {
     return result;
 }
 
-static bool oplesseq(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_less_equal(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
 static bool opand(morphine_coroutine_t U) {
     struct value a = stackI_peek(U, 1);
     struct value b = stackI_peek(U, 0);
@@ -412,33 +394,33 @@ static bool opderef(morphine_coroutine_t U) {
     return result;
 }
 
-MORPHINE_API bool mapi_op(morphine_coroutine_t U, const char *op) {
-    struct op_func ops[] = {
-        (struct op_func) { .name = "iterator", .function = opiterator },
-        (struct op_func) { .name = "iteratorinit", .function = opiteratorinit },
-        (struct op_func) { .name = "iteratorhas", .function = opiteratorhas },
-        (struct op_func) { .name = "iteratornext", .function = opiteratornext },
-        (struct op_func) { .name = "get", .function = opget },
-        (struct op_func) { .name = "set", .function = opset },
-        (struct op_func) { .name = "add", .function = opadd },
-        (struct op_func) { .name = "sub", .function = opsub },
-        (struct op_func) { .name = "mul", .function = opmul },
-        (struct op_func) { .name = "div", .function = opdiv },
-        (struct op_func) { .name = "mod", .function = opmod },
-        (struct op_func) { .name = "equal", .function = opequal },
-        (struct op_func) { .name = "less", .function = opless },
-        (struct op_func) { .name = "lesseq", .function = oplesseq },
-        (struct op_func) { .name = "and", .function = opand },
-        (struct op_func) { .name = "or", .function = opor },
-        (struct op_func) { .name = "concat", .function = opconcat },
-        (struct op_func) { .name = "type", .function = optype },
-        (struct op_func) { .name = "neg", .function = opneg },
-        (struct op_func) { .name = "not", .function = opnot },
-        (struct op_func) { .name = "len", .function = oplen },
-        (struct op_func) { .name = "ref", .function = opref },
-        (struct op_func) { .name = "deref", .function = opderef },
-    };
 
+static struct op_func ops[] = {
+    (struct op_func) { .name = "iterator", .function = opiterator },
+    (struct op_func) { .name = "iteratorinit", .function = opiteratorinit },
+    (struct op_func) { .name = "iteratorhas", .function = opiteratorhas },
+    (struct op_func) { .name = "iteratornext", .function = opiteratornext },
+    (struct op_func) { .name = "get", .function = opget },
+    (struct op_func) { .name = "set", .function = opset },
+    (struct op_func) { .name = "add", .function = opadd },
+    (struct op_func) { .name = "sub", .function = opsub },
+    (struct op_func) { .name = "mul", .function = opmul },
+    (struct op_func) { .name = "div", .function = opdiv },
+    (struct op_func) { .name = "mod", .function = opmod },
+    (struct op_func) { .name = "equal", .function = opequal },
+    (struct op_func) { .name = "less", .function = opless },
+    (struct op_func) { .name = "and", .function = opand },
+    (struct op_func) { .name = "or", .function = opor },
+    (struct op_func) { .name = "concat", .function = opconcat },
+    (struct op_func) { .name = "type", .function = optype },
+    (struct op_func) { .name = "neg", .function = opneg },
+    (struct op_func) { .name = "not", .function = opnot },
+    (struct op_func) { .name = "len", .function = oplen },
+    (struct op_func) { .name = "ref", .function = opref },
+    (struct op_func) { .name = "deref", .function = opderef },
+};
+
+MORPHINE_API bool mapi_op(morphine_coroutine_t U, const char *op) {
     size_t size = sizeof(ops) / sizeof(struct op_func);
     for (size_t i = 0; i < size; i++) {
         if (strcmp(ops[i].name, op) == 0) {
