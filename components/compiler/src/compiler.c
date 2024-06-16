@@ -12,16 +12,16 @@
 
 MORPHINE_API void mcapi_compile(
     morphine_coroutine_t U,
-    const char *main_name,
-    const char *str,
-    size_t size
+    const char *main,
+    const char *text,
+    size_t main_len,
+    size_t text_len
 ) {
     struct strtable *T = strtable(U);
-    strtable_index_t name = strtable_record(U, T, main_name, strlen(main_name));
-
+    strtable_index_t name = strtable_record(U, T, main, main_len);
     struct ast *A = ast(U, name);
 
-    struct lex *L = lex(U, T, str, size);
+    struct lex *L = lex(U, T, text, text_len);
     struct parser *P = parser(U, L, A);
     while (parser_step(U, P)) { }
     mapi_pop(U, 2);

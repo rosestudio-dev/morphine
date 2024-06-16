@@ -17,7 +17,7 @@
 
 struct lex {
     struct strtable *T;
-    const char *text;
+    char *text;
     size_t len;
     size_t pos;
     ml_line line;
@@ -109,16 +109,28 @@ static struct {
 #undef operator
 };
 
+static void lex_free(morphine_instance_t I, void *data) {
+    struct lex *L = data;
+    mapi_allocator_free(I, L->text);
+}
+
 struct lex *lex(morphine_coroutine_t U, struct strtable *T, const char *text, size_t len) {
     struct lex *L = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct lex));
 
     *L = (struct lex) {
         .T = T,
-        .text = text,
-        .len = len,
+        .text = NULL,
+        .len = 0,
         .pos = 0,
         .line = 1
     };
+
+    mapi_userdata_set_free(U, lex_free);
+
+    L->text = mapi_allocator_vec(mapi_instance(U), NULL, len, sizeof(char));
+    L->len = len;
+
+    memcpy(L->text, text, len * sizeof(char));
 
     return L;
 }

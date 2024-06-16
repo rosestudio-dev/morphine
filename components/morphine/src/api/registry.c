@@ -49,6 +49,29 @@ MORPHINE_API void mapi_registry_set(morphine_coroutine_t U) {
     stackI_pop(U, 2);
 }
 
+MORPHINE_API bool mapi_registry_remove(morphine_coroutine_t U) {
+    struct value value = stackI_peek(U, 0);
+
+    bool has = false;
+    struct value result = registryI_remove(U, value, &has);
+    stackI_replace(U, 0, result);
+
+    return has;
+}
+
+MORPHINE_API void mapi_registry_removeoe(morphine_coroutine_t U) {
+    struct value value = stackI_peek(U, 0);
+
+    bool has = false;
+    struct value result = registryI_remove(U, value, &has);
+
+    if (has) {
+        stackI_replace(U, 0, result);
+    } else {
+        throwI_errorf(U->I, "cannot remove value from registry by %s", valueI_value2string(U->I, value));
+    }
+}
+
 MORPHINE_API void mapi_registry_clear(morphine_coroutine_t U) {
     registryI_clear(U);
 }

@@ -70,13 +70,44 @@ struct value registryI_get(morphine_coroutine_t U, struct value key, bool *has) 
         throwI_error(U->I, "attempt to get from registry for unsupported callable");
     }
 
-    struct value table = tableI_get(U->I, U->I->registry, registry_key, has);
+    bool internal_has = false;
+    struct value table = tableI_get(U->I, U->I->registry, registry_key, &internal_has);
 
-    if (!(*has)) {
+    if (!internal_has) {
+        if (has != NULL) {
+            *has = internal_has;
+        }
+
         return valueI_nil;
     }
 
     return tableI_get(U->I, valueI_as_table_or_error(U->I, table), key, has);
+}
+
+struct value registryI_remove(morphine_coroutine_t U, struct value key, bool *has) {
+    struct value source = *callstackI_info_or_error(U)->s.source;
+
+    struct value registry_key;
+    if (valueI_is_function(source)) {
+        registry_key = valueI_as_function(source)->registry_key;
+    } else if (valueI_is_native(source)) {
+        registry_key = valueI_as_native(source)->registry_key;
+    } else {
+        throwI_error(U->I, "attempt to delete from registry for unsupported callable");
+    }
+
+    bool internal_has = false;
+    struct value table = tableI_get(U->I, U->I->registry, registry_key, &internal_has);
+
+    if (!internal_has) {
+        if (has != NULL) {
+            *has = internal_has;
+        }
+
+        return valueI_nil;
+    }
+
+    return tableI_remove(U->I, valueI_as_table_or_error(U->I, table), key, has);
 }
 
 void registryI_clear(morphine_coroutine_t U) {

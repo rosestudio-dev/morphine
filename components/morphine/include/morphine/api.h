@@ -283,9 +283,11 @@ MORPHINE_API size_t mapi_stack(morphine_coroutine_t);
 // registry
 
 MORPHINE_API void mapi_registry_set_key(morphine_coroutine_t);
-MORPHINE_API bool mapi_registry_get(morphine_coroutine_t);
-MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t);
 MORPHINE_API void mapi_registry_set(morphine_coroutine_t);
+MORPHINE_API bool mapi_registry_get(morphine_coroutine_t);
+MORPHINE_API bool mapi_registry_remove(morphine_coroutine_t);
+MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t);
+MORPHINE_API void mapi_registry_removeoe(morphine_coroutine_t);
 MORPHINE_API void mapi_registry_clear(morphine_coroutine_t);
 
 // sio

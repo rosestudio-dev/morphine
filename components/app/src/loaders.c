@@ -8,10 +8,13 @@
 #include "userdata/readfile.h"
 #include "sio/file.h"
 
+#define DEFAULT_MAIN_NAME     "main"
+#define DEFAULT_MAIN_NAME_LEN ((sizeof(DEFAULT_MAIN_NAME) / sizeof(char)) - 1)
+
 void loader_source_file(morphine_coroutine_t U, const char *path) {
     const char *source = userdata_readfile(U, path);
 
-    mcapi_compile(U, "main", source, strlen(source));
+    mcapi_compile(U, DEFAULT_MAIN_NAME, source, DEFAULT_MAIN_NAME_LEN, strlen(source));
 
     mapi_rotate(U, 2);
     mapi_pop(U, 1);

@@ -7,25 +7,150 @@
 #include "morphinec/disassembler.h"
 #include "morphinec/binary.h"
 #include "morphinec/rollout.h"
+#include "morphinec/strtable.h"
+#include "morphinec/ast.h"
+#include "morphinec/lex.h"
+#include "morphinec/parser.h"
+#include "morphinec/visitor.h"
+#include "morphinec/codegen.h"
 
-static void string(morphine_coroutine_t U) {
+#define DEFAULT_MAIN_NAME     "compiled"
+#define DEFAULT_MAIN_NAME_LEN ((sizeof(DEFAULT_MAIN_NAME) / sizeof(char)) - 1)
+
+#define STR_KEY "str"
+#define AST_KEY "ast"
+#define LEX_KEY "lex"
+#define PRS_KEY "prs"
+#define VST_KEY "vst"
+#define CDG_KEY "cdg"
+
+static void compile(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            const char *main_name;
+            const char *main;
+            size_t main_len;
             if (mapi_args(U) == 2) {
                 mapi_push_arg(U, 0);
-                main_name = mapi_get_string(U);
+                main = mapi_get_string(U);
+                main_len = mapi_string_len(U);
                 mapi_push_arg(U, 1);
             } else {
                 maux_expect_args(U, 1);
-                main_name = "compiled";
+                main = DEFAULT_MAIN_NAME;
+                main_len = DEFAULT_MAIN_NAME_LEN;
                 mapi_push_arg(U, 0);
             }
 
             const char *text = mapi_get_string(U);
-            size_t size = mapi_string_len(U);
+            size_t text_len = mapi_string_len(U);
 
-            mcapi_compile(U, main_name, text, size);
+            mcapi_compile(U, main, text, main_len, text_len);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void distributed(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            const char *main;
+            size_t main_len;
+            if (mapi_args(U) == 2) {
+                mapi_push_arg(U, 0);
+                main = mapi_get_string(U);
+                main_len = mapi_string_len(U);
+                mapi_push_arg(U, 1);
+            } else {
+                maux_expect_args(U, 1);
+                main = DEFAULT_MAIN_NAME;
+                main_len = DEFAULT_MAIN_NAME_LEN;
+                mapi_push_arg(U, 0);
+            }
+
+            const char *text = mapi_get_string(U);
+            size_t text_len = mapi_string_len(U);
+
+            mapi_bind_registry(U);
+
+            mapi_push_string(U, STR_KEY);
+            struct strtable *T = strtable(U);
+            mapi_registry_set(U);
+
+            mapi_push_string(U, AST_KEY);
+            strtable_index_t name = strtable_record(U, T, main, main_len);
+            struct ast *A = ast(U, name);
+            mapi_registry_set(U);
+
+            mapi_push_string(U, LEX_KEY);
+            struct lex *L = lex(U, T, text, text_len);
+            mapi_registry_set(U);
+
+            mapi_push_string(U, PRS_KEY);
+            parser(U, L, A);
+            mapi_registry_set(U);
+
+            mapi_stack_reset(U);
+            maux_nb_continue(1);
+
+        maux_nb_state(1)
+            mapi_push_string(U, PRS_KEY);
+            mapi_registry_get(U);
+
+            struct parser *P = get_parser(U);
+            bool cont = parser_step(U, P);
+            mapi_stack_reset(U);
+
+            if (cont) {
+                maux_nb_continue(1);
+            } else {
+                maux_nb_continue(2);
+            }
+
+        maux_nb_state(2)
+            mapi_push_string(U, LEX_KEY);
+            mapi_registry_remove(U);
+            mapi_push_string(U, PRS_KEY);
+            mapi_registry_remove(U);
+            mapi_pop(U, 2);
+
+            mapi_push_string(U, STR_KEY);
+            mapi_registry_get(U);
+            struct strtable *T = get_strtable(U);
+
+            mapi_push_string(U, AST_KEY);
+            mapi_registry_get(U);
+            struct ast *A = get_ast(U);
+
+            mapi_push_string(U, VST_KEY);
+            struct visitor *V = visitor(U, A);
+            mapi_registry_set(U);
+
+            mapi_push_string(U, CDG_KEY);
+            codegen(U, T, A, V);
+            mapi_registry_set(U);
+
+            mapi_stack_reset(U);
+            maux_nb_continue(3);
+
+        maux_nb_state(3)
+            mapi_push_string(U, CDG_KEY);
+            mapi_registry_get(U);
+
+            struct codegen *C = get_codegen(U);
+            bool cont = codegen_step(U, C);
+            mapi_stack_reset(U);
+
+            if (cont) {
+                maux_nb_continue(3);
+            } else {
+                maux_nb_continue(4);
+            }
+
+        maux_nb_state(4)
+            mapi_push_string(U, CDG_KEY);
+            mapi_registry_get(U);
+
+            struct codegen *C = get_codegen(U);
+            codegen_construct(U, C);
             maux_nb_return();
     maux_nb_end
 }
@@ -103,7 +228,8 @@ static void rollout(morphine_coroutine_t U) {
 }
 
 static struct maux_construct_field table[] = {
-    { "string",      string },
+    { "compile",     compile },
+    { "distributed", distributed },
     { "disassembly", disassembly },
     { "tobinary",    tobinary },
     { "frombinary",  frombinary },

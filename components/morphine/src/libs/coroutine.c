@@ -57,7 +57,7 @@ static void wait(morphine_coroutine_t U) {
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
             if (mapi_coroutine_is_alive(coroutine)) {
-                mapi_pop(U, 2);
+                mapi_stack_reset(U);
                 maux_nb_continue(0);
             } else {
                 maux_nb_leave();
