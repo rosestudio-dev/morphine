@@ -683,56 +683,105 @@ gen_func_dec(expression, value) {
 
 struct gen_binary_data {
     struct codegen_argument_slot slot;
+    struct codegen_argument_anchor anchor;
 };
 
 gen_func_dec(expression, binary) {
     struct gen_binary_data *data;
     codegen_save(N, sizeof(struct gen_binary_data), (void **) &data);
 
-    switch (state) {
-        case 0: {
-            codegen_visit_expression(N, binary->a, codegen_result(N), 1);
-        }
-        case 1: {
-            data->slot = codegen_temporary(N);
-            codegen_visit_expression(N, binary->b, data->slot, 2);
-        }
-        case 2: {
-            switch (binary->type) {
-                case EXPRESSION_BINARY_TYPE_ADD:
-                    codegen_instruction_ADD(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_SUB:
-                    codegen_instruction_SUB(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_MUL:
-                    codegen_instruction_MUL(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_DIV:
-                    codegen_instruction_DIV(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_MOD:
-                    codegen_instruction_MOD(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_EQUAL:
-                    codegen_instruction_EQUAL(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_LESS:
-                    codegen_instruction_LESS(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_CONCAT:
-                    codegen_instruction_CONCAT(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_AND:
-                    codegen_instruction_AND(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
-                case EXPRESSION_BINARY_TYPE_OR:
-                    codegen_instruction_OR(N, codegen_result(N), data->slot, codegen_result(N));
-                    codegen_visit_return(N);
+    if (binary->type == EXPRESSION_BINARY_TYPE_AND) {
+        switch (state) {
+            case 0: {
+                data->anchor = codegen_anchor(N);
+                codegen_visit_expression(N, binary->a, codegen_result(N), 1);
             }
+            case 1: {
+                struct codegen_argument_anchor short_anchor = codegen_anchor(N);
+                data->anchor = codegen_anchor(N);
+
+                codegen_instruction_JUMP_IF(N, codegen_result(N), short_anchor, data->anchor);
+
+                codegen_anchor_change(N, short_anchor);
+                data->slot = codegen_temporary(N);
+                codegen_visit_expression(N, binary->b, data->slot, 2);
+            }
+            case 2: {
+                codegen_instruction_AND(N, codegen_result(N), data->slot, codegen_result(N));
+                codegen_anchor_change(N, data->anchor);
+                codegen_visit_return(N);
+            }
+            default:
+                break;
         }
-        default:
-            break;
+    } else if (binary->type == EXPRESSION_BINARY_TYPE_OR) {
+        switch (state) {
+            case 0: {
+                data->anchor = codegen_anchor(N);
+                codegen_visit_expression(N, binary->a, codegen_result(N), 1);
+            }
+            case 1: {
+                struct codegen_argument_anchor short_anchor = codegen_anchor(N);
+                data->anchor = codegen_anchor(N);
+
+                codegen_instruction_JUMP_IF(N, codegen_result(N), data->anchor, short_anchor);
+
+                codegen_anchor_change(N, short_anchor);
+                data->slot = codegen_temporary(N);
+                codegen_visit_expression(N, binary->b, data->slot, 2);
+            }
+            case 2: {
+                codegen_instruction_OR(N, codegen_result(N), data->slot, codegen_result(N));
+                codegen_anchor_change(N, data->anchor);
+                codegen_visit_return(N);
+            }
+            default:
+                break;
+        }
+    } else {
+        switch (state) {
+            case 0: {
+                codegen_visit_expression(N, binary->a, codegen_result(N), 1);
+            }
+            case 1: {
+                data->slot = codegen_temporary(N);
+                codegen_visit_expression(N, binary->b, data->slot, 2);
+            }
+            case 2: {
+                switch (binary->type) {
+                    case EXPRESSION_BINARY_TYPE_ADD:
+                        codegen_instruction_ADD(N, codegen_result(N), data->slot, codegen_result(N));
+                        codegen_visit_return(N);
+                    case EXPRESSION_BINARY_TYPE_SUB:
+                        codegen_instruction_SUB(N, codegen_result(N), data->slot, codegen_result(N));
+                        codegen_visit_return(N);
+                    case EXPRESSION_BINARY_TYPE_MUL:
+                        codegen_instruction_MUL(N, codegen_result(N), data->slot, codegen_result(N));
+                        codegen_visit_return(N);
+                    case EXPRESSION_BINARY_TYPE_DIV:
+                        codegen_instruction_DIV(N, codegen_result(N), data->slot, codegen_result(N));
+                        codegen_visit_return(N);
+                    case EXPRESSION_BINARY_TYPE_MOD:
+                        codegen_instruction_MOD(N, codegen_result(N), data->slot, codegen_result(N));
+                        codegen_visit_return(N);
+                    case EXPRESSION_BINARY_TYPE_EQUAL:
+                        codegen_instruction_EQUAL(N, codegen_result(N), data->slot, codegen_result(N));
+                        codegen_visit_return(N);
+                    case EXPRESSION_BINARY_TYPE_LESS:
+                        codegen_instruction_LESS(N, codegen_result(N), data->slot, codegen_result(N));
+                        codegen_visit_return(N);
+                    case EXPRESSION_BINARY_TYPE_CONCAT:
+                        codegen_instruction_CONCAT(N, codegen_result(N), data->slot, codegen_result(N));
+                        codegen_visit_return(N);
+                    case EXPRESSION_BINARY_TYPE_AND:
+                    case EXPRESSION_BINARY_TYPE_OR:
+                        break;
+                }
+                break;
+            }
+            default:
+                break;
+        }
     }
 }
 
@@ -762,6 +811,7 @@ gen_func_dec(expression, unary) {
                     codegen_instruction_DEREF(N, codegen_result(N), codegen_result(N));
                     codegen_visit_return(N);
             }
+            break;
         }
         default:
             break;
