@@ -60,6 +60,21 @@ static void write_format_tag(struct data *D) {
     }
 }
 
+static void write_prob(struct data *D) {
+    const char *version = mapi_version();
+
+    write_string(D, version, strlen(version));
+    write_uint8(D, sizeof(ml_integer));
+    write_uint8(D, sizeof(ml_decimal));
+    write_uint8(D, sizeof(ml_size));
+    write_uint8(D, sizeof(ml_argument));
+    write_uint8(D, sizeof(ml_line));
+
+    write_ml_integer(D, PROB_INTEGER);
+    write_ml_size(D, PROB_SIZE);
+    write_ml_decimal(D, PROB_DECIMAL);
+}
+
 static void write_function(struct data *D, ml_size index) {
     mapi_peek(D->U, 1);
 
@@ -184,6 +199,7 @@ static void write(morphine_coroutine_t U, ml_size count) {
     };
 
     write_format_tag(&D);
+    write_prob(&D);
 
     write_ml_size(&D, count);
     write_ml_size(&D, 0);

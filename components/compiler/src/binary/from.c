@@ -206,6 +206,31 @@ static void check_tag(struct data *D) {
     }
 }
 
+static void check_prob(struct data *D) {
+    const char *expected_version = mapi_version();
+
+    get_string(D);
+    const char *got_version = mapi_get_string(D->U);
+    if (strcmp(expected_version, got_version) != 0) {
+        mapi_error(D->U, "unsupported binary version");
+    }
+    mapi_pop(D->U, 1);
+
+    if (get_uint8(D) != sizeof(ml_integer)) { goto error; }
+    if (get_uint8(D) != sizeof(ml_decimal)) { goto error; }
+    if (get_uint8(D) != sizeof(ml_size)) { goto error; }
+    if (get_uint8(D) != sizeof(ml_argument)) { goto error; }
+    if (get_uint8(D) != sizeof(ml_line)) { goto error; }
+
+    if (get_ml_integer(D) != PROB_INTEGER) { goto error; }
+    if (get_ml_size(D) != PROB_SIZE) { goto error; }
+    if (get_ml_decimal(D) != PROB_DECIMAL) { goto error; }
+
+    return;
+error:
+    mapi_error(D->U, "unsupported binary architecture");
+}
+
 void binary_from(morphine_coroutine_t U) {
     struct data D = {
         .U = U,
@@ -213,6 +238,7 @@ void binary_from(morphine_coroutine_t U) {
     };
 
     check_tag(&D);
+    check_prob(&D);
 
     ml_size functions_count = get_ml_size(&D);
     ml_size main_index = get_ml_size(&D);

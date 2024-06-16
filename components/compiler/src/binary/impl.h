@@ -8,6 +8,10 @@
 
 #define FORMAT_TAG "morphine-binary"
 
+#define PROB_INTEGER (-201427)
+#define PROB_SIZE    (201427)
+#define PROB_DECIMAL (1548.5629)
+
 enum constant_tag {
     CONSTANT_TAG_NIL,
     CONSTANT_TAG_INT,
