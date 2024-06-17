@@ -51,6 +51,10 @@ sanitize_flags = [
     '-fsanitize=undefined'
 ]
 
+link_args = [
+    '-flto'
+]
+
 compiler_args = warning_flags + common_flags
 
 if sanitize.enabled()
@@ -62,6 +66,7 @@ executable(
     include_directories : include,
     dependencies : [morphine, compiler, nostd_libs],
     c_args : compiler_args,
+    link_args : link_args,
 
     install : installdir != 'undefined',
     install_dir : installdir

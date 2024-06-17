@@ -67,8 +67,7 @@ warning_flags = [
 
 common_flags = [
     '-fno-common',
-    '-fwrapv',
-    '-flto'
+    '-fwrapv'
 ]
 
 sanitize_flags = [
