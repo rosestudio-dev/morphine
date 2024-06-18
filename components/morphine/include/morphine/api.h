@@ -17,10 +17,15 @@ MORPHINE_API morphine_instance_t mapi_open(morphine_platform_t, morphine_setting
 MORPHINE_API void *mapi_instance_data(morphine_instance_t);
 MORPHINE_API void mapi_interpreter(morphine_instance_t);
 MORPHINE_API void mapi_close(morphine_instance_t);
-MORPHINE_API void mapi_userlibs(morphine_instance_t, morphine_require_entry_t *);
 
 MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t);
 MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t);
+
+// library
+
+MORPHINE_API void mapi_library_load(morphine_instance_t, morphine_library_t *);
+MORPHINE_API void mapi_library_unload(morphine_instance_t, morphine_library_t *);
+MORPHINE_API void mapi_library(morphine_coroutine_t, const char *name, bool reload);
 
 // callstack
 

@@ -3,7 +3,7 @@
 //
 
 #include <morphine.h>
-#include "morphine/libs/loader.h"
+#include "morphine/libs/builtin.h"
 
 static void version(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -20,7 +20,8 @@ static void print(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            mlib_value_call(U, "tostr", 1);
+            maux_library_get(U, "value", "tostr");
+            mapi_calli(U, 1);
         maux_nb_state(1)
             mapi_push_result(U);
 
@@ -46,7 +47,8 @@ static void println(morphine_coroutine_t U) {
                 mapi_push_arg(U, 0);
             }
 
-            mlib_value_call(U, "tostr", 1);
+            maux_library_get(U, "value", "tostr");
+            mapi_calli(U, 1);
         maux_nb_state(1)
             mapi_push_result(U);
 
@@ -238,7 +240,7 @@ static void changeenv(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static struct maux_construct_field table[] = {
+static morphine_library_function_t functions[] = {
     { "version",             version },
     { "print",               print },
     { "println",             println },
@@ -254,10 +256,14 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_base_loader(morphine_coroutine_t U) {
-    maux_construct(U, table, "base.");
-}
+static morphine_library_t library = {
+    .name = "base",
+    .functions = functions,
+    .integers = NULL,
+    .decimals = NULL,
+    .strings = NULL
+};
 
-MORPHINE_LIB void mlib_base_call(morphine_coroutine_t U, const char *name, ml_size argc) {
-    maux_construct_call(U, table, "base.", name, argc);
+MORPHINE_LIB morphine_library_t *mlib_builtin_base(void) {
+    return &library;
 }

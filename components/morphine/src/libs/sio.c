@@ -4,7 +4,7 @@
 
 #include <morphine.h>
 #include <memory.h>
-#include "morphine/libs/loader.h"
+#include "morphine/libs/builtin.h"
 
 static void isopened(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -223,7 +223,7 @@ static void extractstring(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static struct maux_construct_field table[] = {
+static morphine_library_function_t functions[] = {
     { "isopened",      isopened },
     { "close",         close },
     { "flush",         flush },
@@ -242,10 +242,14 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_sio_loader(morphine_coroutine_t U) {
-    maux_construct(U, table, "sio.");
-}
+static morphine_library_t library = {
+    .name = "sio",
+    .functions = functions,
+    .integers = NULL,
+    .decimals = NULL,
+    .strings = NULL
+};
 
-MORPHINE_LIB void mlib_sio_call(morphine_coroutine_t U, const char *name, ml_size argc) {
-    maux_construct_call(U, table, "sio.", name, argc);
+MORPHINE_LIB morphine_library_t *mlib_builtin_sio(void) {
+    return &library;
 }

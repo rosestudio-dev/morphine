@@ -3,7 +3,7 @@
 //
 
 #include <morphine.h>
-#include "morphine/libs/loader.h"
+#include "morphine/libs/builtin.h"
 
 static void tostr(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -14,9 +14,11 @@ static void tostr(morphine_coroutine_t U) {
             if (mapi_metatable_test(U, "_mf_to_string")) {
                 mapi_callself(U, 0);
             } else if (mapi_is_type(U, "vector")) {
-                mlib_vector_call(U, "tostr", 1);
+                maux_library_get(U, "vector", "tostr");
+                mapi_calli(U, 1);
             } else if (mapi_is_type(U, "table")) {
-                mlib_table_call(U, "tostr", 1);
+                maux_library_get(U, "table", "tostr");
+                mapi_calli(U, 1);
             } else {
                 mapi_to_string(U);
                 maux_nb_return();
@@ -101,7 +103,7 @@ static void tobool(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static struct maux_construct_field table[] = {
+static morphine_library_function_t functions[] = {
     { "tostr",   tostr },
     { "toint",   toint },
     { "tosize",  tosize },
@@ -111,10 +113,14 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_value_loader(morphine_coroutine_t U) {
-    maux_construct(U, table, "value.");
-}
+static morphine_library_t library = {
+    .name = "value",
+    .functions = functions,
+    .integers = NULL,
+    .decimals = NULL,
+    .strings = NULL
+};
 
-MORPHINE_LIB void mlib_value_call(morphine_coroutine_t U, const char *name, ml_size argc) {
-    maux_construct_call(U, table, "value.", name, argc);
+MORPHINE_LIB morphine_library_t *mlib_builtin_value(void) {
+    return &library;
 }

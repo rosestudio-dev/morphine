@@ -82,5 +82,29 @@ typedef struct {
 
 typedef struct {
     const char *name;
-    void (*loader)(morphine_coroutine_t);
-} morphine_require_entry_t;
+    morphine_native_t function;
+} morphine_library_function_t;
+
+typedef struct {
+    const char *name;
+    ml_integer integer;
+} morphine_library_integer_t;
+
+typedef struct {
+    const char *name;
+    ml_decimal decimal;
+} morphine_library_decimal_t;
+
+typedef struct {
+    const char *name;
+    const char *string;
+} morphine_library_string_t;
+
+typedef struct {
+    const char *name;
+
+    morphine_library_function_t *functions;
+    morphine_library_integer_t *integers;
+    morphine_library_decimal_t *decimals;
+    morphine_library_string_t *strings;
+} morphine_library_t;

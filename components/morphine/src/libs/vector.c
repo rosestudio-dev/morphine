@@ -3,7 +3,7 @@
 //
 
 #include <morphine.h>
-#include "morphine/libs/loader.h"
+#include "morphine/libs/builtin.h"
 
 static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -284,7 +284,8 @@ static void tostr(morphine_coroutine_t U) {
             mapi_rotate(U, 2);
             mapi_pop(U, 1);
 
-            mlib_value_call(U, "tostr", 1);
+            maux_library_get(U, "value", "tostr");
+            mapi_calli(U, 1);
         maux_nb_state(2)
             mapi_push_result(U);
             mapi_rotate(U, 3);
@@ -304,7 +305,7 @@ static void tostr(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static struct maux_construct_field table[] = {
+static morphine_library_function_t functions[] = {
     { "create",    create },
     { "clear",     clear },
     { "copy",      copy },
@@ -327,10 +328,14 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_vector_loader(morphine_coroutine_t U) {
-    maux_construct(U, table, "vector.");
-}
+static morphine_library_t library = {
+    .name = "vector",
+    .functions = functions,
+    .integers = NULL,
+    .decimals = NULL,
+    .strings = NULL
+};
 
-MORPHINE_LIB void mlib_vector_call(morphine_coroutine_t U, const char *name, ml_size argc) {
-    maux_construct_call(U, table, "vector.", name, argc);
+MORPHINE_LIB morphine_library_t *mlib_builtin_vector(void) {
+    return &library;
 }

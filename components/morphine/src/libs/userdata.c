@@ -3,7 +3,7 @@
 //
 
 #include <morphine.h>
-#include "morphine/libs/loader.h"
+#include "morphine/libs/builtin.h"
 
 static void ctype(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -42,17 +42,21 @@ static void metatableislocked(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static struct maux_construct_field table[] = {
+static morphine_library_function_t functions[] = {
     { "ctype",             ctype },
     { "lockmetatable",     lockmetatable },
     { "metatableislocked", metatableislocked },
     { NULL, NULL }
 };
 
-void mlib_userdata_loader(morphine_coroutine_t U) {
-    maux_construct(U, table, "userdata.");
-}
+static morphine_library_t library = {
+    .name = "userdata",
+    .functions = functions,
+    .integers = NULL,
+    .decimals = NULL,
+    .strings = NULL
+};
 
-MORPHINE_LIB void mlib_userdata_call(morphine_coroutine_t U, const char *name, ml_size argc) {
-    maux_construct_call(U, table, "userdata.", name, argc);
+MORPHINE_LIB morphine_library_t *mlib_builtin_userdata(void) {
+    return &library;
 }

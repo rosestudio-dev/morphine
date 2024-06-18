@@ -4,7 +4,7 @@
 
 #include <morphine.h>
 #include <string.h>
-#include "morphine/libs/loader.h"
+#include "morphine/libs/builtin.h"
 
 static void full(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -229,7 +229,7 @@ static void status(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static struct maux_construct_field table[] = {
+static morphine_library_function_t functions[] = {
     { "full",                       full },
     { "force",                      force },
     { "step",                       step },
@@ -252,10 +252,14 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-void mlib_gc_loader(morphine_coroutine_t U) {
-    maux_construct(U, table, "gc.");
-}
+static morphine_library_t library = {
+    .name = "gc",
+    .functions = functions,
+    .integers = NULL,
+    .decimals = NULL,
+    .strings = NULL
+};
 
-MORPHINE_LIB void mlib_gc_call(morphine_coroutine_t U, const char *name, ml_size argc) {
-    maux_construct_call(U, table, "gc.", name, argc);
+MORPHINE_LIB morphine_library_t *mlib_builtin_gc(void) {
+    return &library;
 }

@@ -16,7 +16,7 @@ void initI_instance(morphine_instance_t I) {
     init_env(I);
     init_registry(I);
     init_metatables(I);
-    init_functions(I);
+    init_libraries(I);
 
     post_init(I);
 }

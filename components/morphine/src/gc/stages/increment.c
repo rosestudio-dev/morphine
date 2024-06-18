@@ -60,6 +60,13 @@ static inline size_t record(morphine_instance_t I) {
         }
     }
 
+    for (size_t i = 0; i < I->libraries.size; i++) {
+        struct library *library = I->libraries.array + i;
+        if (library->table != NULL) {
+            mark_object(I, objectI_cast(library->table));
+        }
+    }
+
     if (!I->E.throw.is_message) {
         mark_value(I, I->E.throw.error.value);
     }

@@ -8,7 +8,7 @@
  * # Instance API
  * ## Description
  * API for working with instance
- * > See more [instance](instance), [interpreter](interpreter), [coroutines](coroutines), [require](require-function)
+ * > See more [instance](instance), [interpreter](interpreter), [coroutines](coroutines)
  * {{end}}
  */
 
@@ -23,11 +23,11 @@
  * ## mapi_open
  * ### Prototype
  * ```c
- * morphine_instance_t mapi_open(morphine_platform_t platform, morphine_settings_t settings, void *data)
+ * morphine_instance_t mapi_open(morphine_platform_t P, morphine_settings_t S, void *data)
  * ```
  * ### Parameters
- * * `platform` - struct of platform
- * * `settings` - struct of settings
+ * * `P` - platform
+ * * `S` - settings
  * * `data` - data
  * ### Result
  * Pointer to instance
@@ -35,8 +35,8 @@
  * Creates vm instance
  * {{end}}
  */
-MORPHINE_API morphine_instance_t mapi_open(morphine_platform_t platform, morphine_settings_t settings, void *data) {
-    return instanceI_open(platform, settings, data);
+MORPHINE_API morphine_instance_t mapi_open(morphine_platform_t P, morphine_settings_t S, void *data) {
+    return instanceI_open(P, S, data);
 }
 
 /*
@@ -93,25 +93,6 @@ MORPHINE_API void mapi_interpreter(morphine_instance_t I) {
  */
 MORPHINE_API void mapi_close(morphine_instance_t I) {
     instanceI_close(I);
-}
-
-/*
- * {{docs body}}
- * path:vm/api-instance
- * ## mapi_userlibs
- * ### Prototype
- * ```c
- * void mapi_userlibs(morphine_instance_t I, struct morphine_require_entry_t *table)
- * ```
- * ### Parameters
- * * `I` - instance
- * * `table` - table of users loaders
- * ### Description
- * Sets table of users loaders
- * {{end}}
- */
-MORPHINE_API void mapi_userlibs(morphine_instance_t I, morphine_require_entry_t *table) {
-    instanceI_require_table(I, table);
 }
 
 /*

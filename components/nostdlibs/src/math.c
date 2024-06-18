@@ -323,7 +323,25 @@ static void math_isinf(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static struct maux_construct_field table[] = {
+static void math_nan(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 0);
+            mapi_push_decimal(U, nan(""));
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void math_inf(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 0);
+            mapi_push_decimal(U, HUGE_VAL);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static morphine_library_function_t functions[] = {
     { "cos",    math_cos },
     { "sin",    math_sin },
     { "tan",    math_tan },
@@ -373,32 +391,29 @@ static struct maux_construct_field table[] = {
     { "dmax",   math_dmax },
     { "dmin",   math_dmin },
 
-    { "isnan",   math_isnan },
-    { "isinf",   math_isinf },
+    { "isnan",  math_isnan },
+    { "isinf",  math_isinf },
+
+    { "nan",    math_nan },
+    { "inf",    math_inf },
 
     { NULL, NULL }
 };
 
-MORPHINE_LIB void mnostdlib_math_loader(morphine_coroutine_t U) {
-    maux_construct(U, table, "math.");
+static morphine_library_decimal_t decimals[] = {
+    { "pi", PI_CONST },
+    { "e", E_CONST },
+    { NULL, 0 }
+};
 
-    mapi_push_stringf(U, "pi");
-    mapi_push_decimal(U, PI_CONST);
-    mapi_table_set(U);
+static morphine_library_t library = {
+    .name = "math",
+    .functions = functions,
+    .integers = NULL,
+    .decimals = decimals,
+    .strings = NULL
+};
 
-    mapi_push_stringf(U, "e");
-    mapi_push_decimal(U, E_CONST);
-    mapi_table_set(U);
-
-    mapi_push_stringf(U, "nan");
-    mapi_push_decimal(U, (ml_decimal) NAN);
-    mapi_table_set(U);
-
-    mapi_push_stringf(U, "inf");
-    mapi_push_decimal(U, (ml_decimal) INFINITY);
-    mapi_table_set(U);
-}
-
-MORPHINE_LIB void mnostdlib_math_call(morphine_coroutine_t U, const char *name, ml_size argc) {
-    maux_construct_call(U, table, "math.", name, argc);
+MORPHINE_LIB morphine_library_t *mnostdlib_math(void) {
+    return &library;
 }

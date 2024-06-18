@@ -6,5 +6,4 @@
 
 #include <morphine.h>
 
-MORPHINE_LIB void mnostdlib_math_loader(morphine_coroutine_t U);
-MORPHINE_LIB void mnostdlib_math_call(morphine_coroutine_t U, const char *name, ml_size argc);
+MORPHINE_LIB morphine_library_t *mnostdlib_math(void);

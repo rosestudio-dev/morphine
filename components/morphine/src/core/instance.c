@@ -23,10 +23,10 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
         .platform = platform,
         .settings = settings,
         .E = interpreterI_prototype(),
-        .require_table = NULL,
+        .libraries = librariesI_prototype(),
         .data = data,
         .env = NULL,
-        .registry = NULL,
+        .registry = NULL
     };
 
     gcI_prototype(I, sizeof(struct instance));
@@ -43,10 +43,8 @@ void instanceI_close(morphine_instance_t I) {
     sioI_close(I, I->sio.io, true);
     sioI_close(I, I->sio.error, true);
 
+    librariesI_free(I, &I->libraries);
+
     gcI_destruct(I, I->G);
     I->platform.functions.free(I);
-}
-
-void instanceI_require_table(morphine_instance_t I, morphine_require_entry_t *table) {
-    I->require_table = table;
 }

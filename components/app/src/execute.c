@@ -11,12 +11,6 @@
 #include <stdio.h>
 #include "sio/file.h"
 
-static morphine_require_entry_t userlibs[] = {
-    { "compiler", mclib_compiler_loader },
-    { "math",     mnostdlib_math_loader },
-    { NULL, NULL }
-};
-
 static struct allocator *pallocator;
 static jmp_buf abort_jmp;
 
@@ -154,7 +148,8 @@ void execute(
     }
 
     morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
-    mapi_userlibs(I, userlibs);
+    mapi_library_load(I, mclib_compiler());
+    mapi_library_load(I, mnostdlib_math());
 
     morphine_coroutine_t U = mapi_coroutine(I);
 

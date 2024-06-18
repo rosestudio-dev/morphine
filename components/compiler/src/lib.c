@@ -227,7 +227,7 @@ static void rollout(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static struct maux_construct_field table[] = {
+static morphine_library_function_t functions[] = {
     { "compile",     compile },
     { "distributed", distributed },
     { "disassembly", disassembly },
@@ -237,10 +237,14 @@ static struct maux_construct_field table[] = {
     { NULL, NULL }
 };
 
-MORPHINE_LIB void mclib_compiler_loader(morphine_coroutine_t U) {
-    maux_construct(U, table, "compiler.");
-}
+static morphine_library_t library = {
+    .name = "compiler",
+    .functions = functions,
+    .integers = NULL,
+    .decimals = NULL,
+    .strings = NULL
+};
 
-MORPHINE_LIB void mclib_compiler_call(morphine_coroutine_t U, const char *name, ml_size argc) {
-    maux_construct_call(U, table, "compiler.", name, argc);
+MORPHINE_LIB morphine_library_t *mclib_compiler(void) {
+    return &library;
 }
