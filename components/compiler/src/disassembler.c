@@ -255,7 +255,7 @@ static void print_instructions(morphine_coroutine_t U) {
     size_t arg2_len = numlen(max_arg2);
     size_t arg3_len = numlen(max_arg3);
 
-    printf("instructions (%"MLIMIT_SIZE_PR")\n", count);
+    printf("instructions (%"MLIMIT_SIZE_PR"):\n", count);
     for (ml_size i = 0; i < count; i++) {
         morphine_instruction_t instruction = mapi_instruction_get(U, i);
 
@@ -319,7 +319,7 @@ static void print_constants(morphine_coroutine_t U) {
 
     size_t index_len = numlen(count - 1);
 
-    printf("constants (%"MLIMIT_SIZE_PR")\n", count);
+    printf("constants (%"MLIMIT_SIZE_PR"):\n", count);
     for (ml_size i = 0; i < count; i++) {
         printf("    %"MLIMIT_SIZE_PR". ", i);
         spaces(U, numlen(i), index_len);

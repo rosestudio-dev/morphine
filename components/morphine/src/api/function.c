@@ -52,7 +52,7 @@ MORPHINE_API const char *mapi_function_name(morphine_coroutine_t U) {
 
 MORPHINE_API ml_line mapi_function_line(morphine_coroutine_t U) {
     struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
-    return function->complete;
+    return function->line;
 }
 
 MORPHINE_API ml_size mapi_function_arguments(morphine_coroutine_t U) {
