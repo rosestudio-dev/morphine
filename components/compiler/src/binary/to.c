@@ -22,6 +22,20 @@ struct data {
     write_data(D, buffer.raw, sizeof(t)); \
 }
 
+#define write_compress_type(t, n) static inline void write_##n(struct data *D, t value) { \
+    union { \
+        uint8_t raw[sizeof(t)]; \
+        t value; \
+    } buffer; \
+    buffer.value = value; \
+    uint8_t zeros = 0; \
+    for (size_t i = 0; i < sizeof(t); i++) { \
+        if (buffer.raw[sizeof(t) - i - 1] == 0) { zeros ++; } else { break; } \
+    } \
+    write_data(D, &zeros, sizeof(uint8_t)); \
+    write_data(D, buffer.raw, sizeof(t) - zeros); \
+}
+
 static inline void write_data(struct data *D, const uint8_t *data, size_t size) {
     size_t write_count = mapi_sio_write(D->U, data, size);
 
@@ -34,12 +48,12 @@ static inline void write_data(struct data *D, const uint8_t *data, size_t size) 
     }
 }
 
-write_type(ml_size, ml_size)
-write_type(ml_line, ml_line)
-write_type(ml_argument, ml_argument)
-write_type(ml_integer, ml_integer)
-write_type(ml_decimal, ml_decimal)
-write_type(ml_version, ml_version)
+write_compress_type(ml_size, ml_size)
+write_compress_type(ml_line, ml_line)
+write_compress_type(ml_argument, ml_argument)
+write_compress_type(ml_integer, ml_integer)
+write_compress_type(ml_decimal, ml_decimal)
+write_compress_type(ml_version, ml_version)
 write_type(char, char)
 write_type(bool, bool)
 write_type(uint8_t, uint8)

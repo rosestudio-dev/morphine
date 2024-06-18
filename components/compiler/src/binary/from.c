@@ -18,6 +18,18 @@
     return buffer.result; \
 }
 
+#define get_compressed_type(t, n) static inline t get_##n(struct data *D) { \
+    union { \
+        uint8_t raw[sizeof(t)]; \
+        t result; \
+    } buffer; \
+    uint8_t zeros = get_byte(D); \
+    if (zeros > sizeof(t)) { mapi_error(D->U, "binary corrupted"); } \
+    for (size_t i = 0; i < sizeof(t) - zeros; i++) { buffer.raw[i] = get_byte(D); } \
+    for (size_t i = sizeof(t) - zeros; i < sizeof(t); i++) { buffer.raw[i] = 0; } \
+    return buffer.result; \
+}
+
 struct data {
     morphine_coroutine_t U;
     struct crc32_buf crc;
@@ -36,12 +48,12 @@ static inline uint8_t get_byte(struct data *D) {
     return byte;
 }
 
-get_type(ml_size, ml_size)
-get_type(ml_line, ml_line)
-get_type(ml_argument, ml_argument)
-get_type(ml_integer, ml_integer)
-get_type(ml_decimal, ml_decimal)
-get_type(ml_version, ml_version)
+get_compressed_type(ml_size, ml_size)
+get_compressed_type(ml_line, ml_line)
+get_compressed_type(ml_argument, ml_argument)
+get_compressed_type(ml_integer, ml_integer)
+get_compressed_type(ml_decimal, ml_decimal)
+get_compressed_type(ml_version, ml_version)
 get_type(char, char)
 get_type(bool, bool)
 get_type(uint8_t, uint8)
@@ -211,8 +223,7 @@ static void check_tag(struct data *D) {
 static void check_prob(struct data *D) {
     const char *expected_version = mapi_version_name();
 
-    get_string(D);
-    const char *got_version = mapi_get_string(D->U);
+    const char *got_version = get_string(D);
     if (strcmp(expected_version, got_version) != 0) { mapi_error(D->U, "unsupported morphine version"); }
     mapi_pop(D->U, 1);
 
