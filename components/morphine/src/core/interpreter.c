@@ -105,17 +105,6 @@ sp_case(MORPHINE_OPCODE_ARG)
                 slot(C, arg2) = C->s.args[arg1];
                 sp_end();
             }
-sp_case(MORPHINE_OPCODE_CLEAR)
-            {
-                size_t from = arg1;
-                size_t count = arg2;
-
-                for(size_t i = 0; i < count; i ++) {
-                    sloti(C, from + i) = valueI_nil;
-                }
-
-                sp_end();
-            }
 sp_case(MORPHINE_OPCODE_ENV)
             {
                 slot(C, arg1) = *C->s.env;
