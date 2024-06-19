@@ -6,9 +6,7 @@
 #include "mark.h"
 #include "morphine/utils/overflow.h"
 
-static inline size_t record(morphine_instance_t I) {
-    size_t checked = 0;
-
+static inline void record(morphine_instance_t I) {
     {
         morphine_coroutine_t current = I->E.coroutines;
         while (current != NULL) {
@@ -32,7 +30,7 @@ static inline size_t record(morphine_instance_t I) {
     {
         struct object *current = I->G.pools.black_coroutines;
         while (current != NULL) {
-            checked += mark_internal(I, current);
+            mark_internal(I, current);
             current = current->prev;
         }
     }
@@ -40,12 +38,12 @@ static inline size_t record(morphine_instance_t I) {
     {
         struct object *current = I->G.pools.finalize;
         while (current != NULL) {
-            checked += mark_internal(I, current);
+            mark_internal(I, current);
             current = current->prev;
         }
 
         if (I->G.finalizer.candidate != NULL) {
-            checked += mark_internal(I, I->G.finalizer.candidate);
+            mark_internal(I, I->G.finalizer.candidate);
         }
     }
 
@@ -89,13 +87,12 @@ static inline size_t record(morphine_instance_t I) {
             mark_value(I, I->G.safe.stack[i]);
         }
     }
-
-    return checked;
 }
 
 bool gcstageI_increment(morphine_instance_t I, size_t debt) {
-    size_t checked = record(I);
+    record(I);
 
+    size_t checked = 0;
     {
         struct object *current = I->G.pools.grey;
         while (current != NULL) {
