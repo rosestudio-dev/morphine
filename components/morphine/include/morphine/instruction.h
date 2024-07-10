@@ -18,7 +18,6 @@ typedef enum {
     MORPHINE_OPCODE_MOVE,            // [src (slot), dest (slot)]                                     get from (src) and set to (dest)
     MORPHINE_OPCODE_PARAM,           // [src (slot), dest (index)]                                    get from (src) and set to params by (dest)
     MORPHINE_OPCODE_ARG,             // [arg (index), dest (slot)]                                    get from args by (arg) and set to (dest)
-    MORPHINE_OPCODE_CLEAR,           // [from (index), count (count)]                                 sets nil to slots starting (from) in amount (count)
 
     MORPHINE_OPCODE_ENV,             // [dest (slot)]                                                 move env to (dest)
     MORPHINE_OPCODE_SELF,            // [dest (slot)]                                                 move self to (dest)

@@ -3,7 +3,6 @@ instr_func2(LOAD, index, slot)
 instr_func2(MOVE, slot, slot)
 instr_func2(PARAM, slot, index)
 instr_func2(ARG, index, slot)
-instr_func2(CLEAR, index, count)
 
 instr_func1(ENV, slot)
 instr_func1(SELF, slot)

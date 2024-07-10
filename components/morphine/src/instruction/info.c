@@ -10,7 +10,6 @@ static const uint8_t opcode_args[MORPHINE_OPCODES_COUNT] = {
     2, // OPCODE_MOVE
     2, // OPCODE_PARAM
     2, // OPCODE_ARG
-    2, // OPCODE_CLEAR
 
     1, // OPCODE_ENV
     1, // OPCODE_SELF
@@ -97,21 +96,6 @@ bool instructionI_validate(
 #define arg_undefined(a)
 
     switch (instruction.opcode) {
-        case MORPHINE_OPCODE_CLEAR: {
-            size_t from = instruction.argument1;
-            size_t count = instruction.argument2;
-
-            if (count > MLIMIT_ARGUMENT_MAX - from) {
-                goto error;
-            }
-
-            if (from >= slots_count || from + count > slots_count) {
-                goto error;
-            }
-
-            arg_undefined(argument3)
-            return true;
-        }
         case MORPHINE_OPCODE_YIELD: {
             arg_undefined(argument1)
             arg_undefined(argument2)

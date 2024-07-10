@@ -17,7 +17,6 @@ static const char *opcode2str(morphine_opcode_t opcode) {
         opcode_case(MOVE)
         opcode_case(PARAM)
         opcode_case(ARG)
-        opcode_case(CLEAR)
         opcode_case(ENV)
         opcode_case(SELF)
         opcode_case(RECURSION)
@@ -80,9 +79,6 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             return;
         case MORPHINE_OPCODE_ARG:
             printf(SLOT" = arg "APR, arg(2), arg(1));
-            return;
-        case MORPHINE_OPCODE_CLEAR:
-            printf("slots from "APR" amount "APR" = nil", arg(1), arg(2));
             return;
         case MORPHINE_OPCODE_ENV:
             printf(SLOT" = env", arg(1));
