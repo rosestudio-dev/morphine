@@ -1,4 +1,4 @@
-.idea
+.cache
+.project*
+compile_commands.json
 
-*.mco
-*.ms
