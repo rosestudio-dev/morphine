@@ -35,8 +35,7 @@ static const uint8_t opcode_args[MORPHINE_OPCODES_COUNT] = {
     3, // OPCODE_GET_CLOSURE
     3, // OPCODE_SET_CLOSURE
 
-    2, // OPCODE_CALL
-    3, // OPCODE_SCALL
+    3, // OPCODE_CALL
     1, // OPCODE_LEAVE
     1, // OPCODE_RESULT
 
@@ -147,16 +146,10 @@ bool instructionI_validate(
             arg_slot(argument3)
             return true;
         }
-        case MORPHINE_OPCODE_SCALL: {
-            arg_slot(argument1)
-            arg_params_count(argument2)
-            arg_slot(argument3)
-            return true;
-        }
         case MORPHINE_OPCODE_CALL: {
             arg_slot(argument1)
             arg_params_count(argument2)
-            arg_undefined(argument3)
+            arg_slot(argument3)
             return true;
         }
         case MORPHINE_OPCODE_VECTOR: {

@@ -1062,7 +1062,11 @@ gen_func_dec(expression, call) {
                 .count = call->args_size
             };
 
-            codegen_instruction_CALL(N, codegen_result(N), count);
+            struct codegen_argument_slot nil_slot = codegen_temporary(N);
+            struct codegen_argument_index nil_const = codegen_constant_nil(N);
+            codegen_instruction_LOAD(N, nil_const, nil_slot);
+
+            codegen_instruction_CALL(N, codegen_result(N), count, nil_slot);
             codegen_instruction_RESULT(N, codegen_result(N));
             codegen_visit_return(N);
         }
@@ -1127,7 +1131,7 @@ gen_func_dec(expression, call_self) {
                 .count = call_self->args_size
             };
 
-            codegen_instruction_SCALL(N, data->slot, count, codegen_result(N));
+            codegen_instruction_CALL(N, data->slot, count, codegen_result(N));
             codegen_instruction_RESULT(N, codegen_result(N));
             codegen_visit_return(N);
         }
