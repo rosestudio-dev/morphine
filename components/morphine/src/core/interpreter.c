@@ -247,21 +247,12 @@ sp_case(MORPHINE_OPCODE_SET_CLOSURE)
             }
 sp_case(MORPHINE_OPCODE_CLOSURE)
             {
-                ml_size count = arg2;
                 struct value callable = slot(C, arg1);
+                ml_size count = arg2;
 
                 struct closure *closure = closureI_create(U->I, callable, count);
 
-                struct value *params = &param(C, 0);
-                struct value result = valueI_object(closure);
-
-                for (ml_size i = 0; i < count; i++) {
-                    closureI_set(U->I, closure, i, params[i]);
-                }
-
-                slot(C, arg3) = result;
-
-                clear_params(C, count);
+                slot(C, arg3) = valueI_object(closure);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_CALL)

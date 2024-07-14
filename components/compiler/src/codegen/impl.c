@@ -1150,6 +1150,12 @@ gen_func_dec(expression, function) {
 
             if (size > 0) {
                 struct codegen_argument_slot temp = codegen_temporary(N);
+                struct codegen_argument_count count = {
+                    .count = size
+                };
+
+                codegen_instruction_CLOSURE(N, codegen_result(N), count, codegen_result(N));
+
                 for (size_t i = 0; i < size; i++) {
                     get_variable(N, closures[i].index, temp);
 
@@ -1157,14 +1163,8 @@ gen_func_dec(expression, function) {
                         .index = i
                     };
 
-                    codegen_instruction_PARAM(N, temp, index);
+                    codegen_instruction_SET_CLOSURE(N, codegen_result(N), index, temp);
                 }
-
-                struct codegen_argument_count count = {
-                    .count = size
-                };
-
-                codegen_instruction_CLOSURE(N, codegen_result(N), count, codegen_result(N));
             }
 
             codegen_visit_return(N);
