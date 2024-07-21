@@ -210,8 +210,6 @@ static void skip_multiline_comment(morphine_coroutine_t U, struct lex *L) {
 
         current = next(L);
     }
-
-    next(L);
 }
 
 static struct token lex_number(morphine_coroutine_t U, struct lex *L) {
