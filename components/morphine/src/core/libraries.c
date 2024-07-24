@@ -94,26 +94,13 @@ static struct table *construct(morphine_instance_t I, morphine_library_t *L) {
 
 static void library_init(morphine_instance_t I, morphine_library_t *L) {
     for (morphine_library_type_t *entry = L->types; entry != NULL && entry->name != NULL; entry++) {
-        bool success = usertypeI_declare(
+        usertypeI_declare(
             I,
             entry->name,
             entry->params.allocate,
             entry->params.free,
             entry->params.require_metatable
         );
-
-        if (!success) {
-            throwI_errorf(I, "failed to declare type %s", entry->name);
-        }
-    }
-}
-
-static void library_finish(morphine_instance_t I, morphine_library_t *L) {
-    for (morphine_library_type_t *entry = L->types; entry != NULL && entry->name != NULL; entry++) {
-        bool success = usertypeI_undeclare(I, entry->name);
-        if (!success) {
-            throwI_errorf(I, "failed to undeclare type %s", entry->name);
-        }
     }
 }
 
@@ -172,38 +159,6 @@ void librariesI_load(morphine_instance_t I, morphine_library_t *L) {
     I->libraries.size++;
 
     library_init(I, L);
-}
-
-void librariesI_unload(morphine_instance_t I, morphine_library_t *L) {
-    if (L == NULL) {
-        throwI_error(I, "library is null");
-    }
-
-    bool found = false;
-    size_t index = 0;
-    for (; index < I->libraries.size; index++) {
-        if (I->libraries.array[index].L == L) {
-            found = true;
-            break;
-        }
-    }
-
-    if (!found) {
-        throwI_errorf(I, "library '%s' not found", L->name);
-    }
-
-    for (size_t i = index; i < I->libraries.size - 1; i++) {
-        I->libraries.array[i] = I->libraries.array[i + 1];
-    }
-
-    I->libraries.array[I->libraries.size - 1] = (struct library) {
-        .L = NULL,
-        .table = NULL
-    };
-
-    I->libraries.size--;
-
-    library_finish(I, L);
 }
 
 struct table *librariesI_get(morphine_instance_t I, const char *name, bool reload) {

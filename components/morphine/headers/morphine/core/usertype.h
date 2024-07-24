@@ -24,15 +24,13 @@ struct usertypes {
 struct usertypes usertypeI_prototype(void);
 void usertypeI_free(morphine_instance_t, struct usertypes *);
 
-bool usertypeI_declare(
+void usertypeI_declare(
     morphine_instance_t,
     const char *name,
     size_t allocate,
     morphine_free_t free,
     bool require_metatable
 );
-
-bool usertypeI_undeclare(morphine_instance_t, const char *name);
 
 bool usertypeI_is_declared(morphine_instance_t, const char *name);
 struct usertype *usertypeI_get(morphine_instance_t, const char *);

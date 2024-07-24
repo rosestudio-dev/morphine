@@ -23,5 +23,4 @@ void librariesI_free(morphine_instance_t, struct libraries *);
 void librariesI_shrink(morphine_instance_t);
 
 void librariesI_load(morphine_instance_t, morphine_library_t *);
-void librariesI_unload(morphine_instance_t, morphine_library_t *);
 struct table *librariesI_get(morphine_instance_t, const char *, bool reload);

@@ -17,23 +17,7 @@ MORPHINE_API void mapi_type_declare(
     morphine_free_t free,
     bool require_metatable
 ) {
-    if (!usertypeI_declare(I, name, allocate, free, require_metatable)) {
-        throwI_error(I, "type is already declared");
-    }
-}
-
-MORPHINE_API bool mapi_type_try_declare(
-    morphine_instance_t I,
-    const char *name,
-    size_t allocate,
-    morphine_free_t free,
-    bool require_metatable
-) {
-    return usertypeI_declare(I, name, allocate, free, require_metatable);
-}
-
-MORPHINE_API bool mapi_type_undeclare(morphine_instance_t I, const char *name) {
-    return usertypeI_undeclare(I, name);
+    usertypeI_declare(I, name, allocate, free, require_metatable);
 }
 
 MORPHINE_API bool mapi_type_is_declared(morphine_instance_t I, const char *name) {

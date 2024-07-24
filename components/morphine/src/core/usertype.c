@@ -34,7 +34,7 @@ void usertypeI_free(morphine_instance_t I, struct usertypes *usertypes) {
     }
 }
 
-bool usertypeI_declare(
+void usertypeI_declare(
     morphine_instance_t I,
     const char *name,
     size_t allocate,
@@ -42,7 +42,7 @@ bool usertypeI_declare(
     bool require_metatable
 ) {
     if (valueI_is_type(I, name, true)) {
-        return false;
+        throwI_error(I, "unavailable type name");
     }
 
     size_t name_len = strlen(name);
@@ -51,7 +51,7 @@ bool usertypeI_declare(
         struct usertype *usertype = I->usertypes.types;
         while (usertype != NULL) {
             if (name_len == usertype->info.name_len && memcmp(usertype->info.name, name, name_len) == 0) {
-                return false;
+                throwI_error(I, "type is already declared");
             }
 
             usertype = usertype->prev;
@@ -82,35 +82,6 @@ bool usertypeI_declare(
     name_str[name_len] = '\0';
 
     I->usertypes.types = usertype;
-
-    return true;
-}
-
-bool usertypeI_undeclare(morphine_instance_t I, const char *name) {
-    size_t name_len = strlen(name);
-    struct usertype *last = NULL;
-    struct usertype *usertype = I->usertypes.types;
-    while (usertype != NULL) {
-        if (name_len == usertype->info.name_len && memcmp(usertype->info.name, name, name_len) == 0) {
-            if (usertype->references > 0) {
-                return false;
-            }
-
-            if (last == NULL) {
-                I->usertypes.types = usertype->prev;
-            } else {
-                last->prev = usertype->prev;
-            }
-
-            usertype_free(I, usertype);
-            return true;
-        }
-
-        last = usertype;
-        usertype = usertype->prev;
-    }
-
-    return false;
 }
 
 bool usertypeI_is_declared(morphine_instance_t I, const char *name) {

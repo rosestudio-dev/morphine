@@ -24,7 +24,6 @@ MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t);
 // library
 
 MORPHINE_API void mapi_library_load(morphine_instance_t, morphine_library_t *);
-MORPHINE_API void mapi_library_unload(morphine_instance_t, morphine_library_t *);
 MORPHINE_API void mapi_library(morphine_coroutine_t, const char *name, bool reload);
 
 // callstack
@@ -95,14 +94,6 @@ MORPHINE_API void mapi_type_declare(
     morphine_free_t free,
     bool require_metatable
 );
-MORPHINE_API bool mapi_type_try_declare(
-    morphine_instance_t,
-    const char *name,
-    size_t allocate,
-    morphine_free_t free,
-    bool require_metatable
-);
-MORPHINE_API bool mapi_type_undeclare(morphine_instance_t, const char *name);
 MORPHINE_API bool mapi_type_is_declared(morphine_instance_t, const char *name);
 MORPHINE_API const char *mapi_type(morphine_coroutine_t);
 MORPHINE_API bool mapi_is(morphine_coroutine_t, const char *type);
