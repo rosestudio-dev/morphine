@@ -203,6 +203,7 @@ MORPHINE_API bool mapi_userdata_is_untyped(morphine_coroutine_t);
 
 MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t);
 MORPHINE_API morphine_coroutine_t mapi_get_coroutine(morphine_coroutine_t);
+MORPHINE_API void mapi_current(morphine_coroutine_t);
 MORPHINE_API void mapi_attach(morphine_coroutine_t);
 MORPHINE_API void mapi_coroutine_suspend(morphine_coroutine_t);
 MORPHINE_API void mapi_coroutine_kill(morphine_coroutine_t);

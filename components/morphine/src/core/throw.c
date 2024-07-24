@@ -41,8 +41,8 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
         if (valueI_is_function(callable)) {
             struct function *function = valueI_as_function(callable);
 
-            size_t position = callinfo->pc.position;
             ml_line line = 0;
+            size_t position = callinfo->pc.position;
             if (position < function->instructions_count) {
                 line = function->instructions[position].line;
             }
@@ -50,9 +50,8 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
             sioI_printf(
                 I,
                 error,
-                "[line: %"MLIMIT_LINE_PR", p: %zu] function %s (line: %"MLIMIT_LINE_PR")\n",
+                "[line: %"MLIMIT_LINE_PR"] function %s (declared in %"MLIMIT_LINE_PR" line)\n",
                 line,
-                position,
                 function->name,
                 function->line
             );

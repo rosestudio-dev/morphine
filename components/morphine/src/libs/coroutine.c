@@ -6,6 +6,15 @@
 #include <string.h>
 #include "morphine/libs/builtin.h"
 
+static void current(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 0);
+            mapi_current(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void kill(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -223,6 +232,7 @@ static void guard(morphine_coroutine_t U) {
 }
 
 static morphine_library_function_t functions[] = {
+    { "current",  current },
     { "create",   create },
     { "launch",   launch },
     { "resume",   resume },

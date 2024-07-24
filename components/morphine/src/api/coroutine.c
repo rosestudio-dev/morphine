@@ -69,6 +69,24 @@ MORPHINE_API morphine_coroutine_t mapi_get_coroutine(morphine_coroutine_t U) {
 /*
  * {{docs body}}
  * path:vm/api-coroutine
+ * ## mapi_current
+ * ### Prototype
+ * ```c
+ * void mapi_current(morphine_coroutine_t U)
+ * ```
+ * ### Parameters
+ * * `U` - coroutine
+ * ### Description
+ * Pushes current coroutine onto the stack
+ * {{end}}
+ */
+MORPHINE_API void mapi_current(morphine_coroutine_t U) {
+    stackI_push(U, valueI_object(U));
+}
+
+/*
+ * {{docs body}}
+ * path:vm/api-coroutine
  * ## mapi_attach
  * ### Prototype
  * ```c
