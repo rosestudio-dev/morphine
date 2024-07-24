@@ -155,7 +155,8 @@ struct pair {
     struct value value;
 };
 
-const char *valueI_type2string(morphine_instance_t, enum value_type type);
+const char *valueI_type(morphine_instance_t, struct value, bool raw);
+bool valueI_is_type(morphine_instance_t, const char *name, bool raw);
 enum value_type valueI_string2type(morphine_instance_t, const char *name);
 
 bool valueI_equal(morphine_instance_t, struct value a, struct value b);

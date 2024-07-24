@@ -60,6 +60,8 @@ typedef struct {
     morphine_sio_interface_t sio_error_interface;
 } morphine_platform_t;
 
+// settings
+
 typedef struct {
     size_t limit_bytes;
     size_t threshold;
@@ -79,6 +81,8 @@ typedef struct {
     morphine_coroutine_settings_t states;
     morphine_coroutine_settings_t finalizer;
 } morphine_settings_t;
+
+// library
 
 typedef struct {
     const char *name;
@@ -103,6 +107,17 @@ typedef struct {
 typedef struct {
     const char *name;
 
+    struct {
+        size_t allocate;
+        morphine_free_t free;
+        bool require_metatable;
+    } params;
+} morphine_library_type_t;
+
+typedef struct {
+    const char *name;
+
+    morphine_library_type_t *types;
     morphine_library_function_t *functions;
     morphine_library_integer_t *integers;
     morphine_library_decimal_t *decimals;

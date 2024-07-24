@@ -6,8 +6,6 @@
 #include <ctype.h>
 #include "morphinec/lex.h"
 
-#define MORPHINE_TYPE "lex"
-
 #define isnewline(c) ((c) == '\n' || (c) == '\r')
 #define eoschar '\0'
 #define opchars "+-*/%()[]{}=<>!&|.,^~?:;"
@@ -115,7 +113,7 @@ static void lex_free(morphine_instance_t I, void *data) {
 }
 
 struct lex *lex(morphine_coroutine_t U, struct strtable *T, const char *text, size_t len) {
-    struct lex *L = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct lex));
+    struct lex *L = mapi_push_userdata_uni(U, sizeof(struct lex));
 
     *L = (struct lex) {
         .T = T,
@@ -136,11 +134,7 @@ struct lex *lex(morphine_coroutine_t U, struct strtable *T, const char *text, si
 }
 
 struct lex *get_lex(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        return mapi_userdata_pointer(U);
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
+    return mapi_userdata_pointer(U);
 }
 
 static char peek(struct lex *L, size_t offset) {
@@ -346,7 +340,7 @@ static struct token lex_string(morphine_coroutine_t U, struct lex *L) {
     size_t save_pos = L->pos;
 
     size_t size = handle_string(U, L, NULL);
-    char *str = mapi_push_userdata(U, "lextemp", size);
+    char *str = mapi_push_userdata_uni(U, size);
     memset(str, 0, size);
 
     L->pos = save_pos;

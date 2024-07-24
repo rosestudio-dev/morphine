@@ -5,8 +5,6 @@
 #include <string.h>
 #include "morphinec/ast.h"
 
-#define MORPHINE_TYPE "ast"
-
 struct ast {
     struct ast_node *nodes;
     struct ast_function *functions;
@@ -33,7 +31,7 @@ static void ast_free(morphine_instance_t I, void *p) {
 }
 
 struct ast *ast(morphine_coroutine_t U, strtable_index_t main_name) {
-    struct ast *A = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct ast));
+    struct ast *A = mapi_push_userdata_uni(U, sizeof(struct ast));
 
     *A = (struct ast) {
         .nodes = NULL,
@@ -47,11 +45,7 @@ struct ast *ast(morphine_coroutine_t U, strtable_index_t main_name) {
 }
 
 struct ast *get_ast(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        return mapi_userdata_pointer(U);
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
+    return mapi_userdata_pointer(U);
 }
 
 strtable_index_t ast_get_main_name(struct ast *A) {

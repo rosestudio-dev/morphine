@@ -9,53 +9,61 @@
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
 
-static struct userdata *create(
-    morphine_instance_t I,
-    const char *name
-) {
-    if (name == NULL) {
-        throwI_error(I, "userdata name is null");
-    }
+static struct userdata *create(morphine_instance_t I) {
+    struct userdata *result = allocI_uni(I, NULL, sizeof(struct userdata));
 
-    size_t name_len = strlen(name);
-
-    if (name_len > MLIMIT_USERDATA_NAME) {
-        throwI_error(I, "native name too big");
-    }
-
-    size_t alloc_size = sizeof(struct userdata) + ((name_len + 1) * sizeof(char));
-    struct userdata *result = allocI_uni(I, NULL, alloc_size);
-
-    char *result_name = ((void *) result) + sizeof(struct userdata);
     (*result) = (struct userdata) {
-        .name = result_name,
-        .name_len = name_len,
-        .size = 0,
+        .is_untyped = true,
+        .untyped.size = 0,
+        .untyped.free = NULL,
         .data = NULL,
-        .free = NULL,
         .mode.metatable_locked = false,
+        .mode.size_locked = false,
         .metatable = NULL,
     };
-
-    memcpy(result_name, name, name_len * sizeof(char));
-    result_name[name_len] = '\0';
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_USERDATA);
 
     return result;
 }
 
-struct userdata *userdataI_create(
-    morphine_instance_t I,
-    const char *name,
-    size_t size
-) {
-    struct userdata *userdata = create(I, name);
+struct userdata *userdataI_instance(morphine_instance_t I, const char *type, struct table *metatable) {
+    struct usertype *usertype = usertypeI_get(I, type);
+    struct usertype_info info = usertypeI_info(I, usertype);
+
+    if (metatable == NULL && info.require_metatable) {
+        throwI_error(I, "type expected metatable");
+    } else if (metatable != NULL && !info.require_metatable) {
+        throwI_error(I, "type unexpected metatable");
+    }
+
+    struct userdata *userdata = create(I);
+
+    size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
+
+    (*userdata) = (struct userdata) {
+        .is_untyped = false,
+        .usertype = usertype,
+        .data = allocI_uni(I, NULL, info.allocate),
+        .mode.metatable_locked = true,
+        .mode.size_locked = true,
+        .metatable = metatable,
+    };
+
+    usertypeI_ref(I, usertype);
+
+    gcI_reset_safe(I, rollback);
+
+    return userdata;
+}
+
+struct userdata *userdataI_create(morphine_instance_t I, size_t size) {
+    struct userdata *userdata = create(I);
 
     size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
 
     userdata->data = allocI_uni(I, NULL, size);
-    userdata->size = size;
+    userdata->untyped.size = size;
 
     gcI_reset_safe(I, rollback);
 
@@ -63,17 +71,14 @@ struct userdata *userdataI_create(
 }
 
 struct userdata *userdataI_create_vec(
-    morphine_instance_t I,
-    const char *name,
-    size_t count,
-    size_t size
+    morphine_instance_t I, size_t count, size_t size
 ) {
-    struct userdata *userdata = create(I, name);
+    struct userdata *userdata = create(I);
 
     size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
 
     userdata->data = allocI_vec(I, NULL, count, size);
-    userdata->size = size;
+    userdata->untyped.size = count * size;
 
     gcI_reset_safe(I, rollback);
 
@@ -81,8 +86,18 @@ struct userdata *userdataI_create_vec(
 }
 
 void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
-    if (userdata->free != NULL) {
-        userdata->free(I, userdata->data);
+    morphine_free_t free_function;
+    if (userdata->is_untyped) {
+        free_function = userdata->untyped.free;
+    } else {
+        struct usertype_info info = usertypeI_info(I, userdata->usertype);
+        usertypeI_unref(I, userdata->usertype);
+
+        free_function = info.free;
+    }
+
+    if (free_function != NULL) {
+        free_function(I, userdata->data);
     }
 
     allocI_free(I, userdata->data);
@@ -94,7 +109,11 @@ void userdataI_set_free(morphine_instance_t I, struct userdata *userdata, morphi
         throwI_error(I, "userdata is null");
     }
 
-    userdata->free = free;
+    if (!userdata->is_untyped) {
+        throwI_error(I, "userdata is typed");
+    }
+
+    userdata->untyped.free = free;
 }
 
 void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userdata) {
@@ -102,7 +121,23 @@ void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userd
         throwI_error(I, "userdata is null");
     }
 
+    if (!userdata->is_untyped) {
+        throwI_error(I, "userdata is typed");
+    }
+
     userdata->mode.metatable_locked = true;
+}
+
+void userdataI_mode_lock_size(morphine_instance_t I, struct userdata *userdata) {
+    if (userdata == NULL) {
+        throwI_error(I, "userdata is null");
+    }
+
+    if (!userdata->is_untyped) {
+        throwI_error(I, "userdata is typed");
+    }
+
+    userdata->mode.size_locked = true;
 }
 
 void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t size) {
@@ -110,8 +145,16 @@ void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t s
         throwI_error(I, "userdata is null");
     }
 
+    if (userdata->mode.size_locked) {
+        throwI_error(I, "userdata size is locked");
+    }
+
+    if (!userdata->is_untyped) {
+        throwI_error(I, "userdata is typed");
+    }
+
     userdata->data = allocI_uni(I, userdata->data, size);
-    userdata->size = size;
+    userdata->untyped.size = size;
 }
 
 void userdataI_resize_vec(morphine_instance_t I, struct userdata *userdata, size_t count, size_t size) {
@@ -119,6 +162,14 @@ void userdataI_resize_vec(morphine_instance_t I, struct userdata *userdata, size
         throwI_error(I, "userdata is null");
     }
 
+    if (userdata->mode.size_locked) {
+        throwI_error(I, "userdata size is locked");
+    }
+
+    if (!userdata->is_untyped) {
+        throwI_error(I, "userdata is typed");
+    }
+
     userdata->data = allocI_vec(I, userdata->data, count, size);
-    userdata->size = size;
+    userdata->untyped.size = size;
 }

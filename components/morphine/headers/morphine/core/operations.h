@@ -547,17 +547,19 @@ static inline op_result_t interpreter_fun_type(
     size_t pop_size,
     bool need_return
 ) {
-    unused(callstate);
-    unused(pop_size);
-    unused(need_return);
+    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+        (*result) = callstackI_result(U);
+        return CALLED_COMPLETE;
+    }
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_TYPE, &mt_field)) {
-        (*result) = valueI_value2string(U->I, mt_field);
-    } else {
-        (*result) = valueI_object(stringI_create(U->I, valueI_type2string(U->I, a.type)));
+        callstackI_continue(U, callstate);
+        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+        return CALLED;
     }
 
+    (*result) = valueI_object(stringI_create(U->I, valueI_type(U->I, a, false)));
     return NORMAL;
 }
 

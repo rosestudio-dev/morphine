@@ -127,7 +127,7 @@ void sio_file(
 ) {
     size_t path_len = strlen(path);
     size_t size = sizeof(struct file_data) + sizeof(char) * (path_len + 1);
-    struct file_data *D = mapi_push_userdata(U, "file", size);
+    struct file_data *D = mapi_push_userdata_uni(U, size);
 
     char *file_path = ((void *) D) + sizeof(struct file_data);
     memcpy(file_path, path, path_len);

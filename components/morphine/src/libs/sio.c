@@ -152,7 +152,7 @@ static void read(morphine_coroutine_t U) {
             ml_size size = mapi_get_size(U);
             mapi_pop(U, 1);
 
-            uint8_t *buffer = mapi_push_userdata(U, "buffer", size);
+            uint8_t *buffer = mapi_push_userdata_uni(U, size);
             memset(buffer, 0, size);
 
             mapi_push_arg(U, 0);
@@ -244,6 +244,7 @@ static morphine_library_function_t functions[] = {
 
 static morphine_library_t library = {
     .name = "sio",
+    .types = NULL,
     .functions = functions,
     .integers = NULL,
     .decimals = NULL,

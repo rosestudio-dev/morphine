@@ -8,8 +8,6 @@
 #include "morphinec/stack.h"
 #include "morphinec/config.h"
 
-#define MORPHINE_TYPE "visitor"
-
 enum jump_type {
     JT_VISIT_NODE,
     JT_VISIT_FUNCTION,
@@ -140,7 +138,7 @@ struct visitor *visitor(morphine_coroutine_t U, struct ast *A) {
         mapi_error(U, "empty ast");
     }
 
-    struct visitor *V = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct visitor));
+    struct visitor *V = mapi_push_userdata_uni(U, sizeof(struct visitor));
 
     *V = (struct visitor) {
         .inited = false,
@@ -174,11 +172,7 @@ struct visitor *visitor(morphine_coroutine_t U, struct ast *A) {
 }
 
 struct visitor *get_visitor(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        return (struct visitor *) mapi_userdata_pointer(U);
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
+    return mapi_userdata_pointer(U);
 }
 
 void visitor_setup(morphine_coroutine_t U, struct visitor *V, visit_func_t func, void *data) {

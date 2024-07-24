@@ -11,8 +11,6 @@
 #include "grammar/support/elements.h"
 #include "grammar/impl.h"
 
-#define MORPHINE_TYPE "parser"
-
 struct element {
     bool is_token;
 
@@ -342,7 +340,7 @@ static void parser_free(morphine_instance_t I, void *p) {
 }
 
 struct parser *parser(morphine_coroutine_t U, struct lex *L, struct ast *A) {
-    struct parser *P = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct parser));
+    struct parser *P = mapi_push_userdata_uni(U, sizeof(struct parser));
 
     *P = (struct parser) {
         .L = L,
@@ -374,11 +372,7 @@ struct parser *parser(morphine_coroutine_t U, struct lex *L, struct ast *A) {
 }
 
 struct parser *get_parser(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        return mapi_userdata_pointer(U);
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
+    return mapi_userdata_pointer(U);
 }
 
 // parse

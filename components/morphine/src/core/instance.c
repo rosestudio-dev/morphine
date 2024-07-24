@@ -24,6 +24,7 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
         .settings = settings,
         .E = interpreterI_prototype(),
         .libraries = librariesI_prototype(),
+        .usertypes = usertypeI_prototype(),
         .data = data,
         .env = NULL,
         .registry = NULL
@@ -44,6 +45,7 @@ void instanceI_close(morphine_instance_t I) {
     sioI_close(I, I->sio.error, true);
 
     librariesI_free(I, &I->libraries);
+    usertypeI_free(I, &I->usertypes);
 
     gcI_destruct(I, I->G);
     I->platform.functions.free(I);

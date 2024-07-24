@@ -60,7 +60,7 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
         return;
     }
 
-    throwI_errorf(I, "metatable cannot be set to %s", valueI_type2string(I, value.type));
+    throwI_errorf(I, "metatable cannot be set to %s", valueI_type(I, value, true));
 }
 
 void metatableI_set_default(morphine_instance_t I, enum value_type type, struct table *metatable) {
@@ -86,7 +86,7 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
     } else if (valueI_is_userdata(value)) {
         metatable = valueI_as_userdata(value)->metatable;
     } else {
-        throwI_errorf(I, "metatable cannot be get from %s", valueI_type2string(I, value.type));
+        throwI_errorf(I, "metatable cannot be get from %s", valueI_type(I, value, true));
     }
 
     return extract_metatable(I, metatable);

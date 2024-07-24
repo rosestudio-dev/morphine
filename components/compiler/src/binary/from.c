@@ -61,7 +61,7 @@ get_type(uint32_t, uint32)
 
 static const char *get_string(struct data *D) {
     ml_size size = get_ml_size(D);
-    char *buffer = mapi_push_userdata_vec(D->U, "temp", size, sizeof(char));
+    char *buffer = mapi_push_userdata_vec(D->U, size, sizeof(char));
     mapi_rotate(D->U, 2);
 
     for (size_t i = 0; i < size; i++) {

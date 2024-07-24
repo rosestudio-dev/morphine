@@ -92,6 +92,31 @@ static struct table *construct(morphine_instance_t I, morphine_library_t *L) {
     return result;
 }
 
+static void library_init(morphine_instance_t I, morphine_library_t *L) {
+    for (morphine_library_type_t *entry = L->types; entry != NULL && entry->name != NULL; entry++) {
+        bool success = usertypeI_declare(
+            I,
+            entry->name,
+            entry->params.allocate,
+            entry->params.free,
+            entry->params.require_metatable
+        );
+
+        if (!success) {
+            throwI_errorf(I, "failed to declare type %s", entry->name);
+        }
+    }
+}
+
+static void library_finish(morphine_instance_t I, morphine_library_t *L) {
+    for (morphine_library_type_t *entry = L->types; entry != NULL && entry->name != NULL; entry++) {
+        bool success = usertypeI_undeclare(I, entry->name);
+        if (!success) {
+            throwI_errorf(I, "failed to undeclare type %s", entry->name);
+        }
+    }
+}
+
 struct libraries librariesI_prototype(void) {
     return (struct libraries) {
         .allocated = 0,
@@ -145,6 +170,8 @@ void librariesI_load(morphine_instance_t I, morphine_library_t *L) {
     };
 
     I->libraries.size++;
+
+    library_init(I, L);
 }
 
 void librariesI_unload(morphine_instance_t I, morphine_library_t *L) {
@@ -175,6 +202,8 @@ void librariesI_unload(morphine_instance_t I, morphine_library_t *L) {
     };
 
     I->libraries.size--;
+
+    library_finish(I, L);
 }
 
 struct table *librariesI_get(morphine_instance_t I, const char *name, bool reload) {

@@ -11,7 +11,7 @@
 
 enum metatable_field {
     // operations
-    MF_TYPE,          // value
+    MF_TYPE,          // callable
     MF_CALL,          // callable
     MF_GET,           // callable
     MF_SET,           // callable

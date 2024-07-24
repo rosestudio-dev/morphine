@@ -6,8 +6,6 @@
 #include "morphinec/strtable.h"
 #include "morphinec/config.h"
 
-#define MORPHINE_TYPE "strtable"
-
 struct entry {
     char *string;
     size_t size;
@@ -30,7 +28,7 @@ static void strtable_free(morphine_instance_t I, void *p) {
 }
 
 struct strtable *strtable(morphine_coroutine_t U) {
-    struct strtable *T = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct strtable));
+    struct strtable *T = mapi_push_userdata_uni(U, sizeof(struct strtable));
 
     *T = (struct strtable) {
         .used = 0,
@@ -44,11 +42,7 @@ struct strtable *strtable(morphine_coroutine_t U) {
 }
 
 struct strtable *get_strtable(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        return mapi_userdata_pointer(U);
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
+    return mapi_userdata_pointer(U);
 }
 
 strtable_index_t strtable_record(morphine_coroutine_t U, struct strtable *T, const char *str, size_t size) {

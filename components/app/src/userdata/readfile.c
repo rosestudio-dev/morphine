@@ -23,9 +23,7 @@ static void readfile_free(morphine_instance_t I, void *p) {
 }
 
 void *userdata_readfile(morphine_coroutine_t U, const char *path) {
-    struct readfile *readfile = mapi_push_userdata(
-        U, "readfile", sizeof(struct readfile)
-    );
+    struct readfile *readfile = mapi_push_userdata_uni(U, sizeof(struct readfile));
 
     (*readfile) = (struct readfile) {
         .data = NULL,

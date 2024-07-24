@@ -11,8 +11,6 @@
 #include "codegen/impl.h"
 #include "codegen/support/controller.h"
 
-#define MORPHINE_TYPE "codegen"
-
 enum codegen_constant_type {
     CCT_NIL,
     CCT_INTEGER,
@@ -821,7 +819,7 @@ static void codegen_free(morphine_instance_t I, void *p) {
 }
 
 struct codegen *codegen(morphine_coroutine_t U, struct strtable *T, struct ast *A, struct visitor *V) {
-    struct codegen *C = mapi_push_userdata(U, MORPHINE_TYPE, sizeof(struct codegen));
+    struct codegen *C = mapi_push_userdata_uni(U, sizeof(struct codegen));
 
     *C = (struct codegen) {
         .U = U,
@@ -914,11 +912,7 @@ struct codegen *codegen(morphine_coroutine_t U, struct strtable *T, struct ast *
 }
 
 struct codegen *get_codegen(morphine_coroutine_t U) {
-    if (strcmp(mapi_userdata_type(U), MORPHINE_TYPE) == 0) {
-        return mapi_userdata_pointer(U);
-    } else {
-        mapi_error(U, "expected "MORPHINE_TYPE);
-    }
+    return mapi_userdata_pointer(U);
 }
 
 bool codegen_step(morphine_coroutine_t U, struct codegen *C) {

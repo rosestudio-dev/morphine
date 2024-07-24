@@ -9,6 +9,7 @@
 #include "morphine/gc/structure.h"
 #include "morphine/core/interpreter.h"
 #include "morphine/core/libraries.h"
+#include "morphine/core/usertype.h"
 #include "morphine/misc/metatable.h"
 
 struct instance {
@@ -19,6 +20,7 @@ struct instance {
     struct garbage_collector G;
     struct interpreter E;
     struct libraries libraries;
+    struct usertypes usertypes;
 
     struct table *env;
     struct table *registry;

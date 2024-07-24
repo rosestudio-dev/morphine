@@ -11,6 +11,7 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/userdata.h"
 #include "morphine/platform/conversions.h"
+#include "morphine/core/usertype.h"
 
 bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
     if (likely(a.type != b.type)) {
@@ -64,14 +65,7 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_STRING:
             return value;
         case VALUE_TYPE_USERDATA:
-            return valueI_object(
-                stringI_createf(
-                    I,
-                    "[object:userdata:%p|%s]",
-                    value.object.userdata,
-                    valueI_as_userdata(value)->name
-                )
-            );
+            return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object.userdata));
         case VALUE_TYPE_TABLE:
             return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
         case VALUE_TYPE_VECTOR:
@@ -130,7 +124,7 @@ struct value valueI_value2integer(morphine_instance_t I, struct value value) {
         }
     }
 
-    throwI_errorf(I, "cannot convert %s to integer", valueI_type2string(I, value.type));
+    throwI_errorf(I, "cannot convert %s to integer", valueI_type(I, value, false));
 }
 
 struct value valueI_value2size(morphine_instance_t I, struct value value) {
@@ -156,7 +150,7 @@ struct value valueI_value2size(morphine_instance_t I, struct value value) {
         }
     }
 
-    throwI_errorf(I, "cannot convert %s to size", valueI_type2string(I, value.type));
+    throwI_errorf(I, "cannot convert %s to size", valueI_type(I, value, false));
 }
 
 struct value valueI_value2index(morphine_instance_t I, struct value value) {
@@ -182,7 +176,7 @@ struct value valueI_value2index(morphine_instance_t I, struct value value) {
         }
     }
 
-    throwI_errorf(I, "cannot convert %s to index", valueI_type2string(I, value.type));
+    throwI_errorf(I, "cannot convert %s to index", valueI_type(I, value, false));
 }
 
 struct value valueI_value2basedinteger(morphine_instance_t I, struct value value, ml_size base) {
@@ -200,7 +194,7 @@ struct value valueI_value2basedinteger(morphine_instance_t I, struct value value
         }
     }
 
-    throwI_errorf(I, "cannot convert %s to based integer", valueI_type2string(I, value.type));
+    throwI_errorf(I, "cannot convert %s to based integer", valueI_type(I, value, false));
 }
 
 struct value valueI_value2basedsize(morphine_instance_t I, struct value value, ml_size base) {
@@ -218,7 +212,7 @@ struct value valueI_value2basedsize(morphine_instance_t I, struct value value, m
         }
     }
 
-    throwI_errorf(I, "cannot convert %s to based size", valueI_type2string(I, value.type));
+    throwI_errorf(I, "cannot convert %s to based size", valueI_type(I, value, false));
 }
 
 struct value valueI_value2basedindex(morphine_instance_t I, struct value value, ml_size base) {
@@ -236,7 +230,7 @@ struct value valueI_value2basedindex(morphine_instance_t I, struct value value, 
         }
     }
 
-    throwI_errorf(I, "cannot convert %s to based index", valueI_type2string(I, value.type));
+    throwI_errorf(I, "cannot convert %s to based index", valueI_type(I, value, false));
 }
 
 struct value valueI_value2decimal(morphine_instance_t I, struct value value) {
@@ -262,7 +256,7 @@ struct value valueI_value2decimal(morphine_instance_t I, struct value value) {
         }
     }
 
-    throwI_errorf(I, "cannot convert %s to decimal", valueI_type2string(I, value.type));
+    throwI_errorf(I, "cannot convert %s to decimal", valueI_type(I, value, false));
 }
 
 struct value valueI_value2boolean(morphine_instance_t I, struct value value) {
@@ -285,10 +279,10 @@ struct value valueI_value2boolean(morphine_instance_t I, struct value value) {
         }
     }
 
-    throwI_errorf(I, "cannot convert %s to boolean", valueI_type2string(I, value.type));
+    throwI_errorf(I, "cannot convert %s to boolean", valueI_type(I, value, false));
 }
 
-const char *valueI_type2string(morphine_instance_t I, enum value_type type) {
+static const char *type2string(morphine_instance_t I, enum value_type type) {
     switch (type) {
         case VALUE_TYPE_NIL:
             return "nil";
@@ -327,9 +321,38 @@ const char *valueI_type2string(morphine_instance_t I, enum value_type type) {
     throwI_panic(I, "unsupported type");
 }
 
+
+const char *valueI_type(morphine_instance_t I, struct value value, bool raw) {
+    if (!raw) {
+        struct userdata *userdata = valueI_safe_as_userdata(value, NULL);
+
+        if (userdata != NULL && !userdata->is_untyped) {
+            struct usertype_info info = usertypeI_info(I, userdata->usertype);
+
+            return info.name;
+        }
+    }
+
+    return type2string(I, value.type);
+}
+
+bool valueI_is_type(morphine_instance_t I, const char *name, bool raw) {
+    if (!raw && usertypeI_is_declared(I, name)) {
+        return true;
+    }
+
+    for (enum value_type t = VALUE_TYPES_START; t < VALUE_TYPES_COUNT; t++) {
+        if (strcmp(type2string(I, t), name) == 0) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
 enum value_type valueI_string2type(morphine_instance_t I, const char *name) {
     for (enum value_type t = VALUE_TYPES_START; t < VALUE_TYPES_COUNT; t++) {
-        if (strcmp(valueI_type2string(I, t), name) == 0) {
+        if (strcmp(type2string(I, t), name) == 0) {
             return t;
         }
     }

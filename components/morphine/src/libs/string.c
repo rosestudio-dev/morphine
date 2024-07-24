@@ -245,7 +245,7 @@ static void tolowercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (len > 0) {
-                char *result = mapi_push_userdata_vec(U, "tempstring", len, sizeof(char));
+                char *result = mapi_push_userdata_vec(U, len, sizeof(char));
 
                 for (size_t i = 0; i < len; i++) {
                     result[i] = (char) tolower(string[i]);
@@ -273,7 +273,7 @@ static void touppercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (len > 0) {
-                char *result = mapi_push_userdata_vec(U, "tempstring", len, sizeof(char));
+                char *result = mapi_push_userdata_vec(U, len, sizeof(char));
 
                 for (size_t i = 0; i < len; i++) {
                     result[i] = (char) toupper(string[i]);
@@ -879,6 +879,7 @@ static morphine_library_function_t functions[] = {
 
 static morphine_library_t library = {
     .name = "string",
+    .types = NULL,
     .functions = functions,
     .integers = NULL,
     .decimals = NULL,

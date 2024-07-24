@@ -157,6 +157,7 @@ static morphine_library_function_t functions[] = {
 
 static morphine_library_t library = {
     .name = "bitwise",
+    .types = NULL,
     .functions = functions,
     .integers = NULL,
     .decimals = NULL,
