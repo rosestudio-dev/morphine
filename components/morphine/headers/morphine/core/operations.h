@@ -159,24 +159,7 @@ static inline op_result_t interpreter_fun_get(
     }
 
     struct value mt_field;
-    if (likely(valueI_is_table(container))) {
-        bool has = false;
-        (*result) = tableI_get(U->I, valueI_as_table(container), key, &has);
-
-        if (!has && metatableI_test(U->I, container, MF_GET, &mt_field)) {
-            if (callstackI_is_callable(U->I, mt_field)) {
-                struct value new_args[] = { key };
-                callstackI_continue(U, callstate);
-                callstackI_call_unsafe(U, mt_field, container, new_args, 1, pop_size);
-                return CALLED;
-            }
-
-            (*result) = mt_field;
-            return NORMAL;
-        }
-
-        return NORMAL;
-    } else if (valueI_is_vector(container)) {
+    if (valueI_is_vector(container)) {
         ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
         (*result) = vectorI_get(U->I, valueI_as_vector(container), index);
         return NORMAL;
@@ -189,6 +172,9 @@ static inline op_result_t interpreter_fun_get(
         }
 
         (*result) = mt_field;
+        return NORMAL;
+    } else if(valueI_is_table(container)) {
+        (*result) = tableI_get(U->I, valueI_as_table(container), key, NULL);
         return NORMAL;
     }
 
@@ -218,10 +204,12 @@ static inline op_result_t interpreter_fun_set(
         callstackI_continue(U, callstate);
         callstackI_call_unsafe(U, mt_field, container, new_args, 2, pop_size);
         return CALLED;
+    } else if(valueI_is_table(container)) {
+        tableI_set(U->I, valueI_as_table_or_error(U->I, container), key, value);
+        return NORMAL;
     }
 
-    tableI_set(U->I, valueI_as_table_or_error(U->I, container), key, value);
-    return NORMAL;
+    throwI_error(U->I, "set supports only table or vector");
 }
 
 static inline op_result_t interpreter_fun_add(
