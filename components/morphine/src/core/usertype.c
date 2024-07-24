@@ -10,7 +10,6 @@
 struct usertype {
     struct usertype_info info;
     size_t references;
-    bool undeclare_candidate;
 
     struct usertype *prev;
 };
@@ -21,30 +20,17 @@ static void usertype_free(morphine_instance_t I, struct usertype *usertype) {
 
 struct usertypes usertypeI_prototype(void) {
     return (struct usertypes) {
-        .types = NULL,
-        .undeclared = NULL
+        .types = NULL
     };
 }
 
 void usertypeI_free(morphine_instance_t I, struct usertypes *usertypes) {
-    {
-        struct usertype *usertype = usertypes->types;
-        while (usertype != NULL) {
-            struct usertype *prev = usertype->prev;
-            usertype_free(I, usertype);
+    struct usertype *usertype = usertypes->types;
+    while (usertype != NULL) {
+        struct usertype *prev = usertype->prev;
+        usertype_free(I, usertype);
 
-            usertype = prev;
-        }
-    }
-
-    {
-        struct usertype *usertype = usertypes->undeclared;
-        while (usertype != NULL) {
-            struct usertype *prev = usertype->prev;
-            usertype_free(I, usertype);
-
-            usertype = prev;
-        }
+        usertype = prev;
     }
 }
 
@@ -88,7 +74,6 @@ bool usertypeI_declare(
         .info.require_metatable = require_metatable,
 
         .references = 0,
-        .undeclare_candidate = false,
 
         .prev = I->usertypes.types
     };
@@ -107,21 +92,17 @@ bool usertypeI_undeclare(morphine_instance_t I, const char *name) {
     struct usertype *usertype = I->usertypes.types;
     while (usertype != NULL) {
         if (name_len == usertype->info.name_len && memcmp(usertype->info.name, name, name_len) == 0) {
+            if (usertype->references > 0) {
+                return false;
+            }
+
             if (last == NULL) {
                 I->usertypes.types = usertype->prev;
             } else {
                 last->prev = usertype->prev;
             }
 
-            if (usertype->references == 0) {
-                usertype_free(I, usertype);
-            } else {
-                usertype->prev = I->usertypes.undeclared;
-                I->usertypes.undeclared = usertype;
-
-                usertype->undeclare_candidate = true;
-            }
-
+            usertype_free(I, usertype);
             return true;
         }
 
@@ -186,24 +167,4 @@ void usertypeI_unref(morphine_instance_t I, struct usertype *usertype) {
     }
 
     usertype->references--;
-
-    if (usertype->references == 0 && usertype->undeclare_candidate) {
-        struct usertype *last = NULL;
-        struct usertype *current = I->usertypes.undeclared;
-        while (current != NULL) {
-            if (current == usertype) {
-                if (last == NULL) {
-                    I->usertypes.undeclared = usertype->prev;
-                } else {
-                    last->prev = usertype->prev;
-                }
-
-                usertype_free(I, usertype);
-                return;
-            }
-
-            last = usertype;
-            usertype = usertype->prev;
-        }
-    }
 }

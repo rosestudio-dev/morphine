@@ -18,6 +18,34 @@
 #include "morphine/misc/registry.h"
 #include "morphine/utils/overflow.h"
 
+static inline struct value extract_callable(
+    morphine_instance_t I, struct value callable, const char *error, bool error_before
+) {
+    size_t counter = 0;
+repeat:;
+    if (counter > MLIMIT_EXTRACT_CALLABLE_DEEP) {
+        throwI_error(I, "possible recursion while extracting callable");
+    }
+
+    struct closure *closure = valueI_safe_as_closure(callable, NULL);
+    if (closure != NULL) {
+        callable = closure->callable;
+        counter++;
+        goto repeat;
+    }
+
+    if (valueI_is_native(callable) || valueI_is_function(callable)) {
+        return callable;
+    }
+
+    const char *type = valueI_type(I, callable, false);
+    if (error_before) {
+        throwI_errorf(I, "%s %s", error, type);
+    } else {
+        throwI_errorf(I, "%s %s", type, error);
+    }
+}
+
 static inline void stackI_call(
     morphine_coroutine_t U,
     struct value callable,
@@ -33,7 +61,7 @@ static inline void stackI_call(
 
     // get source and calc values size
 
-    struct value source = callstackI_extract_callable(I, callable);
+    struct value source = extract_callable(I, callable, "unable to call", true);
 
     size_t slots_count = 0;
     size_t params_count = 0;
@@ -309,24 +337,7 @@ void callstackI_fix_uninit(morphine_coroutine_t U) {
 }
 
 struct value callstackI_extract_callable(morphine_instance_t I, struct value callable) {
-    size_t counter = 0;
-repeat:;
-    if (counter > MLIMIT_EXTRACT_CALLABLE_DEEP) {
-        throwI_error(I, "possible recursion while extracting callable");
-    }
-
-    struct closure *closure = valueI_safe_as_closure(callable, NULL);
-    if (closure != NULL) {
-        callable = closure->callable;
-        counter++;
-        goto repeat;
-    }
-
-    if (valueI_is_native(callable) || valueI_is_function(callable)) {
-        return callable;
-    }
-
-    throwI_error(I, "cannot extract callable value");
+    return extract_callable(I, callable, "isn't callable type", false);
 }
 
 bool callstackI_is_callable(morphine_instance_t I, struct value callable) {

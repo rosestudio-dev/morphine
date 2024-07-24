@@ -13,7 +13,6 @@
 #include "morphine/object/vector.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/safe.h"
-#include "morphine/utils/unused.h"
 
 typedef enum {
     NORMAL,
@@ -36,9 +35,14 @@ static inline op_result_t interpreter_fun_iterator(
 
     struct value mt_field;
     if (metatableI_test(U->I, container, MF_ITERATOR, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, container, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, container, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     (*result) = valueI_object(iteratorI_create(U->I, container));
@@ -88,9 +92,14 @@ static inline op_result_t interpreter_fun_iterator_has(
         (*result) = valueI_boolean(has);
         return NORMAL;
     } else if (metatableI_test(U->I, iterator, MF_ITERATOR_HAS, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "cannot check next value of iterator");
@@ -122,9 +131,14 @@ static inline op_result_t interpreter_fun_iterator_next(
         gcI_reset_safe(U->I, rollback);
         return NORMAL;
     } else if (metatableI_test(U->I, iterator, MF_ITERATOR_NEXT, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "cannot get next value of iterator");
@@ -150,22 +164,32 @@ static inline op_result_t interpreter_fun_get(
         (*result) = tableI_get(U->I, valueI_as_table(container), key, &has);
 
         if (!has && metatableI_test(U->I, container, MF_GET, &mt_field)) {
+            if (callstackI_is_callable(U->I, mt_field)) {
+                struct value new_args[] = { key };
+                callstackI_continue(U, callstate);
+                callstackI_call_unsafe(U, mt_field, container, new_args, 1, pop_size);
+                return CALLED;
+            }
+
+            (*result) = mt_field;
+            return NORMAL;
+        }
+
+        return NORMAL;
+    } else if (valueI_is_vector(container)) {
+        ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
+        (*result) = vectorI_get(U->I, valueI_as_vector(container), index);
+        return NORMAL;
+    } else if (metatableI_test(U->I, container, MF_GET, &mt_field)) {
+        if (callstackI_is_callable(U->I, mt_field)) {
             struct value new_args[] = { key };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, container, new_args, 1, pop_size);
             return CALLED;
         }
 
+        (*result) = mt_field;
         return NORMAL;
-    } else if(valueI_is_vector(container)) {
-        ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
-        (*result) = vectorI_get(U->I, valueI_as_vector(container), index);
-        return NORMAL;
-    } else if (metatableI_test(U->I, container, MF_GET, &mt_field)) {
-        struct value new_args[] = { key };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, container, new_args, 1, pop_size);
-        return CALLED;
     }
 
     throwI_error(U->I, "get supports only table or vector");
@@ -185,7 +209,7 @@ static inline op_result_t interpreter_fun_set(
     }
 
     struct value mt_field;
-    if(valueI_is_vector(container)) {
+    if (valueI_is_vector(container)) {
         ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
         vectorI_set(U->I, valueI_as_vector(container), index, value);
         return NORMAL;
@@ -226,10 +250,15 @@ static inline op_result_t interpreter_fun_add(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_ADD, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "add supports only integer or decimal");
@@ -261,10 +290,15 @@ static inline op_result_t interpreter_fun_sub(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_SUB, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "sub supports only integer or decimal");
@@ -296,10 +330,15 @@ static inline op_result_t interpreter_fun_mul(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_MUL, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "mul supports only integer or decimal");
@@ -341,10 +380,15 @@ static inline op_result_t interpreter_fun_div(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_DIV, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "div supports only integer or decimal");
@@ -376,10 +420,15 @@ static inline op_result_t interpreter_fun_mod(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_MOD, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "mod supports only integer");
@@ -401,10 +450,15 @@ static inline op_result_t interpreter_fun_equal(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_EQUAL, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     (*result) = valueI_boolean(valueI_equal(U->I, a, b));
@@ -437,10 +491,15 @@ static inline op_result_t interpreter_fun_less(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_LESS, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "less supports only integer or decimal");
@@ -467,10 +526,15 @@ static inline op_result_t interpreter_fun_and(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_AND, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "and supports only boolean");
@@ -497,10 +561,15 @@ static inline op_result_t interpreter_fun_or(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_OR, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "or supports only boolean");
@@ -530,10 +599,15 @@ static inline op_result_t interpreter_fun_concat(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_CONCAT, &mt_field)) {
-        struct value new_args[] = { b };
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            struct value new_args[] = { b };
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "concat supports only string");
@@ -554,9 +628,14 @@ static inline op_result_t interpreter_fun_type(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_TYPE, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     (*result) = valueI_object(stringI_create(U->I, valueI_type(U->I, a, false)));
@@ -588,9 +667,14 @@ static inline op_result_t interpreter_fun_negative(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_NEGATE, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "negate supports only integer or decimal");
@@ -616,9 +700,14 @@ static inline op_result_t interpreter_fun_not(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_NOT, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "not supports only boolean");
@@ -639,9 +728,14 @@ static inline op_result_t interpreter_fun_ref(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_REF, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     (*result) = valueI_object(referenceI_create(U->I, a));
@@ -668,9 +762,14 @@ static inline op_result_t interpreter_fun_deref(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_DEREF, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "deref supports only reference");
@@ -706,9 +805,14 @@ static inline op_result_t interpreter_fun_length(
 
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_LENGTH, &mt_field)) {
-        callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
-        return CALLED;
+        if (callstackI_is_callable(U->I, mt_field)) {
+            callstackI_continue(U, callstate);
+            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
     }
 
     throwI_error(U->I, "length supports only string, table or vector");

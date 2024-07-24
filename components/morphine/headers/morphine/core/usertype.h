@@ -19,7 +19,6 @@ struct usertype_info {
 
 struct usertypes {
     struct usertype *types;
-    struct usertype *undeclared;
 };
 
 struct usertypes usertypeI_prototype(void);

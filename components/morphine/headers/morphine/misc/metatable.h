@@ -11,30 +11,30 @@
 
 enum metatable_field {
     // operations
-    MF_TYPE,          // callable
+    MF_TYPE,          // (callable | value)
     MF_CALL,          // callable
-    MF_GET,           // callable
+    MF_GET,           // (callable | value)
     MF_SET,           // callable
-    MF_TO_STRING,     // callable
-    MF_ADD,           // callable
-    MF_SUB,           // callable
-    MF_MUL,           // callable
-    MF_DIV,           // callable
-    MF_MOD,           // callable
-    MF_EQUAL,         // callable
-    MF_LESS,          // callable
-    MF_OR,            // callable
-    MF_AND,           // callable
-    MF_CONCAT,        // callable
-    MF_NEGATE,        // callable
-    MF_NOT,           // callable
-    MF_LENGTH,        // callable
-    MF_REF,           // callable
-    MF_DEREF,         // callable
-    MF_ITERATOR,      // callable
+    MF_TO_STRING,     // (callable | value)
+    MF_ADD,           // (callable | value)
+    MF_SUB,           // (callable | value)
+    MF_MUL,           // (callable | value)
+    MF_DIV,           // (callable | value)
+    MF_MOD,           // (callable | value)
+    MF_EQUAL,         // (callable | value)
+    MF_LESS,          // (callable | value)
+    MF_OR,            // (callable | value)
+    MF_AND,           // (callable | value)
+    MF_CONCAT,        // (callable | value)
+    MF_NEGATE,        // (callable | value)
+    MF_NOT,           // (callable | value)
+    MF_LENGTH,        // (callable | value)
+    MF_REF,           // (callable | value)
+    MF_DEREF,         // (callable | value)
+    MF_ITERATOR,      // (callable | value)
     MF_ITERATOR_INIT, // callable
-    MF_ITERATOR_HAS,  // callable
-    MF_ITERATOR_NEXT, // callable
+    MF_ITERATOR_HAS,  // (callable | value)
+    MF_ITERATOR_NEXT, // (callable | value)
 
     // control
     MF_MASK, // value

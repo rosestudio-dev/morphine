@@ -12,7 +12,11 @@ static void tostr(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
 
             if (mapi_metatable_test(U, "_mf_to_string")) {
-                mapi_callself(U, 0);
+                if (mapi_is_callable(U)) {
+                    mapi_callself(U, 0);
+                } else {
+                    maux_nb_return();
+                }
             } else if (mapi_is_type(U, "vector")) {
                 maux_library_get(U, "vector", "tostr");
                 mapi_calli(U, 1);
