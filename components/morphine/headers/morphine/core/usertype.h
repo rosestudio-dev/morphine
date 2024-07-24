@@ -10,7 +10,6 @@ struct usertype;
 
 struct usertype_info {
     const char *name;
-    size_t name_len;
 
     size_t allocate;
     morphine_free_t free;

@@ -45,18 +45,18 @@ void usertypeI_declare(
         throwI_error(I, "unavailable type name");
     }
 
-    size_t name_len = strlen(name);
-
     {
         struct usertype *usertype = I->usertypes.types;
         while (usertype != NULL) {
-            if (name_len == usertype->info.name_len && memcmp(usertype->info.name, name, name_len) == 0) {
+            if (strcmp(usertype->info.name, name) == 0) {
                 throwI_error(I, "type is already declared");
             }
 
             usertype = usertype->prev;
         }
     }
+
+    size_t name_len = strlen(name);
 
     if (name_len > MLIMIT_USERTYPE_NAME) {
         throwI_error(I, "name of type too big");
@@ -68,7 +68,6 @@ void usertypeI_declare(
     char *name_str = ((void *) usertype) + sizeof(struct usertype);
     (*usertype) = (struct usertype) {
         .info.name = name_str,
-        .info.name_len = name_len,
         .info.free = free,
         .info.allocate = allocate,
         .info.require_metatable = require_metatable,
@@ -85,10 +84,9 @@ void usertypeI_declare(
 }
 
 bool usertypeI_is_declared(morphine_instance_t I, const char *name) {
-    size_t name_len = strlen(name);
     struct usertype *usertype = I->usertypes.types;
     while (usertype != NULL) {
-        if (name_len == usertype->info.name_len && memcmp(usertype->info.name, name, name_len) == 0) {
+        if (strcmp(usertype->info.name, name) == 0) {
             return true;
         }
 
@@ -99,10 +97,9 @@ bool usertypeI_is_declared(morphine_instance_t I, const char *name) {
 }
 
 struct usertype *usertypeI_get(morphine_instance_t I, const char *name) {
-    size_t name_len = strlen(name);
     struct usertype *usertype = I->usertypes.types;
     while (usertype != NULL) {
-        if (name_len == usertype->info.name_len && memcmp(usertype->info.name, name, name_len) == 0) {
+        if (strcmp(usertype->info.name, name) == 0) {
             return usertype;
         }
 
