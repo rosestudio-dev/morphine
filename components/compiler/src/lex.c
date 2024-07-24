@@ -53,7 +53,6 @@ static struct {
     word(eval),
     word(type),
     word(len),
-    word(to),
     word(yield),
     word(ref),
     word(end),
@@ -415,7 +414,7 @@ static struct token lex_word(morphine_coroutine_t U, struct lex *L) {
     char current = peek(L, 0);
 
     size_t from = L->pos;
-    while (isalpha(current) || isdigit(current)) {
+    while (current == '_' || isalpha(current) || isdigit(current)) {
         current = next(L);
     }
 
@@ -516,7 +515,7 @@ struct token lex_step(morphine_coroutine_t U, struct lex *L) {
         return lex_extended_word(U, L);
     }
 
-    if (isalpha(current)) {
+    if (current == '_' || isalpha(current)) {
         return lex_word(U, L);
     }
 

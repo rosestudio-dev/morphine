@@ -42,6 +42,22 @@ bool argument_matcher_match(
     }
 }
 
+bool argument_matcher_look(
+    struct argument_matcher *R,
+    struct matcher_symbol symbol
+) {
+    if (R->assemble) {
+        if (!elements_is_token(R->E, R->pos)) {
+            return false;
+        }
+
+        struct token token = elements_get_token(R->E, R->pos);
+        return matcher_symbol(symbol, token);
+    } else {
+        return matcher_look(R->M, symbol);
+    }
+}
+
 struct reduce argument_matcher_reduce(
     struct argument_matcher *R,
     enum reduce_type type

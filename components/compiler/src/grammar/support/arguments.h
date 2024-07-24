@@ -28,6 +28,7 @@ struct argument_matcher {
 
 struct token argument_matcher_consume(struct argument_matcher *, struct matcher_symbol);
 bool argument_matcher_match(struct argument_matcher *, struct matcher_symbol);
+bool argument_matcher_look(struct argument_matcher *, struct matcher_symbol);
 struct reduce argument_matcher_reduce(struct argument_matcher *, enum reduce_type);
 
 bool argument_matcher_init(struct argument_matcher *, size_t init_pos);

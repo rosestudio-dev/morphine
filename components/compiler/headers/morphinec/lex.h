@@ -82,7 +82,6 @@ enum token_predefined_word {
     TPW_eval,
     TPW_type,
     TPW_len,
-    TPW_to,
     TPW_yield,
     TPW_ref,
     TPW_end,
