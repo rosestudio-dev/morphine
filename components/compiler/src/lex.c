@@ -284,12 +284,31 @@ static size_t handle_string(morphine_coroutine_t U, struct lex *L, char *buffer)
     size_t count = 0;
     char current = next(L);
     while (true) {
-        if (current == eoschar || isnewline(current)) {
+        if (current == eoschar) {
             lex_cl_error(U, saved_line, "string isn't closed");
         }
 
         if (current == open) {
             break;
+        }
+
+        if (isnewline(current)) {
+            char nex = next(L);
+            safe_append(buffer, &count, current);
+
+            if (current != nex && isnewline(nex)) {
+                safe_append(buffer, &count, nex);
+
+                current = next(L);
+            } else {
+                current = nex;
+            }
+
+            if (buffer != NULL) {
+                L->line++;
+            }
+
+            continue;
         }
 
         if (current == '\\') {
