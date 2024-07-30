@@ -4,7 +4,7 @@
 
 #include <execute.h>
 #include <morphinec.h>
-#include <morphinenostdlibs.h>
+#include <morphinel.h>
 #include <loaders.h>
 #include <stdlib.h>
 #include <setjmp.h>
@@ -149,7 +149,7 @@ void execute(
 
     morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
     mapi_library_load(I, mclib_compiler());
-    mapi_library_load(I, mnostdlib_math());
+    mapi_library_load(I, mllib_math());
 
     morphine_coroutine_t U = mapi_coroutine(I);
 

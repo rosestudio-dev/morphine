@@ -1,4 +1,0 @@
-option('version-name', type : 'string', value : 'undefined')
-option('version', type : 'string', value : '0')
-option('bytecode-version', type : 'string', value : '0')
-option('installdir', type : 'string', value : 'undefined')

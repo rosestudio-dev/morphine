@@ -1,2 +1,0 @@
-option('sanitize', type : 'feature', value : 'disabled')
-option('installdir', type : 'string', yield : true)

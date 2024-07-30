@@ -3,7 +3,7 @@ import sys
 
 parser = argparse.ArgumentParser(prog='Cmake generator')
 parser.add_argument('-n', '--name', default='')
-parser.add_argument('-v', '--version', default='')
+parser.add_argument('-c', '--code', default='')
 parser.add_argument('-b', '--bytecode', default='')
 parser.add_argument('-o', '--output', default='')
 args = parser.parse_args()
@@ -21,7 +21,7 @@ f.write("""
 #pragma once
 
 #define MORPHINE_VERSION_NAME     \"""" + args.name + """\"
-#define MORPHINE_VERSION          """ + args.version + """
+#define MORPHINE_VERSION_CODE     """ + args.code + """
 #define MORPHINE_BYTECODE_VERSION """ + args.bytecode + """
 """)
 

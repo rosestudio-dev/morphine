@@ -3,7 +3,7 @@
 //
 
 #include <math.h>
-#include "morphinenostdlibs/math.h"
+#include "morphinel/math.h"
 
 #define PI_CONST 3.14159265358979323846
 #define E_CONST  2.7182818284590452354
@@ -414,6 +414,6 @@ static morphine_library_t library = {
     .strings = NULL
 };
 
-MORPHINE_LIB morphine_library_t *mnostdlib_math(void) {
+MORPHINE_LIB morphine_library_t *mllib_math(void) {
     return &library;
 }

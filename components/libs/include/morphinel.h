@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#include "morphinenostdlibs/math.h"
+#include "morphinel/math.h"
 
 #ifdef __cplusplus
 }

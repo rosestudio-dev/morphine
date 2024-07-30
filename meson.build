@@ -1,28 +1,15 @@
 project(
-    'morphine',
-    default_options : [
-        'version-name=0.0.1',
-        'version=1',
-        'bytecode-version=1',
-        'installdir=' + meson.source_root() / 'install',
-        'morphine:sanitize=disabled',
-        'compiler:sanitize=disabled',
-        'nostdlibs:sanitize=disabled',
-        'app:sanitize=disabled',
-    ],
-    subproject_dir : 'components',
+    'morphine', 'c',
+    version : '0.0.1',
+    license : 'MIT',
+    license_files : ['LICENSE'],
+    default_options : {
+        'c_std' : 'c17',
+        'prefix' : meson.source_root() / 'install'
+    }
 )
 
-installdir = get_option('installdir')
-message('Install dir:', installdir)
+version_code = 1
+bytecode_version = 1
 
-subproject('app')
-
-if installdir != 'undefined'
-    install_data(
-        files('extra' / 'templates' / 'gitignore'),
-        follow_symlinks : false,
-        install_dir : installdir,
-        rename : ['.gitignore'],
-    )
-endif
+subdir('components')

@@ -47,7 +47,7 @@ MORPHINE_API const char *mapi_version_name(void) {
  * {{end}}
  */
 MORPHINE_API ml_version mapi_version(void) {
-    return MORPHINE_VERSION;
+    return MORPHINE_VERSION_CODE;
 }
 
 /*

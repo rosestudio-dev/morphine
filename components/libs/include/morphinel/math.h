@@ -6,4 +6,4 @@
 
 #include <morphine.h>
 
-MORPHINE_LIB morphine_library_t *mnostdlib_math(void);
+MORPHINE_LIB morphine_library_t *mllib_math(void);
