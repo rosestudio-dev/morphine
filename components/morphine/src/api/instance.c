@@ -80,6 +80,26 @@ MORPHINE_API void mapi_interpreter(morphine_instance_t I) {
 /*
  * {{docs body}}
  * path:vm/api-instance
+ * ## mapi_interpreter_step
+ * ### Prototype
+ * ```c
+ * bool mapi_interpreter_step(morphine_instance_t I)
+ * ```
+ * ### Parameters
+ * * `I` - instance
+ * ### Result
+ * Interpreting is finished
+ * ### Description
+ * Runs one step of interpreter
+ * {{end}}
+ */
+MORPHINE_API bool mapi_interpreter_step(morphine_instance_t I) {
+    return interpreterI_step(I);
+}
+
+/*
+ * {{docs body}}
+ * path:vm/api-instance
  * ## mapi_close
  * ### Prototype
  * ```c

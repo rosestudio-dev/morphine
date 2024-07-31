@@ -502,44 +502,48 @@ static inline void step(morphine_coroutine_t U) {
     U->I->E.throw.context_coroutine = NULL;
 }
 
+static inline bool execute_step(morphine_instance_t I, struct interpreter *E) {
+    if (unlikely(I->G.finalizer.work)) {
+        step(I->G.finalizer.coroutine);
+    }
+
+    if (unlikely(E->coroutines == NULL)) {
+        E->running = NULL;
+        E->next = NULL;
+        gcI_full(I, 0);
+
+        if (I->G.finalizer.work) {
+            return true;
+        } else {
+            return false;
+        }
+    }
+
+    if (likely(E->running == NULL)) {
+        E->running = E->coroutines;
+        E->next = E->running->prev;
+        E->circle++;
+    } else {
+        E->next = E->running->prev;
+    }
+
+    morphine_coroutine_t coroutine = E->running;
+
+    bool is_current_circle = (E->circle % coroutine->priority) == 0;
+
+    if (likely(is_current_circle && (coroutine->status == COROUTINE_STATUS_RUNNING))) {
+        step(coroutine);
+    }
+
+    E->running = E->next;
+    E->next = NULL;
+
+    return true;
+}
+
 static inline void execute(morphine_instance_t I) {
     struct interpreter *E = &I->E;
-    for (;;) {
-        if (unlikely(I->G.finalizer.work)) {
-            step(I->G.finalizer.coroutine);
-        }
-
-        if (unlikely(E->coroutines == NULL)) {
-            E->running = NULL;
-            E->next = NULL;
-            gcI_full(I, 0);
-
-            if (I->G.finalizer.work) {
-                continue;
-            } else {
-                break;
-            }
-        }
-
-        if (likely(E->running == NULL)) {
-            E->running = E->coroutines;
-            E->next = E->running->prev;
-            E->circle++;
-        } else {
-            E->next = E->running->prev;
-        }
-
-        morphine_coroutine_t coroutine = E->running;
-
-        bool is_current_circle = (E->circle % coroutine->priority) == 0;
-
-        if (likely(is_current_circle && (coroutine->status == COROUTINE_STATUS_RUNNING))) {
-            step(coroutine);
-        }
-
-        E->running = E->next;
-        E->next = NULL;
-    }
+    while (execute_step(I, E)) { }
 }
 
 void interpreterI_run(morphine_instance_t I) {
@@ -552,6 +556,20 @@ void interpreterI_run(morphine_instance_t I) {
     execute(I);
 
     I->E.throw.inited = false;
+}
+
+bool interpreterI_step(morphine_instance_t I) {
+    if (setjmp(I->E.throw.handler) != 0) {
+        throwI_handler(I);
+    }
+
+    I->E.throw.inited = true;
+
+    bool result = execute_step(I, &I->E);
+
+    I->E.throw.inited = false;
+
+    return result;
 }
 
 struct interpreter interpreterI_prototype(void) {

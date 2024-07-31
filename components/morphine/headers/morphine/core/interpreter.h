@@ -19,3 +19,4 @@ struct interpreter {
 struct interpreter interpreterI_prototype(void);
 
 void interpreterI_run(morphine_instance_t);
+bool interpreterI_step(morphine_instance_t);

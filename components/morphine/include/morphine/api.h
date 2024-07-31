@@ -16,6 +16,7 @@ MORPHINE_API ml_version mapi_bytecode_version(void);
 MORPHINE_API morphine_instance_t mapi_open(morphine_platform_t, morphine_settings_t, void *data);
 MORPHINE_API void *mapi_instance_data(morphine_instance_t);
 MORPHINE_API void mapi_interpreter(morphine_instance_t);
+MORPHINE_API bool mapi_interpreter_step(morphine_instance_t);
 MORPHINE_API void mapi_close(morphine_instance_t);
 
 MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t);
