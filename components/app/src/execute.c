@@ -3,13 +3,13 @@
 //
 
 #include <execute.h>
-#include <morphinec.h>
-#include <morphinel.h>
-#include <loaders.h>
 #include <stdlib.h>
 #include <setjmp.h>
 #include <stdio.h>
-#include "sio/file.h"
+#include <morphinec.h>
+#include <morphinel.h>
+#include <loaders.h>
+#include <morphinel/fs/file.h>
 
 static struct allocator *pallocator;
 static jmp_buf abort_jmp;
@@ -150,6 +150,7 @@ void execute(
     morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
     mapi_library_load(I, mclib_compiler());
     mapi_library_load(I, mllib_math());
+    mapi_library_load(I, mllib_fs());
 
     morphine_coroutine_t U = mapi_coroutine(I);
 
@@ -158,7 +159,8 @@ void execute(
 
     if (export_path != NULL) {
         mapi_vector_peek_front(U);
-        sio_file(U, export_path, false, true, true);
+        mapi_push_string(U, export_path);
+        mlapi_fs_file(U, false, true, true);
         mapi_rotate(U, 2);
 
         mcapi_to_binary(U);

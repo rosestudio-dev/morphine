@@ -18,12 +18,12 @@ static void help(const char *program, const char *message, bool disable_usage) {
     if (!disable_usage) {
         printf("Usage: %s [options] [program [args]]\n", program);
         printf("Positional arguments:\n");
-        printf("    program         path to program\n");
-        printf("    args            program arguments\n");
+        printf("    program         Path to program\n");
+        printf("    args            Program arguments\n");
         printf("Optional arguments:\n");
         printf("    -b              Binary program\n");
         printf("    -r              Run program\n");
-        printf("    -e              Export program\n");
+        printf("    -e path         Export program\n");
         printf("    -d              Disassembly program\n");
         printf("    -l bytes [256M] Limit of allocation in bytes (suffixes: K, M, G)\n");
         printf("    -m, -M          Enable executing time measure (Use uppercase for pretty printing)\n");

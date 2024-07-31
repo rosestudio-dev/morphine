@@ -235,6 +235,7 @@ MORPHINE_AUX void maux_sio_extract_string(morphine_coroutine_t U) {
     }
 
     char *buffer = mapi_push_userdata_vec(U, size, sizeof(char));
+
     mapi_rotate(U, 2);
 
     size_t result = mapi_sio_read(U, (uint8_t *) buffer, size * sizeof(char));
@@ -242,6 +243,8 @@ MORPHINE_AUX void maux_sio_extract_string(morphine_coroutine_t U) {
         mapi_error(U, "cannot extract string");
     }
 
-    mapi_pop(U, 1);
     mapi_push_stringn(U, buffer, size);
+    mapi_rotate(U, 3);
+    mapi_rotate(U, 3);
+    mapi_pop(U, 1);
 }

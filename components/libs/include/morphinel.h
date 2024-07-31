@@ -9,6 +9,7 @@ extern "C" {
 #endif
 
 #include "morphinel/math.h"
+#include "morphinel/fs.h"
 
 #ifdef __cplusplus
 }

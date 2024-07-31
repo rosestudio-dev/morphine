@@ -1,10 +1,10 @@
 //
-// Created by why-iskra on 12.06.2024.
+// Created by why-iskra on 31.07.2024.
 //
 
 #include <stdio.h>
 #include <string.h>
-#include "sio/file.h"
+#include "morphinel/fs/file.h"
 
 struct file_data {
     char mode[4];
@@ -22,6 +22,10 @@ static void *file_open(morphine_sio_accessor_t A, void *data) {
     }
 
     D->closed = false;
+
+    if (ferror(D->file)) {
+        mapi_sio_accessor_error(A, "file error");
+    }
 
     return D;
 }
@@ -46,6 +50,10 @@ static void file_flush(morphine_sio_accessor_t A, void *data) {
     }
 
     fflush(D->file);
+
+    if (ferror(D->file)) {
+        mapi_sio_accessor_error(A, "file error");
+    }
 }
 
 static size_t file_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
@@ -55,7 +63,13 @@ static size_t file_write(morphine_sio_accessor_t A, void *data, const uint8_t *b
         mapi_sio_accessor_error(A, "file closed");
     }
 
-    return fwrite(buffer, 1, size, D->file);
+    size_t result = fwrite(buffer, 1, size, D->file);
+
+    if (ferror(D->file)) {
+        mapi_sio_accessor_error(A, "file error");
+    }
+
+    return result;
 }
 
 static size_t file_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
@@ -65,7 +79,13 @@ static size_t file_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, 
         mapi_sio_accessor_error(A, "file closed");
     }
 
-    return fread(buffer, 1, size, D->file);
+    size_t result = fread(buffer, 1, size, D->file);
+
+    if (ferror(D->file)) {
+        mapi_sio_accessor_error(A, "file error");
+    }
+
+    return result;
 }
 
 static bool file_eos(morphine_sio_accessor_t A, void *data) {
@@ -75,7 +95,13 @@ static bool file_eos(morphine_sio_accessor_t A, void *data) {
         mapi_sio_accessor_error(A, "file closed");
     }
 
-    return feof(D->file) != 0;
+    bool result = feof(D->file) != 0;
+
+    if (ferror(D->file)) {
+        mapi_sio_accessor_error(A, "file error");
+    }
+
+    return result;
 }
 
 static size_t file_tell(morphine_sio_accessor_t A, void *data) {
@@ -83,6 +109,10 @@ static size_t file_tell(morphine_sio_accessor_t A, void *data) {
 
     if (D->closed) {
         mapi_sio_accessor_error(A, "file closed");
+    }
+
+    if (ferror(D->file)) {
+        mapi_sio_accessor_error(A, "file error");
     }
 
     long int tell = ftell(D->file);
@@ -104,57 +134,72 @@ static bool file_seek(morphine_sio_accessor_t A, void *data, size_t size, morphi
         mapi_sio_accessor_error(A, "too big offset");
     }
 
+    bool result = false;
     switch (mode) {
         case MORPHINE_SIO_SEEK_MODE_SET:
-            return fseek(D->file, (long) size, SEEK_SET) == 0;
+            result = fseek(D->file, (long) size, SEEK_SET) == 0;
+            break;
         case MORPHINE_SIO_SEEK_MODE_CUR:
-            return fseek(D->file, (long) size, SEEK_CUR) == 0;
+            result = fseek(D->file, (long) size, SEEK_CUR) == 0;
+            break;
         case MORPHINE_SIO_SEEK_MODE_PRV:
-            return fseek(D->file, -((long) size), SEEK_CUR) == 0;
+            result = fseek(D->file, -((long) size), SEEK_CUR) == 0;
+            break;
         case MORPHINE_SIO_SEEK_MODE_END:
-            return fseek(D->file, (long) size, SEEK_END) == 0;
+            result = fseek(D->file, (long) size, SEEK_END) == 0;
+            break;
     }
 
-    return false;
+    if (ferror(D->file)) {
+        mapi_sio_accessor_error(A, "file error");
+    }
+
+    return result;
 }
 
-void sio_file(
+MORPHINE_API void mlapi_fs_file(
     morphine_coroutine_t U,
-    const char *path,
     bool read,
     bool write,
     bool binary
 ) {
-    size_t path_len = strlen(path);
-    size_t size = sizeof(struct file_data) + sizeof(char) * (path_len + 1);
-    struct file_data *D = mapi_push_userdata_uni(U, size);
-
-    char *file_path = ((void *) D) + sizeof(struct file_data);
-    memcpy(file_path, path, path_len);
-    file_path[path_len] = '\0';
+    const char *path = mapi_get_string(U);
+    struct file_data *D = mapi_push_userdata_uni(U, sizeof(struct file_data));
 
     (*D) = (struct file_data) {
-        .path = file_path,
+        .path = path,
         .file = NULL,
         .closed = true
     };
 
     memset(D->mode, 0, sizeof(D->mode) / sizeof(D->mode[0]));
 
+    size_t binary_offset;
     if (read && write) {
-        D->mode[0] = 'r';
-        D->mode[1] = 'w';
+        mapi_error(U, "file cannot be writable and readable at the same time");
     } else if (read) {
         D->mode[0] = 'r';
+        binary_offset = 1;
     } else if (write) {
         D->mode[0] = 'w';
+        binary_offset = 1;
     } else {
         mapi_error(U, "file must be writable or readable");
     }
 
     if (binary) {
-        D->mode[strlen(D->mode)] = 'b';
+        D->mode[binary_offset] = 'b';
     }
+
+    mapi_push_vector(U, 2);
+
+    mapi_rotate(U, 2);
+    mapi_vector_set(U, 0);
+
+    mapi_rotate(U, 2);
+    mapi_vector_set(U, 1);
+
+    // create sio
 
     morphine_sio_interface_t interface = {
         .open = file_open,
@@ -183,3 +228,4 @@ void sio_file(
 
     mapi_sio_open(U, D);
 }
+

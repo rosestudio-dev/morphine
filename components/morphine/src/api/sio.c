@@ -26,7 +26,7 @@ MORPHINE_API void mapi_sio_hold(morphine_coroutine_t U) {
 
     sioI_hold(U->I, sio, value);
 
-    mapi_pop(U, 1);
+    stackI_pop(U, 1);
 }
 
 MORPHINE_API void mapi_sio_open(morphine_coroutine_t U, void *data) {
@@ -48,10 +48,12 @@ MORPHINE_API void mapi_sio_close(morphine_coroutine_t U, bool force) {
     struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
 
     if (sio == U->I->sio.io || sio == U->I->sio.error) {
+        stackI_pop(U, 1);
         return;
     }
 
     sioI_close(U->I, sio, force);
+    stackI_pop(U, 1);
 }
 
 MORPHINE_API size_t mapi_sio_read(morphine_coroutine_t U, uint8_t *buffer, size_t size) {
