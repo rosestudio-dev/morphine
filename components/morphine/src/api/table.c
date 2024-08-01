@@ -157,7 +157,7 @@ MORPHINE_API void mapi_table_getoe(morphine_coroutine_t U) {
     if (has) {
         stackI_replace(U, 0, result);
     } else {
-        throwI_errorf(U->I, "cannot get value from table by %s", valueI_value2string(U->I, value));
+        throwI_errorf(U->I, "cannot get value from table by key");
     }
 }
 
@@ -171,7 +171,7 @@ MORPHINE_API void mapi_table_removeoe(morphine_coroutine_t U) {
     if (has) {
         stackI_replace(U, 0, result);
     } else {
-        throwI_errorf(U->I, "cannot remove from table by %s", valueI_value2string(U->I, value));
+        throwI_errorf(U->I, "cannot remove from table by key");
     }
 }
 
