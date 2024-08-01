@@ -56,7 +56,7 @@ MORPHINE_API void mapi_iterator_init(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
     struct iterator *iterator = valueI_as_iterator_or_error(U->I, value);
 
-    iteratorI_init(U->I, iterator);
+    iteratorI_init(U->I, iterator, valueI_nil, valueI_nil);
 }
 
 /*

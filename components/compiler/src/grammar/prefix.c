@@ -8,8 +8,8 @@ void match_prefix(struct matcher *M) {
     bool matched = matcher_match(M, symbol_operator(TOP_MINUS)) ||
                    matcher_match(M, symbol_operator(TOP_STAR)) ||
                    matcher_match(M, symbol_predef_word(TPW_not)) ||
-                   matcher_match(M, symbol_predef_word(TPW_type)) ||
-                   matcher_match(M, symbol_predef_word(TPW_len)) ||
+                   matcher_match(M, symbol_predef_word(TPW_typeof)) ||
+                   matcher_match(M, symbol_predef_word(TPW_lenof)) ||
                    matcher_match(M, symbol_predef_word(TPW_ref)) ||
                    matcher_match(M, symbol_operator(TOP_PLUSPLUS)) ||
                    matcher_match(M, symbol_operator(TOP_MINUSMINUS));
@@ -49,9 +49,9 @@ struct ast_node *assemble_prefix(morphine_coroutine_t U, struct ast *A, struct e
         result->type = EXPRESSION_UNARY_TYPE_DEREF;
     } else if (matcher_symbol(symbol_predef_word(TPW_not), watch_token)) {
         result->type = EXPRESSION_UNARY_TYPE_NOT;
-    } else if (matcher_symbol(symbol_predef_word(TPW_len), watch_token)) {
+    } else if (matcher_symbol(symbol_predef_word(TPW_lenof), watch_token)) {
         result->type = EXPRESSION_UNARY_TYPE_LEN;
-    } else if (matcher_symbol(symbol_predef_word(TPW_type), watch_token)) {
+    } else if (matcher_symbol(symbol_predef_word(TPW_typeof), watch_token)) {
         result->type = EXPRESSION_UNARY_TYPE_TYPE;
     } else if (matcher_symbol(symbol_predef_word(TPW_ref), watch_token)) {
         result->type = EXPRESSION_UNARY_TYPE_REF;

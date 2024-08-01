@@ -674,6 +674,20 @@ struct codegen_argument_index codegen_constant_str(struct codegen_controller *N,
     };
 }
 
+struct codegen_argument_index codegen_constant_cstr(struct codegen_controller *N, const char *str) {
+    strtable_index_t str_index = strtable_record(N->C->U, N->C->T, str, strlen(str));
+
+    struct codegen_constant constant = {
+        .type = CCT_STRING,
+        .value.string = str_index
+    };
+
+    size_t index = add_constant(N, constant);
+    return (struct codegen_argument_index) {
+        .index = index
+    };
+}
+
 struct codegen_argument_index codegen_constant_bool(struct codegen_controller *N, bool boolean) {
     struct codegen_constant constant = {
         .type = CCT_BOOLEAN,

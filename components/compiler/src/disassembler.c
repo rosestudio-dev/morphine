@@ -104,7 +104,7 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             printf(SLOT" = iterator from "SLOT, arg(2), arg(1));
             return;
         case MORPHINE_OPCODE_ITERATOR_INIT:
-            printf("init iterator in "SLOT, arg(1));
+            printf("init iterator in "SLOT" with name "SLOT" for key and "SLOT" for value", arg(1), arg(2), arg(3));
             return;
         case MORPHINE_OPCODE_ITERATOR_HAS:
             printf(SLOT" = iterator has in "SLOT, arg(2), arg(1));

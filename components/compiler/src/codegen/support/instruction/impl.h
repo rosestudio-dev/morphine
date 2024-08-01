@@ -14,7 +14,7 @@ instr_func3(GET, slot, slot, slot)
 instr_func3(SET, slot, slot, slot)
 
 instr_func2(ITERATOR, slot, slot)
-instr_func1(ITERATOR_INIT, slot)
+instr_func3(ITERATOR_INIT, slot, slot, slot)
 instr_func2(ITERATOR_HAS, slot, slot)
 instr_func2(ITERATOR_NEXT, slot, slot)
 

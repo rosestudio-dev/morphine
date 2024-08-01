@@ -163,7 +163,10 @@ sp_case(MORPHINE_OPCODE_ITERATOR)
 sp_case(MORPHINE_OPCODE_ITERATOR_INIT)
             {
                 struct value iterator = slot(C, arg1);
-                complex_fun(interpreter_fun_iterator_init, 1, iterator);
+                struct value key_name = slot(C, arg2);
+                struct value value_name = slot(C, arg3);
+
+                complex_fun(interpreter_fun_iterator_init, 1, iterator, key_name, value_name);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ITERATOR_HAS)

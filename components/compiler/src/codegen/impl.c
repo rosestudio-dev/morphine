@@ -416,9 +416,26 @@ gen_func_dec(statement, iterator) {
         }
         case 1: {
             struct codegen_argument_anchor anchor = codegen_anchor(N);
+
             data->container = codegen_temporary(N);
+            data->temp = codegen_temporary(N);
+
             codegen_instruction_ITERATOR(N, data->slot, data->slot);
-            codegen_instruction_ITERATOR_INIT(N, data->slot);
+
+            struct codegen_argument_index constant_key;
+            struct codegen_argument_index constant_value;
+            if(iterator->size == 2) {
+                constant_key = codegen_constant_str(N, iterator->multi.names[0]);
+                constant_value = codegen_constant_str(N, iterator->multi.names[1]);
+            } else {
+                constant_key = codegen_constant_cstr(N, "key");
+                constant_value = codegen_constant_cstr(N, "value");
+            }
+
+            codegen_instruction_LOAD(N, constant_key, data->container);
+            codegen_instruction_LOAD(N, constant_value, data->temp);
+
+            codegen_instruction_ITERATOR_INIT(N, data->slot, data->container, data->temp);
 
             codegen_continue_change(N);
             codegen_instruction_ITERATOR_HAS(N, data->slot, data->container);

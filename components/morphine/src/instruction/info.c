@@ -21,7 +21,7 @@ static const uint8_t opcode_args[MORPHINE_OPCODES_COUNT] = {
     3, // OPCODE_SET
 
     2, // OPCODE_ITERATOR
-    1, // OPCODE_ITERATOR_INIT
+    3, // OPCODE_ITERATOR_INIT
     2, // OPCODE_ITERATOR_HAS
     2, // OPCODE_ITERATOR_NEXT
 
@@ -158,7 +158,6 @@ bool instructionI_validate(
             arg_undefined(argument3)
             return true;
         }
-        case MORPHINE_OPCODE_ITERATOR_INIT:
         case MORPHINE_OPCODE_RECURSION:
         case MORPHINE_OPCODE_ENV:
         case MORPHINE_OPCODE_SELF:
@@ -170,6 +169,7 @@ bool instructionI_validate(
             arg_undefined(argument3)
             return true;
         }
+        case MORPHINE_OPCODE_ITERATOR_INIT:
         case MORPHINE_OPCODE_GET:
         case MORPHINE_OPCODE_SET:
         case MORPHINE_OPCODE_ADD:

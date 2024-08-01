@@ -53,6 +53,8 @@ static inline op_result_t interpreter_fun_iterator_init(
     morphine_coroutine_t U,
     size_t callstate,
     struct value iterator,
+    struct value key_name,
+    struct value value_name,
     size_t pop_size,
     bool need_return
 ) {
@@ -62,11 +64,12 @@ static inline op_result_t interpreter_fun_iterator_init(
 
     struct value mt_field;
     if (likely(valueI_is_iterator(iterator))) {
-        iteratorI_init(U->I, valueI_as_iterator(iterator));
+        iteratorI_init(U->I, valueI_as_iterator(iterator), key_name, value_name);
         return NORMAL;
     } else if (metatableI_test(U->I, iterator, MF_ITERATOR_INIT, &mt_field)) {
+        struct value new_args[] = { key_name, value_name };
         callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
+        callstackI_call_unsafe(U, mt_field, iterator, new_args, 2, pop_size);
         return CALLED;
     }
 
@@ -120,15 +123,7 @@ static inline op_result_t interpreter_fun_iterator_next(
 
     struct value mt_field;
     if (likely(valueI_is_iterator(iterator))) {
-        struct pair pair = iteratorI_next(U->I, valueI_as_iterator(iterator));
-        struct table *table = tableI_create(U->I);
-        size_t rollback = gcI_safe_obj(U->I, objectI_cast(table));
-
-        tableI_set(U->I, table, valueI_integer(0), pair.key);
-        tableI_set(U->I, table, valueI_integer(1), pair.value);
-
-        (*result) = valueI_object(table);
-        gcI_reset_safe(U->I, rollback);
+        (*result) = valueI_object(iteratorI_next_table(U->I, valueI_as_iterator(iterator)));
         return NORMAL;
     } else if (metatableI_test(U->I, iterator, MF_ITERATOR_NEXT, &mt_field)) {
         if (callstackI_is_callable(U->I, mt_field)) {

@@ -31,15 +31,21 @@ static bool opiterator(morphine_coroutine_t U) {
 }
 
 static bool opiteratorinit(morphine_coroutine_t U) {
-    struct value iterator = stackI_peek(U, 0);
+    struct value iterator = stackI_peek(U, 2);
+    struct value key_name = stackI_peek(U, 1);
+    struct value value_name = stackI_peek(U, 0);
 
-    bool result = interpreter_fun_iterator_init(
+    op_result_t result = interpreter_fun_iterator_init(
         U, callstackI_state(U),
-        iterator,
-        0, false
-    ) == CALLED;
+        iterator, key_name, value_name,
+        2, false
+    );
 
-    return result;
+    if (result == NORMAL) {
+        stackI_pop(U, 2);
+    }
+
+    return result == CALLED;
 }
 
 static bool opiteratorhas(morphine_coroutine_t U) {
@@ -99,17 +105,17 @@ static bool opset(morphine_coroutine_t U) {
     struct value key = stackI_peek(U, 1);
     struct value value = stackI_peek(U, 0);
 
-    bool result = interpreter_fun_set(
+    op_result_t result = interpreter_fun_set(
         U, callstackI_state(U),
         container, key, value,
         2, false
-    ) == CALLED;
+    );
 
-    if (!result) {
+    if (result == NORMAL) {
         stackI_pop(U, 2);
     }
 
-    return result;
+    return result == CALLED;
 }
 
 static bool opadd(morphine_coroutine_t U) {

@@ -21,7 +21,11 @@ bool match_decompose(struct matcher *M, bool is_word) {
             do {
                 if (is_word) {
                     matcher_consume(M, symbol_word);
-                } else {
+                } else if (!matcher_match(M, symbol_word)) {
+                    matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
+                }
+
+                if (matcher_match(M, symbol_predef_word(TPW_as))) {
                     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
                 }
             } while (argument_matcher_next(&R));
@@ -30,19 +34,6 @@ bool match_decompose(struct matcher *M, bool is_word) {
 
         if (size == 0) {
             matcher_error(M, "empty decomposition");
-        }
-
-        if (matcher_match(M, symbol_predef_word(TPW_as))) {
-            if (argument_matcher_init(&R, 0)) {
-                do {
-                    matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-                } while (argument_matcher_next(&R));
-            }
-            size_t as_size = argument_matcher_close(&R);
-
-            if (size != as_size) {
-                matcher_error(M, "keys for decomposition aren't defined correctly");
-            }
         }
 
         return true;
@@ -78,24 +69,19 @@ size_t size_decompose(
             do {
                 if (is_word) {
                     argument_matcher_consume(&R, symbol_word);
-                } else {
+                } else if (!argument_matcher_match(&R, symbol_word)) {
+                    argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
+                }
+
+                if (argument_matcher_match(&R, symbol_predef_word(TPW_as))) {
                     argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
                 }
             } while (argument_matcher_next(&R));
         }
         size_t size = argument_matcher_close(&R);
 
-        if (elements_look(E, R.pos, symbol_predef_word(TPW_as))) {
-            if (argument_matcher_init(&R, R.pos + 1)) {
-                do {
-                    argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
-                } while (argument_matcher_next(&R));
-            }
-            size_t as_size = argument_matcher_close(&R);
-
-            if (size != as_size) {
-                elements_error(E, 0, "keys for decomposition aren't defined correctly");
-            }
+        if (size == 0) {
+            elements_error(E, 0, "empty decomposition");
         }
 
         if (end_index != NULL) {
@@ -136,41 +122,49 @@ void insert_decompose(
 
         if (argument_matcher_init(&R, start_index + 1)) {
             do {
+                struct token token;
+                bool required_key = true;
                 if (is_word) {
-                    struct token token = argument_matcher_consume(&R, symbol_word);
+                    required_key = false;
+                    token = argument_matcher_consume(&R, symbol_word);
+
                     names[R.count] = token.word;
+                } else if (argument_matcher_look(&R, symbol_word)) {
+                    required_key = false;
+                    token = argument_matcher_consume(&R, symbol_word);
+                    struct expression_variable *variable = ast_create_expression_variable(U, A, token.line);
+                    variable->index = token.word;
+
+                    expressions[R.count] = ast_as_expression(variable);
                 } else {
                     struct ast_node *node = argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION).node;
                     expressions[R.count] = ast_node_as_expression(U, node);
                 }
-            } while (argument_matcher_next(&R));
-        }
-        size_t size = argument_matcher_close(&R);
 
-        if (elements_look(E, R.pos, symbol_predef_word(TPW_as))) {
-            if (argument_matcher_init(&R, R.pos + 1)) {
-                do {
+                bool parse_key;
+                if (required_key) {
+                    argument_matcher_consume(&R, symbol_predef_word(TPW_as));
+                    parse_key = true;
+                } else {
+                    parse_key = argument_matcher_match(&R, symbol_predef_word(TPW_as));
+                }
+
+                if (parse_key) {
                     struct ast_node *node = argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION).node;
                     keys[R.count] = ast_node_as_expression(U, node);
-                } while (argument_matcher_next(&R));
-            }
-            size_t as_size = argument_matcher_close(&R);
+                } else {
+                    struct expression_value *value = ast_create_expression_value(
+                        U, A, elements_line(E, start_index)
+                    );
 
-            if (size != as_size) {
-                elements_error(E, 0, "keys for decomposition aren't defined correctly");
-            }
-        } else {
-            for (size_t i = 0; i < size; i++) {
-                struct expression_value *value = ast_create_expression_value(
-                    U, A, elements_line(E, start_index)
-                );
+                    value->type = EXPRESSION_VALUE_TYPE_STR;
+                    value->value.string = token.word;
 
-                value->type = EXPRESSION_VALUE_TYPE_INT;
-                value->value.integer = (ml_integer) i;
-
-                keys[i] = ast_as_expression(value);
-            }
+                    keys[R.count] = ast_as_expression(value);
+                }
+            } while (argument_matcher_next(&R));
         }
+        argument_matcher_close(&R);
     } else if (is_word) {
         *names = elements_get_token(E, start_index).word;
     } else {

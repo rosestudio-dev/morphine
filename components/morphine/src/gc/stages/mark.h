@@ -111,6 +111,9 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             mark_object(I, objectI_cast(iterator->iterable.object));
             mark_value(I, iterator->next.key);
 
+            mark_value(I, iterator->name.key);
+            mark_value(I, iterator->name.value);
+
             return size_iterator(iterator);
         }
         case OBJ_TYPE_SIO: {

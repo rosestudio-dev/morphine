@@ -8,6 +8,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/object/vector.h"
+#include "morphine/gc/safe.h"
 
 struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
     struct table *table = valueI_safe_as_table(value, NULL);
@@ -19,6 +20,8 @@ struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
     struct iterator *result = allocI_uni(I, NULL, sizeof(struct iterator));
 
     (*result) = (struct iterator) {
+        .name.key = valueI_nil,
+        .name.value = valueI_nil,
         .next.has = false,
         .next.key = valueI_nil,
     };
@@ -40,7 +43,12 @@ void iteratorI_free(morphine_instance_t I, struct iterator *iterator) {
     allocI_free(I, iterator);
 }
 
-void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
+void iteratorI_init(
+    morphine_instance_t I,
+    struct iterator *iterator,
+    struct value key_name,
+    struct value value_name
+) {
     if (iterator == NULL) {
         throwI_error(I, "iterator is null");
     }
@@ -62,7 +70,12 @@ void iteratorI_init(morphine_instance_t I, struct iterator *iterator) {
             throwI_panic(I, "unknown iterable type");
     }
 
+    iterator->name.key = key_name;
+    iterator->name.value = value_name;
+
     gcI_barrier(I, iterator, iterator->next.key);
+    gcI_barrier(I, iterator, key_name);
+    gcI_barrier(I, iterator, value_name);
 }
 
 bool iteratorI_has(morphine_instance_t I, struct iterator *iterator) {
@@ -101,4 +114,18 @@ struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
     gcI_barrier(I, iterator, iterator->next.key);
 
     return result;
+}
+
+struct table *iteratorI_next_table(morphine_instance_t I, struct iterator *iterator) {
+    struct pair pair = iteratorI_next(I, iterator);
+
+    struct table *table = tableI_create(I);
+    size_t rollback = gcI_safe_obj(I, objectI_cast(table));
+
+    tableI_set(I, table, iterator->name.key, pair.key);
+    tableI_set(I, table, iterator->name.value, pair.value);
+
+    gcI_reset_safe(I, rollback);
+
+    return table;
 }

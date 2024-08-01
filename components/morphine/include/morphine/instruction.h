@@ -29,7 +29,7 @@ typedef enum {
     MORPHINE_OPCODE_SET,             // [container (slot), key (slot), src (slot)]                    set (src) to (container) by (key)
 
     MORPHINE_OPCODE_ITERATOR,        // [container (slot), dest (slot)]                               create iterator from (container) to (dest)
-    MORPHINE_OPCODE_ITERATOR_INIT,   // [iterator (slot)]                                             init (iterator)
+    MORPHINE_OPCODE_ITERATOR_INIT,   // [iterator (slot), key (slot), value (slot)]                   init (iterator) with name (key) for key and (value) for value
     MORPHINE_OPCODE_ITERATOR_HAS,    // [iterator (slot), dest (slot)]                                check next value of (iterator) to (dest)
     MORPHINE_OPCODE_ITERATOR_NEXT,   // [iterator (slot), dest (slot)]                                get next value of (iterator) to (dest)
 

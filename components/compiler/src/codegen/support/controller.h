@@ -116,6 +116,7 @@ struct codegen_argument_index codegen_constant_nil(struct codegen_controller *);
 struct codegen_argument_index codegen_constant_int(struct codegen_controller *, ml_integer);
 struct codegen_argument_index codegen_constant_dec(struct codegen_controller *, ml_decimal);
 struct codegen_argument_index codegen_constant_str(struct codegen_controller *, strtable_index_t);
+struct codegen_argument_index codegen_constant_cstr(struct codegen_controller *, const char *);
 struct codegen_argument_index codegen_constant_bool(struct codegen_controller *, bool);
 struct codegen_argument_index codegen_constant_fun(struct codegen_controller *, struct ast_function *);
 void codegen_scope_enter(struct codegen_controller *);
