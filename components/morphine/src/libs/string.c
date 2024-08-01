@@ -11,6 +11,14 @@ static inline bool checkblank(char c) {
     return isspace(c);
 }
 
+static inline bool checkdigit(char c) {
+    return isdigit(c);
+}
+
+static inline bool checkalpha(char c) {
+    return isalpha(c);
+}
+
 static void substring(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -155,6 +163,56 @@ static void isblankstr(morphine_coroutine_t U) {
             }
 
             mapi_push_boolean(U, isblank);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void isdigitstr(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "string");
+            const char *string = mapi_get_string(U);
+            size_t len = mapi_string_len(U);
+
+            mapi_pop(U, 1);
+
+            bool isdigit = true;
+
+            for (size_t i = 0; i < len; i++) {
+                if (!checkdigit(string[i])) {
+                    isdigit = false;
+                }
+            }
+
+            mapi_push_boolean(U, isdigit);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void isalphastr(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "string");
+            const char *string = mapi_get_string(U);
+            size_t len = mapi_string_len(U);
+
+            mapi_pop(U, 1);
+
+            bool isalpha = true;
+
+            for (size_t i = 0; i < len; i++) {
+                if (!checkalpha(string[i])) {
+                    isalpha = false;
+                }
+            }
+
+            mapi_push_boolean(U, isalpha);
             maux_nb_return();
     maux_nb_end
 }
@@ -873,6 +931,8 @@ static morphine_library_function_t functions[] = {
 
     { "isempty",      isempty },
     { "isblank",      isblankstr },
+    { "isdigit",      isdigitstr },
+    { "isalpha",      isalphastr },
 
     { NULL, NULL },
 };
