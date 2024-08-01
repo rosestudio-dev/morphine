@@ -275,7 +275,7 @@ static void tostr(morphine_coroutine_t U) {
             mapi_calli(U, 1);
         maux_nb_state(2)
             mapi_push_result(U);
-            mapi_push_string(U, " to ");
+            mapi_push_string(U, " = ");
             mapi_string_concat(U);
             mapi_peek(U, 1);
 
