@@ -206,10 +206,10 @@ static void skip_multiline_comment(morphine_coroutine_t U, struct lex *L) {
 }
 
 static struct token lex_number(morphine_coroutine_t U, struct lex *L) {
-    const char *start = L->text + L->pos;
-    size_t count = 0;
-    size_t count_after_dot = 0;
+    size_t start = L->pos;
     bool dot = false;
+
+    size_t count_after_dot = 0;
     char current = peek(L, 0);
     while (true) {
         if (dot && current == '.') {
@@ -228,19 +228,20 @@ static struct token lex_number(morphine_coroutine_t U, struct lex *L) {
 
         current = next(L);
 
-        count++;
         if (dot) {
             count_after_dot++;
         }
     }
 
+    size_t size = L->pos - start;
+
     char buffer[65];
     memset(buffer, 0, 65);
-    if (count > 64) {
+    if (size > 64) {
         lex_error(U, L, "invalid number");
     }
 
-    strncpy(buffer, start, count);
+    strncpy(buffer, L->text + start, size);
 
     if (dot) {
         ml_decimal result = 0;
