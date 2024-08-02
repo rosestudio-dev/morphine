@@ -87,6 +87,10 @@ static inline void attach_black_coroutines(morphine_instance_t I) {
 }
 
 static inline bool simple_finalize_sio(morphine_instance_t I, struct sio *sio) {
+    if (valueI_safe_as_sio(sio->hold_value, NULL) == sio) {
+        return false;
+    }
+
     return mark_value(I, sio->hold_value);
 }
 
@@ -101,8 +105,17 @@ static inline bool simple_finalize(morphine_instance_t I, struct object *object)
 static inline bool finalize(morphine_instance_t I) {
     struct object *current = I->G.pools.allocated;
 
-    bool has_to_be_finalize = false;
     bool has_simple_finalized = false;
+    while (current != NULL) {
+        if (simple_finalize(I, current)) {
+            has_simple_finalized = true;
+        }
+
+        current = current->prev;
+    }
+
+    current = I->G.pools.allocated;
+    bool has_to_be_finalize = false;
     while (current != NULL) {
         struct object *prev = current->prev;
 
@@ -111,10 +124,7 @@ static inline bool finalize(morphine_instance_t I) {
             gcI_pools_remove(current, &I->G.pools.allocated);
             gcI_pools_insert(current, &I->G.pools.finalize);
 
-            mark_internal(I, current);
             has_to_be_finalize = true;
-        } else if (simple_finalize(I, current)) {
-            has_simple_finalized = true;
         }
 
         current = prev;

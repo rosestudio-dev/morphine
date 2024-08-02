@@ -43,6 +43,7 @@ static inline void close(morphine_instance_t I, struct sio *sio, bool force) {
     }
 
     if (sio->opened && sio->interface.close != NULL) {
+        sio->opened = false;
         struct sio_accessor A = get_accessor(I);
         sio->interface.close(&A, sio->data);
     }
