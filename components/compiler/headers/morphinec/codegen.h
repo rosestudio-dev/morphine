@@ -9,7 +9,13 @@
 
 struct codegen;
 
-struct codegen *codegen(morphine_coroutine_t, struct strtable *, struct ast *, struct visitor *);
+struct codegen *codegen(
+    morphine_coroutine_t,
+    struct morphinec_strtable *,
+    struct ast *,
+    struct visitor *
+);
+
 struct codegen *get_codegen(morphine_coroutine_t);
 
 bool codegen_step(morphine_coroutine_t, struct codegen *);

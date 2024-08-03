@@ -64,16 +64,16 @@ struct ast_function {
 
     bool recursive;
     bool anonymous;
-    strtable_index_t name;
+    morphinec_strtable_index_t name;
 
     bool auto_closure;
     size_t closures_size;
     size_t args_size;
     size_t statics_size;
 
-    strtable_index_t *closures;
-    strtable_index_t *arguments;
-    strtable_index_t *statics;
+    morphinec_strtable_index_t *closures;
+    morphinec_strtable_index_t *arguments;
+    morphinec_strtable_index_t *statics;
 
     struct statement *body;
 };
@@ -90,10 +90,10 @@ struct expression {
 
 struct ast;
 
-struct ast *ast(morphine_coroutine_t, strtable_index_t main_name);
+struct ast *ast(morphine_coroutine_t, morphinec_strtable_index_t main_name);
 struct ast *get_ast(morphine_coroutine_t);
 
-strtable_index_t ast_get_main_name(struct ast *);
+morphinec_strtable_index_t ast_get_main_name(struct ast *);
 struct ast_function *ast_functions(struct ast *);
 
 struct expression *ast_node_as_expression(morphine_coroutine_t, struct ast_node *);
@@ -185,11 +185,11 @@ struct statement_iterator {
     size_t size;
     union {
         struct {
-            strtable_index_t *names;
+            morphinec_strtable_index_t *names;
             struct expression **keys;
         } multi;
 
-        strtable_index_t name;
+        morphinec_strtable_index_t name;
     };
 };
 
@@ -218,11 +218,11 @@ struct statement_declaration {
     size_t size;
     union {
         struct {
-            strtable_index_t *names;
+            morphinec_strtable_index_t *names;
             struct expression **keys;
         } multi;
 
-        strtable_index_t name;
+        morphinec_strtable_index_t name;
     };
 };
 
@@ -265,7 +265,7 @@ struct expression_value {
     union {
         ml_integer integer;
         ml_decimal decimal;
-        strtable_index_t string;
+        morphinec_strtable_index_t string;
         bool boolean;
     } value;
 };
@@ -339,7 +339,7 @@ struct expression_global {
 struct expression_variable {
     struct expression header;
 
-    strtable_index_t index;
+    morphinec_strtable_index_t index;
 };
 
 // table

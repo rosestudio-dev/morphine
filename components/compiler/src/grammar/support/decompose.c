@@ -104,7 +104,7 @@ void insert_decompose(
     struct elements *E,
     bool is_word,
     size_t start_index,
-    strtable_index_t *names,
+    morphinec_strtable_index_t *names,
     struct expression **expressions,
     struct expression **keys
 ) {

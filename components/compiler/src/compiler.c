@@ -17,8 +17,8 @@ MORPHINE_API void mcapi_compile(
     size_t main_len,
     size_t text_len
 ) {
-    struct strtable *T = strtable(U);
-    strtable_index_t name = strtable_record(U, T, main, main_len);
+    struct morphinec_strtable *T = mcapi_push_strtable(U);
+    morphinec_strtable_index_t name = mcapi_strtable_record(U, T, main, main_len);
     struct ast *A = ast(U, name);
 
     struct lex *L = lex(U, T, text, text_len);

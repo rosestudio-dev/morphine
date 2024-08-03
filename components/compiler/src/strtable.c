@@ -4,21 +4,36 @@
 
 #include <memory.h>
 #include "morphinec/strtable.h"
-#include "morphinec/config.h"
+
+#define LIMIT_ENTRIES    131072
+#define EXPANSION_FACTOR 32
+
+#define USERDATA_TYPE "morphinec-mcapi_push_strtable"
 
 struct entry {
     char *string;
     size_t size;
 };
 
-struct strtable {
+struct morphinec_strtable {
     size_t size;
     size_t used;
     struct entry *entries;
 };
 
-static void strtable_free(morphine_instance_t I, void *p) {
-    struct strtable *T = p;
+static void strtable_userdata_init(morphine_instance_t I, void *data) {
+    (void) I;
+
+    struct morphinec_strtable *T = data;
+    (*T) = (struct morphinec_strtable) {
+        .used = 0,
+        .size = 0,
+        .entries = NULL
+    };
+}
+
+static void strtable_userdata_free(morphine_instance_t I, void *data) {
+    struct morphinec_strtable *T = data;
 
     for (size_t i = 0; i < T->used; i++) {
         mapi_allocator_free(I, T->entries[i].string);
@@ -27,25 +42,29 @@ static void strtable_free(morphine_instance_t I, void *p) {
     mapi_allocator_free(I, T->entries);
 }
 
-struct strtable *strtable(morphine_coroutine_t U) {
-    struct strtable *T = mapi_push_userdata_uni(U, sizeof(struct strtable));
+struct morphinec_strtable *mcapi_push_strtable(morphine_coroutine_t U) {
+    mapi_type_declare(
+        mapi_instance(U),
+        USERDATA_TYPE,
+        sizeof(struct morphinec_strtable),
+        strtable_userdata_init,
+        strtable_userdata_free,
+        false
+    );
 
-    *T = (struct strtable) {
-        .used = 0,
-        .size = 0,
-        .entries = NULL
-    };
-
-    mapi_userdata_set_free(U, strtable_free);
-
-    return T;
+    return mapi_push_userdata(U, USERDATA_TYPE);
 }
 
-struct strtable *get_strtable(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U, NULL);
+struct morphinec_strtable *mcapi_get_strtable(morphine_coroutine_t U) {
+    return mapi_userdata_pointer(U, USERDATA_TYPE);
 }
 
-strtable_index_t strtable_record(morphine_coroutine_t U, struct strtable *T, const char *str, size_t size) {
+morphinec_strtable_index_t mcapi_strtable_record(
+    morphine_coroutine_t U,
+    struct morphinec_strtable *T,
+    const char *str,
+    size_t size
+) {
     for (size_t i = 0; i < T->used; i++) {
         struct entry entry = T->entries[i];
 
@@ -53,24 +72,24 @@ strtable_index_t strtable_record(morphine_coroutine_t U, struct strtable *T, con
             continue;
         }
 
-        if (memcmp(entry.string, str, size) == 0) {
+        if (memcmp(entry.string, str, size * sizeof(char)) == 0) {
             return i;
         }
     }
 
     if (T->used == T->size) {
-        if (T->size >= STRTABLE_LIMIT_ENTRIES) {
-            mapi_error(U, "strtable too big");
+        if (T->size >= LIMIT_ENTRIES) {
+            mapi_error(U, "mcapi_push_strtable too big");
         }
 
         T->entries = mapi_allocator_vec(
             mapi_instance(U),
             T->entries,
-            T->size + STRTABLE_EXPANSION_FACTOR,
-            sizeof(struct strtable_entry)
+            T->size + EXPANSION_FACTOR,
+            sizeof(struct morphinec_strtable_entry)
         );
 
-        T->size += STRTABLE_EXPANSION_FACTOR;
+        T->size += EXPANSION_FACTOR;
     }
 
     char *buffer = mapi_allocator_vec(mapi_instance(U), NULL, size + 1, sizeof(char));
@@ -88,7 +107,7 @@ strtable_index_t strtable_record(morphine_coroutine_t U, struct strtable *T, con
     return T->used - 1;
 }
 
-bool strtable_has(struct strtable *T, strtable_index_t index) {
+bool mcapi_strtable_has(struct morphinec_strtable *T, morphinec_strtable_index_t index) {
     if (index >= T->used) {
         return false;
     }
@@ -96,13 +115,17 @@ bool strtable_has(struct strtable *T, strtable_index_t index) {
     return true;
 }
 
-struct strtable_entry strtable_get(morphine_coroutine_t U, struct strtable *T, strtable_index_t index) {
+struct morphinec_strtable_entry mcapi_strtable_access(
+    morphine_coroutine_t U,
+    struct morphinec_strtable *T,
+    morphinec_strtable_index_t index
+) {
     if (index >= T->used) {
         mapi_error(U, "string not found");
     }
 
     struct entry entry = T->entries[index];
-    return (struct strtable_entry) {
+    return (struct morphinec_strtable_entry) {
         .string = entry.string,
         .size = entry.size
     };

@@ -14,7 +14,7 @@
 #define lex_error(U, L, str) lex_cl_error(U, (L)->line, str)
 
 struct lex {
-    struct strtable *T;
+    struct morphinec_strtable *T;
     char *text;
     size_t len;
     size_t pos;
@@ -111,7 +111,7 @@ static void lex_free(morphine_instance_t I, void *data) {
     mapi_allocator_free(I, L->text);
 }
 
-struct lex *lex(morphine_coroutine_t U, struct strtable *T, const char *text, size_t len) {
+struct lex *lex(morphine_coroutine_t U, struct morphinec_strtable *T, const char *text, size_t len) {
     struct lex *L = mapi_push_userdata_uni(U, sizeof(struct lex));
 
     *L = (struct lex) {
@@ -365,7 +365,7 @@ static struct token lex_string(morphine_coroutine_t U, struct lex *L) {
     L->pos = save_pos;
     handle_string(U, L, str);
 
-    strtable_index_t index = strtable_record(U, L->T, str, size);
+    morphinec_strtable_index_t index = mcapi_strtable_record(U, L->T, str, size);
     mapi_pop(U, 1);
 
     return (struct token) {
@@ -397,7 +397,7 @@ static struct token handle_word(morphine_coroutine_t U, struct lex *L, size_t fr
         }
     }
 
-    strtable_index_t index = strtable_record(U, L->T, str, size);
+    morphinec_strtable_index_t index = mcapi_strtable_record(U, L->T, str, size);
 
     return (struct token) {
         .type = TT_WORD,

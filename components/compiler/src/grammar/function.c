@@ -67,7 +67,7 @@ static struct ast_function *create_function(morphine_coroutine_t U, struct ast *
     size_t start_pos;
     bool recursive;
     bool anonymous;
-    strtable_index_t name;
+    morphinec_strtable_index_t name;
     if (elements_look(E, 1, symbol_predef_word(TPW_recursive))) {
         recursive = true;
         anonymous = false;

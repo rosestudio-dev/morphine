@@ -99,8 +99,8 @@ struct token {
     union {
         ml_integer integer;
         ml_decimal decimal;
-        strtable_index_t string;
-        strtable_index_t word;
+        morphinec_strtable_index_t string;
+        morphinec_strtable_index_t word;
         enum token_predefined_word predefined_word;
         enum token_operator operator;
     };
@@ -108,7 +108,7 @@ struct token {
 
 struct lex;
 
-struct lex *lex(morphine_coroutine_t, struct strtable *T, const char *, size_t);
+struct lex *lex(morphine_coroutine_t, struct morphinec_strtable *T, const char *, size_t);
 struct lex *get_lex(morphine_coroutine_t);
 
 struct token lex_step(morphine_coroutine_t, struct lex *);

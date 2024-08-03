@@ -72,11 +72,11 @@ static void distributed(morphine_coroutine_t U) {
             mapi_bind_registry(U);
 
             mapi_push_string(U, STR_KEY);
-            struct strtable *T = strtable(U);
+            struct morphinec_strtable *T = mcapi_push_strtable(U);
             mapi_registry_set(U);
 
             mapi_push_string(U, AST_KEY);
-            strtable_index_t name = strtable_record(U, T, main, main_len);
+            morphinec_strtable_index_t name = mcapi_strtable_record(U, T, main, main_len);
             struct ast *A = ast(U, name);
             mapi_registry_set(U);
 
@@ -114,7 +114,7 @@ static void distributed(morphine_coroutine_t U) {
 
             mapi_push_string(U, STR_KEY);
             mapi_registry_get(U);
-            struct strtable *T = get_strtable(U);
+            struct morphinec_strtable *T = mcapi_get_strtable(U);
 
             mapi_push_string(U, AST_KEY);
             mapi_registry_get(U);
