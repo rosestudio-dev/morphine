@@ -41,15 +41,13 @@ struct userdata *userdataI_instance(morphine_instance_t I, const char *type, str
 
     size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
 
-    (*userdata) = (struct userdata) {
-        .is_typed = true,
-        .typed.usertype = usertype,
-        .typed.inited = false,
-        .data = allocI_uni(I, NULL, info.allocate),
-        .mode.metatable_locked = true,
-        .mode.size_locked = true,
-        .metatable = metatable,
-    };
+    userdata->is_typed = true;
+    userdata->typed.usertype = usertype;
+    userdata->typed.inited = false;
+    userdata->data = allocI_uni(I, NULL, info.allocate);
+    userdata->mode.metatable_locked = true;
+    userdata->mode.size_locked = true;
+    userdata->metatable = metatable;
 
     usertypeI_ref(I, usertype);
 
