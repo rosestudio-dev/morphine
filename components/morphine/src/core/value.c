@@ -326,8 +326,8 @@ const char *valueI_type(morphine_instance_t I, struct value value, bool raw) {
     if (!raw) {
         struct userdata *userdata = valueI_safe_as_userdata(value, NULL);
 
-        if (userdata != NULL && !userdata->is_untyped) {
-            struct usertype_info info = usertypeI_info(I, userdata->usertype);
+        if (userdata != NULL && userdata->is_typed) {
+            struct usertype_info info = usertypeI_info(I, userdata->typed.usertype);
 
             return info.name;
         }

@@ -12,7 +12,8 @@ struct usertype_info {
     const char *name;
 
     size_t allocate;
-    morphine_free_t free;
+    morphine_userdata_init_t init;
+    morphine_userdata_free_t free;
     bool require_metatable;
 };
 
@@ -27,7 +28,8 @@ void usertypeI_declare(
     morphine_instance_t,
     const char *name,
     size_t allocate,
-    morphine_free_t free,
+    morphine_userdata_init_t init,
+    morphine_userdata_free_t free,
     bool require_metatable
 );
 

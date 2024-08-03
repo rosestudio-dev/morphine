@@ -7,17 +7,17 @@
 #include "morphine/core/value.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/string.h"
-#include "morphine/core/throw.h"
 #include "morphine/core/usertype.h"
 
 MORPHINE_API void mapi_type_declare(
     morphine_instance_t I,
     const char *name,
     size_t allocate,
-    morphine_free_t free,
+    morphine_userdata_init_t init,
+    morphine_userdata_free_t free,
     bool require_metatable
 ) {
-    usertypeI_declare(I, name, allocate, free, require_metatable);
+    usertypeI_declare(I, name, allocate, init, free, require_metatable);
 }
 
 MORPHINE_API bool mapi_type_is_declared(morphine_instance_t I, const char *name) {

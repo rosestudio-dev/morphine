@@ -38,7 +38,8 @@ void usertypeI_declare(
     morphine_instance_t I,
     const char *name,
     size_t allocate,
-    morphine_free_t free,
+    morphine_userdata_init_t init,
+    morphine_userdata_free_t free,
     bool require_metatable
 ) {
     if (valueI_is_type(I, name, true)) {
@@ -49,7 +50,16 @@ void usertypeI_declare(
         struct usertype *usertype = I->usertypes.types;
         while (usertype != NULL) {
             if (strcmp(usertype->info.name, name) == 0) {
-                throwI_error(I, "type is already declared");
+                bool check = usertype->info.allocate == allocate &&
+                             usertype->info.init == init &&
+                             usertype->info.free == free &&
+                             usertype->info.require_metatable == require_metatable;
+
+                if (check) {
+                    return;
+                } else {
+                    throwI_error(I, "type is already declared");
+                }
             }
 
             usertype = usertype->prev;
@@ -68,6 +78,7 @@ void usertypeI_declare(
     char *name_str = ((void *) usertype) + sizeof(struct usertype);
     (*usertype) = (struct usertype) {
         .info.name = name_str,
+        .info.init = init,
         .info.free = free,
         .info.allocate = allocate,
         .info.require_metatable = require_metatable,

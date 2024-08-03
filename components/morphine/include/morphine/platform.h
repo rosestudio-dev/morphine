@@ -14,7 +14,8 @@ typedef uint32_t ml_version;
 typedef struct coroutine *morphine_coroutine_t;
 typedef struct instance *morphine_instance_t;
 typedef void (*morphine_native_t)(morphine_coroutine_t);
-typedef void (*morphine_free_t)(morphine_instance_t, void *);
+typedef void (*morphine_userdata_init_t)(morphine_instance_t, void *);
+typedef void (*morphine_userdata_free_t)(morphine_instance_t, void *);
 
 // sio types
 
@@ -109,7 +110,8 @@ typedef struct {
 
     struct {
         size_t allocate;
-        morphine_free_t free;
+        morphine_userdata_init_t init;
+        morphine_userdata_free_t free;
         bool require_metatable;
     } params;
 } morphine_library_type_t;

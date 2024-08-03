@@ -55,21 +55,21 @@ static void sizeislocked(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void isuntyped(morphine_coroutine_t U) {
+static void istyped(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "userdata");
 
-            bool value = mapi_userdata_is_untyped(U);
+            bool value = mapi_userdata_is_typed(U);
             mapi_push_boolean(U, value);
             maux_nb_return();
     maux_nb_end
 }
 
 static morphine_library_function_t functions[] = {
-    { "isuntyped",         isuntyped },
+    { "istyped",           istyped },
     { "lockmetatable",     lockmetatable },
     { "locksize",          locksize },
     { "metatableislocked", metatableislocked },

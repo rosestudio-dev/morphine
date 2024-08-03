@@ -2,6 +2,7 @@
 // Created by whyiskra on 3/22/24.
 //
 
+#include <string.h>
 #include "morphine/api.h"
 #include "morphine/core/throw.h"
 #include "morphine/object/coroutine.h"
@@ -42,7 +43,7 @@ MORPHINE_API void *mapi_push_userdata_vec(morphine_coroutine_t U, size_t count, 
     return userdata->data;
 }
 
-MORPHINE_API void mapi_userdata_set_free(morphine_coroutine_t U, morphine_free_t free) {
+MORPHINE_API void mapi_userdata_set_free(morphine_coroutine_t U, morphine_userdata_free_t free) {
     struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
     userdataI_set_free(U->I, userdata, free);
 }
@@ -79,10 +80,21 @@ MORPHINE_API void *mapi_userdata_resize_vec(morphine_coroutine_t U, size_t count
     return userdata->data;
 }
 
-MORPHINE_API void *mapi_userdata_pointer(morphine_coroutine_t U) {
-    return valueI_as_userdata_or_error(U->I, stackI_peek(U, 0))->data;
+MORPHINE_API void *mapi_userdata_pointer(morphine_coroutine_t U, const char *type) {
+    struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
+
+    if (userdata->is_typed) {
+        struct usertype_info info = usertypeI_info(U->I, userdata->typed.usertype);
+        if (type == NULL || strcmp(info.name, type) != 0) {
+            throwI_error(U->I, "userdata type doesn't match");
+        }
+    } else if (type != NULL) {
+        throwI_error(U->I, "untyped userdata");
+    }
+
+    return userdata->data;
 }
 
-MORPHINE_API bool mapi_userdata_is_untyped(morphine_coroutine_t U) {
-    return valueI_as_userdata_or_error(U->I, stackI_peek(U, 0))->is_untyped;
+MORPHINE_API bool mapi_userdata_is_typed(morphine_coroutine_t U) {
+    return valueI_as_userdata_or_error(U->I, stackI_peek(U, 0))->is_typed;
 }
