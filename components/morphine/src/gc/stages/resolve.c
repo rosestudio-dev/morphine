@@ -66,23 +66,12 @@ static inline void resolve_cache(morphine_instance_t I, bool emergency) {
 }
 
 static inline void attach_black_coroutines(morphine_instance_t I) {
-    struct object *end = NULL;
     struct object *current = I->G.pools.black_coroutines;
     while (current != NULL) {
-        end = current;
-        current = current->prev;
-    }
+        gcI_pools_remove(current, &I->G.pools.black_coroutines);
+        gcI_pools_insert(current, &I->G.pools.black);
 
-    if (end != NULL) {
-        struct object *black = I->G.pools.black;
-
-        if (black != NULL) {
-            black->next = end;
-        }
-        end->prev = black;
-
-        I->G.pools.black = I->G.pools.black_coroutines;
-        I->G.pools.black_coroutines = NULL;
+        current = I->G.pools.black_coroutines;
     }
 }
 

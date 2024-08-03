@@ -172,7 +172,7 @@ struct visitor *visitor(morphine_coroutine_t U, struct ast *A) {
 }
 
 struct visitor *get_visitor(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U);
+    return mapi_userdata_pointer(U, NULL);
 }
 
 void visitor_setup(morphine_coroutine_t U, struct visitor *V, visit_func_t func, void *data) {

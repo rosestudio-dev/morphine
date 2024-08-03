@@ -372,7 +372,7 @@ struct parser *parser(morphine_coroutine_t U, struct lex *L, struct ast *A) {
 }
 
 struct parser *get_parser(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U);
+    return mapi_userdata_pointer(U, NULL);
 }
 
 // parse

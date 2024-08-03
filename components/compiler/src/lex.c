@@ -133,7 +133,7 @@ struct lex *lex(morphine_coroutine_t U, struct strtable *T, const char *text, si
 }
 
 struct lex *get_lex(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U);
+    return mapi_userdata_pointer(U, NULL);
 }
 
 static char peek(struct lex *L, size_t offset) {

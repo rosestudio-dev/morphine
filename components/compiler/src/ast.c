@@ -45,7 +45,7 @@ struct ast *ast(morphine_coroutine_t U, strtable_index_t main_name) {
 }
 
 struct ast *get_ast(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U);
+    return mapi_userdata_pointer(U, NULL);
 }
 
 strtable_index_t ast_get_main_name(struct ast *A) {

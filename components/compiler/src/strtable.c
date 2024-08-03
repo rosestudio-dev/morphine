@@ -42,7 +42,7 @@ struct strtable *strtable(morphine_coroutine_t U) {
 }
 
 struct strtable *get_strtable(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U);
+    return mapi_userdata_pointer(U, NULL);
 }
 
 strtable_index_t strtable_record(morphine_coroutine_t U, struct strtable *T, const char *str, size_t size) {

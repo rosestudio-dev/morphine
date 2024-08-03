@@ -926,7 +926,7 @@ struct codegen *codegen(morphine_coroutine_t U, struct strtable *T, struct ast *
 }
 
 struct codegen *get_codegen(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U);
+    return mapi_userdata_pointer(U, NULL);
 }
 
 bool codegen_step(morphine_coroutine_t U, struct codegen *C) {
