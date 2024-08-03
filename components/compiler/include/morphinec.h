@@ -13,7 +13,9 @@ extern "C" {
 #include "morphinec/disassembler.h"
 #include "morphinec/binary.h"
 #include "morphinec/rollout.h"
+
 #include "morphinec/strtable.h"
+#include "morphinec/lex.h"
 
 #ifdef __cplusplus
 }

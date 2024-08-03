@@ -6,17 +6,17 @@
 #include "support/block.h"
 
 void match_statement_block(struct matcher *M) {
-    struct matcher_symbol end = symbol_predef_word(TPW_end);
+    struct matcher_symbol end = symbol_predef_word(MCLTPW_end);
     match_sblock(M, 1, &end);
 }
 
 void match_expression_block(struct matcher *M) {
-    struct matcher_symbol end = symbol_predef_word(TPW_end);
+    struct matcher_symbol end = symbol_predef_word(MCLTPW_end);
     match_eblock(M, 1, &end);
 }
 
 struct ast_node *assemble_statement_block(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    struct matcher_symbol end = symbol_predef_word(TPW_end);
+    struct matcher_symbol end = symbol_predef_word(MCLTPW_end);
     struct statement *result = NULL;
     get_sblock(U, A, E, 1, &end, 0, &result, NULL);
 
@@ -24,7 +24,7 @@ struct ast_node *assemble_statement_block(morphine_coroutine_t U, struct ast *A,
 }
 
 struct ast_node *assemble_expression_block(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    struct matcher_symbol end = symbol_predef_word(TPW_end);
+    struct matcher_symbol end = symbol_predef_word(MCLTPW_end);
     struct expression *result = NULL;
     get_eblock(U, A, E, 1, &end, 0, &result, NULL);
 
@@ -33,12 +33,12 @@ struct ast_node *assemble_expression_block(morphine_coroutine_t U, struct ast *A
 
 void match_block_elem(struct matcher *M) {
     matcher_reduce(M, REDUCE_TYPE_STATEMENT);
-    matcher_match(M, symbol_operator(TOP_SEMICOLON));
+    matcher_match(M, symbol_operator(MCLTOP_SEMICOLON));
 }
 
 void match_implicit_block_elem(struct matcher *M) {
     matcher_reduce(M, REDUCE_TYPE_STATEMENT);
-    matcher_match(M, symbol_operator(TOP_SEMICOLON));
+    matcher_match(M, symbol_operator(MCLTOP_SEMICOLON));
 }
 
 struct ast_node *assemble_block_elem(morphine_coroutine_t U, struct ast *A, struct elements *E) {

@@ -12,23 +12,23 @@
 
 static void print_string(
     morphine_coroutine_t U,
-    struct morphinec_strtable *T,
-    morphinec_strtable_index_t index
+    struct mc_strtable *T,
+    mc_strtable_index_t index
 ) {
-    struct morphinec_strtable_entry entry = mcapi_strtable_access(U, T, index);
+    struct mc_strtable_entry entry = mcapi_strtable_access(U, T, index);
     printn(entry.string, entry.size);
 }
 
 static void print_ast_statement(
     morphine_coroutine_t,
-    struct morphinec_strtable *,
+    struct mc_strtable *,
     size_t indent,
     struct statement *
 );
 
 static void print_ast_expression(
     morphine_coroutine_t U,
-    struct morphinec_strtable *T,
+    struct mc_strtable *T,
     size_t indent,
     struct expression *expression
 ) {
@@ -287,7 +287,7 @@ static void print_ast_expression(
 
 static void print_ast_statement(
     morphine_coroutine_t U,
-    struct morphinec_strtable *T,
+    struct mc_strtable *T,
     size_t indent,
     struct statement *statement
 ) {
@@ -497,7 +497,7 @@ static void print_ast_statement(
 
 static void print_ast_function(
     morphine_coroutine_t U,
-    struct morphinec_strtable *T,
+    struct mc_strtable *T,
     struct ast_function *function
 ) {
     printf("    fun{%"MLIMIT_LINE_PR":%p}", function->line, function);
@@ -547,11 +547,11 @@ static void print_ast_function(
     printf("\n");
 }
 
-void printer_strtable(morphine_coroutine_t U, struct morphinec_strtable *T) {
+void printer_strtable(morphine_coroutine_t U, struct mc_strtable *T) {
     printf("mcapi_push_strtable:\n");
 
-    for (size_t i = 0; mcapi_strtable_has(T, i); i++) {
-        struct morphinec_strtable_entry entry = mcapi_strtable_access(U, T, i);
+    for (ml_size i = 0; mcapi_strtable_has(T, i); i++) {
+        struct mc_strtable_entry entry = mcapi_strtable_access(U, T, i);
 
         printf("  %zu. '", i);
         printn(entry.string, entry.size);
@@ -561,7 +561,7 @@ void printer_strtable(morphine_coroutine_t U, struct morphinec_strtable *T) {
     printf("end\n\n");
 }
 
-void printer_ast(morphine_coroutine_t U, struct morphinec_strtable *T, struct ast *A) {
+void printer_ast(morphine_coroutine_t U, struct mc_strtable *T, struct ast *A) {
     struct ast_function *function = ast_functions(A);
 
     printf("ast:\n");

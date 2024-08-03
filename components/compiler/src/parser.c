@@ -15,7 +15,7 @@ struct element {
     bool is_token;
 
     union {
-        struct token token;
+        struct mc_lex_token token;
         struct reduce reduce;
     };
 };
@@ -43,12 +43,13 @@ define_stack_pop(element, struct element)
 define_stack_get(element, struct element)
 
 struct parser {
-    struct lex *L;
+    struct mc_strtable *T;
+    struct mc_lex *L;
     struct ast *A;
 
     struct {
         bool has;
-        struct token token;
+        struct mc_lex_token token;
     } lookahead;
 
     struct stack_context context_stack;
@@ -103,7 +104,7 @@ bool elements_is_token(struct elements *E, size_t index) {
     return elements_get(E, index).is_token;
 }
 
-struct token elements_get_token(struct elements *E, size_t index) {
+struct mc_lex_token elements_get_token(struct elements *E, size_t index) {
     struct element element = elements_get(E, index);
 
     if (!element.is_token) {
@@ -128,24 +129,25 @@ bool elements_look(struct elements *E, size_t index, struct matcher_symbol symbo
         return false;
     }
 
-    struct token token = elements_get_token(E, index);
+    struct mc_lex_token token = elements_get_token(E, index);
 
     return matcher_symbol(symbol, token);
 }
 
 // matcher
 
-bool matcher_symbol(struct matcher_symbol symbol, struct token token) {
+bool matcher_symbol(struct matcher_symbol symbol, struct mc_lex_token token) {
     switch (symbol.type) {
-        case TT_EOS:
-        case TT_INTEGER:
-        case TT_DECIMAL:
-        case TT_STRING:
-        case TT_WORD:
+        case MCLTT_EOS:
+        case MCLTT_INTEGER:
+        case MCLTT_DECIMAL:
+        case MCLTT_STRING:
+        case MCLTT_WORD:
+        case MCLTT_COMMENT:
             return symbol.type == token.type;
-        case TT_PREDEFINED_WORD:
+        case MCLTT_PREDEFINED_WORD:
             return symbol.type == token.type && symbol.predefined_word == token.predefined_word;
-        case TT_OPERATOR:
+        case MCLTT_OPERATOR:
             return symbol.type == token.type && symbol.operator == token.operator;
     }
 
@@ -161,15 +163,24 @@ static size_t matcher_get_stack_position(struct matcher *M) {
     return stack_position;
 }
 
-static bool matcher_get_token(struct matcher *M, struct token *result) {
+static struct mc_lex_token matcher_lex_step(struct matcher *M) {
+    struct mc_lex_token token;
+    do {
+        token = mcapi_lex_step(M->U, M->P->L, M->P->T);
+    } while (token.type == MCLTT_COMMENT);
+
+    return token;
+}
+
+static bool matcher_get_token(struct matcher *M, struct mc_lex_token *result) {
     size_t stack_position = matcher_get_stack_position(M);
 
-    struct token token;
+    struct mc_lex_token token;
     if (stack_size(M->P->element_stack) == stack_position) {
         if (M->P->lookahead.has) {
             token = M->P->lookahead.token;
         } else {
-            token = lex_step(M->U, M->P->L);
+            token = matcher_lex_step(M);
         }
 
         M->P->lookahead.token = token;
@@ -201,12 +212,12 @@ static void matcher_push(struct matcher *M) {
         return;
     }
 
-    struct token token;
+    struct mc_lex_token token;
     if (M->P->lookahead.has) {
         M->P->lookahead.has = false;
         token = M->P->lookahead.token;
     } else {
-        token = lex_step(M->U, M->P->L);
+        token = matcher_lex_step(M);
     }
 
     *stack_element_push(M->U, &M->P->element_stack) = (struct element) {
@@ -216,7 +227,7 @@ static void matcher_push(struct matcher *M) {
 }
 
 static ml_line matcher_get_line(struct matcher *M) {
-    struct token token;
+    struct mc_lex_token token;
     if (matcher_get_token(M, &token)) {
         return token.line;
     } else {
@@ -237,7 +248,7 @@ morphine_noret void matcher_error(struct matcher *M, const char *message) {
 }
 
 bool matcher_look(struct matcher *M, struct matcher_symbol symbol) {
-    struct token token;
+    struct mc_lex_token token;
     if (matcher_get_token(M, &token)) {
         return matcher_symbol(symbol, token);
     }
@@ -254,8 +265,8 @@ bool matcher_match(struct matcher *M, struct matcher_symbol symbol) {
     return false;
 }
 
-struct token matcher_consume(struct matcher *M, struct matcher_symbol symbol) {
-    struct token token;
+struct mc_lex_token matcher_consume(struct matcher *M, struct matcher_symbol symbol) {
+    struct mc_lex_token token;
     if (matcher_get_token(M, &token) && matcher_symbol(symbol, token)) {
         matcher_push(M);
         return token;
@@ -264,26 +275,26 @@ struct token matcher_consume(struct matcher *M, struct matcher_symbol symbol) {
     const char *name;
 
     switch (symbol.type) {
-        case TT_EOS:
+        case MCLTT_EOS:
             name = "eos";
             break;
-        case TT_INTEGER:
+        case MCLTT_INTEGER:
             name = "integer";
             break;
-        case TT_DECIMAL:
+        case MCLTT_DECIMAL:
             name = "decimal";
             break;
-        case TT_STRING:
+        case MCLTT_STRING:
             name = "text";
             break;
-        case TT_WORD:
+        case MCLTT_WORD:
             name = "word";
             break;
-        case TT_PREDEFINED_WORD:
-            name = lex_predefined2str(M->U, symbol.predefined_word);
+        case MCLTT_PREDEFINED_WORD:
+            name = mcapi_lex_predefined2str(M->U, symbol.predefined_word);
             break;
-        case TT_OPERATOR:
-            name = lex_operator2str(M->U, symbol.operator);
+        case MCLTT_OPERATOR:
+            name = mcapi_lex_operator2str(M->U, symbol.operator);
             break;
         default:
             name = "???";
@@ -339,10 +350,11 @@ static void parser_free(morphine_instance_t I, void *p) {
     stack_element_free(I, &P->element_stack);
 }
 
-struct parser *parser(morphine_coroutine_t U, struct lex *L, struct ast *A) {
+struct parser *parser(morphine_coroutine_t U, struct mc_strtable *T, struct mc_lex *L, struct ast *A) {
     struct parser *P = mapi_push_userdata_uni(U, sizeof(struct parser));
 
     *P = (struct parser) {
+        .T = T,
         .L = L,
         .A = A,
         .lookahead.has = false

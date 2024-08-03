@@ -6,7 +6,7 @@
 #include "support/arguments.h"
 
 static void function_arguments(struct matcher *M) {
-    if (matcher_look(M, symbol_operator(TOP_LBRACE)) || matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
+    if (matcher_look(M, symbol_operator(MCLTOP_LBRACE)) || matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
         matcher_reduce(M, REDUCE_TYPE_TABLE);
         return;
     }
@@ -14,11 +14,11 @@ static void function_arguments(struct matcher *M) {
     struct argument_matcher R = {
         .assemble = false,
         .M = M,
-        .separator = symbol_operator(TOP_COMMA),
+        .separator = symbol_operator(MCLTOP_COMMA),
         .has_open_close = true,
         .consume_open = true,
-        .open_symbol = symbol_operator(TOP_LPAREN),
-        .close_symbol = symbol_operator(TOP_RPAREN),
+        .open_symbol = symbol_operator(MCLTOP_LPAREN),
+        .close_symbol = symbol_operator(MCLTOP_RPAREN),
     };
 
     if (argument_matcher_init(&R, 0)) {
@@ -28,7 +28,7 @@ static void function_arguments(struct matcher *M) {
     }
     argument_matcher_close(&R);
 
-    if (matcher_look(M, symbol_operator(TOP_LBRACE)) || matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
+    if (matcher_look(M, symbol_operator(MCLTOP_LBRACE)) || matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
         matcher_reduce(M, REDUCE_TYPE_TABLE);
     }
 }
@@ -46,11 +46,11 @@ static size_t function_arguments_count(
         .assemble = true,
         .E = E,
         .U = U,
-        .separator = symbol_operator(TOP_COMMA),
+        .separator = symbol_operator(MCLTOP_COMMA),
         .has_open_close = true,
         .consume_open = true,
-        .open_symbol = symbol_operator(TOP_LPAREN),
-        .close_symbol = symbol_operator(TOP_RPAREN),
+        .open_symbol = symbol_operator(MCLTOP_LPAREN),
+        .close_symbol = symbol_operator(MCLTOP_RPAREN),
     };
 
     if (argument_matcher_init(&R, start)) {
@@ -83,11 +83,11 @@ static void function_arguments_insert(
         .assemble = true,
         .E = E,
         .U = U,
-        .separator = symbol_operator(TOP_COMMA),
+        .separator = symbol_operator(MCLTOP_COMMA),
         .has_open_close = true,
         .consume_open = true,
-        .open_symbol = symbol_operator(TOP_LPAREN),
-        .close_symbol = symbol_operator(TOP_RPAREN),
+        .open_symbol = symbol_operator(MCLTOP_LPAREN),
+        .close_symbol = symbol_operator(MCLTOP_RPAREN),
     };
 
     if (argument_matcher_init(&R, start)) {
@@ -109,29 +109,29 @@ bool match_variable(struct matcher *M, bool is_wrapped) {
         matcher_reduce(M, REDUCE_TYPE_VALUE);
     }
 
-    if (matcher_match(M, symbol_operator(TOP_LBRACKET))) {
+    if (matcher_match(M, symbol_operator(MCLTOP_LBRACKET))) {
         matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(TOP_RBRACKET));
+        matcher_consume(M, symbol_operator(MCLTOP_RBRACKET));
         return true;
     }
 
-    if (matcher_match(M, symbol_operator(TOP_DOT))) {
+    if (matcher_match(M, symbol_operator(MCLTOP_DOT))) {
         matcher_consume(M, symbol_word);
         return true;
     }
 
-    if (matcher_look(M, symbol_operator(TOP_LPAREN)) ||
-        matcher_look(M, symbol_operator(TOP_LBRACE)) ||
+    if (matcher_look(M, symbol_operator(MCLTOP_LPAREN)) ||
+        matcher_look(M, symbol_operator(MCLTOP_LBRACE)) ||
         matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
         function_arguments(M);
         return true;
     }
 
-    if (matcher_match(M, symbol_operator(TOP_COLON)) || matcher_match(M, symbol_operator(TOP_RARROW))) {
+    if (matcher_match(M, symbol_operator(MCLTOP_COLON)) || matcher_match(M, symbol_operator(MCLTOP_RARROW))) {
         if (!matcher_match(M, symbol_word)) {
-            matcher_consume(M, symbol_operator(TOP_LBRACKET));
+            matcher_consume(M, symbol_operator(MCLTOP_LBRACKET));
             matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-            matcher_consume(M, symbol_operator(TOP_RBRACKET));
+            matcher_consume(M, symbol_operator(MCLTOP_RBRACKET));
         }
 
         function_arguments(M);
@@ -157,9 +157,9 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct ast *A, struct
         return ast_as_node(result);
     }
 
-    struct token watch_token = elements_get_token(E, 1);
+    struct mc_lex_token watch_token = elements_get_token(E, 1);
 
-    if (matcher_symbol(symbol_operator(TOP_LBRACKET), watch_token)) {
+    if (matcher_symbol(symbol_operator(MCLTOP_LBRACKET), watch_token)) {
         struct reduce reduce_key = elements_get_reduce(E, 2);
 
         struct expression_access *result = ast_create_expression_access(U, A, watch_token.line);
@@ -169,7 +169,7 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct ast *A, struct
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_operator(TOP_DOT), watch_token)) {
+    if (matcher_symbol(symbol_operator(MCLTOP_DOT), watch_token)) {
         struct expression_value *key = ast_create_expression_value(U, A, watch_token.line);
         key->type = EXPRESSION_VALUE_TYPE_STR;
         key->value.string = elements_get_token(E, 2).word;
@@ -181,7 +181,7 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct ast *A, struct
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_operator(TOP_LPAREN), watch_token)) {
+    if (matcher_symbol(symbol_operator(MCLTOP_LPAREN), watch_token)) {
         size_t count = function_arguments_count(U, E, 1);
 
         struct expression_call *result = ast_create_expression_call(U, A, watch_token.line, count);
@@ -191,16 +191,16 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct ast *A, struct
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_operator(TOP_COLON), watch_token) ||
-        matcher_symbol(symbol_operator(TOP_RARROW), watch_token)) {
+    if (matcher_symbol(symbol_operator(MCLTOP_COLON), watch_token) ||
+        matcher_symbol(symbol_operator(MCLTOP_RARROW), watch_token)) {
 
-        struct token access_token = elements_get_token(E, 2);
+        struct mc_lex_token access_token = elements_get_token(E, 2);
         struct ast_node *access_node;
         size_t start_index;
-        if (matcher_symbol(symbol_operator(TOP_LBRACKET), access_token)) {
+        if (matcher_symbol(symbol_operator(MCLTOP_LBRACKET), access_token)) {
             access_node = elements_get_reduce(E, 3).node;
             start_index = 5;
-        } else if (matcher_symbol(symbol_operator(TOP_RARROW), watch_token) && matcher_symbol(symbol_word, access_token)) {
+        } else if (matcher_symbol(symbol_operator(MCLTOP_RARROW), watch_token) && matcher_symbol(symbol_word, access_token)) {
             struct expression_variable *variable = ast_create_expression_variable(U, A, access_token.line);
             access_node = ast_as_node(variable);
             variable->index = access_token.word;
@@ -220,7 +220,7 @@ struct ast_node *assemble_variable(morphine_coroutine_t U, struct ast *A, struct
         struct expression_call_self *result = ast_create_expression_call_self(U, A, watch_token.line, count);
         result->self = ast_node_as_expression(U, reduce.node);
         result->callable = ast_node_as_expression(U, access_node);
-        result->extract_callable = matcher_symbol(symbol_operator(TOP_COLON), watch_token);
+        result->extract_callable = matcher_symbol(symbol_operator(MCLTOP_COLON), watch_token);
         function_arguments_insert(U, E, start_index, result->arguments);
 
         return ast_as_node(result);

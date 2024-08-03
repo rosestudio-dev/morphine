@@ -6,13 +6,13 @@
 
 #include "morphinec/lex.h"
 
-#define symbol_eos            ((struct matcher_symbol) { .type = TT_EOS })
-#define symbol_int            ((struct matcher_symbol) { .type = TT_INTEGER })
-#define symbol_dec            ((struct matcher_symbol) { .type = TT_DECIMAL })
-#define symbol_str            ((struct matcher_symbol) { .type = TT_STRING })
-#define symbol_word           ((struct matcher_symbol) { .type = TT_WORD })
-#define symbol_predef_word(w) ((struct matcher_symbol) { .type = TT_PREDEFINED_WORD, .predefined_word = (w) })
-#define symbol_operator(o)    ((struct matcher_symbol) { .type = TT_OPERATOR, .operator = (o) })
+#define symbol_eos            ((struct matcher_symbol) { .type = MCLTT_EOS })
+#define symbol_int            ((struct matcher_symbol) { .type = MCLTT_INTEGER })
+#define symbol_dec            ((struct matcher_symbol) { .type = MCLTT_DECIMAL })
+#define symbol_str            ((struct matcher_symbol) { .type = MCLTT_STRING })
+#define symbol_word           ((struct matcher_symbol) { .type = MCLTT_WORD })
+#define symbol_predef_word(w) ((struct matcher_symbol) { .type = MCLTT_PREDEFINED_WORD, .predefined_word = (w) })
+#define symbol_operator(o)    ((struct matcher_symbol) { .type = MCLTT_OPERATOR, .operator = (o) })
 
 enum reduce_type {
     REDUCE_TYPE_AST,
@@ -54,17 +54,17 @@ enum reduce_type {
 struct matcher;
 
 struct matcher_symbol {
-    enum token_type type;
+    enum mc_lex_token_type type;
     union {
-        enum token_predefined_word predefined_word;
-        enum token_operator operator;
+        enum mc_lex_token_predefined_word predefined_word;
+        enum mc_lex_token_operator operator;
     };
 };
 
-bool matcher_symbol(struct matcher_symbol, struct token);
+bool matcher_symbol(struct matcher_symbol, struct mc_lex_token);
 morphine_noret void matcher_error(struct matcher *, const char *);
 bool matcher_look(struct matcher *, struct matcher_symbol);
 bool matcher_match(struct matcher *, struct matcher_symbol);
-struct token matcher_consume(struct matcher *, struct matcher_symbol);
+struct mc_lex_token matcher_consume(struct matcher *, struct matcher_symbol);
 void matcher_reduce(struct matcher *, enum reduce_type);
 bool matcher_is_reduced(struct matcher *, enum reduce_type);

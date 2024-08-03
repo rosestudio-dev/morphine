@@ -11,7 +11,7 @@ struct codegen;
 
 struct codegen *codegen(
     morphine_coroutine_t,
-    struct morphinec_strtable *,
+    struct mc_strtable *,
     struct ast *,
     struct visitor *
 );

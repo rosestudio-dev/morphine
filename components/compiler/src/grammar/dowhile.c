@@ -5,13 +5,13 @@
 #include "impl.h"
 
 void match_do_while(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(TPW_do));
+    matcher_consume(M, symbol_predef_word(MCLTPW_do));
     matcher_reduce(M, REDUCE_TYPE_STATEMENT_BLOCK);
 
-    if (matcher_match(M, symbol_predef_word(TPW_while))) {
-        matcher_consume(M, symbol_operator(TOP_LPAREN));
+    if (matcher_match(M, symbol_predef_word(MCLTPW_while))) {
+        matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
         matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(TOP_RPAREN));
+        matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
     }
 }
 

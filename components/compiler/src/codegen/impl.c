@@ -78,7 +78,7 @@ void gen_statement(struct codegen_controller *N, struct statement *statement, si
 
 static void get_variable(
     struct codegen_controller *N,
-    morphinec_strtable_index_t variable,
+    mc_strtable_index_t variable,
     struct codegen_argument_slot result
 ) {
     struct codegen_variable_info info = codegen_get_variable(N, variable);
@@ -107,7 +107,7 @@ static void get_variable(
 
 static void set_variable(
     struct codegen_controller *N,
-    morphinec_strtable_index_t variable,
+    mc_strtable_index_t variable,
     bool ignore_mutable,
     struct codegen_argument_slot value,
     struct codegen_argument_slot *container

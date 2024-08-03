@@ -6,15 +6,15 @@
 #include "arguments.h"
 
 bool match_decompose(struct matcher *M, bool is_word) {
-    if (matcher_match(M, symbol_predef_word(TPW_decompose))) {
+    if (matcher_match(M, symbol_predef_word(MCLTPW_decompose))) {
         struct argument_matcher R = {
             .assemble = false,
             .M = M,
-            .separator = symbol_operator(TOP_COMMA),
+            .separator = symbol_operator(MCLTOP_COMMA),
             .has_open_close = true,
             .consume_open = false,
-            .open_symbol = symbol_operator(TOP_LPAREN),
-            .close_symbol = symbol_operator(TOP_RPAREN),
+            .open_symbol = symbol_operator(MCLTOP_LPAREN),
+            .close_symbol = symbol_operator(MCLTOP_RPAREN),
         };
 
         if (argument_matcher_init(&R, 0)) {
@@ -25,7 +25,7 @@ bool match_decompose(struct matcher *M, bool is_word) {
                     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
                 }
 
-                if (matcher_match(M, symbol_predef_word(TPW_as))) {
+                if (matcher_match(M, symbol_predef_word(MCLTPW_as))) {
                     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
                 }
             } while (argument_matcher_next(&R));
@@ -53,16 +53,16 @@ size_t size_decompose(
     size_t start_index,
     size_t *end_index
 ) {
-    if (elements_look(E, start_index, symbol_predef_word(TPW_decompose))) {
+    if (elements_look(E, start_index, symbol_predef_word(MCLTPW_decompose))) {
         struct argument_matcher R = {
             .assemble = true,
             .E = E,
             .U = U,
-            .separator = symbol_operator(TOP_COMMA),
+            .separator = symbol_operator(MCLTOP_COMMA),
             .has_open_close = true,
             .consume_open = false,
-            .open_symbol = symbol_operator(TOP_LPAREN),
-            .close_symbol = symbol_operator(TOP_RPAREN),
+            .open_symbol = symbol_operator(MCLTOP_LPAREN),
+            .close_symbol = symbol_operator(MCLTOP_RPAREN),
         };
 
         if (argument_matcher_init(&R, start_index + 1)) {
@@ -73,7 +73,7 @@ size_t size_decompose(
                     argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
                 }
 
-                if (argument_matcher_match(&R, symbol_predef_word(TPW_as))) {
+                if (argument_matcher_match(&R, symbol_predef_word(MCLTPW_as))) {
                     argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
                 }
             } while (argument_matcher_next(&R));
@@ -104,25 +104,25 @@ void insert_decompose(
     struct elements *E,
     bool is_word,
     size_t start_index,
-    morphinec_strtable_index_t *names,
+    mc_strtable_index_t *names,
     struct expression **expressions,
     struct expression **keys
 ) {
-    if (elements_look(E, start_index, symbol_predef_word(TPW_decompose))) {
+    if (elements_look(E, start_index, symbol_predef_word(MCLTPW_decompose))) {
         struct argument_matcher R = {
             .assemble = true,
             .E = E,
             .U = U,
-            .separator = symbol_operator(TOP_COMMA),
+            .separator = symbol_operator(MCLTOP_COMMA),
             .has_open_close = true,
             .consume_open = false,
-            .open_symbol = symbol_operator(TOP_LPAREN),
-            .close_symbol = symbol_operator(TOP_RPAREN),
+            .open_symbol = symbol_operator(MCLTOP_LPAREN),
+            .close_symbol = symbol_operator(MCLTOP_RPAREN),
         };
 
         if (argument_matcher_init(&R, start_index + 1)) {
             do {
-                struct token token;
+                struct mc_lex_token token;
                 bool required_key = true;
                 if (is_word) {
                     required_key = false;
@@ -143,10 +143,10 @@ void insert_decompose(
 
                 bool parse_key;
                 if (required_key) {
-                    argument_matcher_consume(&R, symbol_predef_word(TPW_as));
+                    argument_matcher_consume(&R, symbol_predef_word(MCLTPW_as));
                     parse_key = true;
                 } else {
-                    parse_key = argument_matcher_match(&R, symbol_predef_word(TPW_as));
+                    parse_key = argument_matcher_match(&R, symbol_predef_word(MCLTPW_as));
                 }
 
                 if (parse_key) {

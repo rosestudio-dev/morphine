@@ -9,11 +9,11 @@ void match_vector(struct matcher *M) {
     struct argument_matcher R = {
         .assemble = false,
         .M = M,
-        .separator = symbol_operator(TOP_COMMA),
+        .separator = symbol_operator(MCLTOP_COMMA),
         .has_open_close = true,
         .consume_open = true,
-        .open_symbol = symbol_operator(TOP_LBRACKET),
-        .close_symbol = symbol_operator(TOP_RBRACKET),
+        .open_symbol = symbol_operator(MCLTOP_LBRACKET),
+        .close_symbol = symbol_operator(MCLTOP_RBRACKET),
     };
 
     if (argument_matcher_init(&R, 0)) {
@@ -30,11 +30,11 @@ struct ast_node *assemble_vector(morphine_coroutine_t U, struct ast *A, struct e
         .assemble = true,
         .E = E,
         .U = U,
-        .separator = symbol_operator(TOP_COMMA),
+        .separator = symbol_operator(MCLTOP_COMMA),
         .has_open_close = true,
         .consume_open = true,
-        .open_symbol = symbol_operator(TOP_LBRACKET),
-        .close_symbol = symbol_operator(TOP_RBRACKET),
+        .open_symbol = symbol_operator(MCLTOP_LBRACKET),
+        .close_symbol = symbol_operator(MCLTOP_RBRACKET),
     };
 
     if (argument_matcher_init(&R, 0)) {

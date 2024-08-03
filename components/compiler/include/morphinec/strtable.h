@@ -6,29 +6,28 @@
 
 #include <morphine.h>
 
-typedef size_t morphinec_strtable_index_t;
+#define MC_STRTABLE_USERDATA_TYPE "morphinec-strtable"
 
-struct morphinec_strtable_entry {
+typedef ml_size mc_strtable_index_t;
+
+struct mc_strtable_entry {
     const char *string;
     size_t size;
 };
 
-struct morphinec_strtable;
+struct mc_strtable;
 
-struct morphinec_strtable *mcapi_push_strtable(morphine_coroutine_t);
-struct morphinec_strtable *mcapi_get_strtable(morphine_coroutine_t);
-
-bool mcapi_strtable_has(struct morphinec_strtable *, morphinec_strtable_index_t);
-
-morphinec_strtable_index_t mcapi_strtable_record(
+MORPHINE_API struct mc_strtable *mcapi_push_strtable(morphine_coroutine_t);
+MORPHINE_API struct mc_strtable *mcapi_get_strtable(morphine_coroutine_t);
+MORPHINE_API bool mcapi_strtable_has(struct mc_strtable *, mc_strtable_index_t);
+MORPHINE_API mc_strtable_index_t mcapi_strtable_record(
     morphine_coroutine_t,
-    struct morphinec_strtable *,
+    struct mc_strtable *,
     const char *,
     size_t
 );
-
-struct morphinec_strtable_entry mcapi_strtable_access(
+MORPHINE_API struct mc_strtable_entry mcapi_strtable_access(
     morphine_coroutine_t,
-    struct morphinec_strtable *,
-    morphinec_strtable_index_t
+    struct mc_strtable *,
+    mc_strtable_index_t
 );

@@ -8,15 +8,15 @@
 #define table_size(t) (sizeof(t) / sizeof((t)[0]))
 
 void match_statement_if(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(TPW_if));
-    matcher_consume(M, symbol_operator(TOP_LPAREN));
+    matcher_consume(M, symbol_predef_word(MCLTPW_if));
+    matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-    matcher_consume(M, symbol_operator(TOP_RPAREN));
+    matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
 
     struct matcher_symbol if_closes[] = {
-        symbol_predef_word(TPW_elif),
-        symbol_predef_word(TPW_else),
-        symbol_predef_word(TPW_end)
+        symbol_predef_word(MCLTPW_elif),
+        symbol_predef_word(MCLTPW_else),
+        symbol_predef_word(MCLTPW_end)
     };
 
     size_t if_closed = match_sblock(M, table_size(if_closes), if_closes);
@@ -28,9 +28,9 @@ void match_statement_if(struct matcher *M) {
     }
 
     while (true) {
-        matcher_consume(M, symbol_operator(TOP_LPAREN));
+        matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
         matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(TOP_RPAREN));
+        matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
         size_t elif_closed = match_sblock(M, table_size(if_closes), if_closes);
 
         if (elif_closed == 1) {
@@ -44,21 +44,21 @@ void match_statement_if(struct matcher *M) {
 
 match_else:;
     struct matcher_symbol else_closes[] = {
-        symbol_predef_word(TPW_end)
+        symbol_predef_word(MCLTPW_end)
     };
 
     match_sblock(M, table_size(else_closes), else_closes);
 }
 
 void match_expression_if(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(TPW_if));
-    matcher_consume(M, symbol_operator(TOP_LPAREN));
+    matcher_consume(M, symbol_predef_word(MCLTPW_if));
+    matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-    matcher_consume(M, symbol_operator(TOP_RPAREN));
+    matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
 
     struct matcher_symbol if_closes[] = {
-        symbol_predef_word(TPW_elif),
-        symbol_predef_word(TPW_else)
+        symbol_predef_word(MCLTPW_elif),
+        symbol_predef_word(MCLTPW_else)
     };
 
     size_t if_closed = match_eblock(M, table_size(if_closes), if_closes);
@@ -68,9 +68,9 @@ void match_expression_if(struct matcher *M) {
     }
 
     while (true) {
-        matcher_consume(M, symbol_operator(TOP_LPAREN));
+        matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
         matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(TOP_RPAREN));
+        matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
         size_t elif_closed = match_eblock(M, table_size(if_closes), if_closes);
 
         if (elif_closed == 1) {
@@ -80,7 +80,7 @@ void match_expression_if(struct matcher *M) {
 
 match_else:;
     struct matcher_symbol else_closes[] = {
-        symbol_predef_word(TPW_end)
+        symbol_predef_word(MCLTPW_end)
     };
 
     match_eblock(M, table_size(else_closes), else_closes);
@@ -90,7 +90,7 @@ static size_t count_elif(struct elements *E) {
     size_t count = 0;
     size_t size = elements_size(E);
     for (size_t i = 0; i < size; i++) {
-        if (elements_look(E, i, symbol_predef_word(TPW_elif))) {
+        if (elements_look(E, i, symbol_predef_word(MCLTPW_elif))) {
             count++;
         }
     }
@@ -106,9 +106,9 @@ struct ast_node *assemble_statement_if(morphine_coroutine_t U, struct ast *A, st
     result->else_statement = NULL;
 
     struct matcher_symbol if_closes[] = {
-        symbol_predef_word(TPW_elif),
-        symbol_predef_word(TPW_else),
-        symbol_predef_word(TPW_end)
+        symbol_predef_word(MCLTPW_elif),
+        symbol_predef_word(MCLTPW_else),
+        symbol_predef_word(MCLTPW_end)
     };
 
     size_t end_index = 0;
@@ -148,7 +148,7 @@ struct ast_node *assemble_statement_if(morphine_coroutine_t U, struct ast *A, st
 
 match_else:;
     struct matcher_symbol else_closes[] = {
-        symbol_predef_word(TPW_end)
+        symbol_predef_word(MCLTPW_end)
     };
 
     get_sblock(
@@ -167,8 +167,8 @@ struct ast_node *assemble_expression_if(morphine_coroutine_t U, struct ast *A, s
     result->else_expression = NULL;
 
     struct matcher_symbol if_closes[] = {
-        symbol_predef_word(TPW_elif),
-        symbol_predef_word(TPW_else)
+        symbol_predef_word(MCLTPW_elif),
+        symbol_predef_word(MCLTPW_else)
     };
 
     size_t end_index = 0;
@@ -202,7 +202,7 @@ struct ast_node *assemble_expression_if(morphine_coroutine_t U, struct ast *A, s
 
 match_else:;
     struct matcher_symbol else_closes[] = {
-        symbol_predef_word(TPW_end)
+        symbol_predef_word(MCLTPW_end)
     };
 
     get_eblock(

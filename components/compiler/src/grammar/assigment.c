@@ -8,18 +8,18 @@
 #define table_size (sizeof(assigment_table) / sizeof(assigment_table[0]))
 
 static struct {
-    enum token_operator operator;
+    enum mc_lex_token_operator operator;
     enum expression_binary_type binary_type;
 } assigment_table[] = {
-    { .operator = TOP_PLUSEQ, .binary_type = EXPRESSION_BINARY_TYPE_ADD },
-    { .operator = TOP_MINUSEQ, .binary_type = EXPRESSION_BINARY_TYPE_SUB },
-    { .operator = TOP_STAREQ, .binary_type = EXPRESSION_BINARY_TYPE_MUL },
-    { .operator = TOP_SLASHEQ, .binary_type = EXPRESSION_BINARY_TYPE_DIV },
-    { .operator = TOP_DOTDOTEQ, .binary_type = EXPRESSION_BINARY_TYPE_CONCAT },
+    { .operator = MCLTOP_PLUSEQ, .binary_type = EXPRESSION_BINARY_TYPE_ADD },
+    { .operator = MCLTOP_MINUSEQ, .binary_type = EXPRESSION_BINARY_TYPE_SUB },
+    { .operator = MCLTOP_STAREQ, .binary_type = EXPRESSION_BINARY_TYPE_MUL },
+    { .operator = MCLTOP_SLASHEQ, .binary_type = EXPRESSION_BINARY_TYPE_DIV },
+    { .operator = MCLTOP_DOTDOTEQ, .binary_type = EXPRESSION_BINARY_TYPE_CONCAT },
 };
 
 static bool match_assigment_symbol(struct matcher *M) {
-    if (matcher_match(M, symbol_operator(TOP_EQ))) {
+    if (matcher_match(M, symbol_operator(MCLTOP_EQ))) {
         return true;
     }
 
@@ -34,7 +34,7 @@ static bool match_assigment_symbol(struct matcher *M) {
 
 void match_assigment(struct matcher *M) {
     if (match_decompose(M, false)) {
-        matcher_consume(M, symbol_operator(TOP_EQ));
+        matcher_consume(M, symbol_operator(MCLTOP_EQ));
         matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
     } else if (match_assigment_symbol(M)) {
         matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
@@ -70,8 +70,8 @@ struct ast_node *assemble_assigment(morphine_coroutine_t U, struct ast *A, struc
         insert_decompose(U, A, E, false, 0, NULL, result->multi.containers, result->multi.keys);
     }
 
-    struct token eq = elements_get_token(E, index);
-    if (size == 0 && !matcher_symbol(symbol_operator(TOP_EQ), eq)) {
+    struct mc_lex_token eq = elements_get_token(E, index);
+    if (size == 0 && !matcher_symbol(symbol_operator(MCLTOP_EQ), eq)) {
         bool found = false;
         enum expression_binary_type type;
         for (size_t i = 0; i < table_size; i++) {

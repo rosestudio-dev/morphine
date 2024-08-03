@@ -5,10 +5,10 @@
 #include "impl.h"
 
 void match_while(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(TPW_while));
-    matcher_consume(M, symbol_operator(TOP_LPAREN));
+    matcher_consume(M, symbol_predef_word(MCLTPW_while));
+    matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-    matcher_consume(M, symbol_operator(TOP_RPAREN));
+    matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
     matcher_reduce(M, REDUCE_TYPE_STATEMENT_BLOCK);
 }
 

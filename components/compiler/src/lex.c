@@ -13,8 +13,7 @@
 #define lex_cl_error(U, line, str) mapi_errorf((U), "line %"MLIMIT_LINE_PR": "str, (line))
 #define lex_error(U, L, str) lex_cl_error(U, (L)->line, str)
 
-struct lex {
-    struct morphinec_strtable *T;
+struct mc_lex {
     char *text;
     size_t len;
     size_t pos;
@@ -23,9 +22,9 @@ struct lex {
 
 static struct {
     const char *name;
-    enum token_predefined_word type;
+    enum mc_lex_token_predefined_word type;
 } predefined_table[] = {
-#define word(n) { .type = TPW_##n, .name = #n }
+#define word(n) { .type = MCLTPW_##n, .name = #n }
     word(true),
     word(false),
     word(env),
@@ -65,10 +64,11 @@ static struct {
 };
 
 static struct {
+    const char *str;
     const char *name;
-    enum token_operator type;
+    enum mc_lex_token_operator type;
 } operator_table[] = {
-#define operator(t, n) { .type = TOP_##t, .name = (n) }
+#define operator(t, n) { .type = MCLTOP_##t, .str = (n), .name = #t }
     operator(PLUS, "+"),
     operator(MINUS, "-"),
     operator(STAR, "*"),
@@ -106,23 +106,34 @@ static struct {
 #undef operator
 };
 
-static void lex_free(morphine_instance_t I, void *data) {
-    struct lex *L = data;
-    mapi_allocator_free(I, L->text);
-}
+static void lex_userdata_init(morphine_instance_t I, void *data) {
+    (void) I;
 
-struct lex *lex(morphine_coroutine_t U, struct morphinec_strtable *T, const char *text, size_t len) {
-    struct lex *L = mapi_push_userdata_uni(U, sizeof(struct lex));
-
-    *L = (struct lex) {
-        .T = T,
+    struct mc_lex *L = data;
+    (*L) = (struct mc_lex) {
         .text = NULL,
         .len = 0,
         .pos = 0,
         .line = 1
     };
+}
 
-    mapi_userdata_set_free(U, lex_free);
+static void lex_userdata_free(morphine_instance_t I, void *data) {
+    struct mc_lex *L = data;
+    mapi_allocator_free(I, L->text);
+}
+
+MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U, const char *text, size_t len) {
+    mapi_type_declare(
+        mapi_instance(U),
+        MC_LEX_USERDATA_TYPE,
+        sizeof(struct mc_lex),
+        lex_userdata_init,
+        lex_userdata_free,
+        false
+    );
+
+    struct mc_lex *L = mapi_push_userdata(U, MC_LEX_USERDATA_TYPE);
 
     L->text = mapi_allocator_vec(mapi_instance(U), NULL, len, sizeof(char));
     L->len = len;
@@ -132,11 +143,11 @@ struct lex *lex(morphine_coroutine_t U, struct morphinec_strtable *T, const char
     return L;
 }
 
-struct lex *get_lex(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U, NULL);
+MORPHINE_API struct mc_lex *mcapi_get_lex(morphine_coroutine_t U) {
+    return mapi_userdata_pointer(U, MC_LEX_USERDATA_TYPE);
 }
 
-static char peek(struct lex *L, size_t offset) {
+static char peek(struct mc_lex *L, size_t offset) {
     if (offset > SIZE_MAX - L->pos) {
         return eoschar;
     }
@@ -150,7 +161,7 @@ static char peek(struct lex *L, size_t offset) {
     }
 }
 
-static char next(struct lex *L) {
+static char next(struct mc_lex *L) {
     if (L->pos < L->len) {
         L->pos++;
     }
@@ -158,7 +169,7 @@ static char next(struct lex *L) {
     return peek(L, 0);
 }
 
-static void skip_newline(struct lex *L) {
+static void skip_newline(struct mc_lex *L) {
     char cur = peek(L, 0);
     char nex = next(L);
 
@@ -169,7 +180,12 @@ static void skip_newline(struct lex *L) {
     L->line++;
 }
 
-static void skip_comment(struct lex *L) {
+static struct mc_lex_token comment(
+    morphine_coroutine_t U,
+    struct mc_lex *L,
+    struct mc_strtable *T
+) {
+    size_t start = L->pos;
     next(L);
     next(L);
 
@@ -177,20 +193,46 @@ static void skip_comment(struct lex *L) {
     while (!isnewline(current) && current != eoschar) {
         current = next(L);
     }
+
+    mc_strtable_index_t index = mcapi_strtable_record(
+        U, T, L->text + start + 2, L->pos - start
+    );
+
+    return (struct mc_lex_token) {
+        .type = MCLTT_COMMENT,
+        .comment = index,
+        .line = L->line,
+        .range.from = start,
+        .range.to = L->pos
+    };
 }
 
-static void skip_multiline_comment(morphine_coroutine_t U, struct lex *L) {
+static struct mc_lex_token multiline_comment(
+    morphine_coroutine_t
+    U,
+    struct mc_lex *L,
+    struct mc_strtable *T
+) {
+    size_t start = L->pos;
+    ml_line saved_line = L->line;
     next(L);
     next(L);
 
-    size_t saved_line = L->line;
     size_t level = 1;
     char current = peek(L, 0);
     while (level > 0) {
-        if (current == '/' && peek(L, 1) == '*') {
+        if (current == '/' &&
+            peek(
+                L,
+                1
+            ) == '*') {
             level++;
             next(L);
-        } else if (current == '*' && peek(L, 1) == '/') {
+        } else if (current == '*' &&
+                   peek(
+                       L,
+                       1
+                   ) == '/') {
             level--;
             next(L);
         } else if (isnewline(current)) {
@@ -203,9 +245,26 @@ static void skip_multiline_comment(morphine_coroutine_t U, struct lex *L) {
 
         current = next(L);
     }
+
+    mc_strtable_index_t index = mcapi_strtable_record(
+        U, T, L->text + start + 2, L->pos - start - 2
+    );
+
+    return (struct mc_lex_token) {
+        .
+        type = MCLTT_COMMENT,
+        .
+        comment = index,
+        .
+        line = L->line,
+        .range.
+        from = start,
+        .range.
+        to = L->pos
+    };
 }
 
-static struct token lex_number(morphine_coroutine_t U, struct lex *L) {
+static struct mc_lex_token lex_number(morphine_coroutine_t U, struct mc_lex *L) {
     size_t start = L->pos;
     bool dot = false;
 
@@ -250,10 +309,12 @@ static struct token lex_number(morphine_coroutine_t U, struct lex *L) {
             lex_error(U, L, "invalid decimal");
         }
 
-        return (struct token) {
-            .type = TT_DECIMAL,
+        return (struct mc_lex_token) {
+            .type = MCLTT_DECIMAL,
             .decimal = result,
-            .line = L->line
+            .line = L->line,
+            .range.from = start,
+            .range.to = L->pos
         };
     } else {
         ml_integer result = 0;
@@ -262,10 +323,12 @@ static struct token lex_number(morphine_coroutine_t U, struct lex *L) {
             lex_error(U, L, "invalid integer");
         }
 
-        return (struct token) {
-            .type = TT_INTEGER,
+        return (struct mc_lex_token) {
+            .type = MCLTT_INTEGER,
             .integer = result,
-            .line = L->line
+            .line = L->line,
+            .range.from = start,
+            .range.to = L->pos
         };
     }
 }
@@ -278,10 +341,10 @@ static void safe_append(char *buffer, size_t *index, char c) {
     (*index)++;
 }
 
-static size_t handle_string(morphine_coroutine_t U, struct lex *L, char *buffer) {
+static size_t handle_string(morphine_coroutine_t U, struct mc_lex *L, char *buffer) {
     char open = peek(L, 0);
 
-    size_t saved_line = L->line;
+    ml_line saved_line = L->line;
     size_t count = 0;
     char current = next(L);
     while (true) {
@@ -355,27 +418,41 @@ static size_t handle_string(morphine_coroutine_t U, struct lex *L, char *buffer)
     return count;
 }
 
-static struct token lex_string(morphine_coroutine_t U, struct lex *L) {
-    size_t save_pos = L->pos;
+static struct mc_lex_token lex_string(
+    morphine_coroutine_t U,
+    struct mc_lex *L,
+    struct mc_strtable *T
+) {
+    ml_line saved_line = L->line;
+    size_t saved_pos = L->pos;
 
     size_t size = handle_string(U, L, NULL);
     char *str = mapi_push_userdata_uni(U, size);
     memset(str, 0, size);
 
-    L->pos = save_pos;
+    L->pos = saved_pos;
     handle_string(U, L, str);
 
-    morphinec_strtable_index_t index = mcapi_strtable_record(U, L->T, str, size);
+    mc_strtable_index_t index = mcapi_strtable_record(U, T, str, size);
     mapi_pop(U, 1);
 
-    return (struct token) {
-        .type = TT_STRING,
+    return (struct mc_lex_token) {
+        .type = MCLTT_STRING,
         .string = index,
-        .line = L->line
+        .line = saved_line,
+        .range.from = saved_pos,
+        .range.to = L->pos
     };
 }
 
-static struct token handle_word(morphine_coroutine_t U, struct lex *L, size_t from, size_t to) {
+static struct mc_lex_token handle_word(
+    morphine_coroutine_t U,
+    struct mc_lex *L,
+    struct mc_strtable *T,
+    size_t from,
+    size_t to,
+    ml_line line
+) {
     const char *str = L->text + from;
     size_t size = to - from;
 
@@ -389,29 +466,38 @@ static struct token handle_word(morphine_coroutine_t U, struct lex *L, size_t fr
         }
 
         if (memcmp(predefined_table[i].name, str, size) == 0) {
-            return (struct token) {
-                .type = TT_PREDEFINED_WORD,
+            return (struct mc_lex_token) {
+                .type = MCLTT_PREDEFINED_WORD,
                 .predefined_word = predefined_table[i].type,
-                .line = L->line
+                .line = line,
+                .range.from = from,
+                .range.to = to
             };
         }
     }
 
-    morphinec_strtable_index_t index = mcapi_strtable_record(U, L->T, str, size);
+    mc_strtable_index_t index = mcapi_strtable_record(U, T, str, size);
 
-    return (struct token) {
-        .type = TT_WORD,
+    return (struct mc_lex_token) {
+        .type = MCLTT_WORD,
         .word = index,
-        .line = L->line
+        .line = line,
+        .range.from = from,
+        .range.to = to
     };
 }
 
-static struct token lex_extended_word(morphine_coroutine_t U, struct lex *L) {
+static struct mc_lex_token lex_extended_word(
+    morphine_coroutine_t U,
+    struct mc_lex *L,
+    struct mc_strtable *T
+) {
+    ml_line saved_line = L->line;
     char open = peek(L, 0);
-    char current = next(L);
 
-    size_t saved_line = L->line;
+    char current = next(L);
     size_t from = L->pos;
+
     while (true) {
         if (current == eoschar || isnewline(current)) {
             lex_cl_error(U, saved_line, "extended word isn't closed");
@@ -427,10 +513,14 @@ static struct token lex_extended_word(morphine_coroutine_t U, struct lex *L) {
     size_t to = L->pos;
     next(L);
 
-    return handle_word(U, L, from, to);
+    return handle_word(U, L, T, from, to, saved_line);
 }
 
-static struct token lex_word(morphine_coroutine_t U, struct lex *L) {
+static struct mc_lex_token lex_word(
+    morphine_coroutine_t U,
+    struct mc_lex *L,
+    struct mc_strtable *T
+) {
     char current = peek(L, 0);
 
     size_t from = L->pos;
@@ -439,23 +529,37 @@ static struct token lex_word(morphine_coroutine_t U, struct lex *L) {
     }
 
     size_t to = L->pos;
-    return handle_word(U, L, from, to);
+    return handle_word(U, L, T, from, to, L->line);
 }
 
-static bool handle_operator(struct lex *L, size_t from, size_t to, struct token *token) {
+static bool handle_operator(
+    morphine_coroutine_t U,
+    struct mc_lex *L,
+    size_t from,
+    size_t to,
+    ml_line line,
+    struct mc_lex_token *token
+) {
     const char *str = L->text + from;
     size_t size = to - from;
+
+    if (size == 0) {
+        lex_error(U, L, "empty operator");
+    }
+
     for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
-        if (strlen(operator_table[i].name) != size) {
+        if (strlen(operator_table[i].str) != size) {
             continue;
         }
 
-        if (memcmp(operator_table[i].name, str, size) == 0) {
+        if (memcmp(operator_table[i].str, str, size) == 0) {
             if (token != NULL) {
-                *token = (struct token) {
-                    .type = TT_OPERATOR,
+                *token = (struct mc_lex_token) {
+                    .type = MCLTT_OPERATOR,
                     .operator = operator_table[i].type,
-                    .line = L->line
+                    .line = line,
+                    .range.from = from,
+                    .range.to = to
                 };
             }
 
@@ -466,12 +570,13 @@ static bool handle_operator(struct lex *L, size_t from, size_t to, struct token 
     return false;
 }
 
-static struct token lex_operator(morphine_coroutine_t U, struct lex *L) {
+static struct mc_lex_token lex_operator(morphine_coroutine_t U, struct mc_lex *L) {
     size_t from = L->pos;
+
     while (true) {
         char current = next(L);
 
-        if (!handle_operator(L, from, L->pos + 1, NULL)) {
+        if (!handle_operator(U, L, from, L->pos + 1, L->line, NULL)) {
             break;
         }
 
@@ -480,47 +585,46 @@ static struct token lex_operator(morphine_coroutine_t U, struct lex *L) {
         }
     }
 
-    struct token token;
-    if (handle_operator(L, from, L->pos, &token)) {
+    struct mc_lex_token token;
+    if (handle_operator(U, L, from, L->pos, L->line, &token)) {
         return token;
     } else {
         lex_error(U, L, "unknown operator");
     }
 }
 
-struct token lex_step(morphine_coroutine_t U, struct lex *L) {
-    char current;
+MORPHINE_API struct mc_lex_token mcapi_lex_step(
+    morphine_coroutine_t U,
+    struct mc_lex *L,
+    struct mc_strtable *T
+) {
+    char current = peek(L, 0);
+
     while (true) {
-        current = peek(L, 0);
-
-        if (current == eoschar) {
-            return (struct token) {
-                .type = TT_EOS,
-                .line = L->line
-            };
-        }
-
         if (isnewline(current)) {
             skip_newline(L);
-            continue;
-        }
-
-        if (current == '/' && peek(L, 1) == '/') {
-            skip_comment(L);
-            continue;
-        }
-
-        if (current == '/' && peek(L, 1) == '*') {
-            skip_multiline_comment(U, L);
-            continue;
-        }
-
-        if (isspace(current)) {
+        } else if (isspace(current)) {
             next(L);
-            continue;
+        } else {
+            break;
         }
 
-        break;
+        current = peek(L, 0);
+    }
+
+    if (current == eoschar) {
+        return (struct mc_lex_token) {
+            .type = MCLTT_EOS,
+            .line = L->line
+        };
+    }
+
+    if (current == '/' && peek(L, 1) == '/') {
+        return comment(U, L, T);
+    }
+
+    if (current == '/' && peek(L, 1) == '*') {
+        return multiline_comment(U, L, T);
     }
 
     if (isdigit(current)) {
@@ -528,15 +632,15 @@ struct token lex_step(morphine_coroutine_t U, struct lex *L) {
     }
 
     if (current == '"' || current == '\'') {
-        return lex_string(U, L);
+        return lex_string(U, L, T);
     }
 
     if (current == '`') {
-        return lex_extended_word(U, L);
+        return lex_extended_word(U, L, T);
     }
 
     if (current == '_' || isalpha(current)) {
-        return lex_word(U, L);
+        return lex_word(U, L, T);
     }
 
     if (strchr(opchars, current) != NULL) {
@@ -546,22 +650,67 @@ struct token lex_step(morphine_coroutine_t U, struct lex *L) {
     lex_error(U, L, "unknown symbol");
 }
 
-const char *lex_operator2str(morphine_coroutine_t U, enum token_operator operator) {
+MORPHINE_API const char *mcapi_lex_type2str(
+    morphine_coroutine_t U,
+    enum mc_lex_token_type type
+) {
+    switch (type) {
+        case MCLTT_EOS:
+            return "eos";
+        case MCLTT_INTEGER:
+            return "integer";
+        case MCLTT_DECIMAL:
+            return "decimal";
+        case MCLTT_STRING:
+            return "string";
+        case MCLTT_WORD:
+            return "word";
+        case MCLTT_PREDEFINED_WORD:
+            return "predefined_word";
+        case MCLTT_OPERATOR:
+            return "operator";
+        case MCLTT_COMMENT:
+            return "comment";
+    }
+
+    mapi_error(U, "wrong token type");
+}
+
+MORPHINE_API const char *mcapi_lex_operator2str(
+    morphine_coroutine_t U,
+    enum mc_lex_token_operator operator
+) {
+    for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
+        if (operator_table[i].type == operator) {
+            return operator_table[i].str;
+        }
+    }
+
+    mapi_error(U, "wrong operator type");
+}
+
+MORPHINE_API const char *mcapi_lex_operator2name(
+    morphine_coroutine_t U,
+    enum mc_lex_token_operator operator
+) {
     for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
         if (operator_table[i].type == operator) {
             return operator_table[i].name;
         }
     }
 
-    mapi_error(U, "operator not found");
+    mapi_error(U, "wrong operator type");
 }
 
-const char *lex_predefined2str(morphine_coroutine_t U, enum token_predefined_word predefined_word) {
+MORPHINE_API const char *mcapi_lex_predefined2str(
+    morphine_coroutine_t U,
+    enum mc_lex_token_predefined_word predefined_word
+) {
     for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
         if (predefined_table[i].type == predefined_word) {
             return predefined_table[i].name;
         }
     }
 
-    mapi_error(U, "predefined word not found");
+    mapi_error(U, "wrong predefined word");
 }

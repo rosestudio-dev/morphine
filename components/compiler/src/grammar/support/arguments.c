@@ -4,12 +4,12 @@
 
 #include "arguments.h"
 
-struct token argument_matcher_consume(
+struct mc_lex_token argument_matcher_consume(
     struct argument_matcher *R,
     struct matcher_symbol symbol
 ) {
     if (R->assemble) {
-        struct token token = elements_get_token(R->E, R->pos);
+        struct mc_lex_token token = elements_get_token(R->E, R->pos);
         if (!matcher_symbol(symbol, token)) {
             mapi_error(R->U, "unexpected argument pattern while assembling");
         }
@@ -30,7 +30,7 @@ bool argument_matcher_match(
             return false;
         }
 
-        struct token token = elements_get_token(R->E, R->pos);
+        struct mc_lex_token token = elements_get_token(R->E, R->pos);
         bool eq = matcher_symbol(symbol, token);
         if (eq) {
             R->pos++;
@@ -51,7 +51,7 @@ bool argument_matcher_look(
             return false;
         }
 
-        struct token token = elements_get_token(R->E, R->pos);
+        struct mc_lex_token token = elements_get_token(R->E, R->pos);
         return matcher_symbol(symbol, token);
     } else {
         return matcher_look(R->M, symbol);

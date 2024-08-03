@@ -9,7 +9,7 @@ struct ast {
     struct ast_node *nodes;
     struct ast_function *functions;
 
-    morphinec_strtable_index_t main_name;
+    mc_strtable_index_t main_name;
 };
 
 static void ast_free(morphine_instance_t I, void *p) {
@@ -30,7 +30,7 @@ static void ast_free(morphine_instance_t I, void *p) {
     }
 }
 
-struct ast *ast(morphine_coroutine_t U, morphinec_strtable_index_t main_name) {
+struct ast *ast(morphine_coroutine_t U, mc_strtable_index_t main_name) {
     struct ast *A = mapi_push_userdata_uni(U, sizeof(struct ast));
 
     *A = (struct ast) {
@@ -48,7 +48,7 @@ struct ast *get_ast(morphine_coroutine_t U) {
     return mapi_userdata_pointer(U, NULL);
 }
 
-morphinec_strtable_index_t ast_get_main_name(struct ast *A) {
+mc_strtable_index_t ast_get_main_name(struct ast *A) {
     return A->main_name;
 }
 
@@ -80,9 +80,9 @@ struct ast_function *ast_create_function(
     size_t statics
 ) {
     size_t size = sizeof(struct ast_function) +
-                  sizeof(morphinec_strtable_index_t) * closures +
-                  sizeof(morphinec_strtable_index_t) * args +
-                  sizeof(morphinec_strtable_index_t) * statics;
+                  sizeof(mc_strtable_index_t) * closures +
+                  sizeof(mc_strtable_index_t) * args +
+                  sizeof(mc_strtable_index_t) * statics;
 
     struct ast_function *function = mapi_allocator_uni(
         mapi_instance(U),
@@ -95,8 +95,8 @@ struct ast_function *ast_create_function(
     function->statics_size = statics;
 
     function->closures = ((void *) function) + sizeof(struct ast_function);
-    function->arguments = ((void *) function->closures) + sizeof(morphinec_strtable_index_t) * closures;
-    function->statics = ((void *) function->arguments) + sizeof(morphinec_strtable_index_t) * args;
+    function->arguments = ((void *) function->closures) + sizeof(mc_strtable_index_t) * closures;
+    function->statics = ((void *) function->arguments) + sizeof(mc_strtable_index_t) * args;
 
     function->prev = A->functions;
     A->functions = function;
@@ -245,12 +245,12 @@ function_statement_as(while)
 struct statement_iterator *ast_create_statement_iterator(
     morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
 ) {
-    size_t extend_size = (sizeof(struct expression *) + sizeof(morphinec_strtable_index_t)) * size;
+    size_t extend_size = (sizeof(struct expression *) + sizeof(mc_strtable_index_t)) * size;
     struct statement_iterator *result = body_statement_create(iterator, U, A, line, extend_size);
 
     result->size = size;
     result->multi.names = ((void *) result) + sizeof(struct statement_iterator);
-    result->multi.keys = ((void *) result->multi.names) + sizeof(morphinec_strtable_index_t) * size;
+    result->multi.keys = ((void *) result->multi.names) + sizeof(mc_strtable_index_t) * size;
 
     return result;
 }
@@ -279,12 +279,12 @@ function_statement_as(if)
 struct statement_declaration *ast_create_statement_declaration(
     morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
 ) {
-    size_t extend_size = (sizeof(struct expression *) + sizeof(morphinec_strtable_index_t)) * size;
+    size_t extend_size = (sizeof(struct expression *) + sizeof(mc_strtable_index_t)) * size;
     struct statement_declaration *result = body_statement_create(declaration, U, A, line, extend_size);
 
     result->size = size;
     result->multi.names = ((void *) result) + sizeof(struct statement_declaration);
-    result->multi.keys = ((void *) result->multi.names) + sizeof(morphinec_strtable_index_t) * size;
+    result->multi.keys = ((void *) result->multi.names) + sizeof(mc_strtable_index_t) * size;
 
     return result;
 }

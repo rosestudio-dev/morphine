@@ -25,7 +25,7 @@ struct codegen_constant {
     union {
         ml_integer integer;
         ml_decimal decimal;
-        morphinec_strtable_index_t string;
+        mc_strtable_index_t string;
         bool boolean;
         struct ast_function *function;
     } value;
@@ -44,7 +44,7 @@ struct codegen_anchor {
 };
 
 struct codegen_variable {
-    morphinec_strtable_index_t index;
+    mc_strtable_index_t index;
     bool mutable;
 };
 
@@ -109,7 +109,7 @@ struct codegen_function {
 
 struct codegen {
     morphine_coroutine_t U;
-    struct morphinec_strtable *T;
+    struct mc_strtable *T;
     struct visitor *V;
 
     struct codegen_function *current_function;
@@ -197,7 +197,7 @@ static size_t add_constant(struct codegen_controller *N, struct codegen_constant
 }
 
 static struct codegen_variable_info get_variable(
-    morphinec_strtable_index_t index,
+    mc_strtable_index_t index,
     struct codegen_function *cf
 ) {
     stack_iterator(cf->variables_stack, i) {
@@ -268,7 +268,7 @@ static struct codegen_variable_info get_variable(
 
 static struct codegen_variable_info deep_variable(
     struct codegen *C,
-    morphinec_strtable_index_t index,
+    mc_strtable_index_t index,
     struct codegen_function *head
 ) {
     struct codegen_function *cf = head;
@@ -351,7 +351,7 @@ static void enter_function(struct codegen *C, struct codegen_controller *N, stru
     };
 
     for (size_t i = 0; i < cf->ref->args_size; i++) {
-        morphinec_strtable_index_t arg = cf->ref->arguments[i];
+        mc_strtable_index_t arg = cf->ref->arguments[i];
         size_t count = 0;
         for (size_t j = 0; j < cf->ref->args_size; j++) {
             if (arg == cf->ref->arguments[j]) {
@@ -369,7 +369,7 @@ static void enter_function(struct codegen *C, struct codegen_controller *N, stru
     }
 
     for (size_t i = 0; i < cf->ref->statics_size; i++) {
-        morphinec_strtable_index_t static_idx = cf->ref->statics[i];
+        mc_strtable_index_t static_idx = cf->ref->statics[i];
         size_t count = 0;
         for (size_t j = 0; j < cf->ref->statics_size; j++) {
             if (static_idx == cf->ref->statics[j]) {
@@ -387,7 +387,7 @@ static void enter_function(struct codegen *C, struct codegen_controller *N, stru
     }
 
     for (size_t i = 0; i < cf->ref->closures_size; i++) {
-        morphinec_strtable_index_t closure = cf->ref->closures[i];
+        mc_strtable_index_t closure = cf->ref->closures[i];
         size_t count = 0;
         for (size_t j = 0; j < cf->ref->closures_size; j++) {
             if (closure == cf->ref->closures[j]) {
@@ -465,9 +465,9 @@ morphine_noret void codegen_errorf(struct codegen_controller *N, const char *str
     );
 }
 
-struct morphinec_strtable_entry codegen_string(
+struct mc_strtable_entry codegen_string(
     struct codegen_controller *N,
-    morphinec_strtable_index_t index
+    mc_strtable_index_t index
 ) {
     return mcapi_strtable_access(N->C->U, N->C->T, index);
 }
@@ -667,7 +667,7 @@ struct codegen_argument_index codegen_constant_dec(struct codegen_controller *N,
 
 struct codegen_argument_index codegen_constant_str(
     struct codegen_controller *N,
-    morphinec_strtable_index_t str
+    mc_strtable_index_t str
 ) {
     struct codegen_constant constant = {
         .type = CCT_STRING,
@@ -681,7 +681,7 @@ struct codegen_argument_index codegen_constant_str(
 }
 
 struct codegen_argument_index codegen_constant_cstr(struct codegen_controller *N, const char *str) {
-    morphinec_strtable_index_t str_index = mcapi_strtable_record(N->C->U, N->C->T, str, strlen(str));
+    mc_strtable_index_t str_index = mcapi_strtable_record(N->C->U, N->C->T, str, strlen(str));
 
     struct codegen_constant constant = {
         .type = CCT_STRING,
@@ -766,7 +766,7 @@ void codegen_closure(
 
 void codegen_declare_variable(
     struct codegen_controller *N,
-    morphinec_strtable_index_t index,
+    mc_strtable_index_t index,
     bool mutable
 ) {
     struct codegen_scope *scope = stack_scope_peek(
@@ -785,7 +785,7 @@ void codegen_declare_variable(
 
 struct codegen_variable_info codegen_get_variable(
     struct codegen_controller *N,
-    morphinec_strtable_index_t index
+    mc_strtable_index_t index
 ) {
     return deep_variable(N->C, index, N->C->current_function);
 }
@@ -847,7 +847,7 @@ static void codegen_free(morphine_instance_t I, void *p) {
 
 struct codegen *codegen(
     morphine_coroutine_t U,
-    struct morphinec_strtable *T,
+    struct mc_strtable *T,
     struct ast *A,
     struct visitor *V
 ) {
@@ -1047,7 +1047,7 @@ static inline void load_instructions(
 
 static inline void load_constants(
     morphine_coroutine_t U,
-    struct morphinec_strtable *T,
+    struct mc_strtable *T,
     ml_size count,
     struct codegen_function *pool,
     struct codegen_function *function
@@ -1069,7 +1069,7 @@ static inline void load_constants(
                 mapi_constant_set(U, mapi_csize2index(U, index));
                 break;
             case CCT_STRING: {
-                struct morphinec_strtable_entry string = mcapi_strtable_access(U, T, constant.value.string);
+                struct mc_strtable_entry string = mcapi_strtable_access(U, T, constant.value.string);
                 mapi_push_stringn(U, string.string, string.size);
                 mapi_constant_set(U, mapi_csize2index(U, index));
                 break;

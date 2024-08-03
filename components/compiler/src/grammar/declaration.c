@@ -6,18 +6,18 @@
 #include "support/decompose.h"
 
 void match_declaration(struct matcher *M) {
-    if (matcher_look(M, symbol_predef_word(TPW_fun)) || matcher_is_reduced(M, REDUCE_TYPE_FUNCTION)) {
+    if (matcher_look(M, symbol_predef_word(MCLTPW_fun)) || matcher_is_reduced(M, REDUCE_TYPE_FUNCTION)) {
         matcher_reduce(M, REDUCE_TYPE_FUNCTION);
         return;
     }
 
-    if (!matcher_match(M, symbol_predef_word(TPW_val)) && !matcher_match(M, symbol_predef_word(TPW_var))) {
+    if (!matcher_match(M, symbol_predef_word(MCLTPW_val)) && !matcher_match(M, symbol_predef_word(MCLTPW_var))) {
         matcher_error(M, "expect val, var or fun");
     }
 
     match_decompose(M, true);
 
-    matcher_consume(M, symbol_operator(TOP_EQ));
+    matcher_consume(M, symbol_operator(MCLTOP_EQ));
     matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
 }
 
@@ -41,7 +41,7 @@ struct ast_node *assemble_declaration(morphine_coroutine_t U, struct ast *A, str
     size_t size = size_decompose(U, E, true, 1, &index);
 
     struct statement_declaration *result = ast_create_statement_declaration(U, A, elements_line(E, 0), size);
-    result->mutable = elements_look(E, 0, symbol_predef_word(TPW_var));
+    result->mutable = elements_look(E, 0, symbol_predef_word(MCLTPW_var));
     result->expression = ast_node_as_expression(U, elements_get_reduce(E, index + 1).node);
 
     if (size == 0) {

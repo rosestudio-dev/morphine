@@ -7,7 +7,7 @@
 #include "morphinec/ast.h"
 
 struct codegen_closure {
-    morphinec_strtable_index_t index;
+    mc_strtable_index_t index;
     bool mutable;
 };
 
@@ -99,7 +99,7 @@ void codegen_instruction(
 morphine_coroutine_t codegen_U(struct codegen_controller *);
 morphine_noret void codegen_error(struct codegen_controller *, const char *);
 morphine_noret void codegen_errorf(struct codegen_controller *, const char *, ...);
-struct morphinec_strtable_entry codegen_string(struct codegen_controller *, morphinec_strtable_index_t);
+struct mc_strtable_entry codegen_string(struct codegen_controller *, mc_strtable_index_t);
 bool codegen_save(struct codegen_controller *, size_t, void **);
 morphine_noret void codegen_visit_next(struct codegen_controller *, size_t state);
 morphine_noret void codegen_visit_return(struct codegen_controller *);
@@ -115,12 +115,12 @@ struct codegen_argument_slot codegen_temporary(struct codegen_controller *);
 struct codegen_argument_index codegen_constant_nil(struct codegen_controller *);
 struct codegen_argument_index codegen_constant_int(struct codegen_controller *, ml_integer);
 struct codegen_argument_index codegen_constant_dec(struct codegen_controller *, ml_decimal);
-struct codegen_argument_index codegen_constant_str(struct codegen_controller *, morphinec_strtable_index_t);
+struct codegen_argument_index codegen_constant_str(struct codegen_controller *, mc_strtable_index_t);
 struct codegen_argument_index codegen_constant_cstr(struct codegen_controller *, const char *);
 struct codegen_argument_index codegen_constant_bool(struct codegen_controller *, bool);
 struct codegen_argument_index codegen_constant_fun(struct codegen_controller *, struct ast_function *);
 void codegen_scope_enter(struct codegen_controller *);
 void codegen_scope_exit(struct codegen_controller *);
 void codegen_closure(struct codegen_controller *, struct ast_function *, size_t *, struct codegen_closure **);
-void codegen_declare_variable(struct codegen_controller *, morphinec_strtable_index_t, bool mutable);
-struct codegen_variable_info codegen_get_variable(struct codegen_controller *, morphinec_strtable_index_t);
+void codegen_declare_variable(struct codegen_controller *, mc_strtable_index_t, bool mutable);
+struct codegen_variable_info codegen_get_variable(struct codegen_controller *, mc_strtable_index_t);

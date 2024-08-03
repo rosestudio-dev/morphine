@@ -9,11 +9,11 @@ void match_table(struct matcher *M) {
     struct argument_matcher R = {
         .assemble = false,
         .M = M,
-        .separator = symbol_operator(TOP_COMMA),
+        .separator = symbol_operator(MCLTOP_COMMA),
         .has_open_close = true,
         .consume_open = true,
-        .open_symbol = symbol_operator(TOP_LBRACE),
-        .close_symbol = symbol_operator(TOP_RBRACE),
+        .open_symbol = symbol_operator(MCLTOP_LBRACE),
+        .close_symbol = symbol_operator(MCLTOP_RBRACE),
     };
 
     if (argument_matcher_init(&R, 0)) {
@@ -22,7 +22,7 @@ void match_table(struct matcher *M) {
                 matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
             }
 
-            if (matcher_match(M, symbol_operator(TOP_EQ))) {
+            if (matcher_match(M, symbol_operator(MCLTOP_EQ))) {
                 matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
             }
         } while (argument_matcher_next(&R));
@@ -35,11 +35,11 @@ struct ast_node *assemble_table(morphine_coroutine_t U, struct ast *A, struct el
         .assemble = true,
         .E = E,
         .U = U,
-        .separator = symbol_operator(TOP_COMMA),
+        .separator = symbol_operator(MCLTOP_COMMA),
         .has_open_close = true,
         .consume_open = true,
-        .open_symbol = symbol_operator(TOP_LBRACE),
-        .close_symbol = symbol_operator(TOP_RBRACE),
+        .open_symbol = symbol_operator(MCLTOP_LBRACE),
+        .close_symbol = symbol_operator(MCLTOP_RBRACE),
     };
 
     if (argument_matcher_init(&R, 0)) {
@@ -48,7 +48,7 @@ struct ast_node *assemble_table(morphine_coroutine_t U, struct ast *A, struct el
                 argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
             }
 
-            if (argument_matcher_match(&R, symbol_operator(TOP_EQ))) {
+            if (argument_matcher_match(&R, symbol_operator(MCLTOP_EQ))) {
                 argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
             }
         } while (argument_matcher_next(&R));
@@ -62,7 +62,7 @@ struct ast_node *assemble_table(morphine_coroutine_t U, struct ast *A, struct el
             struct expression *expression;
 
             if (argument_matcher_look(&R, symbol_word)) {
-                struct token token = argument_matcher_consume(&R, symbol_word);
+                struct mc_lex_token token = argument_matcher_consume(&R, symbol_word);
                 struct expression_value *key = ast_create_expression_value(U, A, token.line);
                 key->type = EXPRESSION_VALUE_TYPE_STR;
                 key->value.string = token.word;
@@ -73,7 +73,7 @@ struct ast_node *assemble_table(morphine_coroutine_t U, struct ast *A, struct el
                 expression = ast_node_as_expression(U, reduce.node);
             }
 
-            if (argument_matcher_match(&R, symbol_operator(TOP_EQ))) {
+            if (argument_matcher_match(&R, symbol_operator(MCLTOP_EQ))) {
                 struct reduce reduce_value = argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
                 result->keys[R.count] = expression;
                 result->values[R.count] = ast_node_as_expression(U, reduce_value.node);

@@ -5,55 +5,55 @@
 #include "impl.h"
 
 void match_statement(struct matcher *M) {
-    if (matcher_match(M, symbol_predef_word(TPW_pass))) { return; }
-    if (matcher_match(M, symbol_predef_word(TPW_yield))) { return; }
-    if (matcher_match(M, symbol_predef_word(TPW_leave))) { return; }
-    if (matcher_match(M, symbol_predef_word(TPW_break))) { return; }
-    if (matcher_match(M, symbol_predef_word(TPW_continue))) { return; }
+    if (matcher_match(M, symbol_predef_word(MCLTPW_pass))) { return; }
+    if (matcher_match(M, symbol_predef_word(MCLTPW_yield))) { return; }
+    if (matcher_match(M, symbol_predef_word(MCLTPW_leave))) { return; }
+    if (matcher_match(M, symbol_predef_word(MCLTPW_break))) { return; }
+    if (matcher_match(M, symbol_predef_word(MCLTPW_continue))) { return; }
 
-    if (matcher_match(M, symbol_predef_word(TPW_eval))) {
+    if (matcher_match(M, symbol_predef_word(MCLTPW_eval))) {
         matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
         return;
     }
 
-    if (matcher_match(M, symbol_predef_word(TPW_return))) {
+    if (matcher_match(M, symbol_predef_word(MCLTPW_return))) {
         matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
         return;
     }
 
-    if (matcher_look(M, symbol_predef_word(TPW_while)) ||
+    if (matcher_look(M, symbol_predef_word(MCLTPW_while)) ||
         matcher_is_reduced(M, REDUCE_TYPE_WHILE)) {
         matcher_reduce(M, REDUCE_TYPE_WHILE);
         return;
     }
 
-    if (matcher_look(M, symbol_predef_word(TPW_do)) ||
+    if (matcher_look(M, symbol_predef_word(MCLTPW_do)) ||
         matcher_is_reduced(M, REDUCE_TYPE_DO_WHILE)) {
         matcher_reduce(M, REDUCE_TYPE_DO_WHILE);
         return;
     }
 
-    if (matcher_look(M, symbol_predef_word(TPW_for)) ||
+    if (matcher_look(M, symbol_predef_word(MCLTPW_for)) ||
         matcher_is_reduced(M, REDUCE_TYPE_FOR)) {
         matcher_reduce(M, REDUCE_TYPE_FOR);
         return;
     }
 
-    if (matcher_look(M, symbol_predef_word(TPW_iterator)) ||
+    if (matcher_look(M, symbol_predef_word(MCLTPW_iterator)) ||
         matcher_is_reduced(M, REDUCE_TYPE_ITERATOR)) {
         matcher_reduce(M, REDUCE_TYPE_ITERATOR);
         return;
     }
 
-    if (matcher_look(M, symbol_predef_word(TPW_if)) ||
+    if (matcher_look(M, symbol_predef_word(MCLTPW_if)) ||
         matcher_is_reduced(M, REDUCE_TYPE_STATEMENT_IF)) {
         matcher_reduce(M, REDUCE_TYPE_STATEMENT_IF);
         return;
     }
 
-    if (matcher_look(M, symbol_predef_word(TPW_val)) ||
-        matcher_look(M, symbol_predef_word(TPW_var)) ||
-        matcher_look(M, symbol_predef_word(TPW_fun)) ||
+    if (matcher_look(M, symbol_predef_word(MCLTPW_val)) ||
+        matcher_look(M, symbol_predef_word(MCLTPW_var)) ||
+        matcher_look(M, symbol_predef_word(MCLTPW_fun)) ||
         matcher_is_reduced(M, REDUCE_TYPE_DECLARATION)) {
         matcher_reduce(M, REDUCE_TYPE_DECLARATION);
         return;
@@ -67,44 +67,44 @@ struct ast_node *assemble_statement(morphine_coroutine_t U, struct ast *A, struc
         return elements_get_reduce(E, 0).node;
     }
 
-    struct token watch_token = elements_get_token(E, 0);
+    struct mc_lex_token watch_token = elements_get_token(E, 0);
 
-    if (matcher_symbol(symbol_predef_word(TPW_pass), watch_token)) {
+    if (matcher_symbol(symbol_predef_word(MCLTPW_pass), watch_token)) {
         struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
         result->type = STATEMENT_SIMPLE_TYPE_PASS;
 
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_predef_word(TPW_yield), watch_token)) {
+    if (matcher_symbol(symbol_predef_word(MCLTPW_yield), watch_token)) {
         struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
         result->type = STATEMENT_SIMPLE_TYPE_YIELD;
 
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_predef_word(TPW_leave), watch_token)) {
+    if (matcher_symbol(symbol_predef_word(MCLTPW_leave), watch_token)) {
         struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
         result->type = STATEMENT_SIMPLE_TYPE_LEAVE;
 
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_predef_word(TPW_break), watch_token)) {
+    if (matcher_symbol(symbol_predef_word(MCLTPW_break), watch_token)) {
         struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
         result->type = STATEMENT_SIMPLE_TYPE_BREAK;
 
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_predef_word(TPW_continue), watch_token)) {
+    if (matcher_symbol(symbol_predef_word(MCLTPW_continue), watch_token)) {
         struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
         result->type = STATEMENT_SIMPLE_TYPE_CONTINUE;
 
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_predef_word(TPW_eval), watch_token)) {
+    if (matcher_symbol(symbol_predef_word(MCLTPW_eval), watch_token)) {
         struct reduce reduce = elements_get_reduce(E, 1);
         struct statement_eval *result = ast_create_statement_eval(U, A, watch_token.line);
         result->expression = ast_node_as_expression(U, reduce.node);
@@ -113,7 +113,7 @@ struct ast_node *assemble_statement(morphine_coroutine_t U, struct ast *A, struc
         return ast_as_node(result);
     }
 
-    if (matcher_symbol(symbol_predef_word(TPW_return), watch_token)) {
+    if (matcher_symbol(symbol_predef_word(MCLTPW_return), watch_token)) {
         struct reduce reduce = elements_get_reduce(E, 1);
         struct statement_return *result = ast_create_statement_return(U, A, watch_token.line);
         result->expression = ast_node_as_expression(U, reduce.node);

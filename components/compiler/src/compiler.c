@@ -17,12 +17,12 @@ MORPHINE_API void mcapi_compile(
     size_t main_len,
     size_t text_len
 ) {
-    struct morphinec_strtable *T = mcapi_push_strtable(U);
-    morphinec_strtable_index_t name = mcapi_strtable_record(U, T, main, main_len);
+    struct mc_strtable *T = mcapi_push_strtable(U);
+    mc_strtable_index_t name = mcapi_strtable_record(U, T, main, main_len);
     struct ast *A = ast(U, name);
 
-    struct lex *L = lex(U, T, text, text_len);
-    struct parser *P = parser(U, L, A);
+    struct mc_lex *L = mcapi_push_lex(U, text, text_len);
+    struct parser *P = parser(U, T, L, A);
     while (parser_step(U, P)) { }
     mapi_pop(U, 2);
 

@@ -8,5 +8,5 @@
 #include "morphinec/strtable.h"
 #include "morphinec/ast.h"
 
-void printer_strtable(morphine_coroutine_t, struct morphinec_strtable *);
-void printer_ast(morphine_coroutine_t, struct morphinec_strtable *, struct ast *);
+void printer_strtable(morphine_coroutine_t, struct mc_strtable *);
+void printer_ast(morphine_coroutine_t, struct mc_strtable *, struct ast *);
