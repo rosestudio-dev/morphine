@@ -201,7 +201,7 @@ const char *throwI_message(morphine_instance_t I) {
     throw->error.value = valueI_nil;
 
     if (string == NULL) {
-        return "(Unsupported error value)";
+        return "(unsupported error value)";
     } else {
         return string->chars;
     }

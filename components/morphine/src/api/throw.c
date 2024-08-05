@@ -36,7 +36,7 @@ MORPHINE_API void mapi_push_thrown(morphine_coroutine_t U) {
 
 MORPHINE_API const char *mapi_signal_message(morphine_instance_t I) {
     if (I == NULL) {
-        return "Initial error";
+        return "initial error";
     }
 
     return throwI_message(I);
