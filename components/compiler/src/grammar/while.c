@@ -1,27 +1,36 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 08.08.2024.
 //
 
-#include "impl.h"
+#include "controller.h"
 
-void match_while(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(MCLTPW_while));
-    matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
-    matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-    matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
-    matcher_reduce(M, REDUCE_TYPE_STATEMENT_BLOCK);
-}
+struct mc_ast_node *rule_while(struct parse_controller *C) {
+    {
+        parser_consume(C, et_predef_word(while));
+        parser_consume(C, et_operator(LPAREN));
+        parser_reduce(C, rule_expression);
+        parser_consume(C, et_operator(RPAREN));
+        parser_reduce(C, rule_statement_block);
+    }
 
-struct ast_node *assemble_while(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    ml_line line = elements_get_token(E, 0).line;
-    struct statement_while *result = ast_create_statement_while(U, A, line);
+    parser_reset(C);
 
-    struct reduce reduce_expression = elements_get_reduce(E, 2);
-    struct reduce reduce_statement = elements_get_reduce(E, 4);
+    ml_line line = parser_get_line(C);
 
-    result->first_condition = true;
-    result->condition = ast_node_as_expression(U, reduce_expression.node);
-    result->statement = ast_node_as_statement(U, reduce_statement.node);
+    parser_consume(C, et_predef_word(while));
+    parser_consume(C, et_operator(LPAREN));
+    struct mc_ast_expression *expression =
+        mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+    parser_consume(C, et_operator(RPAREN));
+    struct mc_ast_statement *statement =
+        mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
 
-    return ast_as_node(result);
+    struct mc_ast_statement_while *statement_while =
+        mcapi_ast_create_statement_while(parser_U(C), parser_A(C), line);
+
+    statement_while->first_condition = true;
+    statement_while->condition = expression;
+    statement_while->statement = statement;
+
+    return mcapi_ast_statement_while2node(statement_while);
 }

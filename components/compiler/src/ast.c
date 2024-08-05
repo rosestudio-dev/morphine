@@ -4,448 +4,255 @@
 
 #include <string.h>
 #include "morphinec/ast.h"
+#include "ast/creator.h"
 
-struct ast {
-    struct ast_node *nodes;
-    struct ast_function *functions;
-
-    mc_strtable_index_t main_name;
+struct mc_ast {
+    struct mc_ast_node *nodes;
+    struct mc_ast_function *functions;
+    struct mc_ast_function *root_function;
 };
 
-static void ast_free(morphine_instance_t I, void *p) {
-    struct ast *A = p;
+// api
 
-    struct ast_function *function = A->functions;
-    while (function != NULL) {
-        struct ast_function *prev = function->prev;
-        mapi_allocator_free(I, function);
-        function = prev;
-    }
+static void ast_userdata_init(morphine_instance_t I, void *data) {
+    (void) I;
 
-    struct ast_node *node = A->nodes;
+    struct mc_ast *A = data;
+    *A = (struct mc_ast) {
+        .nodes = NULL,
+        .functions = NULL,
+        .root_function = NULL
+    };
+}
+
+static void ast_userdata_free(morphine_instance_t I, void *data) {
+    struct mc_ast *A = data;
+
+    struct mc_ast_node *node = A->nodes;
     while (node != NULL) {
-        struct ast_node *prev = node->prev;
+        struct mc_ast_node *prev = node->prev;
         mapi_allocator_free(I, node);
         node = prev;
     }
+
+    struct mc_ast_function *function = A->functions;
+    while (function != NULL) {
+        struct mc_ast_function *prev = function->prev;
+        mapi_allocator_free(I, function->closures);
+        mapi_allocator_free(I, function->arguments);
+        mapi_allocator_free(I, function->statics);
+        mapi_allocator_free(I, function);
+        function = prev;
+    }
 }
 
-struct ast *ast(morphine_coroutine_t U, mc_strtable_index_t main_name) {
-    struct ast *A = mapi_push_userdata_uni(U, sizeof(struct ast));
+MORPHINE_API struct mc_ast *mcapi_push_ast(morphine_coroutine_t U) {
+    mapi_type_declare(
+        mapi_instance(U),
+        MC_AST_USERDATA_TYPE,
+        sizeof(struct mc_ast),
+        ast_userdata_init,
+        ast_userdata_free,
+        false
+    );
 
-    *A = (struct ast) {
-        .nodes = NULL,
-        .functions = NULL,
-        .main_name = main_name
-    };
-
-    mapi_userdata_set_free(U, ast_free);
-
-    return A;
+    return mapi_push_userdata(U, MC_AST_USERDATA_TYPE);
 }
 
-struct ast *get_ast(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U, NULL);
+MORPHINE_API struct mc_ast *mcapi_get_ast(morphine_coroutine_t U) {
+    return mapi_userdata_pointer(U, MC_AST_USERDATA_TYPE);
 }
 
-mc_strtable_index_t ast_get_main_name(struct ast *A) {
-    return A->main_name;
+MORPHINE_API struct mc_ast_expression *mcapi_ast_node2expression(
+    morphine_coroutine_t U,
+    struct mc_ast_node *node
+) {
+    if (node->type != MCANT_EXPRESSION) {
+        mapi_error(U, "expected expression");
+    }
+
+    return (struct mc_ast_expression *) node;
 }
 
-struct ast_function *ast_functions(struct ast *A) {
+MORPHINE_API struct mc_ast_statement *mcapi_ast_node2statement(
+    morphine_coroutine_t U,
+    struct mc_ast_node *node
+) {
+    if (node->type != MCANT_STATEMENT) {
+        mapi_error(U, "expected statement");
+    }
+
+    return (struct mc_ast_statement *) node;
+}
+
+MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_ast_node *node) {
+    switch (node->type) {
+        case MCANT_EXPRESSION: {
+            struct mc_ast_expression *expression = mcapi_ast_node2expression(U, node);
+            switch (expression->type) {
+                case MCEXPRT_value:
+                    return "expression_value";
+                case MCEXPRT_binary:
+                    return "expression_binary";
+                case MCEXPRT_unary:
+                    return "expression_unary";
+                case MCEXPRT_increment:
+                    return "expression_increment";
+                case MCEXPRT_variable:
+                    return "expression_variable";
+                case MCEXPRT_global:
+                    return "expression_global";
+                case MCEXPRT_table:
+                    return "expression_table";
+                case MCEXPRT_vector:
+                    return "expression_vector";
+                case MCEXPRT_access:
+                    return "expression_access";
+                case MCEXPRT_call:
+                    return "expression_call";
+                case MCEXPRT_function:
+                    return "expression_function";
+                case MCEXPRT_block:
+                    return "expression_block";
+                case MCEXPRT_if:
+                    return "expression_if";
+            }
+            break;
+        }
+        case MCANT_STATEMENT: {
+            struct mc_ast_statement *statement = mcapi_ast_node2statement(U, node);
+            switch (statement->type) {
+                case MCSTMTT_block:
+                    return "statement_block";
+                case MCSTMTT_simple:
+                    return "statement_simple";
+                case MCSTMTT_eval:
+                    return "statement_eval";
+                case MCSTMTT_leave:
+                    return "statement_leave";
+                case MCSTMTT_while:
+                    return "statement_while";
+                case MCSTMTT_for:
+                    return "statement_for";
+                case MCSTMTT_iterator:
+                    return "statement_iterator";
+                case MCSTMTT_declaration:
+                    return "statement_declaration";
+                case MCSTMTT_assigment:
+                    return "statement_assigment";
+                case MCSTMTT_if:
+                    return "statement_if";
+            }
+            break;
+        }
+    }
+
+    mapi_error(U, "unknown ast node type");
+}
+
+MORPHINE_API struct mc_ast_function *mcapi_ast_functions(struct mc_ast *A) {
     return A->functions;
 }
 
-struct expression *ast_node_as_expression(morphine_coroutine_t U, struct ast_node *node) {
-    if (node->type != AST_NODE_TYPE_EXPRESSION) {
-        mapi_error(U, "ast node isn't expression");
-    }
-
-    return (struct expression *) node;
-}
-
-struct statement *ast_node_as_statement(morphine_coroutine_t U, struct ast_node *node) {
-    if (node->type != AST_NODE_TYPE_STATEMENT) {
-        mapi_error(U, "ast node isn't statement");
-    }
-
-    return (struct statement *) node;
-}
-
-struct ast_function *ast_create_function(
+MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(
     morphine_coroutine_t U,
-    struct ast *A,
+    struct mc_ast *A,
     size_t closures,
     size_t args,
     size_t statics
 ) {
-    size_t size = sizeof(struct ast_function) +
-                  sizeof(mc_strtable_index_t) * closures +
-                  sizeof(mc_strtable_index_t) * args +
-                  sizeof(mc_strtable_index_t) * statics;
-
-    struct ast_function *function = mapi_allocator_uni(
-        mapi_instance(U),
-        NULL,
-        size
+    struct mc_ast_function *function = mapi_allocator_uni(
+        mapi_instance(U), NULL, sizeof(struct mc_ast_function)
     );
 
-    function->closures_size = closures;
-    function->args_size = args;
-    function->statics_size = statics;
+    *function = (struct mc_ast_function) {
+        .line = 0,
+        .recursive = false,
+        .anonymous = true,
+        .auto_closure = false,
+        .closures_size = 0,
+        .args_size = 0,
+        .statics_size = 0,
+        .closures = NULL,
+        .arguments = NULL,
+        .statics = NULL,
+        .body = NULL,
+        .prev = A->functions
+    };
 
-    function->closures = ((void *) function) + sizeof(struct ast_function);
-    function->arguments = ((void *) function->closures) + sizeof(mc_strtable_index_t) * closures;
-    function->statics = ((void *) function->arguments) + sizeof(mc_strtable_index_t) * args;
-
-    function->prev = A->functions;
     A->functions = function;
+
+    function->closures = mapi_allocator_vec(
+        mapi_instance(U), NULL, closures, sizeof(mc_strtable_index_t)
+    );
+    function->closures_size = closures;
+
+    function->arguments = mapi_allocator_vec(
+        mapi_instance(U), NULL, args, sizeof(mc_strtable_index_t)
+    );
+    function->args_size = args;
+
+    function->statics = mapi_allocator_vec(
+        mapi_instance(U), NULL, statics, sizeof(mc_strtable_index_t)
+    );
+    function->statics_size = statics;
 
     return function;
 }
 
-static void setup_node(
-    struct ast *A,
-    struct ast_node *node,
-    ml_line line,
-    enum ast_node_type type
+MORPHINE_API void mcapi_ast_set_root_function(struct mc_ast *A, struct mc_ast_function *function) {
+    A->root_function = function;
+}
+
+MORPHINE_API struct mc_ast_function *mcapi_ast_get_root_function(struct mc_ast *A) {
+    return A->root_function;
+}
+
+// creator
+
+static void init_node(
+    struct mc_ast *A,
+    struct mc_ast_node *node,
+    enum mc_ast_node_type type,
+    ml_line line
 ) {
-    *node = (struct ast_node) {
-        .prev = A->nodes,
+    (*node) = (struct mc_ast_node) {
         .type = type,
-        .line = line
+        .line = line,
+        .prev = A->nodes
     };
 
     A->nodes = node;
 }
 
-static struct expression *ast_insert_expression(
+struct mc_ast_expression *ast_create_expression(
     morphine_coroutine_t U,
-    struct ast *A,
+    struct mc_ast *A,
+    enum mc_expression_type type,
     ml_line line,
-    enum expression_type type,
     size_t size
 ) {
-    struct expression *expression = mapi_allocator_uni(
-        mapi_instance(U),
-        NULL,
-        size
-    );
+    struct mc_ast_expression *expression =
+        mapi_allocator_uni(mapi_instance(U), NULL, size);
+    init_node(A, &expression->node, MCANT_EXPRESSION, line);
 
-    *expression = (struct expression) {
-        .type = type
-    };
+    expression->type = type;
 
-    setup_node(A, ast_as_node(expression), line, AST_NODE_TYPE_EXPRESSION);
     return expression;
 }
 
-static struct statement *ast_insert_statement(
+struct mc_ast_statement *ast_create_statement(
     morphine_coroutine_t U,
-    struct ast *A,
+    struct mc_ast *A,
+    enum mc_statement_type type,
     ml_line line,
-    enum statement_type type,
     size_t size
 ) {
-    struct statement *statement = mapi_allocator_uni(
-        mapi_instance(U),
-        NULL,
-        size
-    );
+    struct mc_ast_statement *statement =
+        mapi_allocator_uni(mapi_instance(U), NULL, size);
+    init_node(A, &statement->node, MCANT_STATEMENT, line);
 
-    *statement = (struct statement) {
-        .type = type
-    };
+    statement->type = type;
 
-    setup_node(A, ast_as_node(statement), line, AST_NODE_TYPE_STATEMENT);
     return statement;
 }
-
-// create
-
-#define body_create(U, A, line, nodetype, prefix, typ, size) \
-    ((struct nodetype##_##typ *) ast_insert_##nodetype(U, A, line, prefix##_##typ, \
-        sizeof(struct nodetype##_##typ) + (size)))
-
-#define body_expression_create(type, U, A, line, size) body_create(U, A, line, expression, EXPRESSION_TYPE, type, size)
-#define body_statement_create(type, U, A, line, size) body_create(U, A, line, statement, STATEMENT_TYPE, type, size)
-
-#define function_expression_create(type) \
-    struct expression_##type *ast_create_expression_##type(morphine_coroutine_t U, struct ast *A, ml_line line) { \
-        return body_expression_create(type, U, A, line, 0); }
-
-#define function_statement_create(type) \
-    struct statement_##type *ast_create_statement_##type(morphine_coroutine_t U, struct ast *A, ml_line line) { \
-        return body_statement_create(type, U, A, line, 0); }
-
-// as
-
-#define body_as(U, node, nodetype, prefix, typ) \
-    struct nodetype *temp = ast_node_as_##nodetype(U, node); \
-    if(temp->type != prefix##_##typ) { mapi_error(U, "expected " #nodetype " " #typ); } \
-    return (struct nodetype##_##typ *) temp;
-
-#define body_expression_as(U, node, type) body_as(U, node, expression, EXPRESSION_TYPE, type)
-#define body_statement_as(U, node, type) body_as(U, node, statement, STATEMENT_TYPE, type)
-
-#define function_expression_as(type) \
-    struct expression_##type *ast_as_expression_##type(morphine_coroutine_t U, struct ast_node *node) { \
-        body_expression_as(U, node, type); }
-
-#define function_statement_as(type) \
-    struct statement_##type *ast_as_statement_##type(morphine_coroutine_t U, struct ast_node *node) { \
-        body_statement_as(U, node, type); }
-
-/*
- * statement functions
- */
-
-// block
-
-struct statement_block *
-ast_create_statement_block(morphine_coroutine_t U, struct ast *A, ml_line line, size_t size) {
-    size_t extend_size = sizeof(struct statement *) * size;
-    struct statement_block *result = body_statement_create(block, U, A, line, extend_size);
-
-    result->size = size;
-    result->statements = ((void *) result) + sizeof(struct statement_block);
-
-    return result;
-}
-
-function_statement_as(block)
-
-// eval
-
-function_statement_create(eval)
-function_statement_as(eval)
-
-// for
-
-function_statement_create(for)
-function_statement_as(for)
-
-// return
-
-function_statement_create(return)
-function_statement_as(return)
-
-// simple
-
-function_statement_create(simple)
-function_statement_as(simple)
-
-// while
-
-function_statement_create(while)
-function_statement_as(while)
-
-// iterator
-
-struct statement_iterator *ast_create_statement_iterator(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = (sizeof(struct expression *) + sizeof(mc_strtable_index_t)) * size;
-    struct statement_iterator *result = body_statement_create(iterator, U, A, line, extend_size);
-
-    result->size = size;
-    result->multi.names = ((void *) result) + sizeof(struct statement_iterator);
-    result->multi.keys = ((void *) result->multi.names) + sizeof(mc_strtable_index_t) * size;
-
-    return result;
-}
-
-function_statement_as(iterator)
-
-// if
-
-struct statement_if *ast_create_statement_if(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = (sizeof(struct expression *) + sizeof(struct statement *)) * size;
-    struct statement_if *result = body_statement_create(if, U, A, line, extend_size);
-
-    result->size = size;
-    result->elif_conditions = ((void *) result) + sizeof(struct statement_if);
-    result->elif_statements = ((void *) result->elif_conditions) + sizeof(struct expression *) * size;
-
-    return result;
-}
-
-function_statement_as(if)
-
-// declaration
-
-struct statement_declaration *ast_create_statement_declaration(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = (sizeof(struct expression *) + sizeof(mc_strtable_index_t)) * size;
-    struct statement_declaration *result = body_statement_create(declaration, U, A, line, extend_size);
-
-    result->size = size;
-    result->multi.names = ((void *) result) + sizeof(struct statement_declaration);
-    result->multi.keys = ((void *) result->multi.names) + sizeof(mc_strtable_index_t) * size;
-
-    return result;
-}
-
-function_statement_as(declaration)
-
-// assigment
-
-struct statement_assigment *ast_create_statement_assigment(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = sizeof(struct expression *) * 2 * size;
-    struct statement_assigment *result = body_statement_create(assigment, U, A, line, extend_size);
-
-    result->size = size;
-    result->multi.containers = ((void *) result) + sizeof(struct statement_assigment);
-    result->multi.keys = ((void *) result->multi.containers) + sizeof(struct expression *) * size;
-
-    return result;
-}
-
-function_statement_as(assigment)
-
-/*
- * expression functions
- */
-
-// value
-
-function_expression_create(value)
-function_expression_as(value)
-
-// binary
-
-function_expression_create(binary)
-function_expression_as(binary)
-
-// unary
-
-function_expression_create(unary)
-function_expression_as(unary)
-
-// increment
-
-function_expression_create(increment)
-function_expression_as(increment)
-
-// variable
-
-function_expression_create(variable)
-function_expression_as(variable)
-
-// global
-
-function_expression_create(global)
-function_expression_as(global)
-
-// table
-
-struct expression_table *ast_create_expression_table(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = sizeof(struct expression *) * 2 * size;
-    struct expression_table *result = body_expression_create(table, U, A, line, extend_size);
-
-    result->size = size;
-    result->keys = ((void *) result) + sizeof(struct expression_table);
-    result->values = ((void *) result->keys) + sizeof(struct expression *) * size;
-
-    return result;
-}
-
-function_expression_as(table)
-
-// vector
-
-struct expression_vector *ast_create_expression_vector(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = sizeof(struct expression *) * size;
-    struct expression_vector *result = body_expression_create(vector, U, A, line, extend_size);
-
-    result->size = size;
-    result->values = ((void *) result) + sizeof(struct expression_vector);
-
-    return result;
-}
-
-function_expression_as(vector)
-
-// access
-
-function_expression_create(access)
-function_expression_as(access)
-
-// call
-
-struct expression_call *ast_create_expression_call(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = sizeof(struct expression *) * size;
-    struct expression_call *result = body_expression_create(call, U, A, line, extend_size);
-
-    result->args_size = size;
-    result->arguments = ((void *) result) + sizeof(struct expression_call);
-
-    return result;
-}
-
-function_expression_as(call)
-
-// call_self
-
-struct expression_call_self *ast_create_expression_call_self(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = sizeof(struct expression *) * size;
-    struct expression_call_self *result = body_expression_create(call_self, U, A, line, extend_size);
-
-    result->args_size = size;
-    result->arguments = ((void *) result) + sizeof(struct expression_call_self);
-
-    return result;
-}
-
-function_expression_as(call_self)
-
-// function
-
-function_expression_create(function)
-function_expression_as(function)
-
-// block
-
-struct expression_block *ast_create_expression_block(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = sizeof(struct statement *) * size;
-    struct expression_block *result = body_expression_create(block, U, A, line, extend_size);
-
-    result->size = size;
-    result->statements = ((void *) result) + sizeof(struct expression_block);
-
-    return result;
-}
-
-function_expression_as(block)
-
-// if
-
-struct expression_if *ast_create_expression_if(
-    morphine_coroutine_t U, struct ast *A, ml_line line, size_t size
-) {
-    size_t extend_size = sizeof(struct expression *) * 2 * size;
-    struct expression_if *result = body_expression_create(if, U, A, line, extend_size);
-
-    result->size = size;
-    result->elif_conditions = ((void *) result) + sizeof(struct expression_if);
-    result->elif_expressions = ((void *) result->elif_conditions) + sizeof(struct expression *) * size;
-
-    return result;
-}
-
-function_expression_as(if)

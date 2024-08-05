@@ -1,54 +1,81 @@
 //
-// Created by why-iskra on 01.06.2024.
+// Created by why-iskra on 13.08.2024.
 //
 
-#include "impl.h"
-#include "support/decompose.h"
+#include "controller.h"
+#include "extra/decompose.h"
 
-void match_declaration(struct matcher *M) {
-    if (matcher_look(M, symbol_predef_word(MCLTPW_fun)) || matcher_is_reduced(M, REDUCE_TYPE_FUNCTION)) {
-        matcher_reduce(M, REDUCE_TYPE_FUNCTION);
-        return;
+struct mc_ast_node *rule_declaration(struct parse_controller *C) {
+    size_t decompose_size = 0;
+    {
+        if (parser_look(C, et_predef_word(fun))) {
+            parser_reduce(C, rule_function);
+        } else {
+            if (!parser_match(C, et_predef_word(val)) &&
+                !parser_match(C, et_predef_word(var))) {
+                parser_error(C, "expect val, var or fun");
+            }
+
+            decompose_size = extra_consume_decompose(C, true);
+
+            parser_consume(C, et_operator(EQ));
+            parser_reduce(C, rule_expression);
+        }
     }
 
-    if (!matcher_match(M, symbol_predef_word(MCLTPW_val)) && !matcher_match(M, symbol_predef_word(MCLTPW_var))) {
-        matcher_error(M, "expect val, var or fun");
-    }
+    parser_reset(C);
 
-    match_decompose(M, true);
+    ml_line line = parser_get_line(C);
 
-    matcher_consume(M, symbol_operator(MCLTOP_EQ));
-    matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-}
+    struct mc_ast_statement_declaration *declaration =
+        mcapi_ast_create_statement_declaration(parser_U(C), parser_A(C), line, decompose_size);
 
-struct ast_node *assemble_declaration(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    if (!elements_is_token(E, 0)) {
-        struct reduce reduce = elements_get_reduce(E, 0);
-        struct expression_function *function = ast_as_expression_function(U, reduce.node);
-        if (function->ref->anonymous) {
-            elements_error(E, 0, "cannot declare anonymous function");
+    declaration->is_decompose = decompose_size > 0;
+
+    if (parser_look(C, et_predef_word(fun))) {
+        struct mc_ast_expression_function *function =
+            mcapi_ast_node2function_expression(parser_U(C), parser_reduce(C, rule_function));
+
+        struct mc_ast_expression_variable *variable =
+            mcapi_ast_create_expression_variable(parser_U(C), parser_A(C), line);
+
+        variable->ignore_mutable = true;
+        variable->index = function->ref->name;
+
+        declaration->mutable = false;
+        declaration->value = variable;
+        declaration->expression = mcapi_ast_function2expression(function);
+    } else {
+        bool is_var = parser_match(C, et_predef_word(var));
+        if (!is_var) {
+            parser_consume(C, et_predef_word(val));
         }
 
-        struct statement_declaration *result = ast_create_statement_declaration(U, A, reduce.node->line, 0);
-        result->mutable = false;
-        result->expression = ast_as_expression(function);
-        result->name = function->ref->name;
+        declaration->mutable = is_var;
 
-        return ast_as_node(result);
+        if (decompose_size > 0) {
+            extra_extract_decompose(
+                C,
+                true,
+                declaration->decompose.values,
+                NULL,
+                declaration->decompose.keys
+            );
+        } else {
+            extra_extract_decompose(
+                C,
+                true,
+                &declaration->value,
+                NULL,
+                NULL
+            );
+        }
+
+        parser_consume(C, et_operator(EQ));
+
+        declaration->expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
     }
 
-    size_t index = 0;
-    size_t size = size_decompose(U, E, true, 1, &index);
-
-    struct statement_declaration *result = ast_create_statement_declaration(U, A, elements_line(E, 0), size);
-    result->mutable = elements_look(E, 0, symbol_predef_word(MCLTPW_var));
-    result->expression = ast_node_as_expression(U, elements_get_reduce(E, index + 1).node);
-
-    if (size == 0) {
-        insert_decompose(U, A, E, true, 1, &result->name, NULL, NULL);
-    } else {
-        insert_decompose(U, A, E, true, 1, result->multi.names, NULL, result->multi.keys);
-    }
-
-    return ast_as_node(result);
+    return mcapi_ast_statement_declaration2node(declaration);
 }

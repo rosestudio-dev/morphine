@@ -1,63 +1,136 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 06.08.2024.
 //
 
-#include "impl.h"
+#include "controller.h"
 
-void match_prefix(struct matcher *M) {
-    bool matched = matcher_match(M, symbol_operator(MCLTOP_MINUS)) ||
-                   matcher_match(M, symbol_operator(MCLTOP_STAR)) ||
-                   matcher_match(M, symbol_predef_word(MCLTPW_not)) ||
-                   matcher_match(M, symbol_predef_word(MCLTPW_typeof)) ||
-                   matcher_match(M, symbol_predef_word(MCLTPW_lenof)) ||
-                   matcher_match(M, symbol_predef_word(MCLTPW_ref)) ||
-                   matcher_match(M, symbol_operator(MCLTOP_PLUSPLUS)) ||
-                   matcher_match(M, symbol_operator(MCLTOP_MINUSMINUS));
+struct mc_ast_node *rule_prefix(struct parse_controller *C) {
+    {
+        bool matched = parser_match(C, et_operator(MINUS)) ||
+                       parser_match(C, et_operator(STAR)) ||
+                       parser_match(C, et_predef_word(not)) ||
+                       parser_match(C, et_predef_word(typeof)) ||
+                       parser_match(C, et_predef_word(lenof)) ||
+                       parser_match(C, et_predef_word(ref)) ||
+                       parser_match(C, et_operator(PLUSPLUS)) ||
+                       parser_match(C, et_operator(MINUSMINUS));
 
-    if (matched) {
-        matcher_reduce(M, REDUCE_TYPE_PREFIX);
-    } else {
-        matcher_reduce(M, REDUCE_TYPE_POSTFIX);
-    }
-}
-
-struct ast_node *assemble_prefix(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    if (elements_size(E) == 1) {
-        struct reduce reduce = elements_get_reduce(E, 0);
-        return ast_as_node(ast_node_as_expression(U, reduce.node));
+        if (matched) {
+            parser_reduce(C, rule_prefix);
+        } else {
+            parser_reduce(C, rule_postfix);
+        }
     }
 
-    struct mc_lex_token watch_token = elements_get_token(E, 0);
-    struct reduce reduce = elements_get_reduce(E, 1);
+    parser_reset(C);
 
-    if (matcher_symbol(symbol_operator(MCLTOP_PLUSPLUS), watch_token) ||
-        matcher_symbol(symbol_operator(MCLTOP_MINUSMINUS), watch_token)) {
-        struct expression_increment *result = ast_create_expression_increment(U, A, watch_token.line);
-        result->is_postfix = false;
-        result->is_decrement = matcher_symbol(symbol_operator(MCLTOP_MINUSMINUS), watch_token);
-        result->container = ast_node_as_expression(U, reduce.node);
+    ml_line line = parser_get_line(C);
 
-        return ast_as_node(result);
+    if (parser_match(C, et_operator(MINUS))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
+
+        struct mc_ast_expression_unary *unary =
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+
+        unary->type = MCEXPR_UNARY_TYPE_NEGATE;
+        unary->expression = expression;
+
+        return mcapi_ast_expression_unary2node(unary);
     }
 
-    struct expression_unary *result = ast_create_expression_unary(U, A, watch_token.line);
-    result->expression = ast_node_as_expression(U, reduce.node);
+    if (parser_match(C, et_operator(STAR))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
-    if (matcher_symbol(symbol_operator(MCLTOP_MINUS), watch_token)) {
-        result->type = EXPRESSION_UNARY_TYPE_NEGATE;
-    } else if (matcher_symbol(symbol_operator(MCLTOP_STAR), watch_token)) {
-        result->type = EXPRESSION_UNARY_TYPE_DEREF;
-    } else if (matcher_symbol(symbol_predef_word(MCLTPW_not), watch_token)) {
-        result->type = EXPRESSION_UNARY_TYPE_NOT;
-    } else if (matcher_symbol(symbol_predef_word(MCLTPW_lenof), watch_token)) {
-        result->type = EXPRESSION_UNARY_TYPE_LEN;
-    } else if (matcher_symbol(symbol_predef_word(MCLTPW_typeof), watch_token)) {
-        result->type = EXPRESSION_UNARY_TYPE_TYPE;
-    } else if (matcher_symbol(symbol_predef_word(MCLTPW_ref), watch_token)) {
-        result->type = EXPRESSION_UNARY_TYPE_REF;
-    } else {
-        return NULL;
+        struct mc_ast_expression_unary *unary =
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+
+        unary->type = MCEXPR_UNARY_TYPE_DEREF;
+        unary->expression = expression;
+
+        return mcapi_ast_expression_unary2node(unary);
     }
 
-    return ast_as_node(result);
+    if (parser_match(C, et_predef_word(ref))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
+
+        struct mc_ast_expression_unary *unary =
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+
+        unary->type = MCEXPR_UNARY_TYPE_REF;
+        unary->expression = expression;
+
+        return mcapi_ast_expression_unary2node(unary);
+    }
+
+    if (parser_match(C, et_predef_word(not))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
+
+        struct mc_ast_expression_unary *unary =
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+
+        unary->type = MCEXPR_UNARY_TYPE_NOT;
+        unary->expression = expression;
+
+        return mcapi_ast_expression_unary2node(unary);
+    }
+
+    if (parser_match(C, et_predef_word(typeof))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
+
+        struct mc_ast_expression_unary *unary =
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+
+        unary->type = MCEXPR_UNARY_TYPE_TYPE;
+        unary->expression = expression;
+
+        return mcapi_ast_expression_unary2node(unary);
+    }
+
+    if (parser_match(C, et_predef_word(lenof))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
+
+        struct mc_ast_expression_unary *unary =
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+
+        unary->type = MCEXPR_UNARY_TYPE_LEN;
+        unary->expression = expression;
+
+        return mcapi_ast_expression_unary2node(unary);
+    }
+
+    if (parser_match(C, et_operator(PLUSPLUS))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
+
+        struct mc_ast_expression_increment *increment =
+            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), line);
+
+        increment->is_postfix = false;
+        increment->is_decrement = false;
+        increment->expression = expression;
+
+        return mcapi_ast_expression_increment2node(increment);
+    }
+
+    if (parser_match(C, et_operator(MINUSMINUS))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
+
+        struct mc_ast_expression_increment *increment =
+            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), line);
+
+        increment->is_postfix = false;
+        increment->is_decrement = true;
+        increment->expression = expression;
+
+        return mcapi_ast_expression_increment2node(increment);
+    }
+
+    return parser_reduce(C, rule_postfix);
 }

@@ -1,108 +1,108 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 05.08.2024.
 //
 
-#include "impl.h"
+#include "controller.h"
 
-void match_value(struct matcher *M) {
-    if (matcher_match(M, symbol_int)) { return; }
-    if (matcher_match(M, symbol_dec)) { return; }
-    if (matcher_match(M, symbol_str)) { return; }
-    if (matcher_match(M, symbol_word)) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_nil))) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_true))) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_false))) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_env))) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_self))) { return; }
+struct mc_ast_node *rule_value(struct parse_controller *C) {
+    ml_line line = parser_get_line(C);
 
-    if (matcher_match(M, symbol_operator(MCLTOP_LPAREN))) {
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
-        return;
+    if (parser_look(C, et_integer())) {
+        struct mc_lex_token token = parser_consume(C, et_integer());
+        struct mc_ast_expression_value *value =
+            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
+
+        value->type = MCEXPR_VALUE_TYPE_INT;
+        value->value.integer = token.integer;
+
+        return mcapi_ast_expression_value2node(value);
     }
 
-    matcher_error(M, "unexpected token");
-}
+    if (parser_look(C, et_decimal())) {
+        struct mc_lex_token token = parser_consume(C, et_decimal());
+        struct mc_ast_expression_value *value =
+            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
 
-struct ast_node *assemble_value(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    if (!elements_is_token(E, 0)) {
-        return elements_get_reduce(E, 0).node;
+        value->type = MCEXPR_VALUE_TYPE_DEC;
+        value->value.decimal = token.decimal;
+
+        return mcapi_ast_expression_value2node(value);
     }
 
-    struct mc_lex_token watch_token = elements_get_token(E, 0);
+    if (parser_look(C, et_string())) {
+        struct mc_lex_token token = parser_consume(C, et_string());
+        struct mc_ast_expression_value *value =
+            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
 
-    if (matcher_symbol(symbol_int, watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
-        result->type = EXPRESSION_VALUE_TYPE_INT;
-        result->value.integer = watch_token.integer;
+        value->type = MCEXPR_VALUE_TYPE_STR;
+        value->value.string = token.string;
 
-        return ast_as_node(result);
+        return mcapi_ast_expression_value2node(value);
     }
 
-    if (matcher_symbol(symbol_dec, watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
-        result->type = EXPRESSION_VALUE_TYPE_DEC;
-        result->value.decimal = watch_token.decimal;
+    if (parser_look(C, et_word())) {
+        struct mc_lex_token token = parser_consume(C, et_word());
+        struct mc_ast_expression_variable *variable =
+            mcapi_ast_create_expression_variable(parser_U(C), parser_A(C), line);
 
-        return ast_as_node(result);
+        variable->index = token.word;
+        variable->ignore_mutable = false;
+
+        return mcapi_ast_expression_variable2node(variable);
     }
 
-    if (matcher_symbol(symbol_str, watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
-        result->type = EXPRESSION_VALUE_TYPE_STR;
-        result->value.string = watch_token.string;
+    if (parser_match(C, et_predef_word(nil))) {
+        struct mc_ast_expression_value *value =
+            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
 
-        return ast_as_node(result);
+        value->type = MCEXPR_VALUE_TYPE_NIL;
+
+        return mcapi_ast_expression_value2node(value);
     }
 
-    if (matcher_symbol(symbol_word, watch_token)) {
-        struct expression_variable *result = ast_create_expression_variable(U, A, watch_token.line);
-        result->index = watch_token.word;
+    if (parser_match(C, et_predef_word(true))) {
+        struct mc_ast_expression_value *value =
+            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
 
-        return ast_as_node(result);
+        value->type = MCEXPR_VALUE_TYPE_BOOL;
+        value->value.boolean = true;
+
+        return mcapi_ast_expression_value2node(value);
     }
 
-    if (matcher_symbol(symbol_predef_word(MCLTPW_nil), watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
-        result->type = EXPRESSION_VALUE_TYPE_NIL;
+    if (parser_match(C, et_predef_word(false))) {
+        struct mc_ast_expression_value *value =
+            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
 
-        return ast_as_node(result);
+        value->type = MCEXPR_VALUE_TYPE_BOOL;
+        value->value.boolean = false;
+
+        return mcapi_ast_expression_value2node(value);
     }
 
-    if (matcher_symbol(symbol_predef_word(MCLTPW_true), watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
-        result->type = EXPRESSION_VALUE_TYPE_BOOL;
-        result->value.boolean = true;
+    if (parser_match(C, et_predef_word(env))) {
+        struct mc_ast_expression_global *global =
+            mcapi_ast_create_expression_global(parser_U(C), parser_A(C), line);
 
-        return ast_as_node(result);
+        global->type = MCEXPR_GLOBAL_TYPE_ENV;
+
+        return mcapi_ast_expression_global2node(global);
     }
 
-    if (matcher_symbol(symbol_predef_word(MCLTPW_false), watch_token)) {
-        struct expression_value *result = ast_create_expression_value(U, A, watch_token.line);
-        result->type = EXPRESSION_VALUE_TYPE_BOOL;
-        result->value.boolean = false;
+    if (parser_match(C, et_predef_word(self))) {
+        struct mc_ast_expression_global *global =
+            mcapi_ast_create_expression_global(parser_U(C), parser_A(C), line);
 
-        return ast_as_node(result);
+        global->type = MCEXPR_GLOBAL_TYPE_SELF;
+
+        return mcapi_ast_expression_global2node(global);
     }
 
-    if (matcher_symbol(symbol_predef_word(MCLTPW_env), watch_token)) {
-        struct expression_global *result = ast_create_expression_global(U, A, watch_token.line);
-        result->type = EXPRESSION_GLOBAL_TYPE_ENV;
-
-        return ast_as_node(result);
+    if (parser_match(C, et_operator(LPAREN))) {
+        struct mc_ast_node *node = parser_reduce(C, rule_expression);
+        parser_consume(C, et_operator(RPAREN));
+        return node;
     }
 
-    if (matcher_symbol(symbol_predef_word(MCLTPW_self), watch_token)) {
-        struct expression_global *result = ast_create_expression_global(U, A, watch_token.line);
-        result->type = EXPRESSION_GLOBAL_TYPE_SELF;
-
-        return ast_as_node(result);
-    }
-
-    if (matcher_symbol(symbol_operator(MCLTOP_LPAREN), watch_token)) {
-        struct reduce reduce = elements_get_reduce(E, 1);
-        return ast_as_node(ast_node_as_expression(U, reduce.node));
-    }
-
-    return NULL;
+    parser_error(C, "unexpected token");
 }

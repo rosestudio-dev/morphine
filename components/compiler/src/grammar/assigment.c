@@ -1,30 +1,31 @@
 //
-// Created by why-iskra on 01.06.2024.
+// Created by why-iskra on 12.08.2024.
 //
 
-#include "impl.h"
-#include "support/decompose.h"
+#include "controller.h"
+#include "extra/decompose.h"
 
-#define table_size (sizeof(assigment_table) / sizeof(assigment_table[0]))
+#define assigment_table_size (sizeof(assigment_table) / sizeof(assigment_table[0]))
 
 static struct {
-    enum mc_lex_token_operator operator;
-    enum expression_binary_type binary_type;
+    struct mc_lex_token token;
+    enum mc_expression_binary_type binary_type;
 } assigment_table[] = {
-    { .operator = MCLTOP_PLUSEQ, .binary_type = EXPRESSION_BINARY_TYPE_ADD },
-    { .operator = MCLTOP_MINUSEQ, .binary_type = EXPRESSION_BINARY_TYPE_SUB },
-    { .operator = MCLTOP_STAREQ, .binary_type = EXPRESSION_BINARY_TYPE_MUL },
-    { .operator = MCLTOP_SLASHEQ, .binary_type = EXPRESSION_BINARY_TYPE_DIV },
-    { .operator = MCLTOP_DOTDOTEQ, .binary_type = EXPRESSION_BINARY_TYPE_CONCAT },
+    { .token = et_operator(PLUSEQ), .binary_type = MCEXPR_BINARY_TYPE_ADD },
+    { .token = et_operator(MINUSEQ), .binary_type = MCEXPR_BINARY_TYPE_SUB },
+    { .token = et_operator(STAREQ), .binary_type = MCEXPR_BINARY_TYPE_MUL },
+    { .token = et_operator(SLASHEQ), .binary_type = MCEXPR_BINARY_TYPE_DIV },
+    { .token = et_operator(PERCENTEQ), .binary_type = MCEXPR_BINARY_TYPE_MOD },
+    { .token = et_operator(DOTDOTEQ), .binary_type = MCEXPR_BINARY_TYPE_CONCAT },
 };
 
-static bool match_assigment_symbol(struct matcher *M) {
-    if (matcher_match(M, symbol_operator(MCLTOP_EQ))) {
+static bool match_assigment_operator(struct parse_controller *C) {
+    if (parser_match(C, et_operator(EQ))) {
         return true;
     }
 
-    for (size_t i = 0; i < table_size; i++) {
-        if (matcher_match(M, symbol_operator(assigment_table[i].operator))) {
+    for (size_t i = 0; i < assigment_table_size; i++) {
+        if (parser_match(C, assigment_table[i].token)) {
             return true;
         }
     }
@@ -32,67 +33,85 @@ static bool match_assigment_symbol(struct matcher *M) {
     return false;
 }
 
-void match_assigment(struct matcher *M) {
-    if (match_decompose(M, false)) {
-        matcher_consume(M, symbol_operator(MCLTOP_EQ));
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-    } else if (match_assigment_symbol(M)) {
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
+static struct mc_ast_expression *build_assigment(
+    struct parse_controller *C,
+    struct mc_ast_expression *destination
+) {
+    for (size_t i = 0; i < assigment_table_size; i++) {
+        ml_line line = parser_get_line(C);
+        if (parser_match(C, assigment_table[i].token)) {
+            struct mc_ast_expression *expression =
+                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+
+            struct mc_ast_expression_binary *binary =
+                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), line);
+
+            binary->type = assigment_table[i].binary_type;
+            binary->a = destination;
+            binary->b = expression;
+
+            return mcapi_ast_binary2expression(binary);
+        }
     }
+
+    parser_consume(C, et_operator(EQ));
+    return mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 }
 
-struct ast_node *assemble_assigment(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    size_t index = 0;
-    size_t size = size_decompose(U, E, false, 0, &index);
-
-    if (size == 0 && elements_size(E) == index) {
-        struct ast_node *node = elements_get_reduce(E, 0).node;
-        struct expression *expression = ast_node_as_expression(U, node);
-
-        struct statement_eval *result = ast_create_statement_eval(U, A, elements_line(E, 0));
-
-        enum expression_type type = ast_expression_type(expression);
-        result->implicit = type != EXPRESSION_TYPE_call &&
-                           type != EXPRESSION_TYPE_call_self &&
-                           type != EXPRESSION_TYPE_increment;
-
-        result->expression = expression;
-
-        return ast_as_node(result);
+struct mc_ast_node *rule_assigment(struct parse_controller *C) {
+    size_t decompose_size;
+    bool simple_expression = false;
+    ml_line line;
+    {
+        decompose_size = extra_consume_decompose(C, false);
+        line = parser_get_line(C);
+        if (decompose_size > 0) {
+            parser_consume(C, et_operator(EQ));
+            parser_reduce(C, rule_expression);
+        } else if (match_assigment_operator(C)) {
+            parser_reduce(C, rule_expression);
+        } else {
+            simple_expression = true;
+        }
     }
 
-    struct statement_assigment *result = ast_create_statement_assigment(U, A, elements_line(E, 0), size);
-    result->expression = ast_node_as_expression(U, elements_get_reduce(E, index + 1).node);
+    parser_reset(C);
 
-    if (size == 0) {
-        insert_decompose(U, A, E, false, 0, NULL, &result->container, NULL);
+    if (simple_expression) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+
+        struct mc_ast_statement_eval *eval =
+            mcapi_ast_create_statement_eval(parser_U(C), parser_A(C), expression->node.line);
+
+        eval->expression = expression;
+        eval->implicit = expression->type != MCEXPRT_call &&
+                         expression->type != MCEXPRT_increment;
+
+        return mcapi_ast_statement_eval2node(eval);
+    }
+
+    struct mc_ast_statement_assigment *assigment =
+        mcapi_ast_create_statement_assigment(parser_U(C), parser_A(C), line, decompose_size);
+
+    if (decompose_size > 0) {
+        assigment->is_decompose = true;
+        extra_extract_decompose(
+            C, false, NULL, assigment->decompose.values, assigment->decompose.keys
+        );
+
+        parser_consume(C, et_operator(EQ));
+
+        assigment->expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
     } else {
-        insert_decompose(U, A, E, false, 0, NULL, result->multi.containers, result->multi.keys);
+        assigment->is_decompose = false;
+        extra_extract_decompose(
+            C, false, NULL, &assigment->value, NULL
+        );
+
+        assigment->expression = build_assigment(C, assigment->value);
     }
 
-    struct mc_lex_token eq = elements_get_token(E, index);
-    if (size == 0 && !matcher_symbol(symbol_operator(MCLTOP_EQ), eq)) {
-        bool found = false;
-        enum expression_binary_type type;
-        for (size_t i = 0; i < table_size; i++) {
-            if (matcher_symbol(symbol_operator(assigment_table[i].operator), eq)) {
-                type = assigment_table[i].binary_type;
-                found = true;
-                break;
-            }
-        }
-
-        if (!found) {
-            return NULL;
-        }
-
-        struct expression_binary *binary = ast_create_expression_binary(U, A, elements_line(E, index));
-        binary->type = type;
-        binary->a = result->container;
-        binary->b = result->expression;
-
-        result->expression = ast_as_expression(binary);
-    }
-
-    return ast_as_node(result);
+    return mcapi_ast_statement_assigment2node(assigment);
 }

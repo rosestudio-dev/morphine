@@ -2,264 +2,393 @@
 // Created by why-iskra on 03.06.2024.
 //
 
-#include <string.h>
 #include <setjmp.h>
 #include "morphinec/visitor.h"
-#include "morphinec/stack.h"
-#include "morphinec/config.h"
 
-enum jump_type {
-    JT_VISIT_NODE,
-    JT_VISIT_FUNCTION,
-    JT_NEXT,
-    JT_RETURN,
+enum command {
+    COMMAND_NODE,
+    COMMAND_FUNCTION,
+    COMMAND_JUMP,
+    COMMAND_COMPLETE,
 };
 
-struct context {
-    struct ast_node *node;
-    bool function_root;
+struct node_context {
+    bool has_allocated_data;
+    void *allocated_data;
+    struct mc_ast_node *node;
     size_t state;
-    void *save;
+
+    struct node_context *prev;
 };
 
-define_stack(function, struct ast_function *)
-define_stack_push(function, struct ast_function *)
-define_stack(context, struct context)
+struct function_context {
+    struct mc_ast_function *function;
+    struct node_context *root_node_context;
+    struct function_context *prev;
+};
 
-define_stack_push(context, struct context)
-define_stack_pop(context, struct context)
-define_stack_peek(context, struct context)
-define_stack_get(context, struct context)
+struct mc_visitor {
+    bool first_launch;
 
-struct visitor {
-    bool inited;
+    struct node_context *node_context;
+    struct function_context *function_context;
+
+    struct {
+        struct node_context *node_context;
+        struct function_context *function_context;
+    } trash;
+};
+
+struct mc_visitor_controller {
+    morphine_coroutine_t U;
+    struct mc_visitor *V;
 
     void *data;
-    visit_func_t visit_func;
-
-    struct stack_function function_stack;
-    struct stack_context context_stack;
-};
-
-struct visitor_controller {
-    morphine_coroutine_t U;
-    struct visitor *V;
     jmp_buf jump;
-    struct context *context;
-    void *prev_save;
 
-    size_t next_state;
-    enum jump_type jump_type;
-    union {
-        struct ast_node *node;
-        struct ast_function *function;
-    };
+    struct {
+        enum command type;
+        size_t next_state;
+        union {
+            struct mc_ast_node *node;
+            struct mc_ast_function *function;
+        };
+    } command;
 };
 
-bool visitor_has_saved(struct visitor_controller *C) {
-    return C->context->save != NULL;
-}
-
-bool visitor_save(struct visitor_controller *C, size_t size, void **save) {
-    if (C->context->save == NULL) {
-        C->context->save = mapi_allocator_uni(mapi_instance(C->U), NULL, size);
-        *save = C->context->save;
-        return true;
+static struct function_context *push_function(
+    morphine_coroutine_t U,
+    struct mc_visitor *V,
+    struct mc_ast_function *function
+) {
+    struct function_context *context;
+    if (V->trash.function_context != NULL) {
+        context = V->trash.function_context;
+        V->trash.function_context = context->prev;
     } else {
-        *save = C->context->save;
-        return false;
+        context = mapi_allocator_uni(
+            mapi_instance(U), NULL, sizeof(struct function_context)
+        );
     }
+
+    *context = (struct function_context) {
+        .function = function,
+        .root_node_context = NULL,
+        .prev = V->function_context
+    };
+
+    V->function_context = context;
+
+    return context;
 }
 
-void *visitor_prev_save(struct visitor_controller *C) {
-    return C->prev_save;
-}
-
-void *visitor_data(struct visitor_controller *C) {
-    return C->V->data;
-}
-
-ml_line visitor_line(struct visitor_controller *C) {
-    return ast_node_line(C->context->node);
-}
-
-bool visitor_is_function_root(struct visitor_controller *C) {
-    return C->context->function_root;
-}
-
-morphine_noret void visitor_next(struct visitor_controller *C, size_t state) {
-    C->jump_type = JT_NEXT;
-    C->next_state = state;
-    longjmp(C->jump, 1);
-}
-
-morphine_noret void visitor_node(
-    struct visitor_controller *C,
-    size_t state,
-    struct ast_node *node
+static struct node_context *push_node(
+    morphine_coroutine_t U,
+    struct mc_visitor *V,
+    struct mc_ast_node *node
 ) {
-    C->jump_type = JT_VISIT_NODE;
-    C->next_state = state;
-    C->node = node;
-    longjmp(C->jump, 1);
-}
-
-morphine_noret void visitor_function(
-    struct visitor_controller *C,
-    size_t state,
-    struct ast_function *function
-) {
-    C->jump_type = JT_VISIT_FUNCTION;
-    C->next_state = state;
-    C->function = function;
-    longjmp(C->jump, 1);
-}
-
-morphine_noret void visitor_return(struct visitor_controller *C) {
-    C->jump_type = JT_RETURN;
-    longjmp(C->jump, 1);
-}
-
-static void visitor_free(morphine_instance_t I, void *p) {
-    struct visitor *V = p;
-
-    stack_iterator(V->context_stack, index) {
-        struct context *context = stack_it(V->context_stack, index);
-        mapi_allocator_free(I, context->save);
-    }
-
-    stack_function_free(I, &V->function_stack);
-    stack_context_free(I, &V->context_stack);
-}
-
-struct visitor *visitor(morphine_coroutine_t U, struct ast *A) {
-    struct ast_function *functions = ast_functions(A);
-    if (functions == NULL) {
-        mapi_error(U, "empty ast");
-    }
-
-    struct visitor *V = mapi_push_userdata_uni(U, sizeof(struct visitor));
-
-    *V = (struct visitor) {
-        .inited = false,
-        .visit_func = NULL,
-        .data = NULL,
-    };
-
-    stack_context_init(
-        &V->context_stack,
-        VISITOR_STACK_EXPANSION_FACTOR,
-        VISITOR_LIMIT_STACK_FUNCTIONS
-    );
-
-    stack_function_init(
-        &V->function_stack,
-        VISITOR_STACK_EXPANSION_FACTOR,
-        VISITOR_LIMIT_STACK_CONTEXTS
-    );
-
-    mapi_userdata_set_free(U, visitor_free);
-
-    *stack_function_push(U, &V->function_stack) = functions;
-    *stack_context_push(U, &V->context_stack) = (struct context) {
-        .save = NULL,
-        .function_root = true,
-        .node = ast_as_node(functions->body),
-        .state = 0
-    };
-
-    return V;
-}
-
-struct visitor *get_visitor(morphine_coroutine_t U) {
-    return mapi_userdata_pointer(U, NULL);
-}
-
-void visitor_setup(morphine_coroutine_t U, struct visitor *V, visit_func_t func, void *data) {
-    if (V->inited) {
-        mapi_error(U, "visitor is already inited");
-    }
-
-    V->visit_func = func;
-    V->data = data;
-    V->inited = true;
-}
-
-bool visitor_step(morphine_coroutine_t U, struct visitor *V, void *save) {
-    if (!V->inited) {
-        mapi_error(U, "visitor isn't inited");
-    }
-
-    if (stack_size(V->context_stack) == 0) {
-        return false;
-    }
-
-    struct context *context = stack_context_peek(U, &V->context_stack);
-
-    struct visitor_controller controller = {
-        .U = U,
-        .V = V,
-        .context = context
-    };
-
-    if (stack_size(V->context_stack) > 1) {
-        struct context prev_context = *stack_context_get(
-            U,
-            &V->context_stack,
-            stack_size(V->context_stack) - 2
+    struct node_context *context;
+    if (V->trash.node_context != NULL) {
+        context = V->trash.node_context;
+        V->trash.node_context = context->prev;
+    } else {
+        context = mapi_allocator_uni(
+            mapi_instance(U), NULL, sizeof(struct node_context)
         );
 
-        controller.prev_save = prev_context.save;
-    } else {
-        controller.prev_save = save;
+        context->allocated_data = NULL;
     }
 
+    context->has_allocated_data = false;
+    context->state = 0;
+    context->node = node;
+    context->prev = V->node_context;
+
+    V->node_context = context;
+
+    return context;
+}
+
+static void pop_function(morphine_coroutine_t U, struct mc_visitor *V) {
+    if (V->function_context == NULL) {
+        mapi_error(U, "empty stack of function context");
+    }
+
+    struct function_context *context = V->function_context;
+    V->function_context = context->prev;
+
+    context->prev = V->trash.function_context;
+    V->trash.function_context = context;
+}
+
+static void pop_node(morphine_coroutine_t U, struct mc_visitor *V) {
+    if (V->node_context == NULL) {
+        mapi_error(U, "empty stack of node context");
+    }
+
+    struct node_context *context = V->node_context;
+    V->node_context = context->prev;
+
+    context->prev = V->trash.node_context;
+    V->trash.node_context = context;
+}
+
+// controller
+
+MORPHINE_API morphine_noret void mcapi_visitor_node(
+    struct mc_visitor_controller *C,
+    struct mc_ast_node *node,
+    size_t next_state
+) {
+    C->command.type = COMMAND_NODE;
+    C->command.node = node;
+    C->command.next_state = next_state;
+    longjmp(C->jump, 1);
+}
+
+MORPHINE_API morphine_noret void mcapi_visitor_function(
+    struct mc_visitor_controller *C,
+    struct mc_ast_function *function,
+    size_t next_state
+) {
+    C->command.type = COMMAND_FUNCTION;
+    C->command.function = function;
+    C->command.next_state = next_state;
+    longjmp(C->jump, 1);
+}
+
+MORPHINE_API morphine_noret void mcapi_visitor_jump(
+    struct mc_visitor_controller *C,
+    size_t next_state
+) {
+    C->command.type = COMMAND_JUMP;
+    C->command.next_state = next_state;
+    longjmp(C->jump, 1);
+}
+
+MORPHINE_API morphine_noret void mcapi_visitor_complete(
+    struct mc_visitor_controller *C
+) {
+    C->command.type = COMMAND_COMPLETE;
+    longjmp(C->jump, 1);
+}
+
+MORPHINE_API void *mcapi_visitor_data(struct mc_visitor_controller *C) {
+    return C->data;
+}
+
+MORPHINE_API void *mcapi_visitor_saved(struct mc_visitor_controller *C) {
+    struct node_context *context = C->V->node_context;
+    if (context->has_allocated_data) {
+        return context->allocated_data;
+    }
+
+    return NULL;
+}
+
+MORPHINE_API void *mcapi_visitor_alloc_saved_uni(
+    struct mc_visitor_controller *C, size_t size
+) {
+    struct node_context *context = C->V->node_context;
+    context->allocated_data = mapi_allocator_uni(
+        mapi_instance(C->U), context->allocated_data, size
+    );
+    context->has_allocated_data = true;
+
+    return context->allocated_data;
+}
+
+MORPHINE_API void *mcapi_visitor_alloc_saved_vec(
+    struct mc_visitor_controller *C, size_t count, size_t size
+) {
+    struct node_context *context = C->V->node_context;
+    context->allocated_data = mapi_allocator_vec(
+        mapi_instance(C->U), context->allocated_data, count, size
+    );
+    context->has_allocated_data = true;
+
+    return context->allocated_data;
+}
+
+// api
+
+static void visitor_userdata_init(morphine_instance_t I, void *data) {
+    (void) I;
+
+    struct mc_visitor *V = data;
+    *V = (struct mc_visitor) {
+        .first_launch = true,
+        .node_context = NULL,
+        .function_context = NULL,
+        .trash.node_context = NULL,
+        .trash.function_context = NULL
+    };
+}
+
+static void visitor_userdata_free_node_context(
+    morphine_instance_t I,
+    struct node_context *context
+) {
+    struct node_context *current = context;
+    while (current != NULL) {
+        struct node_context *prev = current->prev;
+
+        mapi_allocator_free(I, current->allocated_data);
+        mapi_allocator_free(I, current);
+
+        current = prev;
+    }
+}
+
+static void visitor_userdata_free_function_context(
+    morphine_instance_t I,
+    struct function_context *context
+) {
+    struct function_context *current = context;
+    while (current != NULL) {
+        struct function_context *prev = current->prev;
+
+        mapi_allocator_free(I, current);
+
+        current = prev;
+    }
+}
+
+static void visitor_userdata_free(morphine_instance_t I, void *data) {
+    struct mc_visitor *V = data;
+    visitor_userdata_free_node_context(I, V->node_context);
+    visitor_userdata_free_node_context(I, V->trash.node_context);
+    visitor_userdata_free_function_context(I, V->function_context);
+    visitor_userdata_free_function_context(I, V->trash.function_context);
+}
+
+MORPHINE_API struct mc_visitor *mcapi_push_visitor(morphine_coroutine_t U) {
+    mapi_type_declare(
+        mapi_instance(U),
+        MC_VISITOR_USERDATA_TYPE,
+        sizeof(struct mc_visitor),
+        visitor_userdata_init,
+        visitor_userdata_free,
+        false
+    );
+
+    return mapi_push_userdata(U, MC_VISITOR_USERDATA_TYPE);
+}
+
+MORPHINE_API struct mc_visitor *mcapi_get_visitor(morphine_coroutine_t U) {
+    return mapi_userdata_pointer(U, MC_VISITOR_USERDATA_TYPE);
+}
+
+MORPHINE_API bool mcapi_visitor_step(
+    morphine_coroutine_t U,
+    struct mc_visitor *V,
+    struct mc_ast *A,
+    mc_visitor_function_t function,
+    enum mc_visitor_event *event,
+    void *data
+) {
+    struct mc_visitor_controller controller = {
+        .U = U,
+        .V = V,
+        .data = data
+    };
+
     if (setjmp(controller.jump) != 0) {
-        switch (controller.jump_type) {
-            case JT_VISIT_NODE: {
-                context->state = controller.next_state;
-                *stack_context_push(U, &V->context_stack) = (struct context) {
-                    .save = NULL,
-                    .function_root = false,
-                    .node = ast_as_node(controller.node),
-                    .state = 0
-                };
-                break;
+        switch (controller.command.type) {
+            case COMMAND_NODE: {
+                V->node_context->state = controller.command.next_state;
+                push_node(U, V, controller.command.node);
+
+                if (event != NULL) {
+                    *event = MCVE_ENTER_NODE;
+                }
+                return true;
             }
-            case JT_VISIT_FUNCTION: {
-                stack_iterator(V->function_stack, index) {
-                    struct ast_function *fun = *stack_it(V->function_stack, index);
-                    if (fun == controller.function) {
+            case COMMAND_FUNCTION: {
+                struct function_context *current = V->function_context;
+                while (current != NULL) {
+                    if (current->function == controller.command.function) {
                         mapi_error(U, "ast recursion");
                     }
+
+                    current = current->prev;
                 }
 
-                context->state = controller.next_state;
-                *stack_function_push(U, &V->function_stack) = controller.function;
-                *stack_context_push(U, &V->context_stack) = (struct context) {
-                    .save = NULL,
-                    .function_root = true,
-                    .node = ast_as_node(controller.function->body),
-                    .state = 0
-                };
-                break;
+                V->node_context->state = controller.command.next_state;
+                struct function_context *function_context = push_function(
+                    U, V, controller.command.function
+                );
+
+                struct node_context *node_context = push_node(
+                    U, V, mcapi_ast_statement2node(controller.command.function->body)
+                );
+
+                function_context->root_node_context = node_context;
+
+                if (event != NULL) {
+                    *event = MCVE_ENTER_FUNCTION;
+                }
+                return true;
             }
-            case JT_NEXT: {
-                context->state = controller.next_state;
-                break;
+            case COMMAND_JUMP: {
+                V->node_context->state = controller.command.next_state;
+
+                if (event != NULL) {
+                    *event = MCVE_NEXT_STEP;
+                }
+                return true;
             }
-            case JT_RETURN: {
-                stack_context_pop(U, &V->context_stack, 1);
-                mapi_allocator_free(mapi_instance(U), context->save);
-                break;
+            case COMMAND_COMPLETE: {
+                struct function_context *function_context = V->function_context;
+                struct node_context *node_context = V->node_context;
+                bool is_root_context = node_context == function_context->root_node_context;
+
+                if (is_root_context) {
+                    pop_function(U, V);
+                }
+
+                pop_node(U, V);
+
+                if (event != NULL) {
+                    if (is_root_context) {
+                        *event = MCVE_DROP_FUNCTION;
+                    } else {
+                        *event = MCVE_DROP_NODE;
+                    }
+                }
+                return true;
             }
-            default:
-                mapi_error(U, "unknown visitor jump");
+        }
+
+        mapi_error(U, "unknown visitor command");
+    }
+
+    if (V->first_launch) {
+        V->first_launch = false;
+
+        struct mc_ast_function *root = mcapi_ast_get_root_function(A);
+
+        struct function_context *function_context = push_function(U, V, root);
+        struct node_context *node_context = push_node(
+            U, V, mcapi_ast_statement2node(root->body)
+        );
+
+        function_context->root_node_context = node_context;
+
+        if (event != NULL) {
+            *event = MCVE_INIT;
         }
 
         return true;
+    } else if (V->node_context == NULL) {
+        if (event != NULL) {
+            *event = MCVE_COMPLETE;
+        }
+
+        return false;
     }
 
-    V->visit_func(&controller, context->node, context->state);
+    function(&controller, V->node_context->node, V->node_context->state);
+
     mapi_error(U, "incomplete visitor");
 }

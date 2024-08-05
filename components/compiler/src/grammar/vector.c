@@ -1,60 +1,43 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 05.08.2024.
 //
 
-#include "impl.h"
-#include "support/arguments.h"
+#include "controller.h"
+#include "extra/arguments.h"
 
-void match_vector(struct matcher *M) {
-    struct argument_matcher R = {
-        .assemble = false,
-        .M = M,
-        .separator = symbol_operator(MCLTOP_COMMA),
-        .has_open_close = true,
-        .consume_open = true,
-        .open_symbol = symbol_operator(MCLTOP_LBRACKET),
-        .close_symbol = symbol_operator(MCLTOP_RBRACKET),
-    };
+struct mc_ast_node *rule_vector(struct parse_controller *C) {
+    size_t count;
+    {
+        struct arguments A = extra_arguments_init_full(
+            C, true, et_operator(LBRACKET), et_operator(RBRACKET), et_operator(COMMA)
+        );
 
-    if (argument_matcher_init(&R, 0)) {
-        do {
-            matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        } while (argument_matcher_next(&R));
+        while (extra_arguments_next(C, &A)) {
+            parser_reduce(C, rule_expression);
+        }
+
+        count = extra_arguments_finish(C, &A);
     }
-    argument_matcher_close(&R);
-}
 
+    parser_reset(C);
 
-struct ast_node *assemble_vector(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    struct argument_matcher R = {
-        .assemble = true,
-        .E = E,
-        .U = U,
-        .separator = symbol_operator(MCLTOP_COMMA),
-        .has_open_close = true,
-        .consume_open = true,
-        .open_symbol = symbol_operator(MCLTOP_LBRACKET),
-        .close_symbol = symbol_operator(MCLTOP_RBRACKET),
-    };
+    ml_line line = parser_get_line(C);
 
-    if (argument_matcher_init(&R, 0)) {
-        do {
-            argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
-        } while (argument_matcher_next(&R));
-    }
-    size_t size = argument_matcher_close(&R);
+    struct mc_ast_expression_vector *vector =
+        mcapi_ast_create_expression_vector(parser_U(C), parser_A(C), line, count);
 
-    struct expression_vector *result = ast_create_expression_vector(
-        U, A, elements_get_token(E, 0).line, size
+    struct arguments A = extra_arguments_init_full(
+        C, true, et_operator(LBRACKET), et_operator(RBRACKET), et_operator(COMMA)
     );
 
-    if (argument_matcher_init(&R, 0)) {
-        do {
-            struct reduce reduce = argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
-            result->values[R.count] = ast_node_as_expression(U, reduce.node);
-        } while (argument_matcher_next(&R));
-    }
-    argument_matcher_close(&R);
+    for (size_t i = 0; extra_arguments_next(C, &A); i++) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
-    return ast_as_node(result);
+        vector->expressions[i] = expression;
+    }
+
+    extra_arguments_finish(C, &A);
+
+    return mcapi_ast_expression_vector2node(vector);
 }

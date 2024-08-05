@@ -1,36 +1,47 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 08.08.2024.
 //
 
-#include "impl.h"
+#include "controller.h"
 
-void match_for(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(MCLTPW_for));
+struct mc_ast_node *rule_for(struct parse_controller *C) {
+    {
+        parser_consume(C, et_predef_word(for));
+        parser_consume(C, et_operator(LPAREN));
+        parser_reduce(C, rule_statement_explicit_without_semicolon);
+        parser_consume(C, et_operator(SEMICOLON));
+        parser_reduce(C, rule_expression);
+        parser_consume(C, et_operator(SEMICOLON));
+        parser_reduce(C, rule_statement_explicit_without_semicolon);
+        parser_consume(C, et_operator(RPAREN));
+        parser_reduce(C, rule_statement_block);
+    }
 
-    matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
-    matcher_reduce(M, REDUCE_TYPE_STATEMENT);
-    matcher_consume(M, symbol_operator(MCLTOP_SEMICOLON));
-    matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-    matcher_consume(M, symbol_operator(MCLTOP_SEMICOLON));
-    matcher_reduce(M, REDUCE_TYPE_STATEMENT);
-    matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
+    parser_reset(C);
 
-    matcher_reduce(M, REDUCE_TYPE_STATEMENT_BLOCK);
-}
+    ml_line line = parser_get_line(C);
 
-struct ast_node *assemble_for(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    ml_line line = elements_get_token(E, 0).line;
-    struct statement_for *result = ast_create_statement_for(U, A, line);
+    parser_consume(C, et_predef_word(for));
+    parser_consume(C, et_operator(LPAREN));
+    struct mc_ast_statement *initial =
+        mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_explicit_without_semicolon));
+    parser_consume(C, et_operator(SEMICOLON));
+    struct mc_ast_expression *condition =
+        mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+    parser_consume(C, et_operator(SEMICOLON));
+    struct mc_ast_statement *increment =
+        mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_explicit_without_semicolon));
+    parser_consume(C, et_operator(RPAREN));
+    struct mc_ast_statement *statement =
+        mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
 
-    struct reduce reduce_initial = elements_get_reduce(E, 2);
-    struct reduce reduce_condition = elements_get_reduce(E, 4);
-    struct reduce reduce_increment = elements_get_reduce(E, 6);
-    struct reduce reduce_statement = elements_get_reduce(E, 8);
+    struct mc_ast_statement_for *statement_for =
+        mcapi_ast_create_statement_for(parser_U(C), parser_A(C), line);
 
-    result->initial = ast_node_as_statement(U, reduce_initial.node);
-    result->condition = ast_node_as_expression(U, reduce_condition.node);
-    result->increment = ast_node_as_statement(U, reduce_increment.node);
-    result->statement = ast_node_as_statement(U, reduce_statement.node);
+    statement_for->initial = initial;
+    statement_for->condition = condition;
+    statement_for->increment = increment;
+    statement_for->statement = statement;
 
-    return ast_as_node(result);
+    return mcapi_ast_statement_for2node(statement_for);
 }

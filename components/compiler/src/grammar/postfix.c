@@ -1,39 +1,46 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 05.08.2024.
 //
 
-#include "impl.h"
+#include "controller.h"
 
-bool match_postfix(struct matcher *M, bool is_wrapped) {
-    if (!is_wrapped) {
-        matcher_reduce(M, REDUCE_TYPE_PRIMARY);
+struct mc_ast_node *rule_postfix(struct parse_controller *C) {
+    {
+        parser_reduce(C, rule_primary);
+
+        bool matched;
+        do {
+            matched = parser_match(C, et_operator(PLUSPLUS)) ||
+                      parser_match(C, et_operator(MINUSMINUS));
+        } while (matched);
     }
 
-    bool matched = matcher_match(M, symbol_operator(MCLTOP_PLUSPLUS)) ||
-                   matcher_match(M, symbol_operator(MCLTOP_MINUSMINUS));
+    parser_reset(C);
 
-    return matched;
-}
+    struct mc_ast_expression *expression =
+        mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_primary));
 
-struct ast_node *assemble_postfix(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    struct reduce reduce = elements_get_reduce(E, 0);
-    if (elements_size(E) == 1) {
-        return ast_as_node(ast_node_as_expression(U, reduce.node));
+    while (true) {
+        ml_line line = parser_get_line(C);
+
+        bool is_decrement;
+        if (parser_match(C, et_operator(PLUSPLUS))) {
+            is_decrement = false;
+        } else if (parser_match(C, et_operator(MINUSMINUS))) {
+            is_decrement = true;
+        } else {
+            break;
+        }
+
+        struct mc_ast_expression_increment *increment =
+            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), line);
+
+        increment->is_postfix = true;
+        increment->is_decrement = is_decrement;
+        increment->expression = expression;
+
+        expression = mcapi_ast_increment2expression(increment);
     }
 
-    struct mc_lex_token watch_token = elements_get_token(E, 1);
-
-    struct expression_increment *result = ast_create_expression_increment(U, A, watch_token.line);
-    result->is_postfix = true;
-    result->container = ast_node_as_expression(U, reduce.node);
-
-    if (matcher_symbol(symbol_operator(MCLTOP_PLUSPLUS), watch_token)) {
-        result->is_decrement = false;
-    } else if (matcher_symbol(symbol_operator(MCLTOP_MINUSMINUS), watch_token)) {
-        result->is_decrement = true;
-    } else {
-        return NULL;
-    }
-
-    return ast_as_node(result);
+    return mcapi_ast_expression2node(expression);
 }

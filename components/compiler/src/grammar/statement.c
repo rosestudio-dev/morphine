@@ -1,125 +1,134 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 08.08.2024.
 //
 
-#include "impl.h"
+#include "controller.h"
 
-void match_statement(struct matcher *M) {
-    if (matcher_match(M, symbol_predef_word(MCLTPW_pass))) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_yield))) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_leave))) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_break))) { return; }
-    if (matcher_match(M, symbol_predef_word(MCLTPW_continue))) { return; }
+static struct mc_ast_node *rule_statement(struct parse_controller *C) {
+    ml_line line = parser_get_line(C);
+    if (parser_match(C, et_predef_word(pass))) {
+        struct mc_ast_statement_simple *simple =
+            mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
 
-    if (matcher_match(M, symbol_predef_word(MCLTPW_eval))) {
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        return;
+        simple->type = MCSTMT_SIMPLE_TYPE_PASS;
+
+        return mcapi_ast_statement_simple2node(simple);
     }
 
-    if (matcher_match(M, symbol_predef_word(MCLTPW_return))) {
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        return;
+    if (parser_match(C, et_predef_word(yield))) {
+        struct mc_ast_statement_simple *simple =
+            mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
+
+        simple->type = MCSTMT_SIMPLE_TYPE_YIELD;
+
+        return mcapi_ast_statement_simple2node(simple);
     }
 
-    if (matcher_look(M, symbol_predef_word(MCLTPW_while)) ||
-        matcher_is_reduced(M, REDUCE_TYPE_WHILE)) {
-        matcher_reduce(M, REDUCE_TYPE_WHILE);
-        return;
+    if (parser_match(C, et_predef_word(leave))) {
+        struct mc_ast_statement_leave *leave =
+            mcapi_ast_create_statement_leave(parser_U(C), parser_A(C), line);
+
+        leave->expression = NULL;
+
+        return mcapi_ast_statement_leave2node(leave);
     }
 
-    if (matcher_look(M, symbol_predef_word(MCLTPW_do)) ||
-        matcher_is_reduced(M, REDUCE_TYPE_DO_WHILE)) {
-        matcher_reduce(M, REDUCE_TYPE_DO_WHILE);
-        return;
+    if (parser_match(C, et_predef_word(break))) {
+        struct mc_ast_statement_simple *simple =
+            mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
+
+        simple->type = MCSTMT_SIMPLE_TYPE_BREAK;
+
+        return mcapi_ast_statement_simple2node(simple);
     }
 
-    if (matcher_look(M, symbol_predef_word(MCLTPW_for)) ||
-        matcher_is_reduced(M, REDUCE_TYPE_FOR)) {
-        matcher_reduce(M, REDUCE_TYPE_FOR);
-        return;
+    if (parser_match(C, et_predef_word(continue))) {
+        struct mc_ast_statement_simple *simple =
+            mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
+
+        simple->type = MCSTMT_SIMPLE_TYPE_CONTINUE;
+
+        return mcapi_ast_statement_simple2node(simple);
     }
 
-    if (matcher_look(M, symbol_predef_word(MCLTPW_iterator)) ||
-        matcher_is_reduced(M, REDUCE_TYPE_ITERATOR)) {
-        matcher_reduce(M, REDUCE_TYPE_ITERATOR);
-        return;
+    if (parser_match(C, et_predef_word(eval))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+
+        struct mc_ast_statement_eval *eval =
+            mcapi_ast_create_statement_eval(parser_U(C), parser_A(C), line);
+
+        eval->implicit = false;
+        eval->expression = expression;
+
+        return mcapi_ast_statement_eval2node(eval);
     }
 
-    if (matcher_look(M, symbol_predef_word(MCLTPW_if)) ||
-        matcher_is_reduced(M, REDUCE_TYPE_STATEMENT_IF)) {
-        matcher_reduce(M, REDUCE_TYPE_STATEMENT_IF);
-        return;
+    if (parser_match(C, et_predef_word(return))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+
+        struct mc_ast_statement_leave *leave =
+            mcapi_ast_create_statement_leave(parser_U(C), parser_A(C), line);
+
+        leave->expression = expression;
+
+        return mcapi_ast_statement_leave2node(leave);
     }
 
-    if (matcher_look(M, symbol_predef_word(MCLTPW_val)) ||
-        matcher_look(M, symbol_predef_word(MCLTPW_var)) ||
-        matcher_look(M, symbol_predef_word(MCLTPW_fun)) ||
-        matcher_is_reduced(M, REDUCE_TYPE_DECLARATION)) {
-        matcher_reduce(M, REDUCE_TYPE_DECLARATION);
-        return;
+    if (parser_look(C, et_predef_word(while))) {
+        return parser_reduce(C, rule_while);
     }
 
-    matcher_reduce(M, REDUCE_TYPE_ASSIGMENT);
+    if (parser_look(C, et_predef_word(do))) {
+        return parser_reduce(C, rule_dowhile);
+    }
+
+    if (parser_look(C, et_predef_word(for))) {
+        return parser_reduce(C, rule_for);
+    }
+
+    if (parser_look(C, et_predef_word(iterator))) {
+        return parser_reduce(C, rule_iterator);
+    }
+
+    if (parser_look(C, et_predef_word(if))) {
+        return parser_reduce(C, rule_statement_if);
+    }
+
+    if (parser_look(C, et_predef_word(val)) ||
+        parser_look(C, et_predef_word(var)) ||
+        parser_look(C, et_predef_word(fun))) {
+        return parser_reduce(C, rule_declaration);
+    }
+
+    return parser_reduce(C, rule_assigment);
 }
 
-struct ast_node *assemble_statement(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    if (!elements_is_token(E, 0)) {
-        return elements_get_reduce(E, 0).node;
+struct mc_ast_node *rule_statement_explicit_without_semicolon(struct parse_controller *C) {
+    struct mc_ast_node *node = parser_reduce(C, rule_statement);
+    struct mc_ast_statement *statement = mcapi_ast_node2statement(parser_U(C), node);
+
+    if (statement->type == MCSTMTT_eval) {
+        struct mc_ast_statement_eval *eval = mcapi_ast_statement2eval(parser_U(C), statement);
+
+        if (eval->implicit) {
+            parser_error(C, "implicit statement");
+        }
     }
 
-    struct mc_lex_token watch_token = elements_get_token(E, 0);
+    return node;
+}
 
-    if (matcher_symbol(symbol_predef_word(MCLTPW_pass), watch_token)) {
-        struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
-        result->type = STATEMENT_SIMPLE_TYPE_PASS;
+struct mc_ast_node *rule_statement_explicit(struct parse_controller *C) {
+    struct mc_ast_node *node = rule_statement_explicit_without_semicolon(C);
+    parser_match(C, et_operator(SEMICOLON));
+    return node;
+}
 
-        return ast_as_node(result);
-    }
-
-    if (matcher_symbol(symbol_predef_word(MCLTPW_yield), watch_token)) {
-        struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
-        result->type = STATEMENT_SIMPLE_TYPE_YIELD;
-
-        return ast_as_node(result);
-    }
-
-    if (matcher_symbol(symbol_predef_word(MCLTPW_leave), watch_token)) {
-        struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
-        result->type = STATEMENT_SIMPLE_TYPE_LEAVE;
-
-        return ast_as_node(result);
-    }
-
-    if (matcher_symbol(symbol_predef_word(MCLTPW_break), watch_token)) {
-        struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
-        result->type = STATEMENT_SIMPLE_TYPE_BREAK;
-
-        return ast_as_node(result);
-    }
-
-    if (matcher_symbol(symbol_predef_word(MCLTPW_continue), watch_token)) {
-        struct statement_simple *result = ast_create_statement_simple(U, A, watch_token.line);
-        result->type = STATEMENT_SIMPLE_TYPE_CONTINUE;
-
-        return ast_as_node(result);
-    }
-
-    if (matcher_symbol(symbol_predef_word(MCLTPW_eval), watch_token)) {
-        struct reduce reduce = elements_get_reduce(E, 1);
-        struct statement_eval *result = ast_create_statement_eval(U, A, watch_token.line);
-        result->expression = ast_node_as_expression(U, reduce.node);
-        result->implicit = false;
-
-        return ast_as_node(result);
-    }
-
-    if (matcher_symbol(symbol_predef_word(MCLTPW_return), watch_token)) {
-        struct reduce reduce = elements_get_reduce(E, 1);
-        struct statement_return *result = ast_create_statement_return(U, A, watch_token.line);
-        result->expression = ast_node_as_expression(U, reduce.node);
-
-        return ast_as_node(result);
-    }
-
-    return NULL;
+struct mc_ast_node *rule_statement_implicit(struct parse_controller *C) {
+    struct mc_ast_node *node = parser_reduce(C, rule_statement);
+    parser_match(C, et_operator(SEMICOLON));
+    mcapi_ast_node2statement(parser_U(C), node);
+    return node;
 }

@@ -1,34 +1,44 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 08.08.2024.
 //
 
-#include "impl.h"
+#include "controller.h"
 
-void match_do_while(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(MCLTPW_do));
-    matcher_reduce(M, REDUCE_TYPE_STATEMENT_BLOCK);
+struct mc_ast_node *rule_dowhile(struct parse_controller *C) {
+    {
+        parser_consume(C, et_predef_word(do));
+        parser_reduce(C, rule_statement_block);
 
-    if (matcher_match(M, symbol_predef_word(MCLTPW_while))) {
-        matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
-    }
-}
-
-struct ast_node *assemble_do_while(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    if (elements_size(E) == 2) {
-        return elements_get_reduce(E, 1).node;
+        if (parser_match(C, et_predef_word(while))) {
+            parser_consume(C, et_operator(LPAREN));
+            parser_reduce(C, rule_expression);
+            parser_consume(C, et_operator(RPAREN));
+        }
     }
 
-    ml_line line = elements_get_token(E, 0).line;
-    struct statement_while *result = ast_create_statement_while(U, A, line);
+    parser_reset(C);
 
-    struct reduce reduce_expression = elements_get_reduce(E, 4);
-    struct reduce reduce_statement = elements_get_reduce(E, 1);
+    ml_line line = parser_get_line(C);
 
-    result->first_condition = false;
-    result->condition = ast_node_as_expression(U, reduce_expression.node);
-    result->statement = ast_node_as_statement(U, reduce_statement.node);
+    parser_consume(C, et_predef_word(do));
+    struct mc_ast_statement *statement =
+        mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
 
-    return ast_as_node(result);
+    if (parser_match(C, et_predef_word(while))) {
+        parser_consume(C, et_operator(LPAREN));
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+        parser_consume(C, et_operator(RPAREN));
+
+        struct mc_ast_statement_while *statement_while =
+            mcapi_ast_create_statement_while(parser_U(C), parser_A(C), line);
+
+        statement_while->first_condition = false;
+        statement_while->condition = expression;
+        statement_while->statement = statement;
+
+        return mcapi_ast_statement_while2node(statement_while);
+    }
+
+    return mcapi_ast_statement2node(statement);
 }

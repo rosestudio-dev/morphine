@@ -1,230 +1,211 @@
 //
-// Created by why-iskra on 31.05.2024.
+// Created by why-iskra on 05.08.2024.
 //
 
-#include "impl.h"
-#include "support/arguments.h"
+#include "controller.h"
+#include "extra/arguments.h"
 
-static void function_arguments(struct matcher *M) {
-    if (matcher_look(M, symbol_operator(MCLTOP_LBRACE)) || matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
-        matcher_reduce(M, REDUCE_TYPE_TABLE);
-        return;
-    }
+static size_t function_arguments(struct parse_controller *C, struct mc_ast_expression **args) {
+    if (parser_look(C, et_operator(LBRACE))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_table));
 
-    struct argument_matcher R = {
-        .assemble = false,
-        .M = M,
-        .separator = symbol_operator(MCLTOP_COMMA),
-        .has_open_close = true,
-        .consume_open = true,
-        .open_symbol = symbol_operator(MCLTOP_LPAREN),
-        .close_symbol = symbol_operator(MCLTOP_RPAREN),
-    };
+        if (args != NULL) {
+            args[0] = expression;
+        }
 
-    if (argument_matcher_init(&R, 0)) {
-        do {
-            matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        } while (argument_matcher_next(&R));
-    }
-    argument_matcher_close(&R);
-
-    if (matcher_look(M, symbol_operator(MCLTOP_LBRACE)) || matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
-        matcher_reduce(M, REDUCE_TYPE_TABLE);
-    }
-}
-
-static size_t function_arguments_count(
-    morphine_coroutine_t U,
-    struct elements *E,
-    size_t start
-) {
-    if (!elements_is_token(E, start)) {
         return 1;
     }
 
-    struct argument_matcher R = {
-        .assemble = true,
-        .E = E,
-        .U = U,
-        .separator = symbol_operator(MCLTOP_COMMA),
-        .has_open_close = true,
-        .consume_open = true,
-        .open_symbol = symbol_operator(MCLTOP_LPAREN),
-        .close_symbol = symbol_operator(MCLTOP_RPAREN),
-    };
+    struct arguments A = extra_arguments_init_full(
+        C, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
+    );
 
-    if (argument_matcher_init(&R, start)) {
-        do {
-            argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
-        } while (argument_matcher_next(&R));
-    }
-    size_t size = argument_matcher_close(&R);
+    size_t index = 0;
+    for (; extra_arguments_next(C, &A); index++) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
-    if (R.pos != elements_size(E)) {
-        return size + 1;
+        if (args != NULL) {
+            args[index] = expression;
+        }
     }
 
-    return size;
-}
+    size_t count = extra_arguments_finish(C, &A);
 
-static void function_arguments_insert(
-    morphine_coroutine_t U,
-    struct elements *E,
-    size_t start,
-    struct expression **expressions
-) {
-    if (!elements_is_token(E, start)) {
-        struct reduce reduce_arg = elements_get_reduce(E, start);
-        expressions[0] = ast_node_as_expression(U, reduce_arg.node);
-        return;
-    }
+    if (parser_look(C, et_operator(LBRACE))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_table));
 
-    struct argument_matcher R = {
-        .assemble = true,
-        .E = E,
-        .U = U,
-        .separator = symbol_operator(MCLTOP_COMMA),
-        .has_open_close = true,
-        .consume_open = true,
-        .open_symbol = symbol_operator(MCLTOP_LPAREN),
-        .close_symbol = symbol_operator(MCLTOP_RPAREN),
-    };
-
-    if (argument_matcher_init(&R, start)) {
-        do {
-            struct reduce arg_reduce = argument_matcher_reduce(&R, REDUCE_TYPE_EXPRESSION);
-            expressions[R.count] = ast_node_as_expression(U, arg_reduce.node);
-        } while (argument_matcher_next(&R));
-    }
-    argument_matcher_close(&R);
-
-    if (R.pos != elements_size(E)) {
-        struct reduce arg_reduce = elements_get_reduce(E, R.pos);
-        expressions[R.count] = ast_node_as_expression(U, arg_reduce.node);
-    }
-}
-
-bool match_variable(struct matcher *M, bool is_wrapped) {
-    if (!is_wrapped) {
-        matcher_reduce(M, REDUCE_TYPE_VALUE);
-    }
-
-    if (matcher_match(M, symbol_operator(MCLTOP_LBRACKET))) {
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(MCLTOP_RBRACKET));
-        return true;
-    }
-
-    if (matcher_match(M, symbol_operator(MCLTOP_DOT))) {
-        matcher_consume(M, symbol_word);
-        return true;
-    }
-
-    if (matcher_look(M, symbol_operator(MCLTOP_LPAREN)) ||
-        matcher_look(M, symbol_operator(MCLTOP_LBRACE)) ||
-        matcher_is_reduced(M, REDUCE_TYPE_TABLE)) {
-        function_arguments(M);
-        return true;
-    }
-
-    if (matcher_match(M, symbol_operator(MCLTOP_COLON)) || matcher_match(M, symbol_operator(MCLTOP_RARROW))) {
-        if (!matcher_match(M, symbol_word)) {
-            matcher_consume(M, symbol_operator(MCLTOP_LBRACKET));
-            matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-            matcher_consume(M, symbol_operator(MCLTOP_RBRACKET));
+        if (args != NULL) {
+            args[index] = expression;
         }
 
-        function_arguments(M);
-        return true;
+        return count + 1;
     }
 
-    return false;
+    return count;
 }
 
-struct ast_node *assemble_variable(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    struct reduce reduce = elements_get_reduce(E, 0);
-    if (elements_size(E) == 1) {
-        return ast_as_node(ast_node_as_expression(U, reduce.node));
+static struct mc_ast_node *rule_variable_call(struct parse_controller *C) {
+    size_t count = function_arguments(C, NULL);
+
+    parser_reset(C);
+
+    ml_line line = parser_get_line(C);
+
+    struct mc_ast_expression_value *self_value =
+        mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
+
+    self_value->type = MCEXPR_VALUE_TYPE_NIL;
+
+    struct mc_ast_expression_call *call =
+        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), line, count);
+
+    function_arguments(C, call->arguments);
+
+    call->extract_callable = false;
+    call->self = mcapi_ast_value2expression(self_value);
+    call->callable = NULL;
+
+    return mcapi_ast_expression_call2node(call);
+}
+
+static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
+    size_t count;
+    {
+        bool extract_callable = parser_match(C, et_operator(COLON));
+        if (!extract_callable) {
+            parser_consume(C, et_operator(RARROW));
+        }
+
+        if (!parser_match(C, et_word())) {
+            parser_consume(C, et_operator(LBRACKET));
+            parser_reduce(C, rule_expression);
+            parser_consume(C, et_operator(RBRACKET));
+        }
+
+        count = function_arguments(C, NULL);
     }
 
-    if (!elements_is_token(E, 1)) {
-        struct reduce reduce_arg = elements_get_reduce(E, 1);
+    parser_reset(C);
 
-        struct expression_call *result = ast_create_expression_call(U, A, ast_node_line(reduce_arg.node), 1);
-        result->expression = ast_node_as_expression(U, reduce.node);
-        result->arguments[0] = ast_node_as_expression(U, reduce_arg.node);
+    ml_line line = parser_get_line(C);
 
-        return ast_as_node(result);
+    bool extract_callable = parser_match(C, et_operator(COLON));
+    if (!extract_callable) {
+        parser_consume(C, et_operator(RARROW));
     }
 
-    struct mc_lex_token watch_token = elements_get_token(E, 1);
+    struct mc_ast_expression *callable;
+    if (parser_look(C, et_word())) {
+        struct mc_lex_token token = parser_consume(C, et_word());
 
-    if (matcher_symbol(symbol_operator(MCLTOP_LBRACKET), watch_token)) {
-        struct reduce reduce_key = elements_get_reduce(E, 2);
+        struct mc_ast_expression_value *value =
+            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
 
-        struct expression_access *result = ast_create_expression_access(U, A, watch_token.line);
-        result->container = ast_node_as_expression(U, reduce.node);
-        result->key = ast_node_as_expression(U, reduce_key.node);
+        value->type = MCEXPR_VALUE_TYPE_STR;
+        value->value.string = token.word;
 
-        return ast_as_node(result);
+        callable = mcapi_ast_value2expression(value);
+    } else {
+        parser_consume(C, et_operator(LBRACKET));
+        callable = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+        parser_consume(C, et_operator(RBRACKET));
     }
 
-    if (matcher_symbol(symbol_operator(MCLTOP_DOT), watch_token)) {
-        struct expression_value *key = ast_create_expression_value(U, A, watch_token.line);
-        key->type = EXPRESSION_VALUE_TYPE_STR;
-        key->value.string = elements_get_token(E, 2).word;
+    struct mc_ast_expression_call *call =
+        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), line, count);
 
-        struct expression_access *result = ast_create_expression_access(U, A, watch_token.line);
-        result->container = ast_node_as_expression(U, reduce.node);
-        result->key = ast_as_expression(key);
+    function_arguments(C, call->arguments);
 
-        return ast_as_node(result);
+    call->extract_callable = extract_callable;
+    call->self = NULL;
+    call->callable = callable;
+
+    return mcapi_ast_expression_call2node(call);
+}
+
+struct mc_ast_node *rule_variable(struct parse_controller *C) {
+    {
+        parser_reduce(C, rule_value);
+
+        while (true) {
+            if (parser_match(C, et_operator(LBRACKET))) {
+                parser_reduce(C, rule_expression);
+                parser_consume(C, et_operator(RBRACKET));
+            } else if (parser_match(C, et_operator(DOT))) {
+                parser_consume(C, et_word());
+            } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE))) {
+                parser_reduce(C, rule_variable_call);
+            } else if (parser_look(C, et_operator(COLON)) || parser_look(C, et_operator(RARROW))) {
+                parser_reduce(C, rule_variable_call_self);
+            } else {
+                break;
+            }
+        }
     }
 
-    if (matcher_symbol(symbol_operator(MCLTOP_LPAREN), watch_token)) {
-        size_t count = function_arguments_count(U, E, 1);
+    parser_reset(C);
 
-        struct expression_call *result = ast_create_expression_call(U, A, watch_token.line, count);
-        result->expression = ast_node_as_expression(U, reduce.node);
-        function_arguments_insert(U, E, 1, result->arguments);
+    struct mc_ast_expression *expression =
+        mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_value));
 
-        return ast_as_node(result);
-    }
+    while (true) {
+        ml_line line = parser_get_line(C);
 
-    if (matcher_symbol(symbol_operator(MCLTOP_COLON), watch_token) ||
-        matcher_symbol(symbol_operator(MCLTOP_RARROW), watch_token)) {
+        if (parser_match(C, et_operator(LBRACKET))) {
+            struct mc_ast_expression *key =
+                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+            parser_consume(C, et_operator(RBRACKET));
 
-        struct mc_lex_token access_token = elements_get_token(E, 2);
-        struct ast_node *access_node;
-        size_t start_index;
-        if (matcher_symbol(symbol_operator(MCLTOP_LBRACKET), access_token)) {
-            access_node = elements_get_reduce(E, 3).node;
-            start_index = 5;
-        } else if (matcher_symbol(symbol_operator(MCLTOP_RARROW), watch_token) && matcher_symbol(symbol_word, access_token)) {
-            struct expression_variable *variable = ast_create_expression_variable(U, A, access_token.line);
-            access_node = ast_as_node(variable);
-            variable->index = access_token.word;
-            start_index = 3;
-        } else if (matcher_symbol(symbol_word, access_token)) {
-            struct expression_value *value = ast_create_expression_value(U, A, access_token.line);
-            access_node = ast_as_node(value);
-            value->type = EXPRESSION_VALUE_TYPE_STR;
-            value->value.string = access_token.word;
-            start_index = 3;
+            struct mc_ast_expression_access *access =
+                mcapi_ast_create_expression_access(parser_U(C), parser_A(C), line);
+
+            access->container = expression;
+            access->key = key;
+
+            expression = mcapi_ast_access2expression(access);
+        } else if (parser_match(C, et_operator(DOT))) {
+            struct mc_lex_token token = parser_consume(C, et_word());
+
+            struct mc_ast_expression_value *key_value =
+                mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
+
+            key_value->type = MCEXPR_VALUE_TYPE_STR;
+            key_value->value.string = token.word;
+
+            struct mc_ast_expression_access *access =
+                mcapi_ast_create_expression_access(parser_U(C), parser_A(C), line);
+
+            access->container = expression;
+            access->key = mcapi_ast_value2expression(key_value);
+
+            expression = mcapi_ast_access2expression(access);
+        } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE))) {
+            struct mc_ast_expression *next_expression =
+                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_variable_call));
+
+            struct mc_ast_expression_call *call =
+                mcapi_ast_expression2call(parser_U(C), next_expression);
+
+            call->callable = expression;
+
+            expression = next_expression;
+        } else if (parser_look(C, et_operator(COLON)) || parser_look(C, et_operator(RARROW))) {
+            struct mc_ast_expression *next_expression =
+                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_variable_call_self));
+
+            struct mc_ast_expression_call *call =
+                mcapi_ast_expression2call(parser_U(C), next_expression);
+
+            call->self = expression;
+
+            expression = next_expression;
         } else {
-            return NULL;
+            break;
         }
-
-        size_t count = function_arguments_count(U, E, start_index);
-
-        struct expression_call_self *result = ast_create_expression_call_self(U, A, watch_token.line, count);
-        result->self = ast_node_as_expression(U, reduce.node);
-        result->callable = ast_node_as_expression(U, access_node);
-        result->extract_callable = matcher_symbol(symbol_operator(MCLTOP_COLON), watch_token);
-        function_arguments_insert(U, E, start_index, result->arguments);
-
-        return ast_as_node(result);
     }
 
-    return NULL;
+    return mcapi_ast_expression2node(expression);
 }

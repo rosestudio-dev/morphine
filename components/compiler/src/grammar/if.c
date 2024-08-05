@@ -1,214 +1,168 @@
 //
-// Created by why-iskra on 01.06.2024.
+// Created by why-iskra on 08.08.2024.
 //
 
-#include "impl.h"
-#include "support/block.h"
+#include "controller.h"
+#include "extra/block.h"
 
-#define table_size(t) (sizeof(t) / sizeof((t)[0]))
-
-void match_statement_if(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(MCLTPW_if));
-    matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
-    matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-    matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
-
-    struct matcher_symbol if_closes[] = {
-        symbol_predef_word(MCLTPW_elif),
-        symbol_predef_word(MCLTPW_else),
-        symbol_predef_word(MCLTPW_end)
+static struct mc_ast_node *rule_statement_elif(struct parse_controller *C) {
+    struct mc_lex_token if_closes[] = {
+        et_predef_word(elif),
+        et_predef_word(else),
+        et_predef_word(end)
     };
 
-    size_t if_closed = match_sblock(M, table_size(if_closes), if_closes);
-
-    if (if_closed == 1) {
-        goto match_else;
-    } else if (if_closed == 2) {
-        return;
-    }
-
-    while (true) {
-        matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
-        size_t elif_closed = match_sblock(M, table_size(if_closes), if_closes);
-
-        if (elif_closed == 1) {
-            goto match_else;
-        }
-
-        if (elif_closed == 2) {
-            return;
-        }
-    }
-
-match_else:;
-    struct matcher_symbol else_closes[] = {
-        symbol_predef_word(MCLTPW_end)
+    struct mc_lex_token else_closes[] = {
+        et_predef_word(end)
     };
 
-    match_sblock(M, table_size(else_closes), else_closes);
-}
+    size_t if_size;
+    size_t else_size = 0;
+    size_t close_index;
+    {
+        parser_consume(C, et_operator(LPAREN));
+        parser_reduce(C, rule_expression);
+        parser_consume(C, et_operator(RPAREN));
 
-void match_expression_if(struct matcher *M) {
-    matcher_consume(M, symbol_predef_word(MCLTPW_if));
-    matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
-    matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-    matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
-
-    struct matcher_symbol if_closes[] = {
-        symbol_predef_word(MCLTPW_elif),
-        symbol_predef_word(MCLTPW_else)
-    };
-
-    size_t if_closed = match_eblock(M, table_size(if_closes), if_closes);
-
-    if (if_closed == 1) {
-        goto match_else;
-    }
-
-    while (true) {
-        matcher_consume(M, symbol_operator(MCLTOP_LPAREN));
-        matcher_reduce(M, REDUCE_TYPE_EXPRESSION);
-        matcher_consume(M, symbol_operator(MCLTOP_RPAREN));
-        size_t elif_closed = match_eblock(M, table_size(if_closes), if_closes);
-
-        if (elif_closed == 1) {
-            goto match_else;
-        }
-    }
-
-match_else:;
-    struct matcher_symbol else_closes[] = {
-        symbol_predef_word(MCLTPW_end)
-    };
-
-    match_eblock(M, table_size(else_closes), else_closes);
-}
-
-static size_t count_elif(struct elements *E) {
-    size_t count = 0;
-    size_t size = elements_size(E);
-    for (size_t i = 0; i < size; i++) {
-        if (elements_look(E, i, symbol_predef_word(MCLTPW_elif))) {
-            count++;
-        }
-    }
-
-    return count;
-}
-
-struct ast_node *assemble_statement_if(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    size_t elifs = count_elif(E);
-
-    struct statement_if *result = ast_create_statement_if(U, A, elements_line(E, 0), elifs);
-    result->if_condition = ast_node_as_expression(U, elements_get_reduce(E, 2).node);
-    result->else_statement = NULL;
-
-    struct matcher_symbol if_closes[] = {
-        symbol_predef_word(MCLTPW_elif),
-        symbol_predef_word(MCLTPW_else),
-        symbol_predef_word(MCLTPW_end)
-    };
-
-    size_t end_index = 0;
-
-    size_t if_closed = get_sblock(
-        U, A, E, table_size(if_closes), if_closes, 4,
-        &result->if_statement, &end_index
-    );
-
-    if (if_closed == 1) {
-        goto match_else;
-    } else if (if_closed == 2) {
-        return ast_as_node(result);
-    }
-
-    size_t count = 0;
-    while (true) {
-        result->elif_conditions[count] = ast_node_as_expression(
-            U, elements_get_reduce(E, end_index + 2).node
+        if_size = extra_consume_statement_block(
+            C, array_closes_size(if_closes), if_closes, &close_index
         );
 
-        size_t elif_closed = get_sblock(
-            U, A, E, table_size(if_closes), if_closes, end_index + 4,
-            result->elif_statements + count, &end_index
-        );
-
-        if (elif_closed == 1) {
-            goto match_else;
+        if (close_index == 0) {
+            parser_reduce(C, rule_statement_elif);
+        } else if (close_index == 1) {
+            else_size = extra_consume_statement_block(
+                C, array_closes_size(else_closes), else_closes, NULL
+            );
         }
-
-        if (elif_closed == 2) {
-            return ast_as_node(result);
-        }
-
-        count++;
     }
 
-match_else:;
-    struct matcher_symbol else_closes[] = {
-        symbol_predef_word(MCLTPW_end)
-    };
+    parser_reset(C);
 
-    get_sblock(
-        U, A, E, table_size(else_closes), else_closes, end_index + 1,
-        &result->else_statement, NULL
+    ml_line line = parser_get_line(C);
+    struct mc_ast_statement_if *statement_if =
+        mcapi_ast_create_statement_if(parser_U(C), parser_A(C), line);
+
+    parser_consume(C, et_operator(LPAREN));
+    statement_if->condition =
+        mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+    parser_consume(C, et_operator(RPAREN));
+
+    ml_line if_line = parser_get_line(C);
+    struct mc_ast_statement_block *if_block =
+        mcapi_ast_create_statement_block(parser_U(C), parser_A(C), if_line, if_size);
+
+    extra_extract_statement_block(
+        C, array_closes_size(if_closes), if_closes, if_size, if_block->statements
     );
 
-    return ast_as_node(result);
+    statement_if->if_statement = mcapi_ast_block2statement(if_block);
+
+    struct mc_ast_statement *else_statement = NULL;
+    if (close_index == 0) {
+        else_statement =
+            mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_elif));
+    } else if (close_index == 1) {
+        ml_line else_line = parser_get_line(C);
+        struct mc_ast_statement_block *else_block =
+            mcapi_ast_create_statement_block(parser_U(C), parser_A(C), else_line, else_size);
+
+        extra_extract_statement_block(
+            C, array_closes_size(else_closes), else_closes, else_size, else_block->statements
+        );
+
+        else_statement = mcapi_ast_block2statement(else_block);
+    }
+
+    statement_if->else_statement = else_statement;
+
+    return mcapi_ast_statement_if2node(statement_if);
 }
 
-struct ast_node *assemble_expression_if(morphine_coroutine_t U, struct ast *A, struct elements *E) {
-    size_t elifs = count_elif(E);
-
-    struct expression_if *result = ast_create_expression_if(U, A, elements_line(E, 0), elifs);
-    result->if_condition = ast_node_as_expression(U, elements_get_reduce(E, 2).node);
-    result->else_expression = NULL;
-
-    struct matcher_symbol if_closes[] = {
-        symbol_predef_word(MCLTPW_elif),
-        symbol_predef_word(MCLTPW_else)
+static struct mc_ast_node *rule_expression_elif(struct parse_controller *C) {
+    struct mc_lex_token if_closes[] = {
+        et_predef_word(elif),
+        et_predef_word(else),
+        et_predef_word(end)
     };
 
-    size_t end_index = 0;
+    struct mc_lex_token else_closes[] = {
+        et_predef_word(end)
+    };
 
-    size_t if_closed = get_eblock(
-        U, A, E, table_size(if_closes), if_closes, 4,
-        &result->if_expression, &end_index
-    );
+    size_t if_size;
+    size_t else_size = 0;
+    size_t close_index;
+    {
+        parser_consume(C, et_operator(LPAREN));
+        parser_reduce(C, rule_expression);
+        parser_consume(C, et_operator(RPAREN));
 
-    if (if_closed == 1) {
-        goto match_else;
-    }
-
-    size_t count = 0;
-    while (true) {
-        result->elif_conditions[count] = ast_node_as_expression(
-            U, elements_get_reduce(E, end_index + 2).node
+        if_size = extra_consume_expression_block(
+            C, array_closes_size(if_closes), if_closes, &close_index
         );
 
-        size_t elif_closed = get_eblock(
-            U, A, E, table_size(if_closes), if_closes, end_index + 4,
-            result->elif_expressions + count, &end_index
-        );
-
-        if (elif_closed == 1) {
-            goto match_else;
+        if (close_index == 0) {
+            parser_reduce(C, rule_expression_elif);
+        } else if (close_index == 1) {
+            else_size = extra_consume_expression_block(
+                C, array_closes_size(else_closes), else_closes, NULL
+            );
         }
-
-        count++;
     }
 
-match_else:;
-    struct matcher_symbol else_closes[] = {
-        symbol_predef_word(MCLTPW_end)
-    };
+    parser_reset(C);
 
-    get_eblock(
-        U, A, E, table_size(else_closes), else_closes, end_index + 1,
-        &result->else_expression, NULL
+    ml_line line = parser_get_line(C);
+    struct mc_ast_expression_if *expression_if =
+        mcapi_ast_create_expression_if(parser_U(C), parser_A(C), line);
+
+    parser_consume(C, et_operator(LPAREN));
+    expression_if->condition =
+        mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+    parser_consume(C, et_operator(RPAREN));
+
+    ml_line if_line = parser_get_line(C);
+    struct mc_ast_expression_block *if_block =
+        mcapi_ast_create_expression_block(parser_U(C), parser_A(C), if_line, if_size);
+
+    extra_extract_expression_block(
+        C, array_closes_size(if_closes), if_closes, if_size,
+        if_block->statements, &if_block->expression
     );
 
-    return ast_as_node(result);
+    expression_if->if_expression = mcapi_ast_block2expression(if_block);
+
+    struct mc_ast_expression *else_expression;
+    if (close_index == 0) {
+        else_expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression_elif));
+    } else if (close_index == 1) {
+        ml_line else_line = parser_get_line(C);
+        struct mc_ast_expression_block *else_block =
+            mcapi_ast_create_expression_block(parser_U(C), parser_A(C), else_line, else_size);
+
+        extra_extract_expression_block(
+            C, array_closes_size(else_closes), else_closes, else_size,
+            else_block->statements, &else_block->expression
+        );
+
+        else_expression = mcapi_ast_block2expression(else_block);
+    } else {
+        parser_error(C, "expression if must contain else block");
+    }
+
+    expression_if->else_expression = else_expression;
+
+    return mcapi_ast_expression_if2node(expression_if);
+}
+
+struct mc_ast_node *rule_statement_if(struct parse_controller *C) {
+    parser_consume(C, et_predef_word(if));
+    return parser_reduce(C, rule_statement_elif);
+}
+
+struct mc_ast_node *rule_expression_if(struct parse_controller *C) {
+    parser_consume(C, et_predef_word(if));
+    return parser_reduce(C, rule_expression_elif);
 }
