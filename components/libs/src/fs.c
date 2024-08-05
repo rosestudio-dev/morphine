@@ -158,6 +158,7 @@ static morphine_library_function_t functions[] = {
     { "dir",  dir },
     { "list", list },
     { "info", info },
+    { NULL, NULL },
 };
 
 static morphine_library_t library = {
