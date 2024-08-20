@@ -198,6 +198,17 @@ void functionI_constant_set(
         throwI_error(I, "constant index was out of bounce");
     }
 
+    bool supported = valueI_is_nil(value) ||
+        valueI_is_integer(value) ||
+        valueI_is_decimal(value) ||
+        valueI_is_boolean(value) ||
+        valueI_is_string(value) ||
+        valueI_is_function(value);
+
+    if (!supported) {
+        throwI_error(I, "unsupported constant type");
+    }
+
     gcI_barrier(I, function, value);
     function->constants[index] = value;
 }
