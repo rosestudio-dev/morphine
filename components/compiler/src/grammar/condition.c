@@ -85,9 +85,9 @@ struct mc_ast_node *rule_condition(struct parse_controller *C) {
             struct mc_ast_expression_binary *binary =
                 mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), line);
 
-            binary_eq->type = MCEXPR_BINARY_TYPE_OR;
-            binary_eq->a = mcapi_ast_binary2expression(binary_cond);
-            binary_eq->b = mcapi_ast_binary2expression(binary_eq);
+            binary->type = MCEXPR_BINARY_TYPE_OR;
+            binary->a = mcapi_ast_binary2expression(binary_cond);
+            binary->b = mcapi_ast_binary2expression(binary_eq);
 
             expression = mcapi_ast_binary2expression(binary);
         } else {

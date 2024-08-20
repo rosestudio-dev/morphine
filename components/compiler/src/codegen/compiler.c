@@ -908,9 +908,14 @@ decl_stmt(if) {
             codegen_anchor_change(C, data->anchor_if);
             codegen_statement(C, statement->if_statement, 2);
         case 2:
-            codegen_instruction_JUMP(C, data->anchor_end);
-            codegen_anchor_change(C, data->anchor_else);
-            codegen_statement(C, statement->else_statement, 3);
+            if(statement->else_statement != NULL) {
+                codegen_instruction_JUMP(C, data->anchor_end);
+                codegen_anchor_change(C, data->anchor_else);
+                codegen_statement(C, statement->else_statement, 3);
+            } else {
+                codegen_anchor_change(C, data->anchor_else);
+                codegen_jump(C, 3);
+            }
         case 3:
             codegen_anchor_change(C, data->anchor_end);
             codegen_complete(C);
