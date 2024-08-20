@@ -6,4 +6,8 @@
 
 #include <morphine.h>
 
-MORPHINE_API void mcapi_compile(morphine_coroutine_t, const char *name);
+MORPHINE_API void mcapi_compile(
+    morphine_coroutine_t,
+    const char *name,
+    bool vector
+);

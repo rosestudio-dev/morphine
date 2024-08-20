@@ -9,7 +9,11 @@
 #include "morphinec/visitor.h"
 #include "morphinec/codegen.h"
 
-MORPHINE_API void mcapi_compile(morphine_coroutine_t U, const char *name) {
+MORPHINE_API void mcapi_compile(
+    morphine_coroutine_t U,
+    const char *name,
+    bool vector
+) {
     const char *text = mapi_get_string(U);
     ml_size text_len = mapi_string_len(U);
 
@@ -28,7 +32,7 @@ MORPHINE_API void mcapi_compile(morphine_coroutine_t U, const char *name) {
         struct mc_codegen *G = mcapi_push_codegen(U);
 
         while (mcapi_codegen_step(U, G, V, T, A)) { }
-        mcapi_codegen_build(U, G, T, A, name);
+        mcapi_codegen_build(U, G, T, A, name, vector);
     }
 
     mapi_rotate(U, 6);

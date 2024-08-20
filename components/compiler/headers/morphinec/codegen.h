@@ -29,5 +29,6 @@ MORPHINE_API void mcapi_codegen_build(
     struct mc_codegen *,
     struct mc_strtable *,
     struct mc_ast *A,
-    const char *main
+    const char *main,
+    bool vector
 );

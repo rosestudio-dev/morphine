@@ -39,7 +39,7 @@ static void get_variable(
             codegen_instruction_GET_CLOSURE(C, slot, info.closure_variable, slot);
             break;
         case VIT_NOT_FOUND:
-            mapi_error(codegen_U(C), "variable not found");
+            codegen_errorf(C, "variable '%s' not found", codegen_string(C, name).string);
     }
 }
 
@@ -50,7 +50,7 @@ decl_set(variable) {
     struct variable_info info = codegen_get_variable(C, expression->index);
 
     if (!expression->ignore_mutable && !info.mutable) {
-        mapi_error(codegen_U(C), "immutable variable");
+        codegen_errorf(C, "variable '%s' is immutable", codegen_string(C, expression->index).string);
     }
 
     switch (info.type) {
@@ -64,9 +64,9 @@ decl_set(variable) {
             break;
         }
         case VIT_ARGUMENT:
-            mapi_error(codegen_U(C), "cannot be set to argument");
+            codegen_errorf(C, "cannot be set to argument");
         case VIT_RECURSIVE:
-            mapi_error(codegen_U(C), "cannot be set to function");
+            codegen_errorf(C, "cannot be set to function");
         case VIT_CLOSURE: {
             struct instruction_slot slot = codegen_declare_temporary(C);
             codegen_instruction_RECURSION(C, slot);
@@ -74,7 +74,7 @@ decl_set(variable) {
             break;
         }
         case VIT_NOT_FOUND:
-            mapi_error(codegen_U(C), "variable not found");
+            codegen_errorf(C, "variable '%s' not found", codegen_string(C, expression->index).string);
     }
 
     codegen_complete(C);
@@ -349,8 +349,8 @@ decl_expr(table) {
 struct vector_data {
     struct instruction_slot key;
     struct instruction_slot value;
-    ml_size index;
-    ml_size size;
+    size_t index;
+    size_t size;
 };
 
 decl_expr(vector) {
@@ -358,7 +358,7 @@ decl_expr(vector) {
     switch (state) {
         case 0:
             data->index = 0;
-            data->size = mapi_csize2size(codegen_U(C), expression->count);
+            data->size = expression->count;
             data->key = codegen_declare_temporary(C);
             data->value = codegen_declare_temporary(C);
             codegen_instruction_VECTOR(C, codegen_result(C), data->size);
@@ -370,7 +370,7 @@ decl_expr(vector) {
                 codegen_expression(C, expression->expressions[data->index], data->value, 2);
             }
         case 2: {
-            size_t constant = codegen_add_constant_int(C, data->index);
+            size_t constant = codegen_add_constant_index(C, data->index);
             codegen_instruction_LOAD(C, constant, data->key);
             codegen_instruction_SET(C, codegen_result(C), data->key, data->value);
             data->index++;
@@ -409,7 +409,7 @@ struct call_data {
 
 decl_expr(call) {
     if (expression->args_count > ARGS_LIMIT) {
-        mapi_error(codegen_U(C), "arguments limit");
+        codegen_errorf(C, "arguments limit");
     }
 
     decl_data_sized(call, sizeof(struct instruction_slot) * expression->args_count);
@@ -579,7 +579,7 @@ decl_stmt(declaration) {
 
             codegen_instruction_GET(C, data->slot, data->key, data->key);
             codegen_declare_variable(C, statement->decompose.values[index]->index, statement->mutable);
-            codegen_set(C, mcapi_ast_variable2expression(statement->decompose.values[index]), data->slot, 2);
+            codegen_set(C, mcapi_ast_variable2expression(statement->decompose.values[index]), data->key, 2);
         }
         case 4:
             codegen_complete(C);
@@ -619,7 +619,7 @@ decl_stmt(assigment) {
             data->index++;
 
             codegen_instruction_GET(C, data->slot, data->key, data->key);
-            codegen_set(C, statement->decompose.values[index], data->slot, 2);
+            codegen_set(C, statement->decompose.values[index], data->key, 2);
         }
         case 4:
             codegen_complete(C);
@@ -715,10 +715,96 @@ decl_stmt(for) {
     }
 }
 
+struct iterator_data {
+    struct instruction_slot slot;
+    struct instruction_slot key;
+    struct instruction_slot value;
+    size_t index;
+};
+
 decl_stmt(iterator) {
-    (void) C;
-    (void) statement;
-    (void) state;
+    decl_data(iterator);
+    switch (state) {
+        case 0:
+            data->slot = codegen_declare_temporary(C);
+            codegen_enter_scope(C, true);
+            codegen_expression(C, statement->declaration->expression, data->slot, 1);
+        case 1:
+            codegen_instruction_ITERATOR(C, data->slot, data->slot);
+
+            data->key = codegen_declare_temporary(C);
+            data->value = codegen_declare_temporary(C);
+
+            if (statement->declaration->is_decompose && statement->declaration->decompose.size == 2) {
+                codegen_jump(C, 2);
+            } else {
+                size_t constant_key = codegen_add_constant_cstr(C, "key");
+                size_t constant_value = codegen_add_constant_cstr(C, "value");
+
+                codegen_instruction_LOAD(C, constant_key, data->key);
+                codegen_instruction_LOAD(C, constant_value, data->value);
+                codegen_jump(C, 4);
+            }
+        case 2:
+            codegen_expression(C, statement->declaration->decompose.keys[0], data->key, 3);
+        case 3:
+            codegen_expression(C, statement->declaration->decompose.keys[1], data->value, 4);
+        case 4:
+            codegen_instruction_ITERATOR_INIT(C, data->slot, data->key, data->value);
+            codegen_jump(C, 5);
+        case 5:
+            codegen_anchor_change(C, codegen_scope_continue_anchor(C));
+            codegen_instruction_ITERATOR_HAS(C, data->slot, data->value);
+
+            anchor_t anchor = codegen_add_anchor(C);
+            codegen_instruction_JUMP_IF(C, data->value, anchor, codegen_scope_break_anchor(C));
+            codegen_anchor_change(C, anchor);
+            codegen_instruction_ITERATOR_NEXT(C, data->slot, data->value);
+
+            if (statement->declaration->is_decompose) {
+                data->index = 0;
+                codegen_jump(C, 6);
+            } else {
+                codegen_declare_variable(
+                    C,
+                    statement->declaration->value->index,
+                    statement->declaration->mutable
+                );
+                codegen_set(C, mcapi_ast_variable2expression(statement->declaration->value), data->value, 8);
+            }
+        case 6:
+            if (data->index < statement->declaration->decompose.size) {
+                codegen_expression(C, statement->declaration->decompose.keys[data->index], data->key, 7);
+            } else {
+                codegen_jump(C, 8);
+            }
+        case 7: {
+            size_t index = data->index;
+            data->index++;
+
+            codegen_instruction_GET(C, data->value, data->key, data->key);
+            codegen_declare_variable(
+                C,
+                statement->declaration->decompose.values[index]->index,
+                statement->declaration->mutable
+            );
+            codegen_set(
+                C,
+                mcapi_ast_variable2expression(statement->declaration->decompose.values[index]),
+                data->key,
+                6
+            );
+        }
+        case 8:
+            codegen_statement(C, statement->statement, 9);
+        case 9:
+            codegen_instruction_JUMP(C, codegen_scope_continue_anchor(C));
+            codegen_anchor_change(C, codegen_scope_break_anchor(C));
+            codegen_exit_scope(C);
+            codegen_complete(C);
+        default:
+            break;
+    }
 }
 
 decl_stmt(eval) {

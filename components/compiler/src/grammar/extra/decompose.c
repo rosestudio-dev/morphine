@@ -40,6 +40,7 @@ void extra_extract_decompose(
     struct mc_ast_expression **expressions,
     struct mc_ast_expression **keys
 ) {
+    ml_line line = parser_get_line(C);
     if (!parser_match(C, et_predef_word(decompose))) {
         if (is_word) {
             struct mc_lex_token token = parser_consume(C, et_word());
@@ -61,7 +62,8 @@ void extra_extract_decompose(
 
     struct arguments A = extra_arguments_init_simple(C, et_operator(COMMA));
 
-    for (size_t i = 0; extra_arguments_next(C, &A); i ++) {
+    for (size_t i = 0; extra_arguments_next(C, &A); i++) {
+        mc_strtable_index_t string;
         if (is_word) {
             struct mc_lex_token token = parser_consume(C, et_word());
             struct mc_ast_expression_variable *variable =
@@ -70,6 +72,7 @@ void extra_extract_decompose(
             variable->ignore_mutable = true;
             variable->index = token.word;
 
+            string = token.word;
             variables[i] = variable;
         } else {
             expressions[i] = mcapi_ast_node2expression(
@@ -81,6 +84,19 @@ void extra_extract_decompose(
             keys[i] = mcapi_ast_node2expression(
                 parser_U(C), parser_reduce(C, rule_expression)
             );
+        } else {
+            struct mc_ast_expression_value *value =
+                mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
+
+            if (is_word) {
+                value->type = MCEXPR_VALUE_TYPE_STR;
+                value->value.string = string;
+            } else {
+                value->type = MCEXPR_VALUE_TYPE_INT;
+                value->value.integer = mapi_csize2index(parser_U(C), i);
+            }
+
+            keys[i] = mcapi_ast_value2expression(value);
         }
     }
 

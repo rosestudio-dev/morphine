@@ -356,4 +356,5 @@ MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
 
     print_instructions(U);
     print_constants(U);
+    mapi_pop(U, 2);
 }

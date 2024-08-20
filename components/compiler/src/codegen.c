@@ -103,6 +103,12 @@ struct codegen_controller {
     struct mc_ast_node *node;
 };
 
+static struct variable_info deep_variable(
+    struct codegen_controller *,
+    struct context *,
+    mc_strtable_index_t
+);
+
 // push/pop
 
 static void push_result(struct codegen_controller *C, struct result result) {
@@ -137,6 +143,32 @@ static void pop_result(struct codegen_controller *C) {
     context->results.size--;
 }
 
+static void add_closure(
+    struct codegen_controller *C,
+    struct context *context,
+    struct variable closure
+) {
+    if (context->closures.size > context->closures.allocated) {
+        mapi_error(C->U, "closures array corrupted");
+    } else if (context->closures.size == context->closures.allocated) {
+        if (context->closures.allocated >= CLOSURES_LIMIT) {
+            mapi_error(C->U, "closures limit");
+        }
+
+        context->closures.array = mapi_allocator_vec(
+            mapi_instance(C->U),
+            context->closures.array,
+            context->closures.allocated + EXPANSION_FACTOR,
+            sizeof(struct variable)
+        );
+
+        context->closures.allocated += EXPANSION_FACTOR;
+    }
+
+    context->closures.array[context->closures.size] = closure;
+    context->closures.size++;
+}
+
 static void push_context(struct codegen_controller *C, struct mc_ast_function *function) {
     struct context *context = mapi_allocator_uni(mapi_instance(C->U), NULL, sizeof(struct context));
 
@@ -161,6 +193,69 @@ static void push_context(struct codegen_controller *C, struct mc_ast_function *f
     };
 
     push_result(C, result);
+
+    for (size_t i = 0; i < function->args_size; i++) {
+        size_t count = 0;
+        for (size_t index = 0; index < function->args_size; index++) {
+            if (function->arguments[i] == function->arguments[index]) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            codegen_errorf(C, "argument duplicates");
+        }
+    }
+
+    for (size_t i = 0; i < function->statics_size; i++) {
+        size_t count = 0;
+        for (size_t index = 0; index < function->statics_size; index++) {
+            if (function->statics[i] == function->statics[index]) {
+                count++;
+            }
+        }
+
+        if (count > 1) {
+            codegen_errorf(C, "static duplicates");
+        }
+    }
+
+    if (!function->auto_closure) {
+        for (size_t i = 0; i < function->closures_size; i++) {
+            size_t count = 0;
+            for (size_t index = 0; index < function->closures_size; index++) {
+                if (function->closures[i] == function->closures[index]) {
+                    count++;
+                }
+            }
+
+            if (count > 1) {
+                codegen_errorf(C, "closure duplicates");
+            }
+
+            if (C->G->context->prev == NULL) {
+                mapi_error(C->U, "no previous function");
+            }
+
+            struct variable_info info = deep_variable(
+                C, C->G->context->prev, function->closures[i]
+            );
+
+            if (info.type == VIT_NOT_FOUND) {
+                codegen_errorf(
+                    C, "closure variable '%s' not found",
+                    mcapi_strtable_access(C->U, C->T, function->closures[i])
+                );
+            }
+
+            struct variable closure = {
+                .index = function->closures[i],
+                .mutable = info.mutable
+            };
+
+            add_closure(C, C->G->context, closure);
+        }
+    }
 }
 
 static void pop_context(struct codegen_controller *C) {
@@ -289,32 +384,6 @@ static anchor_t add_anchor(struct codegen_controller *C) {
     context->anchors.size++;
 
     return context->anchors.size - 1;
-}
-
-static void add_closure(
-    struct codegen_controller *C,
-    struct context *context,
-    struct variable closure
-) {
-    if (context->closures.size > context->closures.allocated) {
-        mapi_error(C->U, "closures array corrupted");
-    } else if (context->closures.size == context->closures.allocated) {
-        if (context->closures.allocated >= CLOSURES_LIMIT) {
-            mapi_error(C->U, "closures limit");
-        }
-
-        context->closures.array = mapi_allocator_vec(
-            mapi_instance(C->U),
-            context->closures.array,
-            context->closures.allocated + EXPANSION_FACTOR,
-            sizeof(struct variable)
-        );
-
-        context->closures.allocated += EXPANSION_FACTOR;
-    }
-
-    context->closures.array[context->closures.size] = closure;
-    context->closures.size++;
 }
 
 static void enter_temporaries(struct codegen_controller *C) {
@@ -464,10 +533,9 @@ static void pop_scope(struct codegen_controller *C) {
 // support
 
 static struct variable_info get_variable(
-    struct codegen_controller *C,
+    struct context *context,
     mc_strtable_index_t name
 ) {
-    struct context *context = C->G->context;
     struct mc_ast_function *function = context->function;
 
     for (size_t i = 0; i < context->variables.size; i++) {
@@ -511,8 +579,7 @@ static struct variable_info get_variable(
     }
 
     for (size_t i = 0; i < context->closures.size; i++) {
-        size_t index = context->closures.size - i - 1;
-        struct variable closures = context->closures.array[index];
+        struct variable closures = context->closures.array[i];
         if (closures.index == name) {
             return (struct variable_info) {
                 .type = VIT_CLOSURE,
@@ -528,10 +595,78 @@ static struct variable_info get_variable(
     };
 }
 
+static struct variable_info deep_variable(
+    struct codegen_controller *C,
+    struct context *context_from,
+    mc_strtable_index_t name
+) {
+    struct context *context = context_from;
+    struct variable_info info;
+    while (context != NULL) {
+        info = get_variable(context, name);
+
+        if (info.type != VIT_NOT_FOUND) {
+            break;
+        } else if (!context->function->auto_closure) {
+            return (struct variable_info) {
+                .type = VIT_NOT_FOUND,
+                .mutable = true
+            };
+        }
+
+        context = context->prev;
+    }
+
+    if (context == NULL) {
+        return (struct variable_info) {
+            .type = VIT_NOT_FOUND,
+            .mutable = true
+        };
+    } else if (context == context_from) {
+        return info;
+    }
+
+    struct context *current = context_from;
+    while (current != context) {
+        struct variable closure = {
+            .index = name,
+            .mutable = info.mutable
+        };
+
+        add_closure(C, current, closure);
+
+        current = current->prev;
+    }
+
+    return (struct variable_info) {
+        .type = VIT_CLOSURE,
+        .mutable = info.mutable,
+        .closure_variable = context_from->closures.size - 1
+    };
+}
+
 // controller
 
-morphine_coroutine_t codegen_U(struct codegen_controller *C) {
-    return C->U;
+struct mc_strtable_entry codegen_string(struct codegen_controller *C, mc_strtable_index_t index) {
+    return mcapi_strtable_access(C->U, C->T, index);
+}
+
+morphine_noret void codegen_errorf(struct codegen_controller *C, const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    mapi_push_stringv(C->U, str, args);
+    va_end(args);
+
+    if (C->node != NULL) {
+        mapi_errorf(
+            C->U,
+            "line %"MLIMIT_LINE_PR": %s",
+            C->node->line,
+            mapi_get_string(C->U)
+        );
+    } else {
+        mapi_errorf(C->U, mapi_get_string(C->U));
+    }
 }
 
 morphine_noret void codegen_statement(
@@ -644,6 +779,15 @@ size_t codegen_add_constant_int(struct codegen_controller *C, ml_integer value) 
     return add_constant(C, constant);
 }
 
+size_t codegen_add_constant_index(struct codegen_controller *C, size_t value) {
+    struct constant constant = {
+        .type = CT_INTEGER,
+        .value.integer = mapi_csize2index(C->U, value)
+    };
+
+    return add_constant(C, constant);
+}
+
 size_t codegen_add_constant_dec(struct codegen_controller *C, ml_decimal value) {
     struct constant constant = {
         .type = CT_DECIMAL,
@@ -712,30 +856,28 @@ void codegen_exit_scope(struct codegen_controller *C) {
 
 anchor_t codegen_scope_break_anchor(struct codegen_controller *C) {
     struct context *context = C->G->context;
-    if (context->scopes.size == 0) {
-        mapi_error(C->U, "empty scope stack");
+
+    for (size_t i = 0; i < context->scopes.size; i++) {
+        struct scope scope = context->scopes.array[context->scopes.size - i - 1];
+        if (scope.has_control_anchors) {
+            return scope.break_anchor;
+        }
     }
 
-    struct scope scope = context->scopes.array[context->scopes.size - 1];
-    if (!scope.has_control_anchors) {
-        mapi_error(C->U, "scope hasn't control anchors");
-    }
-
-    return scope.break_anchor;
+    codegen_errorf(C, "hasn't breakable statement");
 }
 
 anchor_t codegen_scope_continue_anchor(struct codegen_controller *C) {
     struct context *context = C->G->context;
-    if (context->scopes.size == 0) {
-        mapi_error(C->U, "empty scope stack");
+
+    for (size_t i = 0; i < context->scopes.size; i++) {
+        struct scope scope = context->scopes.array[context->scopes.size - i - 1];
+        if (scope.has_control_anchors) {
+            return scope.continue_anchor;
+        }
     }
 
-    struct scope scope = context->scopes.array[context->scopes.size - 1];
-    if (!scope.has_control_anchors) {
-        mapi_error(C->U, "scope hasn't control anchors");
-    }
-
-    return scope.continue_anchor;
+    codegen_errorf(C, "hasn't continuable statement");
 }
 
 struct instruction_slot codegen_result(struct codegen_controller *C) {
@@ -777,7 +919,10 @@ struct instruction_slot codegen_declare_variable(
 
     for (size_t i = from; i < context->variables.size; i++) {
         if (context->variables.array[i].index == name) {
-            mapi_error(C->U, "variable already declared");
+            codegen_errorf(
+                C, "variable '%s' already declared",
+                mcapi_strtable_access(C->U, C->T, name)
+            );
         }
     }
 
@@ -798,49 +943,7 @@ struct variable_info codegen_get_variable(
     struct codegen_controller *C,
     mc_strtable_index_t name
 ) {
-    struct context *context = C->G->context;
-    struct variable_info info;
-    while (context != NULL) {
-        info = get_variable(C, name);
-
-        if (info.type != VIT_NOT_FOUND) {
-            break;
-        } else if (!context->function->auto_closure) {
-            return (struct variable_info) {
-                .type = VIT_NOT_FOUND,
-                .mutable = true
-            };
-        }
-
-        context = context->prev;
-    }
-
-    if (context == NULL) {
-        return (struct variable_info) {
-            .type = VIT_NOT_FOUND,
-            .mutable = true
-        };
-    } else if (context == C->G->context) {
-        return info;
-    }
-
-    struct context *current = C->G->context;
-    while (current != context) {
-        struct variable closure = {
-            .index = name,
-            .mutable = info.mutable
-        };
-
-        add_closure(C, current, closure);
-
-        current = current->prev;
-    }
-
-    return (struct variable_info) {
-        .type = VIT_CLOSURE,
-        .mutable = info.mutable,
-        .closure_variable = C->G->context->closures.size - 1
-    };
+    return deep_variable(C, C->G->context, name);
 }
 
 mc_strtable_index_t codegen_variable_name(struct variable *variables, size_t index) {
@@ -965,15 +1068,15 @@ static void codegen_userdata_free_context(morphine_instance_t I, struct context 
     while (current != NULL) {
         struct context *prev = current->prev;
 
-        mapi_allocator_free(I, context->temporaries.array);
-        mapi_allocator_free(I, context->scopes.array);
-        mapi_allocator_free(I, context->variables.array);
-        mapi_allocator_free(I, context->results.array);
-        mapi_allocator_free(I, context->closures.array);
-        mapi_allocator_free(I, context->anchors.array);
-        mapi_allocator_free(I, context->constants.array);
-        mapi_allocator_free(I, context->instructions.array);
-        mapi_allocator_free(I, context);
+        mapi_allocator_free(I, current->temporaries.array);
+        mapi_allocator_free(I, current->scopes.array);
+        mapi_allocator_free(I, current->variables.array);
+        mapi_allocator_free(I, current->results.array);
+        mapi_allocator_free(I, current->closures.array);
+        mapi_allocator_free(I, current->anchors.array);
+        mapi_allocator_free(I, current->constants.array);
+        mapi_allocator_free(I, current->instructions.array);
+        mapi_allocator_free(I, current);
 
         current = prev;
     }
@@ -1180,7 +1283,7 @@ static inline void fill_vector(
         const char *name;
         if (mcapi_ast_get_root_function(A) == context->function) {
             name = main;
-        } else if(context->function->anonymous) {
+        } else if (context->function->anonymous) {
             name = "anonymous";
         } else {
             struct mc_strtable_entry entry = mcapi_strtable_access(U, T, context->function->name);
@@ -1307,14 +1410,17 @@ MORPHINE_API void mcapi_codegen_build(
     struct mc_codegen *G,
     struct mc_strtable *T,
     struct mc_ast *A,
-    const char *main
+    const char *main,
+    bool vector
 ) {
     size_t size = compiled_size(G);
     mapi_push_vector(U, mapi_csize2size(U, size));
     fill_vector(U, G, T, A, main);
     build_vector(U, G, T);
-    extract_main(U, G, A);
 
-    mapi_rotate(U, 2);
-    mapi_pop(U, 1);
+    if (!vector) {
+        extract_main(U, G, A);
+        mapi_rotate(U, 2);
+        mapi_pop(U, 1);
+    }
 }
