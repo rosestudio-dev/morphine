@@ -13,7 +13,7 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
         platform.functions.signal(NULL);
     }
 
-    morphine_instance_t I = platform.functions.malloc(sizeof(struct instance));
+    morphine_instance_t I = platform.functions.malloc(data, sizeof(struct instance));
 
     if (I == NULL) {
         platform.functions.signal(NULL);
@@ -44,9 +44,10 @@ void instanceI_close(morphine_instance_t I) {
     sioI_close(I, I->sio.io, true);
     sioI_close(I, I->sio.error, true);
 
+    gcI_destruct(I, I->G);
+
     librariesI_free(I, &I->libraries);
     usertypeI_free(I, &I->usertypes);
 
-    gcI_destruct(I, I->G);
-    I->platform.functions.free(I);
+    I->platform.functions.free(I->data, I);
 }

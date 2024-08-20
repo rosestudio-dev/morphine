@@ -51,9 +51,9 @@ typedef struct {
 
 typedef struct {
     struct {
-        void *(*malloc)(size_t);
-        void *(*realloc)(void *, size_t);
-        void (*free)(void *);
+        void *(*malloc)(void *, size_t);
+        void *(*realloc)(void *, void *, size_t);
+        void (*free)(void *, void *);
         void (*signal)(morphine_instance_t) morphine_noret;
     } functions;
 
