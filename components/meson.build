@@ -33,6 +33,7 @@ c_shared_flags = [
 script_path = meson.source_root() / 'extra' / 'scripts'
 script_walker = script_path / 'walker.py'
 script_version = script_path / 'version.py'
+script_data = script_path / 'data.py'
 
 # Complex
 
