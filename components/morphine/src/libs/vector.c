@@ -197,10 +197,10 @@ static void mutable(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void fixed(morphine_coroutine_t U) {
+static void unfixed(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            bool value = true;
+            bool value = false;
             if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
                 maux_expect(U, "vector");
@@ -333,7 +333,7 @@ static morphine_library_function_t functions[] = {
     { "frontpeek", frontpeek },
     { "frontpop",  frontpop },
     { "mutable",   mutable },
-    { "fixed",     fixed },
+    { "unfixed",   unfixed },
     { "lock",      lock },
     { "isfixed",   isfixed },
     { "ismutable", ismutable },

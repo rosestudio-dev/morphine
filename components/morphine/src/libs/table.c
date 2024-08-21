@@ -137,10 +137,10 @@ static void remove_(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void immutable(morphine_coroutine_t U) {
+static void mutable(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            bool value = false;
+            bool value = true;
             if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
                 maux_expect(U, "table");
@@ -327,7 +327,7 @@ static morphine_library_function_t functions[] = {
     { "copy",              copy },
     { "has",               has },
     { "remove",            remove_ },
-    { "immutable",         immutable },
+    { "mutable",           mutable },
     { "fixed",             fixed },
     { "lockmetatable",     lockmetatable },
     { "lock",              lock },

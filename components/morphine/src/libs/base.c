@@ -118,30 +118,13 @@ static void getdefaultmetatable(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void scall(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            ml_size count = mapi_args(U);
-
-            mapi_push_arg(U, 1);
-            mapi_push_arg(U, 0);
-            maux_expect(U, "callable");
-
-            for (ml_size i = 2; i < count; i++) {
-                mapi_push_arg(U, i);
-            }
-
-            mapi_callself(U, count - 2);
-        maux_nb_state(1)
-            mapi_push_result(U);
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void pcall(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             ml_size count = mapi_args(U);
+            if (count < 1) {
+                maux_expect_args(U, 1);
+            }
 
             mapi_push_arg(U, 0);
             maux_expect(U, "callable");
@@ -183,6 +166,9 @@ static void pscall(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             ml_size count = mapi_args(U);
+            if (count < 2) {
+                maux_expect_args(U, 2);
+            }
 
             mapi_push_arg(U, 1);
             mapi_push_arg(U, 0);
@@ -234,10 +220,25 @@ static void error(morphine_coroutine_t U) {
 static void changeenv(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 1);
+            ml_size count = mapi_args(U);
+            if (count < 2) {
+                maux_expect_args(U, 2);
+            }
+
             mapi_push_arg(U, 0);
             mapi_change_env(U);
-            maux_nb_leave();
+
+            mapi_push_arg(U, 1);
+            maux_expect(U, "callable");
+
+            for (ml_size i = 2; i < count; i++) {
+                mapi_push_arg(U, i);
+            }
+
+            mapi_call(U, count - 2);
+        maux_nb_state(1)
+            mapi_push_result(U);
+            maux_nb_return();
     maux_nb_end
 }
 
@@ -249,7 +250,6 @@ static morphine_library_function_t functions[] = {
     { "getmetatable",        getmetatable },
     { "setdefaultmetatable", setdefaultmetatable },
     { "getdefaultmetatable", getdefaultmetatable },
-    { "scall",               scall },
     { "pcall",               pcall },
     { "pscall",              pscall },
     { "error",               error },
