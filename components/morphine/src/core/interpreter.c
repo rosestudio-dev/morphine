@@ -44,7 +44,6 @@
         } \
     morphinem_blk_end
 
-#define sloti(C, i) ((C)->s.slots[(i)])
 #define slot(C, a) ((C)->s.slots[(a)])
 #define param(C, a) ((C)->s.params[(a)])
 

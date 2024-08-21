@@ -12,19 +12,11 @@
 
 #ifdef MORPHINE_LIBRARY
 #define MORPHINE_API extern
-#else
-#define MORPHINE_API
-#endif
-
-#ifdef MORPHINE_LIBRARY
 #define MORPHINE_AUX extern
-#else
-#define MORPHINE_AUX
-#endif
-
-#ifdef MORPHINE_LIBRARY
 #define MORPHINE_LIB extern
 #else
+#define MORPHINE_API
+#define MORPHINE_AUX
 #define MORPHINE_LIB
 #endif
 
