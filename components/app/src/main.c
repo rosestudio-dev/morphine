@@ -6,20 +6,16 @@
 #include <setjmp.h>
 #include <morphine.h>
 #include <morphinec.h>
-#include <morphinec/disassembler.h>
 #include <morphinel.h>
 #include <malloc.h>
-#include <memory.h>
 #include <scripts.h>
-#include "human.h"
 
-static jmp_buf abort_jmp;
-
-__attribute__((noreturn)) static void cabort(void) {
-    longjmp(abort_jmp, 1);
-}
+struct environment {
+    jmp_buf abort_jmp;
+};
 
 morphine_noret static void signal(morphine_instance_t I) {
+    struct environment *env = mapi_instance_data(I);
     const char *message = mapi_signal_message(I);
     printf("morphine panic: %s\n", message);
 
@@ -27,7 +23,7 @@ morphine_noret static void signal(morphine_instance_t I) {
         mapi_close(I);
     }
 
-    cabort();
+    longjmp(env->abort_jmp, 1);
 }
 
 static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
@@ -64,13 +60,9 @@ static void init_args(morphine_coroutine_t U, size_t argc, char **args) {
     mapi_pop(U, 1);
 }
 
-int main(int argc, char **argv) {
-    if (setjmp(abort_jmp) == 1) {
-        return 1;
-    }
-
+static void launcher(struct environment *env, int argc, char **argv) {
     morphine_settings_t settings = {
-        .gc.limit_bytes = 256 * 1024 * 1024,
+        .gc.limit_bytes = 8 * 1024 * 1024,
         .gc.threshold = 16384,
         .gc.grow = 150,
         .gc.deal = 200,
@@ -113,7 +105,7 @@ int main(int argc, char **argv) {
         .sio_error_interface = error_interface,
     };
 
-    morphine_instance_t I = mapi_open(instance_platform, settings, NULL);
+    morphine_instance_t I = mapi_open(instance_platform, settings, env);
     mapi_library_load(I, mclib_compiler());
     mapi_library_load(I, mllib_math());
     mapi_library_load(I, mllib_fs());
@@ -123,20 +115,20 @@ int main(int argc, char **argv) {
     init_args(U, (size_t) argc, argv);
 
     mapi_push_stringn(U, launcher_data, launcher_size);
-    mcapi_compile(U, "launcher");
-    mapi_push_sio_io(U);
-    mapi_peek(U, 1);
-    mcapi_disassembly(U);
+    mcapi_compile(U, "launcher", false);
 
     mapi_call(U, 0);
     mapi_interpreter(I);
 
-    char buffer[128];
-    memset(buffer, 0, 128);
-    human_size(mapi_gc_max_allocated(I), buffer, 127);
-    printf("%s\n", buffer);
-
     mapi_close(I);
+}
 
+int main(int argc, char **argv) {
+    struct environment environment;
+    if (setjmp(environment.abort_jmp) == 1) {
+        return 1;
+    }
+
+    launcher(&environment, argc, argv);
     return 0;
 }

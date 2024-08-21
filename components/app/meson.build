@@ -1,6 +1,4 @@
 
-include = include_directories('include')
-
 sources = run_command(
     python, script_walker, '-p', 'src/**/*.c',
     check : true
@@ -25,7 +23,6 @@ morphine_scripts = custom_target(
 
 executable(
     'morphine', sources, morphine_scripts,
-    include_directories : include,
     dependencies : [
         morphine_dep,
         morphinec_dep,
