@@ -4,6 +4,7 @@
 
 #include "morphine/object/function.h"
 #include "morphine/object/coroutine.h"
+#include "morphine/object/string.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/allocator.h"
@@ -26,7 +27,7 @@ struct function *functionI_create(
         throwI_error(I, "function name is null");
     }
 
-    size_t name_len = strlen(name);
+    ml_size name_len = valueI_csize2size(I, strlen(name));
     if (name_len > MLIMIT_FUNCTION_NAME) {
         throwI_error(I, "function name too big");
     }
@@ -43,7 +44,7 @@ struct function *functionI_create(
         throwI_error(I, "too many slots");
     }
 
-    size_t size = sizeof(struct function) + ((name_len + 1) * sizeof(char));
+    size_t size = sizeof(struct function) + ((((size_t) name_len) + 1) * sizeof(char));
     struct function *result = allocI_uni(I, NULL, size);
 
     char *result_name = ((void *) result) + sizeof(struct function);
@@ -64,7 +65,7 @@ struct function *functionI_create(
         .registry_key = valueI_nil
     };
 
-    memcpy(result_name, name, name_len * sizeof(char));
+    memcpy(result_name, name, ((size_t) name_len) * sizeof(char));
     result_name[name_len] = '\0';
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);

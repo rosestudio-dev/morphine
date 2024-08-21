@@ -16,4 +16,5 @@ MORPHINE_LIB morphine_library_t *mlib_builtin_userdata(void);
 MORPHINE_LIB morphine_library_t *mlib_builtin_vector(void);
 MORPHINE_LIB morphine_library_t *mlib_builtin_registry(void);
 MORPHINE_LIB morphine_library_t *mlib_builtin_sio(void);
+MORPHINE_LIB morphine_library_t *mlib_builtin_binary(void);
 MORPHINE_LIB morphine_library_t *mlib_builtin_bitwise(void);

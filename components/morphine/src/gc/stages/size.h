@@ -36,7 +36,7 @@ static inline size_t size_vector(struct vector *vector) {
 
 static inline size_t size_function(struct function *function) {
     return sizeof(struct function) +
-           (function->name_len + 1) * sizeof(char) +
+           (((size_t) function->name_len) + 1) * sizeof(char) +
            function->instructions_count * sizeof(morphine_instruction_t) +
            function->statics_count * sizeof(struct value) +
            function->constants_count * sizeof(struct value);

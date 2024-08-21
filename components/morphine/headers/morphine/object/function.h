@@ -14,7 +14,7 @@ struct function {
     bool complete;
 
     const char *name;
-    size_t name_len;
+    ml_size name_len;
 
     ml_line line;
 
