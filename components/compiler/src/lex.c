@@ -195,7 +195,7 @@ static struct mc_lex_token comment(
     }
 
     mc_strtable_index_t index = mcapi_strtable_record(
-        U, T, L->text + start + 2, L->pos - start
+        U, T, L->text + start + 2, L->pos - start - 2
     );
 
     return (struct mc_lex_token) {
@@ -247,20 +247,15 @@ static struct mc_lex_token multiline_comment(
     }
 
     mc_strtable_index_t index = mcapi_strtable_record(
-        U, T, L->text + start + 2, L->pos - start - 2
+        U, T, L->text + start + 2, L->pos - start - 4
     );
 
     return (struct mc_lex_token) {
-        .
-        type = MCLTT_COMMENT,
-        .
-        comment = index,
-        .
-        line = L->line,
-        .range.
-        from = start,
-        .range.
-        to = L->pos
+        .type = MCLTT_COMMENT,
+        .comment = index,
+        .line = L->line,
+        .range.from = start,
+        .range.to = L->pos
     };
 }
 
