@@ -137,17 +137,24 @@ static void remove_(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void mutable(morphine_coroutine_t U) {
+static void immutable(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
-            mapi_push_arg(U, 0);
-            maux_expect(U, "table");
-            mapi_push_arg(U, 1);
-            maux_expect(U, "boolean");
+            bool value = false;
+            if (mapi_args(U) == 1) {
+                mapi_push_arg(U, 0);
+                maux_expect(U, "table");
+            } else {
+                maux_expect_args(U, 2);
 
-            bool value = mapi_get_boolean(U);
-            mapi_pop(U, 1);
+                mapi_push_arg(U, 1);
+                maux_expect(U, "boolean");
+                value = mapi_get_boolean(U);
+                mapi_pop(U, 1);
+
+                mapi_push_arg(U, 0);
+                maux_expect(U, "table");
+            }
 
             mapi_table_mode_mutable(U, value);
             maux_nb_return();
@@ -157,14 +164,21 @@ static void mutable(morphine_coroutine_t U) {
 static void fixed(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
-            mapi_push_arg(U, 0);
-            maux_expect(U, "table");
-            mapi_push_arg(U, 1);
-            maux_expect(U, "boolean");
+            bool value = true;
+            if (mapi_args(U) == 1) {
+                mapi_push_arg(U, 0);
+                maux_expect(U, "table");
+            } else {
+                maux_expect_args(U, 2);
 
-            bool value = mapi_get_boolean(U);
-            mapi_pop(U, 1);
+                mapi_push_arg(U, 1);
+                maux_expect(U, "boolean");
+                value = mapi_get_boolean(U);
+                mapi_pop(U, 1);
+
+                mapi_push_arg(U, 0);
+                maux_expect(U, "table");
+            }
 
             mapi_table_mode_fixed(U, value);
             maux_nb_return();
@@ -313,7 +327,7 @@ static morphine_library_function_t functions[] = {
     { "copy",              copy },
     { "has",               has },
     { "remove",            remove_ },
-    { "mutable",           mutable },
+    { "immutable",         immutable },
     { "fixed",             fixed },
     { "lockmetatable",     lockmetatable },
     { "lock",              lock },

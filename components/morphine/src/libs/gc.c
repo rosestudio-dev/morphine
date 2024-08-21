@@ -32,7 +32,7 @@ static void step(morphine_coroutine_t U) {
                 maux_expect_args(U, 1);
 
                 mapi_push_arg(U, 0);
-                maux_expect(U, "integer");
+                maux_expect(U, "size");
 
                 count = mapi_get_size(U);
             }
@@ -85,12 +85,33 @@ static void isenabled(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void changethreshold(morphine_coroutine_t U) {
+static void changelimit(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "integer");
+            ml_integer value = mapi_get_integer(U);
+
+            size_t limit;
+            if (value < 0) {
+                limit = 0;
+            } else {
+                limit = (size_t) value;
+            }
+
+            mapi_gc_full(mapi_instance(U));
+            mapi_gc_change_limit(mapi_instance(U), limit);
+            maux_nb_leave();
+    maux_nb_end
+}
+
+static void changethreshold(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_threshold(mapi_instance(U), value);
             maux_nb_leave();
@@ -102,7 +123,7 @@ static void changedeal(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_deal(mapi_instance(U), value > UINT16_MAX ? UINT16_MAX : (uint16_t) value);
             maux_nb_leave();
@@ -114,7 +135,7 @@ static void changegrow(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_grow(mapi_instance(U), value > UINT16_MAX ? UINT16_MAX : (uint16_t) value);
             maux_nb_leave();
@@ -126,7 +147,7 @@ static void changepause(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_pause(mapi_instance(U), value > UINT8_MAX ? UINT8_MAX : (uint8_t) value);
             maux_nb_leave();
@@ -138,7 +159,7 @@ static void changecachecallinfoholding(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_cache_callinfo_holding(mapi_instance(U), value);
             maux_nb_leave();
@@ -150,7 +171,7 @@ static void changefinalizerstacklimit(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_finalizer_stack_limit(mapi_instance(U), value);
             maux_nb_leave();
@@ -162,7 +183,7 @@ static void changefinalizerstackgrow(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_finalizer_stack_grow(mapi_instance(U), value);
             maux_nb_leave();
@@ -174,7 +195,7 @@ static void changestacklimit(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_stack_limit(U, value);
             maux_nb_leave();
@@ -186,7 +207,7 @@ static void changestackgrow(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t value = mapi_get_size(U);
             mapi_gc_change_stack_grow(U, value);
             maux_nb_leave();
@@ -237,6 +258,7 @@ static morphine_library_function_t functions[] = {
     { "isrunning",                  isrunning },
     { "enable",                     enable },
     { "isenabled",                  isenabled },
+    { "changelimit",                changelimit },
     { "changethreshold",            changethreshold },
     { "changedeal",                 changedeal },
     { "changegrow",                 changegrow },

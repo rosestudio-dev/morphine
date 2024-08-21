@@ -176,14 +176,21 @@ static void frontpop(morphine_coroutine_t U) {
 static void mutable(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
-            mapi_push_arg(U, 0);
-            maux_expect(U, "vector");
-            mapi_push_arg(U, 1);
-            maux_expect(U, "boolean");
+            bool value = true;
+            if (mapi_args(U) == 1) {
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            } else {
+                maux_expect_args(U, 2);
 
-            bool value = mapi_get_boolean(U);
-            mapi_pop(U, 1);
+                mapi_push_arg(U, 1);
+                maux_expect(U, "boolean");
+                value = mapi_get_boolean(U);
+                mapi_pop(U, 1);
+
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            }
 
             mapi_vector_mode_mutable(U, value);
             maux_nb_return();
@@ -193,14 +200,21 @@ static void mutable(morphine_coroutine_t U) {
 static void fixed(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
-            mapi_push_arg(U, 0);
-            maux_expect(U, "vector");
-            mapi_push_arg(U, 1);
-            maux_expect(U, "boolean");
+            bool value = true;
+            if (mapi_args(U) == 1) {
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            } else {
+                maux_expect_args(U, 2);
 
-            bool value = mapi_get_boolean(U);
-            mapi_pop(U, 1);
+                mapi_push_arg(U, 1);
+                maux_expect(U, "boolean");
+                value = mapi_get_boolean(U);
+                mapi_pop(U, 1);
+
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            }
 
             mapi_vector_mode_fixed(U, value);
             maux_nb_return();

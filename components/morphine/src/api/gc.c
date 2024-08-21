@@ -229,6 +229,25 @@ MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
 /*
  * {{docs body}}
  * path:vm/api-garbage-collector
+ * ## mapi_gc_change_limit
+ * ### Prototype
+ * ```c
+ * void mapi_gc_change_limit(morphine_instance_t I, size_t value)
+ * ```
+ * ### Parameters
+ * * `I` - instance
+ * * `value` - bytes
+ * ### Description
+ * Sets bytes into gc limit
+ * {{end}}
+ */
+MORPHINE_API void mapi_gc_change_limit(morphine_instance_t I, size_t value) {
+    gcI_change_limit(I, value);
+}
+
+/*
+ * {{docs body}}
+ * path:vm/api-garbage-collector
  * ## mapi_gc_change_threshold
  * ### Prototype
  * ```c

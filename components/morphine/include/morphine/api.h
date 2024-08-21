@@ -275,6 +275,7 @@ MORPHINE_API const char *mapi_gc_status(morphine_instance_t);
 MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t);
 MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t);
 MORPHINE_API void mapi_gc_reset_max_allocated(morphine_instance_t I);
+MORPHINE_API void mapi_gc_change_limit(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t, size_t value);
 MORPHINE_API void mapi_gc_change_grow(morphine_instance_t, uint16_t value);
 MORPHINE_API void mapi_gc_change_deal(morphine_instance_t, uint16_t value);

@@ -30,11 +30,11 @@ static void substring(morphine_coroutine_t U) {
             size_t len = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "integer");
+            maux_expect(U, "index");
             size_t start = mapi_get_size(U);
 
             mapi_push_arg(U, 2);
-            maux_expect(U, "integer");
+            maux_expect(U, "index");
             size_t end = mapi_get_size(U);
 
             mapi_pop(U, 3);
@@ -87,7 +87,7 @@ static void codeat(morphine_coroutine_t U) {
             size_t len = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "integer");
+            maux_expect(U, "index");
             size_t at = mapi_get_size(U);
 
             mapi_pop(U, 2);
@@ -112,7 +112,7 @@ static void charat(morphine_coroutine_t U) {
             size_t len = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "integer");
+            maux_expect(U, "index");
             size_t at = mapi_get_size(U);
 
             mapi_pop(U, 2);
@@ -226,7 +226,7 @@ static void repeat(morphine_coroutine_t U) {
             maux_expect(U, "string");
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "integer");
+            maux_expect(U, "size");
             size_t count = mapi_get_size(U);
 
             mapi_pop(U, 2);
