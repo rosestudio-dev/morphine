@@ -55,7 +55,7 @@ static inline bool pause(morphine_instance_t I) {
 }
 
 static inline size_t debt_calc(morphine_instance_t I) {
-    size_t conv = (uintmax_t) I->G.stats.debt;
+    size_t conv = I->G.stats.debt;
     if (unlikely(conv == 0)) {
         conv = 1;
     }
