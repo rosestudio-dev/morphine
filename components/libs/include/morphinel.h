@@ -4,13 +4,5 @@
 
 #pragma once
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
-#include "morphinel/math.h"
-#include "morphinel/fs.h"
-
-#ifdef __cplusplus
-}
-#endif
+#include <morphinel/math.h>
+#include <morphinel/fs.h>

@@ -5,7 +5,8 @@ project(
     license_files : ['LICENSE'],
     default_options : {
         'c_std' : 'c17',
-        'prefix' : meson.source_root() / 'install'
+        'default_library' : 'static',
+        'prefix' : meson.source_root() / 'install',
     }
 )
 

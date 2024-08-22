@@ -6,4 +6,12 @@
 
 #include <morphine.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 MORPHINE_LIB morphine_library_t *mllib_fs(void);
+
+#ifdef __cplusplus
+}
+#endif
