@@ -83,8 +83,12 @@ fun tobytes<auto>(program, param)
 end
 
 fun parse_arguments<auto>()
-    if (lenof env.args == 0)
+    if (lenof env.args < 1)
         help("morphine", "empty command line arguments", true)
+    end
+
+    if (lenof env.args == 1)
+        help("morphine", "no arguments", true)
     end
 
     val result = table.fixed {
