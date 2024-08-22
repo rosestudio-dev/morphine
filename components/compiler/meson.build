@@ -7,7 +7,7 @@ sources = run_command(
     check : true
 ).stdout().strip().split('\n')
 
-morphinec = both_libraries(
+morphinec = library(
     'morphinec', sources,
     include_directories : [headers, include],
     dependencies : [morphine_dep],
@@ -18,7 +18,7 @@ morphinec = both_libraries(
 
 morphinec_dep = declare_dependency(
     include_directories : [include],
-    link_with : morphinec.get_static_lib(),
+    link_with : morphinec,
     version : meson.project_version()
 )
 

@@ -10,7 +10,7 @@ sources = run_command(
     check : true
 ).stdout().strip().split('\n')
 
-morphinel = both_libraries(
+morphinel = library(
     'morphinel', sources,
     include_directories : [headers, include],
     dependencies : [morphine_dep, m_dep],
@@ -21,7 +21,7 @@ morphinel = both_libraries(
 
 morphinel_dep = declare_dependency(
     include_directories : [include],
-    link_with : morphinel.get_static_lib(),
+    link_with : morphinel,
     version : meson.project_version()
 )
 

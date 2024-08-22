@@ -21,7 +21,7 @@ mversion_h = custom_target(
     install_dir : 'include',
 )
 
-morphine = both_libraries(
+morphine = library(
     'morphine', sources, mversion_h,
     include_directories : [headers, include],
     c_args : c_args,
@@ -31,7 +31,7 @@ morphine = both_libraries(
 
 morphine_dep = declare_dependency(
     include_directories : [include],
-    link_with : morphine.get_static_lib(),
+    link_with : morphine,
     version : meson.project_version()
 )
 

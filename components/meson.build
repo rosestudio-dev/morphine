@@ -6,6 +6,7 @@ c_warning_flags = [
     '-Wextra',
     '-Werror',
     '-Wno-error=conversion',
+    '-Wno-error=cast-align',
     '-Wdouble-promotion',
     '-Wshadow',
     '-Wformat',
@@ -17,7 +18,6 @@ c_warning_flags = [
     '-Wvla',
     '-Wmissing-prototypes',
     '-Wcast-qual',
-    '-Wcast-align',
     '-Woverflow',
 ]
 
