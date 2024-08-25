@@ -4,7 +4,7 @@
 
 /*
  * {{docs header}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * # Garbage collector API
  * ## Description
  * API for working with garbage collector
@@ -20,7 +20,7 @@
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_full
  * ### Prototype
  * ```c
@@ -38,7 +38,7 @@ MORPHINE_API void mapi_gc_full(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_work
  * ### Prototype
  * ```c
@@ -56,7 +56,7 @@ MORPHINE_API void mapi_gc_work(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_force
  * ### Prototype
  * ```c
@@ -74,7 +74,7 @@ MORPHINE_API void mapi_gc_force(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_is_running
  * ### Prototype
  * ```c
@@ -94,7 +94,7 @@ MORPHINE_API bool mapi_gc_is_running(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_enable
  * ### Prototype
  * ```c
@@ -112,7 +112,7 @@ MORPHINE_API void mapi_gc_enable(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_disable
  * ### Prototype
  * ```c
@@ -130,7 +130,7 @@ MORPHINE_API void mapi_gc_disable(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_is_enabled
  * ### Prototype
  * ```c
@@ -150,7 +150,7 @@ MORPHINE_API bool mapi_gc_is_enabled(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_status
  * ### Prototype
  * ```c
@@ -170,7 +170,7 @@ MORPHINE_API const char *mapi_gc_status(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_max_allocated
  * ### Prototype
  * ```c
@@ -190,7 +190,7 @@ MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_reset_max_allocated
  * ### Prototype
  * ```c
@@ -208,7 +208,7 @@ MORPHINE_API void mapi_gc_reset_max_allocated(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_allocated
  * ### Prototype
  * ```c
@@ -228,7 +228,7 @@ MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_limit
  * ### Prototype
  * ```c
@@ -247,7 +247,7 @@ MORPHINE_API void mapi_gc_change_limit(morphine_instance_t I, size_t value) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_threshold
  * ### Prototype
  * ```c
@@ -266,7 +266,7 @@ MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t I, size_t value) 
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_grow
  * ### Prototype
  * ```c
@@ -285,7 +285,7 @@ MORPHINE_API void mapi_gc_change_grow(morphine_instance_t I, uint16_t value) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_deal
  * ### Prototype
  * ```c
@@ -304,7 +304,7 @@ MORPHINE_API void mapi_gc_change_deal(morphine_instance_t I, uint16_t value) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_pause
  * ### Prototype
  * ```c
@@ -323,7 +323,7 @@ MORPHINE_API void mapi_gc_change_pause(morphine_instance_t I, uint8_t value) {
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_cache_callinfo_holding
  * ### Prototype
  * ```c
@@ -342,7 +342,7 @@ MORPHINE_API void mapi_gc_change_cache_callinfo_holding(morphine_instance_t I, s
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_finalizer_stack_limit
  * ### Prototype
  * ```c
@@ -363,7 +363,7 @@ MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, si
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_finalizer_stack_grow
  * ### Prototype
  * ```c
@@ -384,7 +384,7 @@ MORPHINE_API void mapi_gc_change_finalizer_stack_grow(morphine_instance_t I, siz
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_stack_limit
  * ### Prototype
  * ```c
@@ -403,7 +403,7 @@ MORPHINE_API void mapi_gc_change_stack_limit(morphine_coroutine_t U, size_t valu
 
 /*
  * {{docs body}}
- * path:vm/api-garbage-collector
+ * path:architecture/api-garbage-collector
  * ## mapi_gc_change_stack_grow
  * ### Prototype
  * ```c

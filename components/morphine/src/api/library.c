@@ -9,7 +9,7 @@
 
 /*
  * {{docs body}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * ## mapi_library_load
  * ### Prototype
  * ```c

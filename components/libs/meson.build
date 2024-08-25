@@ -18,8 +18,10 @@ morphinel_dep = declare_dependency(
     version : meson.project_version()
 )
 
-install_subdir(
-    'include',
-    install_dir : 'include',
-    strip_directory : true,
-)
+if install_deps
+    install_subdir(
+        'include',
+        install_dir : 'include',
+        strip_directory : true,
+    )
+endif

@@ -17,7 +17,7 @@ mversion_h = custom_target(
     ],
     console : true,
     output : 'mversion.h',
-    install : true,
+    install : install_deps,
     install_dir : 'include',
 )
 
@@ -26,7 +26,7 @@ morphine = library(
     include_directories : [headers, include],
     c_args : c_args,
     c_shared_args : c_shared_flags,
-    install : true
+    install : install_deps
 )
 
 morphine_dep = declare_dependency(
@@ -35,8 +35,10 @@ morphine_dep = declare_dependency(
     version : meson.project_version()
 )
 
-install_subdir(
-    'include',
-    install_dir : 'include',
-    strip_directory : true,
-)
+if install_deps
+    install_subdir(
+        'include',
+        install_dir : 'include',
+        strip_directory : true,
+    )
+endif

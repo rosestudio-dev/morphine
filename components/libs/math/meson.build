@@ -15,7 +15,7 @@ morphinelmath = library(
     dependencies : [morphine_dep, m_dep],
     c_args : c_args,
     c_shared_args : c_shared_flags,
-    install : true
+    install : install_deps
 )
 
 morphinelmath_dep = declare_dependency(
@@ -24,8 +24,10 @@ morphinelmath_dep = declare_dependency(
     version : meson.project_version()
 )
 
-install_subdir(
-    'include',
-    install_dir : 'include',
-    strip_directory : true,
-)
+if install_deps
+    install_subdir(
+        'include',
+        install_dir : 'include',
+        strip_directory : true,
+    )
+endif

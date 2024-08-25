@@ -4,7 +4,7 @@
 
 /*
  * {{docs header}}
- * path:vm/api-allocator
+ * path:architecture/api-allocator
  * # Allocator API
  * ## Description
  * API for working with memory
@@ -17,7 +17,7 @@
 
 /*
  * {{docs body}}
- * path:vm/api-allocator
+ * path:architecture/api-allocator
  * ## mapi_allocator_uni
  * ### Prototype
  * ```c
@@ -43,7 +43,7 @@ MORPHINE_API void *mapi_allocator_uni(morphine_instance_t I, void *p, size_t siz
 
 /*
  * {{docs body}}
- * path:vm/api-allocator
+ * path:architecture/api-allocator
  * ## mapi_allocator_vec
  * ### Prototype
  * ```c
@@ -68,7 +68,7 @@ MORPHINE_API void *mapi_allocator_vec(morphine_instance_t I, void *p, size_t n, 
 
 /*
  * {{docs body}}
- * path:vm/api-allocator
+ * path:architecture/api-allocator
  * ## mapi_allocator_free
  * ### Prototype
  * ```c

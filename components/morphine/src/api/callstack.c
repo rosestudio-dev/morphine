@@ -4,7 +4,7 @@
 
 /*
  * {{docs header}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * # Callstack API
  * ## Description
  * API for working with callstack
@@ -20,7 +20,7 @@
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_call
  * ### Prototype
  * ```c
@@ -46,7 +46,7 @@ MORPHINE_API void mapi_call(morphine_coroutine_t U, ml_size argc) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_calli
  * ### Prototype
  * ```c
@@ -72,7 +72,7 @@ MORPHINE_API void mapi_calli(morphine_coroutine_t U, ml_size argc) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_callself
  * ### Prototype
  * ```c
@@ -99,7 +99,7 @@ MORPHINE_API void mapi_callself(morphine_coroutine_t U, ml_size argc) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_callselfi
  * ### Prototype
  * ```c
@@ -126,7 +126,7 @@ MORPHINE_API void mapi_callselfi(morphine_coroutine_t U, ml_size argc) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_push_callable
  * ### Prototype
  * ```c
@@ -144,7 +144,7 @@ MORPHINE_API void mapi_push_callable(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_extract_callable
  * ### Prototype
  * ```c
@@ -162,7 +162,7 @@ MORPHINE_API void mapi_extract_callable(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_push_result
  * ### Prototype
  * ```c
@@ -180,7 +180,7 @@ MORPHINE_API void mapi_push_result(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_return
  * ### Prototype
  * ```c
@@ -199,7 +199,7 @@ MORPHINE_API void mapi_return(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_leave
  * ### Prototype
  * ```c
@@ -217,7 +217,7 @@ MORPHINE_API void mapi_leave(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_continue
  * ### Prototype
  * ```c
@@ -236,7 +236,7 @@ MORPHINE_API void mapi_continue(morphine_coroutine_t U, size_t callstate) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_callstate
  * ### Prototype
  * ```c
@@ -256,7 +256,7 @@ MORPHINE_API size_t mapi_callstate(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_args
  * ### Prototype
  * ```c
@@ -276,7 +276,7 @@ MORPHINE_API ml_size mapi_args(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_push_arg
  * ### Prototype
  * ```c
@@ -300,7 +300,7 @@ MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, ml_size index) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_push_env
  * ### Prototype
  * ```c
@@ -325,7 +325,7 @@ MORPHINE_API void mapi_push_env(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_push_self
  * ### Prototype
  * ```c
@@ -343,7 +343,7 @@ MORPHINE_API void mapi_push_self(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_change_env
  * ### Prototype
  * ```c
@@ -362,7 +362,7 @@ MORPHINE_API void mapi_change_env(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-callstack
+ * path:architecture/api-callstack
  * ## mapi_bind_registry
  * ### Prototype
  * ```c

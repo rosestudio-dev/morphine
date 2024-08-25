@@ -4,7 +4,7 @@
 
 /*
  * {{docs header}}
- * path:vm/api-version
+ * path:architecture/api-version
  * # Version API
  * ## Description
  * API for versions
@@ -16,7 +16,7 @@
 
 /*
  * {{docs body}}
- * path:vm/api-version
+ * path:architecture/api-version
  * ## mapi_version_name
  * ### Prototype
  * ```c
@@ -34,7 +34,7 @@ MORPHINE_API const char *mapi_version_name(void) {
 
 /*
  * {{docs body}}
- * path:vm/api-version
+ * path:architecture/api-version
  * ## mapi_version
  * ### Prototype
  * ```c
@@ -52,7 +52,7 @@ MORPHINE_API ml_version mapi_version(void) {
 
 /*
  * {{docs body}}
- * path:vm/api-version
+ * path:architecture/api-version
  * ## mapi_bytecode_version
  * ### Prototype
  * ```c

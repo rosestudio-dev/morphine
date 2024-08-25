@@ -4,7 +4,7 @@
 
 /*
  * {{docs header}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * # Coroutine API
  * ## Description
  * API for working with coroutines
@@ -18,7 +18,7 @@
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_push_coroutine
  * ### Prototype
  * ```c
@@ -48,7 +48,7 @@ MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_get_coroutine
  * ### Prototype
  * ```c
@@ -68,7 +68,7 @@ MORPHINE_API morphine_coroutine_t mapi_get_coroutine(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_current
  * ### Prototype
  * ```c
@@ -86,7 +86,7 @@ MORPHINE_API void mapi_current(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_attach
  * ### Prototype
  * ```c
@@ -104,7 +104,7 @@ MORPHINE_API void mapi_attach(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_coroutine_suspend
  * ### Prototype
  * ```c
@@ -122,7 +122,7 @@ MORPHINE_API void mapi_coroutine_suspend(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_coroutine_kill
  * ### Prototype
  * ```c
@@ -140,7 +140,7 @@ MORPHINE_API void mapi_coroutine_kill(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_coroutine_resume
  * ### Prototype
  * ```c
@@ -158,7 +158,7 @@ MORPHINE_API void mapi_coroutine_resume(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_coroutine_priority
  * ### Prototype
  * ```c
@@ -177,7 +177,7 @@ MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t U, ml_size priori
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_coroutine_status
  * ### Prototype
  * ```c
@@ -197,7 +197,7 @@ MORPHINE_API const char *mapi_coroutine_status(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-coroutine
+ * path:architecture/api-coroutine
  * ## mapi_coroutine_is_alive
  * ### Prototype
  * ```c

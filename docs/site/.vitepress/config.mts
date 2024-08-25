@@ -6,7 +6,7 @@ export default defineConfig({
     lastUpdated: true,
     themeConfig: {
         sidebar: {
-            '/vm/': {base: '/vm/', items: sidebarVm()},
+            '/architecture/': {base: '/architecture/', items: sidebarArchitecture()},
         },
 
         logo: {
@@ -18,8 +18,8 @@ export default defineConfig({
             {text: 'Home', link: '/'},
             {text: 'Quickstart', link: '/quickstart'},
             {text: 'Language', link: '/language'},
-            {text: 'Virtual machine', link: '/vm/getting-started'},
-            {text: 'Compiler', link: '/compiler'},
+            {text: 'Architecture', link: '/architecture/getting-started'},
+            {text: 'Playground', link: '/playground'},
             {text: 'Changelog', link: '/changelog'},
         ],
 
@@ -71,12 +71,14 @@ export default defineConfig({
             }
         ]
     ],
+    cleanUrls: true,
+    srcDir: 'src',
     rewrites: {
         'generated/:path(.*)': ':path'
     }
 })
 
-function sidebarVm(): DefaultTheme.SidebarItem[] {
+function sidebarArchitecture(): DefaultTheme.SidebarItem[] {
     return [
         {
             text: 'Introduction',

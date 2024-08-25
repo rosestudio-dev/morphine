@@ -4,7 +4,7 @@
 
 /*
  * {{docs header}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * # Instance API
  * ## Description
  * API for working with instance
@@ -19,7 +19,7 @@
 
 /*
  * {{docs body}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * ## mapi_open
  * ### Prototype
  * ```c
@@ -41,7 +41,7 @@ MORPHINE_API morphine_instance_t mapi_open(morphine_platform_t P, morphine_setti
 
 /*
  * {{docs body}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * ## mapi_instance_data
  * ### Prototype
  * ```c
@@ -61,7 +61,7 @@ MORPHINE_API void *mapi_instance_data(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * ## mapi_interpreter
  * ### Prototype
  * ```c
@@ -79,7 +79,7 @@ MORPHINE_API void mapi_interpreter(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * ## mapi_interpreter_step
  * ### Prototype
  * ```c
@@ -99,7 +99,7 @@ MORPHINE_API bool mapi_interpreter_step(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * ## mapi_close
  * ### Prototype
  * ```c
@@ -117,7 +117,7 @@ MORPHINE_API void mapi_close(morphine_instance_t I) {
 
 /*
  * {{docs body}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * ## mapi_instance
  * ### Prototype
  * ```c
@@ -137,7 +137,7 @@ MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-instance
+ * path:architecture/api-instance
  * ## mapi_coroutine
  * ### Prototype
  * ```c

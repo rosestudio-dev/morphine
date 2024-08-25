@@ -23,6 +23,7 @@ morphine_scripts = custom_target(
 
 executable(
     'morphine', sources, morphine_scripts,
+    build_by_default : true,
     dependencies : [
         morphine_dep,
         morphinec_dep,

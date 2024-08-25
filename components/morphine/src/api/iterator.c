@@ -4,7 +4,7 @@
 
 /*
  * {{docs header}}
- * path:vm/api-iterator
+ * path:architecture/api-iterator
  * # Iterator API
  * ## Description
  * API for working with iterator
@@ -19,7 +19,7 @@
 
 /*
  * {{docs body}}
- * path:vm/api-iterator
+ * path:architecture/api-iterator
  * ## mapi_iterator
  * ### Prototype
  * ```c
@@ -40,7 +40,7 @@ MORPHINE_API void mapi_iterator(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-iterator
+ * path:architecture/api-iterator
  * ## mapi_iterator_init
  * ### Prototype
  * ```c
@@ -61,7 +61,7 @@ MORPHINE_API void mapi_iterator_init(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-iterator
+ * path:architecture/api-iterator
  * ## mapi_iterator_has
  * ### Prototype
  * ```c
@@ -84,7 +84,7 @@ MORPHINE_API bool mapi_iterator_has(morphine_coroutine_t U) {
 
 /*
  * {{docs body}}
- * path:vm/api-iterator
+ * path:architecture/api-iterator
  * ## mapi_iterator_next
  * ### Prototype
  * ```c

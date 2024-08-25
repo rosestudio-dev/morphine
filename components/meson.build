@@ -41,9 +41,22 @@ python = find_program('python', required : true)
 
 c_args = c_warning_flags + c_common_flags
 
+cpu = target_machine.cpu_family()
+if cpu == 'wasm32' or cpu == 'wasm64'
+    install_deps = false
+else
+    install_deps = true
+endif
+
 # Subdirs
 
 subdir('morphine')
 subdir('compiler')
 subdir('libs')
-subdir('app')
+
+
+if cpu == 'wasm32' or cpu == 'wasm64'
+    subdir('app-wasm')
+else
+    subdir('app-cli')
+endif
