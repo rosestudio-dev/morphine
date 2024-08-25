@@ -25,14 +25,15 @@ fun help<auto>(program, message, usage)
         base.println("    -b              Binary program")
         base.println("    -r              Run program")
         base.println("    -e path         Export program")
+        base.println("    -n name  [main] Program name (gives an effect for a non-binary format)")
         base.println("    -d              Disassembly program")
-        base.println("    -m bytes [256M] Limit of allocation in bytes (suffixes: K, M, G)")
+        base.println("    -m bytes [256M] Allocation limit (possible suffixes: K, M, G)")
         base.println("    -h              Print help message")
         base.println("    --              Stop handling options")
     end
 
     if (message != nil)
-        base.error("abort")
+        env.exit(1)
     end
 end
 
@@ -98,6 +99,7 @@ fun parse_arguments<auto>()
         gc_limit = 256 * 1024 * 1024,
         binary = false,
         execute = false,
+        name = "main",
         disassembly = false,
         export = nil,
         help = false
@@ -140,6 +142,13 @@ fun parse_arguments<auto>()
                     help(result.app_path, "no export path", true)
                 end
                 result.export = env.args[parsed + offset]
+            elif (char == 'n')
+                require_path = true
+                offset ++
+                if (parsed + offset >= lenof env.args)
+                    help(result.app_path, "no name", true)
+                end
+                result.name = env.args[parsed + offset]
             elif (char == 'm')
                 offset ++
                 if (parsed + offset >= lenof env.args)
@@ -197,10 +206,20 @@ fun launch<auto>()
             result
         else
             val file = fs.file(config.program_path, "rb")
-            val result = sio.extractstring(file)
+            val text = sio.extractstring(file)
             sio.close(file)
 
-            compiler.compile(result)
+            fun compile<auto>() = compiler.compile {
+                text = text,
+                name = config.name
+            }
+
+            val decompose result, error = base.pcall(compile)
+            if (error != nil)
+                help(config.app_path, error, false)
+            end
+
+            result
         end
 
         if (config.disassembly)

@@ -5,7 +5,7 @@ sources = run_command(
 ).stdout().strip().split('\n')
 
 morphine_scripts_paths = run_command(
-    python, script_walker, '-p', 'scripts/**/*.mos',
+    python, script_walker, '-p', 'scripts/**/*.ms',
     check : true
 ).stdout().strip().split('\n')
 
