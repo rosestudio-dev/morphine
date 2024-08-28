@@ -118,16 +118,6 @@ void librariesI_free(morphine_instance_t I, struct libraries *libraries) {
     *libraries = librariesI_prototype();
 }
 
-void librariesI_shrink(morphine_instance_t I) {
-    if (unlikely(I->libraries.allocated > I->libraries.size)) {
-        I->libraries.array = allocI_vec(
-            I, I->libraries.array, I->libraries.size, sizeof(struct library)
-        );
-
-        I->libraries.allocated = I->libraries.size;
-    }
-}
-
 void librariesI_load(morphine_instance_t I, morphine_library_t *L) {
     if (L == NULL) {
         throwI_error(I, "library is null");

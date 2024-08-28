@@ -135,7 +135,6 @@ void gcstageI_resolve(morphine_instance_t I, bool emergency) {
 
     resolve_pools(I);
     resolve_cache(I, emergency);
-    librariesI_shrink(I);
 
     I->G.pools.sweep = I->G.pools.allocated;
     I->G.pools.allocated = I->G.pools.black;
