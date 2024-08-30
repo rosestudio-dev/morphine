@@ -15,7 +15,7 @@ struct environment {
 morphine_noret static void signal(morphine_instance_t I) {
     struct environment *env = mapi_instance_data(I);
     const char *message = mapi_signal_message(I);
-    printf("morphine panic: %s\n", message);
+    fprintf(stderr, "morphine panic: %s\n", message);
 
     if (I != NULL && !mapi_is_nested_signal(I)) {
         mapi_close(I);
@@ -30,6 +30,13 @@ static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buf
 
     fwrite(buffer, size, 1, stdout);
     return size;
+}
+
+static size_t io_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
+    (void) A;
+    (void) data;
+
+    return fread(buffer, size, 1, stdin);
 }
 
 static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
@@ -60,7 +67,7 @@ static void launcher(struct environment *env, const char *text, size_t size) {
 
     morphine_sio_interface_t io_interface = {
         .write = io_write,
-        .read = NULL,
+        .read = io_read,
         .flush = NULL,
         .open = NULL,
         .close = NULL,

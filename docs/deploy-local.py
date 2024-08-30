@@ -1,9 +1,13 @@
 import shutil
 import subprocess
+import os
 import sys
+
+cwd = os.getcwd()
 
 gradle = shutil.which("gradle")
 npm = shutil.which("npm")
+meson = shutil.which("meson")
 
 if gradle is None:
     print("Require gradle")
@@ -13,6 +17,9 @@ if npm is None:
     print("Require npm")
     exit(1)
 
+if npm is None:
+    print("Require meson")
+    exit(1)
 
 def step(name, args, cwd):
     print("\u001b[32;1m-- " + name + " --\u001b[0m")
@@ -27,8 +34,28 @@ def step(name, args, cwd):
         print("\u001b[31;1m-- Failure --\u001b[0m")
         exit(1)
 
+def insert_gitignore(path):
+    file = open(path + "/.gitignore", "w")
+    file.write("*")
+    file.close()
+
+def copy(src, dest):
+    os.makedirs(os.path.dirname(dest), exist_ok=True)
+    shutil.copy(src, dest)
 
 step("Install deps", [npm, "i"], "site")
+
+step("Configure morphine", [meson, "setup", "docs/wasm/buildmorphine", "-Dprefix=" + cwd + "/wasm/deps", "-Ddefault_library=static", "-Dbuildapp=disabled", "-Dbuildlibs=disabled", "--cross", "docs/wasm/cross/wasm.ini"], "..")
+step("Compile morphine", [meson, "install", "--quiet"], "wasm/buildmorphine")
+insert_gitignore("wasm/deps")
+
+step("Configure wasm", [meson, "setup", "buildwasm", "-Dprefix=" + cwd + "/wasm/out", "--cross", "cross/wasm.ini"], "wasm")
+step("Compile wasm", [meson, "install", "--quiet"], "wasm/buildwasm")
+insert_gitignore("wasm/out")
+copy("wasm/out/bin/morphine.js", "site/.vitepress/generated/morphine.js")
+copy("wasm/out/bin/morphine.wasm", "site/.vitepress/generated/morphine.wasm")
+
 step("Generate docs", [gradle, "run", "--args", "../../components ../site/src/generated kt c"], "gen")
-shutil.copy("../changelog.md", "site/src/generated/changelog.md")
+copy("../changelog.md", "site/src/generated/changelog.md")
+
 step("Deploy", [npm, "run", "docs:dev", "--"] + sys.argv[1:], "site")

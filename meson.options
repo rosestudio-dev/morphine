@@ -1,0 +1,3 @@
+option('buildapp', type : 'feature', value : 'enabled')
+option('buildlibs', type : 'feature', value : 'enabled')
+option('buildcompiler', type : 'feature', value : 'enabled')

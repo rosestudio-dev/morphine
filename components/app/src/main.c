@@ -23,7 +23,7 @@ struct environment {
 morphine_noret static void signal(morphine_instance_t I) {
     struct environment *env = mapi_instance_data(I);
     const char *message = mapi_signal_message(I);
-    printf("morphine panic: %s\n", message);
+    fprintf(stderr, "morphine panic: %s\n", message);
 
     if (I != NULL && !mapi_is_nested_signal(I)) {
         mapi_close(I);
