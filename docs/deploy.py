@@ -58,4 +58,15 @@ copy("wasm/out/bin/morphine.wasm", "site/.vitepress/generated/morphine.wasm")
 step("Generate docs", [gradle, "run", "--args", "../../components ../site/src/generated kt c"], "gen")
 copy("../changelog.md", "site/src/generated/changelog.md")
 
-step("Deploy", [npm, "run", "docs:dev", "--"] + sys.argv[1:], "site")
+if len(sys.argv) < 2:
+    variant = "dev"
+else:
+    variant = sys.argv[1]
+
+if variant == "dev":
+    step("Deploy", [npm, "run", "docs:dev", '--'] + sys.argv[2:], "site")
+elif variant == "build":
+    step("Build", [npm, "run", "docs:build"], "site")
+else:
+    print("\u001b[31;1mSupported variants: dev, build\u001b[0m")
+    exit(1)
