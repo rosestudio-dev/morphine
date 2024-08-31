@@ -673,7 +673,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     }
 
     overflow_add(hashmap->buckets.count, 1, MLIMIT_SIZE_MAX) {
-        throwI_error(I, "table size too big");
+        throwI_error(I, "table size limit has been exceeded");
     }
 
     current = allocI_uni(I, NULL, sizeof(struct bucket));

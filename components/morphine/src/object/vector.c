@@ -140,7 +140,7 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
     if (vector->size.accessible == vector->size.real) {
         size_t rollback = gcI_safe_value(I, value);
         overflow_add(MPARAM_VECTOR_AMORTIZATION, vector->size.real, MLIMIT_SIZE_MAX) {
-            throwI_error(I, "vector size exceeded limit");
+            throwI_error(I, "vector size limit has been exceeded");
         }
 
         vector->values = allocI_vec(

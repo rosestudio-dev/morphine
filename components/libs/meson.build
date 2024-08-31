@@ -2,10 +2,12 @@
 
 subdir('math')
 subdir('fs')
+subdir('system')
 
 dependencies = [
     morphinelmath_dep,
-    morphinelfs_dep
+    morphinelfs_dep,
+    morphinelsystem_dep,
 ]
 
 # dep
