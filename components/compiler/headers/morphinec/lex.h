@@ -62,6 +62,7 @@ enum mc_lex_token_predefined_word {
     MCLTPW_false,
     MCLTPW_env,
     MCLTPW_self,
+    MCLTPW_invoked,
     MCLTPW_nil,
     MCLTPW_val,
     MCLTPW_static,

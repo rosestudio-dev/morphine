@@ -23,4 +23,4 @@ end
 /*
  * Cause stack overflow
  */
-(fun recursive() = recursive())()
+(fun recursive() = invoked())()

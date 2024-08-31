@@ -899,6 +899,10 @@ struct instruction_slot codegen_result(struct codegen_controller *C) {
     return result.slot;
 }
 
+bool codegen_is_recursive(struct codegen_controller *C) {
+    return C->G->context->function->recursive;
+}
+
 struct instruction_slot codegen_declare_temporary(struct codegen_controller *C) {
     return (struct instruction_slot) {
         .is_variable = false,

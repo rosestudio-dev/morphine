@@ -19,7 +19,7 @@ static const char *opcode2str(morphine_opcode_t opcode) {
         opcode_case(ARG)
         opcode_case(ENV)
         opcode_case(SELF)
-        opcode_case(RECURSION)
+        opcode_case(INVOKED)
         opcode_case(VECTOR)
         opcode_case(TABLE)
         opcode_case(GET)
@@ -85,7 +85,7 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
         case MORPHINE_OPCODE_SELF:
             printf(SLOT" = self", arg(1));
             return;
-        case MORPHINE_OPCODE_RECURSION:
+        case MORPHINE_OPCODE_INVOKED:
             printf(SLOT" = callable", arg(1));
             return;
         case MORPHINE_OPCODE_VECTOR:

@@ -25,17 +25,17 @@ static void get_variable(
             codegen_instruction_MOVE(C, info.variable, slot);
             break;
         case VIT_STATIC:
-            codegen_instruction_RECURSION(C, slot);
+            codegen_instruction_INVOKED(C, slot);
             codegen_instruction_GET_STATIC(C, slot, info.static_variable, slot);
             break;
         case VIT_ARGUMENT:
             codegen_instruction_ARG(C, info.argument, slot);
             break;
         case VIT_RECURSIVE:
-            codegen_instruction_RECURSION(C, slot);
+            codegen_instruction_INVOKED(C, slot);
             break;
         case VIT_CLOSURE:
-            codegen_instruction_RECURSION(C, slot);
+            codegen_instruction_INVOKED(C, slot);
             codegen_instruction_GET_CLOSURE(C, slot, info.closure_variable, slot);
             break;
         case VIT_NOT_FOUND:
@@ -59,7 +59,7 @@ decl_set(variable) {
             break;
         case VIT_STATIC: {
             struct instruction_slot slot = codegen_declare_temporary(C);
-            codegen_instruction_RECURSION(C, slot);
+            codegen_instruction_INVOKED(C, slot);
             codegen_instruction_SET_STATIC(C, slot, info.static_variable, codegen_result(C));
             break;
         }
@@ -69,7 +69,7 @@ decl_set(variable) {
             codegen_errorf(C, "cannot be set to function");
         case VIT_CLOSURE: {
             struct instruction_slot slot = codegen_declare_temporary(C);
-            codegen_instruction_RECURSION(C, slot);
+            codegen_instruction_INVOKED(C, slot);
             codegen_instruction_SET_CLOSURE(C, slot, info.static_variable, codegen_result(C));
             break;
         }
@@ -311,6 +311,13 @@ decl_expr(global) {
         case MCEXPR_GLOBAL_TYPE_SELF:
             codegen_instruction_SELF(C, codegen_result(C));
             codegen_complete(C);
+        case MCEXPR_GLOBAL_TYPE_INVOKED:
+            if (codegen_is_recursive(C)) {
+                codegen_instruction_INVOKED(C, codegen_result(C));
+                codegen_complete(C);
+            } else {
+                codegen_errorf(C, "non-recursive function");
+            }
     }
 }
 
@@ -908,7 +915,7 @@ decl_stmt(if) {
             codegen_anchor_change(C, data->anchor_if);
             codegen_statement(C, statement->if_statement, 2);
         case 2:
-            if(statement->else_statement != NULL) {
+            if (statement->else_statement != NULL) {
                 codegen_instruction_JUMP(C, data->anchor_end);
                 codegen_anchor_change(C, data->anchor_else);
                 codegen_statement(C, statement->else_statement, 3);

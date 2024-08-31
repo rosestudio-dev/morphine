@@ -128,6 +128,8 @@ anchor_t codegen_scope_continue_anchor(struct codegen_controller *);
 
 struct instruction_slot codegen_result(struct codegen_controller *);
 
+bool codegen_is_recursive(struct codegen_controller *);
+
 struct instruction_slot codegen_declare_temporary(struct codegen_controller *);
 
 struct instruction_slot codegen_declare_variable(

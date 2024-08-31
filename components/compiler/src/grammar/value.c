@@ -98,6 +98,15 @@ struct mc_ast_node *rule_value(struct parse_controller *C) {
         return mcapi_ast_expression_global2node(global);
     }
 
+    if (parser_match(C, et_predef_word(invoked))) {
+        struct mc_ast_expression_global *global =
+            mcapi_ast_create_expression_global(parser_U(C), parser_A(C), line);
+
+        global->type = MCEXPR_GLOBAL_TYPE_INVOKED;
+
+        return mcapi_ast_expression_global2node(global);
+    }
+
     if (parser_match(C, et_operator(LPAREN))) {
         struct mc_ast_node *node = parser_reduce(C, rule_expression);
         parser_consume(C, et_operator(RPAREN));

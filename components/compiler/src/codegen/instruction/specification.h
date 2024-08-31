@@ -10,7 +10,7 @@ instr_func2(ARG, index, slot)
 
 instr_func1(ENV, slot)
 instr_func1(SELF, slot)
-instr_func1(RECURSION, slot)
+instr_func1(INVOKED, slot)
 
 instr_func2(VECTOR, slot, count)
 instr_func1(TABLE, slot)

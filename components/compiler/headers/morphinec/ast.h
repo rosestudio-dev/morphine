@@ -144,6 +144,7 @@ enum mc_expression_value_type {
 enum mc_expression_global_type {
     MCEXPR_GLOBAL_TYPE_ENV,
     MCEXPR_GLOBAL_TYPE_SELF,
+    MCEXPR_GLOBAL_TYPE_INVOKED,
 };
 
 enum mc_expression_binary_type {

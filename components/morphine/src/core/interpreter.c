@@ -114,7 +114,7 @@ sp_case(MORPHINE_OPCODE_SELF)
                 slot(C, arg1) = *C->s.self;
                 sp_end();
             }
-sp_case(MORPHINE_OPCODE_RECURSION)
+sp_case(MORPHINE_OPCODE_INVOKED)
             {
                 slot(C, arg1) = *C->s.callable;
                 sp_end();

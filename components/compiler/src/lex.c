@@ -29,6 +29,7 @@ static struct {
     word(false),
     word(env),
     word(self),
+    word(invoked),
     word(nil),
     word(val),
     word(static),

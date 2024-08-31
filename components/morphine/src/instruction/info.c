@@ -13,7 +13,7 @@ static const uint8_t opcode_args[MORPHINE_OPCODES_COUNT] = {
 
     1, // OPCODE_ENV
     1, // OPCODE_SELF
-    1, // OPCODE_RECURSION
+    1, // OPCODE_INVOKED
 
     2, // OPCODE_VECTOR
     1, // OPCODE_TABLE
@@ -158,7 +158,7 @@ bool instructionI_validate(
             arg_undefined(argument3)
             return true;
         }
-        case MORPHINE_OPCODE_RECURSION:
+        case MORPHINE_OPCODE_INVOKED:
         case MORPHINE_OPCODE_ENV:
         case MORPHINE_OPCODE_SELF:
         case MORPHINE_OPCODE_TABLE:

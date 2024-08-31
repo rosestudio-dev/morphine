@@ -21,7 +21,7 @@ typedef enum {
 
     MORPHINE_OPCODE_ENV,             // [dest (slot)]                                                 move env to (dest)
     MORPHINE_OPCODE_SELF,            // [dest (slot)]                                                 move self to (dest)
-    MORPHINE_OPCODE_RECURSION,       // [dest (slot)]                                                 move callable to (dest)
+    MORPHINE_OPCODE_INVOKED,         // [dest (slot)]                                                 move callable to (dest)
 
     MORPHINE_OPCODE_VECTOR,          // [dest (slot), size (count)]                                   create vector in (dest) with (size)
     MORPHINE_OPCODE_TABLE,           // [dest (slot)]                                                 create table in (dest)
