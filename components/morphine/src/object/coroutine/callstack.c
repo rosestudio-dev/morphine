@@ -250,14 +250,20 @@ void callstackI_call_stack(
         struct callinfo *callinfo = callstackI_info(U);
         stackI_call(U, callable, self, argc, pop_size);
 
-        for (size_t i = 0; i < argc; i++) {
-            size_t index = argc - i - 1;
+        struct callinfo *newcallinfo = callstackI_info(U);
+        ml_size arguments = argc;
+        if (arguments > newcallinfo->arguments_count) {
+            arguments = newcallinfo->arguments_count;
+        }
+
+        for (ml_size i = 0; i < arguments; i++) {
+            size_t index = arguments - i - 1;
             overflow_add(index, offset, SIZE_MAX) {
                 throwI_error(U->I, "stack index out of bounce");
             }
 
             struct value arg = stackI_callinfo_peek(U, callinfo, index + offset);
-            callstackI_info(U)->s.args[i] = arg;
+            newcallinfo->s.args[i] = arg;
         }
     }
 }
@@ -297,11 +303,7 @@ void callstackI_call_params(
         gcI_reset_safe(U->I, rollback);
     } else {
         stackI_call(U, callable, self, argc, pop_size);
-
-        for (ml_size i = 0; i < argc; i++) {
-            struct value arg = callinfo->s.params[i];
-            callstackI_info(U)->s.args[i] = arg;
-        }
+        stackI_set_args_unsafe(U, callinfo->s.params, argc);
     }
 }
 
