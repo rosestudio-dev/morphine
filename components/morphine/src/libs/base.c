@@ -138,11 +138,11 @@ static void pcall(morphine_coroutine_t U) {
         maux_nb_state(1)
             mapi_push_table(U);
 
-            mapi_push_stringf(U, "result");
+            mapi_push_string(U, "result");
             mapi_push_result(U);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "error");
+            mapi_push_string(U, "error");
             mapi_push_nil(U);
             mapi_table_set(U);
 
@@ -150,11 +150,11 @@ static void pcall(morphine_coroutine_t U) {
         maux_nb_state(2)
             mapi_push_table(U);
 
-            mapi_push_stringf(U, "result");
+            mapi_push_string(U, "result");
             mapi_push_nil(U);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "error");
+            mapi_push_string(U, "error");
             mapi_push_thrown(U);
             mapi_table_set(U);
 
@@ -183,11 +183,11 @@ static void pscall(morphine_coroutine_t U) {
         maux_nb_state(1)
             mapi_push_table(U);
 
-            mapi_push_stringf(U, "result");
+            mapi_push_string(U, "result");
             mapi_push_result(U);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "error");
+            mapi_push_string(U, "error");
             mapi_push_nil(U);
             mapi_table_set(U);
 
@@ -195,11 +195,11 @@ static void pscall(morphine_coroutine_t U) {
         maux_nb_state(2)
             mapi_push_table(U);
 
-            mapi_push_stringf(U, "result");
+            mapi_push_string(U, "result");
             mapi_push_nil(U);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "error");
+            mapi_push_string(U, "error");
             mapi_push_thrown(U);
             mapi_table_set(U);
 

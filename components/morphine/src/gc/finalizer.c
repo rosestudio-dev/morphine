@@ -8,6 +8,8 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/gc/pools.h"
 
+#define COROUTINE_FINALIZER_NAME "__gc_finalizer"
+
 static void give_away(morphine_instance_t I, struct object *candidate) {
     if (I->G.status == GC_STATUS_INCREMENT) {
         candidate->color = OBJ_COLOR_GREY;
@@ -68,7 +70,7 @@ static void finalizer(morphine_coroutine_t U) {
 
 void gcI_init_finalizer(morphine_instance_t I) {
     morphine_coroutine_t coroutine = coroutineI_custom_create(
-        I,
+        I, COROUTINE_FINALIZER_NAME,
         valueI_nil,
         I->settings.finalizer.stack_limit,
         I->settings.finalizer.stack_grow

@@ -75,7 +75,12 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_CLOSURE:
             return valueI_object(stringI_createf(I, "[object:closure:%p]", value.object.closure));
         case VALUE_TYPE_COROUTINE:
-            return valueI_object(stringI_createf(I, "[object:coroutine:%p]", value.object.coroutine));
+            return valueI_object(stringI_createf(
+                I,
+                "[object:coroutine:%p|%s]",
+                value.object.coroutine,
+                valueI_as_coroutine(value)->name
+            ));
         case VALUE_TYPE_REFERENCE:
             return valueI_object(stringI_createf(I, "[object:reference:%p]", value.object.reference));
         case VALUE_TYPE_FUNCTION:

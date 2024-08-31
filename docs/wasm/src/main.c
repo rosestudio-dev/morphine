@@ -74,7 +74,7 @@ static void launcher(struct environment *env, const char *text, size_t size) {
     morphine_instance_t I = mapi_open(instance_platform, settings, env);
     mapi_library_load(I, mclib_compiler());
 
-    morphine_coroutine_t U = mapi_coroutine(I);
+    morphine_coroutine_t U = mapi_coroutine(I, "wasm-app");
 
     mapi_push_stringn(U, text, size);
     mcapi_compile(U, "main", false);

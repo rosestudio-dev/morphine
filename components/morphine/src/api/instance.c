@@ -141,18 +141,19 @@ MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t U) {
  * ## mapi_coroutine
  * ### Prototype
  * ```c
- * morphine_coroutine_t mapi_coroutine(morphine_instance_t I)
+ * morphine_coroutine_t mapi_coroutine(morphine_instance_t I, const char *name)
  * ```
  * ### Parameters
  * * `I` - instance
+ * * `name` - coroutine name
  * ### Result
  * Pointer to coroutine
  * ### Description
  * Creates and attaches coroutine
  * {{end}}
  */
-MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t I) {
-    morphine_coroutine_t U = coroutineI_create(I, valueI_object(I->env));
+MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t I, const char *name) {
+    morphine_coroutine_t U = coroutineI_create(I, name, valueI_object(I->env));
     coroutineI_attach(U);
     return U;
 }

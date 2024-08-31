@@ -169,11 +169,11 @@ static void math_modf(morphine_coroutine_t U) {
 
             mapi_push_table(U);
 
-            mapi_push_stringf(U, "integral");
+            mapi_push_string(U, "integral");
             mapi_push_decimal(U, integral);
             mapi_table_set(U);
 
-            mapi_push_stringf(U, "fraction");
+            mapi_push_string(U, "fraction");
             mapi_push_decimal(U, fraction);
             mapi_table_set(U);
 

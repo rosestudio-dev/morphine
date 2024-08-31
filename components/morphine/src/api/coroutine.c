@@ -22,17 +22,18 @@
  * ## mapi_push_coroutine
  * ### Prototype
  * ```c
- * morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U)
+ * morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U, const char *name)
  * ```
  * ### Parameters
  * * `U` - coroutine
+ * * `name` - name
  * ### Result
  * Pointer to coroutine
  * ### Description
  * Creates a coroutine, pushes it onto the stack and returns pointer to it
  * {{end}}
  */
-MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U) {
+MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U, const char *name) {
     struct value env;
     if (callstackI_info(U) != NULL) {
         env = *callstackI_info(U)->s.env;
@@ -40,7 +41,7 @@ MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U) {
         env = U->env;
     }
 
-    morphine_coroutine_t coroutine = coroutineI_create(U->I, env);
+    morphine_coroutine_t coroutine = coroutineI_create(U->I, name, env);
     stackI_push(U, valueI_object(coroutine));
 
     return coroutine;
@@ -213,4 +214,24 @@ MORPHINE_API const char *mapi_coroutine_status(morphine_coroutine_t U) {
  */
 MORPHINE_API bool mapi_coroutine_is_alive(morphine_coroutine_t U) {
     return coroutineI_isalive(U);
+}
+
+/*
+ * {{docs body}}
+ * path:architecture/api-coroutine
+ * ## mapi_coroutine_name
+ * ### Prototype
+ * ```c
+ * const char *mapi_coroutine_name(morphine_coroutine_t U)
+ * ```
+ * ### Parameters
+ * * `U` - coroutine
+ * ### Result
+ * Coroutine name
+ * ### Description
+ * Gets the coroutine name
+ * {{end}}
+ */
+MORPHINE_API const char *mapi_coroutine_name(morphine_coroutine_t U) {
+    return U->name.str;
 }
