@@ -3,6 +3,8 @@ import {computed, nextTick, ref, watch} from "vue";
 import {codeToHtml} from 'shiki'
 import {bundledThemesInfo} from 'shiki/themes'
 import {useData} from "vitepress";
+import scriptRaw from '../playground/script.ms?raw';
+import grammarRaw from '../grammar/morphine.json?raw';
 
 const model = defineModel()
 const {isDark} = useData()
@@ -11,8 +13,7 @@ function getInput() {
   let inputRef = ref("")
   const text = localStorage.getItem("morphine-playground-code")
   if (text == null) {
-    fetch("morphine/playground.ms")
-        .then(async (response) => inputRef.value = await response.text())
+    inputRef.value = scriptRaw
   } else {
     inputRef.value = text
   }
@@ -21,11 +22,7 @@ function getInput() {
 }
 
 function getLang() {
-  let langRef = ref("text")
-  fetch("json/morphine-grammar.json")
-      .then(async (response) => langRef.value = JSON.parse(await response.text()))
-
-  return langRef
+  return ref(JSON.parse(grammarRaw))
 }
 
 const currentThemeType = computed(() => bundledThemesInfo.find(i => i.id === themeRef.value)?.type || 'inherit')
@@ -69,7 +66,6 @@ async function hlrun() {
           node.tagName = "div"
           this.addClassToHast(node, 'codelinepart')
           this.addClassToHast(node, 'codetext')
-          console.log(node)
         },
         line(node) {
           node.tagName = "pre"
