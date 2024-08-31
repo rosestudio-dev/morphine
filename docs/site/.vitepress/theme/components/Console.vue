@@ -1,45 +1,108 @@
 <script setup lang="ts">
-import {ref, watch} from "vue";
+import {computed, nextTick, ref, watch} from "vue";
+import {codeToHtml} from "shiki";
+import {useData} from "vitepress";
+import {bundledThemesInfo} from "shiki/themes";
 
+const {isDark} = useData()
 const model = defineModel()
-const props = defineProps<{ name?: String }>()
+const props = defineProps(["name", "lang"])
 
+const currentThemeType = computed(() => bundledThemesInfo.find(i => i.id === themeRef.value)?.type || 'inherit')
+let themeRef = computed(() => isDark.value ? 'vitesse-dark' : 'vitesse-light')
 let areaRef = ref()
+let outputRef = ref()
+let preStyleRef = ref()
 
-watch(model, autoScroll, {immediate: true})
+watch(model, hlrun, {immediate: true})
+watch(themeRef, hlrun, {immediate: true})
+
+watch(outputRef, autoScroll, {immediate: true})
+
+async function hlrun() {
+  outputRef.value = await codeToHtml(model.value, {
+    lang: props.lang,
+    theme: themeRef.value,
+    transformers: [
+      {
+        preprocess(code) {
+          const formated = code.replaceAll("\n\n", "\n \n")
+          if (formated.endsWith('\n')) {
+            return `${formated}\n`
+          } else {
+            return formated
+          }
+        },
+        pre(node) {
+          node.tagName = "div"
+          this.addClassToHast(node, 'vp-code')
+          this.addClassToHast(node, 'w-fit')
+          this.addClassToHast(node, 'h-fit')
+          this.addClassToHast(node, 'px-8')
+          this.addClassToHast(node, 'py-6')
+          this.addClassToHast(node, 'm-0')
+          preStyleRef.value = node.properties?.style as string || ''
+        },
+        span(node) {
+          node.tagName = "div"
+          this.addClassToHast(node, 'codepart')
+          this.addClassToHast(node, 'consoletext')
+        },
+        line(node) {
+          node.tagName = "pre"
+          this.addClassToHast(node, 'codeline')
+        },
+        code(node) {
+          node.tagName = "div"
+        }
+      }
+    ]
+  })
+}
 
 function autoScroll() {
   if (!areaRef.value) {
     return
   }
 
-  areaRef.value.scrollTop = areaRef.value.scrollHeight;
+  nextTick(() => {
+    areaRef.value.scrollTop = areaRef.value.scrollHeight;
+  })
 }
 </script>
 
 <template>
-  <div class="vp-adaptive-theme rounded-lg overflow-hidden w-full h-full">
-    <div class="relative h-64">
+  <div class="vp-adaptive-theme rounded-lg overflow-hidden w-full h-full"
+       :style="[preStyleRef, { colorScheme: currentThemeType }]">
+    <div class="relative w-full h-full">
       <span
-          class="opacity-15 hover:opacity-85 transition duration-300 ease-out absolute top-2 right-2 text-neutral-200 bg-neutral-900 rounded-lg px-2 py-1 select-none z-10">
+          class="opacity-15 hover:opacity-85 transition duration-300 ease-out absolute top-4 right-4 text-neutral-200 bg-neutral-900 rounded-lg px-2 py-1 select-none z-10">
         {{ props.name }}
       </span>
-      <span
+      <div
           ref="areaRef"
-          class="area m-0 px-8 py-6 bg-clip-padding w-full h-full absolute inset-0 bg-transparent whitespace-pre overflow-auto resize-none caret-gray-400">
-        {{ model }}
-      </span>
+          class="consoletext overflow-auto w-full h-full"
+          v-html="outputRef"/>
     </div>
   </div>
 </template>
 
-<style scoped>
-.area {
-  line-height: inherit;
+<style>
+.consoletext {
+  @apply text-xs;
+
   font-family: var(--vp-font-family-mono);
   font-feature-settings: normal;
   font-variation-settings: normal;
-  font-size: 1em;
   tab-size: 4;
+}
+
+.codeline {
+  @apply block m-0 p-0;
+  line-height: 0;
+}
+
+.codepart {
+  @apply inline-block;
 }
 </style>

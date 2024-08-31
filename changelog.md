@@ -1,2 +1,2 @@
 # To be later...
-> The product is in the alpha version state.
+> The product is in the dev version state.

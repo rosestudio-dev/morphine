@@ -15,7 +15,6 @@ export default defineConfig({
         },
 
         nav: [
-            {text: 'Home', link: '/'},
             {text: 'Quickstart', link: '/quickstart'},
             {text: 'Language', link: '/language'},
             {text: 'Architecture', link: '/architecture/getting-started'},

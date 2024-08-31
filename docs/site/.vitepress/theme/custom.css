@@ -73,6 +73,10 @@
     --vp-c-brand-2: #1c172b;
     --vp-c-brand-3: #1c172b;
     --vp-c-brand-soft: #1c172b24;
+    --vp-c-brand-inverse-1: #e4ddef;
+    --vp-c-brand-inverse-2: #c8b9df;
+    --vp-c-brand-inverse-3: #e4ddef;
+    --vp-c-brand-inverse-soft: #e4ddef29;
 }
 
 .dark {
@@ -80,6 +84,10 @@
     --vp-c-brand-2: #c8b9df;
     --vp-c-brand-3: #e4ddef;
     --vp-c-brand-soft: #e4ddef29;
+    --vp-c-brand-inverse-1: #1c172b;
+    --vp-c-brand-inverse-2: #1c172b;
+    --vp-c-brand-inverse-3: #1c172b;
+    --vp-c-brand-inverse-soft: #1c172b24;
 }
 
 /* Fix brand button */

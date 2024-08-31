@@ -6,7 +6,7 @@
 Morphine is an open-source, embedded programming language developed by [why-iskra](https://github.com/why-iskra).
 
 > [!CAUTION]
-> The product is in the alpha version state. There may be bugs. In the next releases, something may change.
+> The product is in the dev version state. There may be bugs. In the next releases, something may change.
 
 ## Contents
 - [Features](#features)
@@ -20,9 +20,9 @@ Morphine has the following main features that build the language's ideology:
 - Coroutine based
 
 ## Software requirements
-- ninja
+- python3
 - meson
-- python 3
+- ninja
 - cc
 
 ## License

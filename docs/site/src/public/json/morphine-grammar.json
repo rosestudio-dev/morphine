@@ -1,0 +1,90 @@
+{
+  "displayName": "morphine",
+  "name": "morphine",
+  "patterns": [
+    {
+      "match": "\\b(val|var|static|recursive|auto|fun|if|else|elif|while|do|for|break|continue|return|leave|eval|yield|end|pass|iterator|decompose)\\b",
+      "name": "keyword.control.morphine"
+    },
+    {
+      "match": "\\b(and|or|not|typeof|lenof|ref|as|in)\\b",
+      "name": "keyword.operator.morphine"
+    },
+    {
+      "match": "\\b(true|false|nil|env|self)\\b",
+      "name": "constant.other.morphine"
+    },
+    {
+      "match": "\\b[0-9]+(\\.[0-9]+)?\\b",
+      "name": "constant.numeric.morphine"
+    },
+    {
+      "match": "\\b([a-zA-Z_][0-9a-zA-Z_]*|`.*?`)\\b"
+    },
+    {
+      "match": "([\\+\\-\\*/%()\\[\\]{}=<>!&|.,^~?:;]+)",
+      "name": "punctuation.morphine"
+    },
+    {
+      "begin": "//",
+      "end": "$",
+      "name": "comment.line.morphine"
+    },
+    {
+      "begin": "/\\*",
+      "end": "\\*/",
+      "name": "comment.block.morphine"
+    },
+    {
+      "begin": "'",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.morphine"
+        }
+      },
+      "end": "'",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.morphine"
+        }
+      },
+      "name": "string.quoted.single.morphine",
+      "patterns": [
+        {
+          "include": "#escaped_char"
+        }
+      ]
+    },
+    {
+      "begin": "\"",
+      "beginCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.begin.morphine"
+        }
+      },
+      "end": "\"",
+      "endCaptures": {
+        "0": {
+          "name": "punctuation.definition.string.end.morphine"
+        }
+      },
+      "name": "string.quoted.double.morphine",
+      "patterns": [
+        {
+          "include": "#escaped_char"
+        }
+      ]
+    }
+  ],
+  "repository": {
+    "escaped_char": {
+      "patterns": [
+        {
+          "match": "\\\\[\\\\\"'0bnrt]",
+          "name": "constant.character.escape.morphine"
+        }
+      ]
+    }
+  },
+  "scopeName": "source.morphine"
+}
