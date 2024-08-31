@@ -93,7 +93,7 @@ void extra_extract_decompose(
                 value->value.string = string;
             } else {
                 value->type = MCEXPR_VALUE_TYPE_INT;
-                value->value.integer = mapi_csize2index(parser_U(C), i);
+                value->value.integer = mapi_csize2size(parser_U(C), i, "index");
             }
 
             keys[i] = mcapi_ast_value2expression(value);

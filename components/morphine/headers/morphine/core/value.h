@@ -109,8 +109,8 @@
 
 // size
 
-#define valueI_integer2namedsize(I, x, name)  ({ml_integer _i = (x); if(unlikely(_i < 0 || (_i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %"MLIMIT_INTEGER_PR" to "name, _i); ((ml_size) _i);})
-#define valueI_csize2namedsize(I, x, name)    ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %zu to "name, _s); ((ml_size) _s);})
+#define valueI_integer2namedsize(I, x, name)  ({ml_integer _i = (x); if(unlikely(_i < 0 || (_i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %"MLIMIT_INTEGER_PR" to %s", _i, (name)); ((ml_size) _i);})
+#define valueI_csize2namedsize(I, x, name)    ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %zu to %s", _s, (name)); ((ml_size) _s);})
 
 #define valueI_size(x)                  valueI_integer((ml_integer) (x))
 #define valueI_csize2size(I, x)         valueI_csize2namedsize(I, x, "size")
@@ -118,7 +118,6 @@
 #define valueI_integer2size(I, x)       valueI_integer2namedsize(I, x, "size")
 #define valueI_integer2index(I, x)      valueI_integer2namedsize(I, x, "index")
 #define valueI_is_size(x)               ({struct value _temp = (x); (valueI_is_integer(_temp) && ((valueI_as_integer(_temp) >= 0) && (valueI_as_integer(_temp) <= MLIMIT_SIZE_MAX)));})
-#define valueI_is_index(x)              valueI_is_size(x)
 
 // other
 
@@ -162,10 +161,8 @@ enum value_type valueI_string2type(morphine_instance_t, const char *name);
 bool valueI_equal(morphine_instance_t, struct value a, struct value b);
 struct value valueI_value2string(morphine_instance_t, struct value);
 struct value valueI_value2integer(morphine_instance_t, struct value);
-struct value valueI_value2size(morphine_instance_t, struct value);
-struct value valueI_value2index(morphine_instance_t, struct value);
+struct value valueI_value2size(morphine_instance_t, struct value, const char *);
 struct value valueI_value2basedinteger(morphine_instance_t, struct value, ml_size base);
-struct value valueI_value2basedsize(morphine_instance_t, struct value, ml_size base);
-struct value valueI_value2basedindex(morphine_instance_t, struct value, ml_size base);
+struct value valueI_value2basedsize(morphine_instance_t, struct value, ml_size base, const char *);
 struct value valueI_value2decimal(morphine_instance_t, struct value);
 struct value valueI_value2boolean(morphine_instance_t, struct value);

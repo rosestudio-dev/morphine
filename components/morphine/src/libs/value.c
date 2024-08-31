@@ -38,7 +38,7 @@ static void toint(morphine_coroutine_t U) {
         maux_nb_init
             if (mapi_args(U) == 2) {
                 mapi_push_arg(U, 1);
-                ml_size base = mapi_get_size(U);
+                ml_size base = mapi_get_size(U, "base");
 
                 mapi_push_arg(U, 0);
                 mapi_to_based_integer(U, base);
@@ -56,32 +56,31 @@ static void tosize(morphine_coroutine_t U) {
         maux_nb_init
             if (mapi_args(U) == 2) {
                 mapi_push_arg(U, 1);
-                ml_size base = mapi_get_size(U);
+
+                ml_size base = 10;
+                mapi_push_string(U, "base");
+                if (mapi_table_get(U)) {
+                    base = mapi_get_size(U, "base");
+                }
+                mapi_pop(U, 1);
+
+                const char *name = NULL;
+                mapi_push_string(U, "name");
+                if (mapi_table_get(U)) {
+                    name = mapi_get_cstr(U);
+                }
+                mapi_pop(U, 1);
 
                 mapi_push_arg(U, 0);
-                mapi_to_based_size(U, base);
+                if (base == 10) {
+                    mapi_to_size(U, name);
+                } else {
+                    mapi_to_based_size(U, base, name);
+                }
             } else {
                 maux_expect_args(U, 1);
                 mapi_push_arg(U, 0);
-                mapi_to_size(U);
-            }
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void toindex(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            if (mapi_args(U) == 2) {
-                mapi_push_arg(U, 1);
-                ml_size base = mapi_get_size(U);
-
-                mapi_push_arg(U, 0);
-                mapi_to_based_index(U, base);
-            } else {
-                maux_expect_args(U, 1);
-                mapi_push_arg(U, 0);
-                mapi_to_index(U);
+                mapi_to_size(U, NULL);
             }
             maux_nb_return();
     maux_nb_end
@@ -108,12 +107,11 @@ static void tobool(morphine_coroutine_t U) {
 }
 
 static morphine_library_function_t functions[] = {
-    { "tostr",   tostr },
-    { "toint",   toint },
-    { "tosize",  tosize },
-    { "toindex", toindex },
-    { "todec",   todec },
-    { "tobool",  tobool },
+    { "tostr",  tostr },
+    { "toint",  toint },
+    { "tosize", tosize },
+    { "todec",  todec },
+    { "tobool", tobool },
     { NULL, NULL }
 };
 

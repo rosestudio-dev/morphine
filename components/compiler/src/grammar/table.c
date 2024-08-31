@@ -62,7 +62,7 @@ struct mc_ast_node *rule_table(struct parse_controller *C) {
                 mcapi_ast_create_expression_value(parser_U(C), parser_A(C), intermediate_line);
 
             expr_value->type = MCEXPR_VALUE_TYPE_INT;
-            expr_value->value.integer = mapi_csize2index(parser_U(C), i);
+            expr_value->value.integer = mapi_csize2size(parser_U(C), i, "index");
 
             value = key;
             key = mcapi_ast_value2expression(expr_value);

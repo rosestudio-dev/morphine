@@ -18,15 +18,13 @@ static void compile(morphine_coroutine_t U) {
             const char *name = DEFAULT_MAIN_NAME;
             if (mapi_is_type(U, "table")) {
                 mapi_push_string(U, "name");
-                mapi_table_get(U);
-                if (!mapi_is_type(U, "nil")) {
-                    name = mapi_get_string(U);
+                if (mapi_table_get(U)) {
+                    name = mapi_get_cstr(U);
                 }
                 mapi_pop(U, 1);
 
                 mapi_push_string(U, "vector");
-                mapi_table_get(U);
-                if (!mapi_is_type(U, "nil")) {
+                if (mapi_table_get(U)) {
                     vector = mapi_get_boolean(U);
                 }
                 mapi_pop(U, 1);

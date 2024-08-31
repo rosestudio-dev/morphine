@@ -39,7 +39,7 @@ static void seekset(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);
-            ml_size offset = mapi_get_size(U);
+            ml_size offset = mapi_get_size(U, "position");
             mapi_push_arg(U, 0);
             bool result = mapi_sio_seek_set(U, offset);
 
@@ -54,7 +54,7 @@ static void seekcur(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);
-            ml_size offset = mapi_get_size(U);
+            ml_size offset = mapi_get_size(U, "offset");
             mapi_push_arg(U, 0);
             bool result = mapi_sio_seek_cur(U, offset);
 
@@ -69,7 +69,7 @@ static void seekprv(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);
-            ml_size offset = mapi_get_size(U);
+            ml_size offset = mapi_get_size(U, "offset");
             mapi_push_arg(U, 0);
             bool result = mapi_sio_seek_prv(U, offset);
 
@@ -84,7 +84,7 @@ static void seekend(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);
-            ml_size offset = mapi_get_size(U);
+            ml_size offset = mapi_get_size(U, "position");
             mapi_push_arg(U, 0);
             bool result = mapi_sio_seek_end(U, offset);
 
@@ -99,7 +99,7 @@ static void tell(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t pos = mapi_sio_tell(U);
-            mapi_push_index(U, pos);
+            mapi_push_size(U, pos, "index");
             maux_nb_return();
     maux_nb_end
 }
@@ -149,7 +149,7 @@ static void read(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);
-            ml_size size = mapi_get_size(U);
+            ml_size size = mapi_get_size(U, NULL);
             mapi_pop(U, 1);
 
             uint8_t *buffer = mapi_push_userdata_uni(U, size);
@@ -163,7 +163,7 @@ static void read(morphine_coroutine_t U) {
             mapi_push_stringn(U, (char *) buffer, size);
             mapi_table_set(U);
             mapi_push_string(U, "lost");
-            mapi_push_size(U, lost);
+            mapi_push_size(U, lost, NULL);
             mapi_table_set(U);
             maux_nb_return();
     maux_nb_end
@@ -181,7 +181,7 @@ static void write(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
             size_t written = mapi_sio_write(U, (const uint8_t *) buffer, size);
 
-            mapi_push_size(U, written);
+            mapi_push_size(U, written, NULL);
             maux_nb_return();
     maux_nb_end
 }
@@ -194,7 +194,7 @@ static void buffer(morphine_coroutine_t U) {
             }
 
             mapi_push_arg(U, 0);
-            ml_size factor = mapi_get_size(U);
+            ml_size factor = mapi_get_size(U, NULL);
 
             mapi_push_arg(U, 1);
             bool read = mapi_get_boolean(U);

@@ -782,7 +782,7 @@ size_t codegen_add_constant_int(struct codegen_controller *C, ml_integer value) 
 size_t codegen_add_constant_index(struct codegen_controller *C, size_t value) {
     struct constant constant = {
         .type = CT_INTEGER,
-        .value.integer = mapi_csize2index(C->U, value)
+        .value.integer = mapi_csize2size(C->U, value, "index")
     };
 
     return add_constant(C, constant);
@@ -1253,7 +1253,7 @@ static inline void load_instructions(
             .argument3 = argument_normalize(U, context, instruction.argument3, variables),
         };
 
-        mapi_instruction_set(U, mapi_csize2index(U, i), instr);
+        mapi_instruction_set(U, mapi_csize2size(U, i, "index"), instr);
     }
 }
 
@@ -1297,17 +1297,17 @@ static inline void fill_vector(
         mapi_push_function(
             U, name,
             context->function->line,
-            mapi_csize2size(U, context->constants.size),
-            mapi_csize2size(U, context->instructions.size),
-            mapi_csize2size(U, context->function->statics_size),
-            mapi_csize2size(U, context->function->args_size),
-            mapi_csize2size(U, variables + temporaries),
-            mapi_csize2size(U, params)
+            mapi_csize2size(U, context->constants.size, NULL),
+            mapi_csize2size(U, context->instructions.size, NULL),
+            mapi_csize2size(U, context->function->statics_size, NULL),
+            mapi_csize2size(U, context->function->args_size, NULL),
+            mapi_csize2size(U, variables + temporaries, NULL),
+            mapi_csize2size(U, params, NULL)
         );
 
         load_instructions(U, context, variables);
 
-        mapi_vector_set(U, mapi_csize2index(U, i));
+        mapi_vector_set(U, mapi_csize2size(U, i, "index"));
         context = context->prev;
     }
 }
@@ -1324,25 +1324,25 @@ static inline void load_constants(
         switch (constant.type) {
             case CT_NIL:
                 mapi_push_nil(U);
-                mapi_constant_set(U, mapi_csize2index(U, i));
+                mapi_constant_set(U, mapi_csize2size(U, i, "index"));
                 break;
             case CT_INTEGER:
                 mapi_push_integer(U, constant.value.integer);
-                mapi_constant_set(U, mapi_csize2index(U, i));
+                mapi_constant_set(U, mapi_csize2size(U, i, "index"));
                 break;
             case CT_DECIMAL:
                 mapi_push_decimal(U, constant.value.decimal);
-                mapi_constant_set(U, mapi_csize2index(U, i));
+                mapi_constant_set(U, mapi_csize2size(U, i, "index"));
                 break;
             case CT_STRING: {
                 struct mc_strtable_entry entry = mcapi_strtable_access(U, T, constant.value.string);
                 mapi_push_stringn(U, entry.string, entry.size);
-                mapi_constant_set(U, mapi_csize2index(U, i));
+                mapi_constant_set(U, mapi_csize2size(U, i, "index"));
                 break;
             }
             case CT_BOOLEAN:
                 mapi_push_boolean(U, constant.value.boolean);
-                mapi_constant_set(U, mapi_csize2index(U, i));
+                mapi_constant_set(U, mapi_csize2size(U, i, "index"));
                 break;
             case CT_FUNCTION: {
                 struct context *current = G->compiled;
@@ -1361,11 +1361,11 @@ static inline void load_constants(
                 }
 
                 mapi_peek(U, 1);
-                mapi_vector_get(U, mapi_csize2index(U, index));
+                mapi_vector_get(U, mapi_csize2size(U, index, "index"));
                 mapi_rotate(U, 2);
                 mapi_pop(U, 1);
 
-                mapi_constant_set(U, mapi_csize2index(U, i));
+                mapi_constant_set(U, mapi_csize2size(U, i, "index"));
                 break;
             }
         }
@@ -1379,7 +1379,7 @@ static inline void build_vector(
 ) {
     struct context *context = G->compiled;
     for (size_t i = 0; context != NULL; i++) {
-        mapi_vector_get(U, mapi_csize2index(U, i));
+        mapi_vector_get(U, mapi_csize2size(U, i, "index"));
 
         load_constants(U, G, T, context);
 
@@ -1406,7 +1406,7 @@ static inline void extract_main(
         current = current->prev;
     }
 
-    mapi_vector_get(U, mapi_csize2index(U, index));
+    mapi_vector_get(U, mapi_csize2size(U, index, "index"));
 }
 
 MORPHINE_API void mcapi_codegen_build(
@@ -1418,7 +1418,7 @@ MORPHINE_API void mcapi_codegen_build(
     bool vector
 ) {
     size_t size = compiled_size(G);
-    mapi_push_vector(U, mapi_csize2size(U, size));
+    mapi_push_vector(U, mapi_csize2size(U, size, NULL));
     fill_vector(U, G, T, A, main);
     build_vector(U, G, T);
 

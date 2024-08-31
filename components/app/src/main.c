@@ -83,7 +83,7 @@ static void exit_function(morphine_coroutine_t U) {
 }
 
 static void init_args(morphine_coroutine_t U, size_t argc, char **args) {
-    ml_size argc_size = mapi_csize2size(U, argc);
+    ml_size argc_size = mapi_csize2size(U, argc, NULL);
 
     mapi_push_env(U);
     mapi_push_string(U, "args");

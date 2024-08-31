@@ -40,6 +40,17 @@ MORPHINE_API const char *mapi_get_string(morphine_coroutine_t U) {
     return valueI_as_string_or_error(U->I, stackI_peek(U, 0))->chars;
 }
 
+MORPHINE_API const char *mapi_get_cstr(morphine_coroutine_t U) {
+    struct string *string = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
+    for (size_t i = 0; i < string->size; i++) {
+        if (string->chars[i] == '\0') {
+            throwI_error(U->I, "string cannot be used as native");
+        }
+    }
+
+    return string->chars;
+}
+
 MORPHINE_API ml_size mapi_string_len(morphine_coroutine_t U) {
     return valueI_as_string_or_error(U->I, stackI_peek(U, 0))->size;
 }
@@ -50,4 +61,17 @@ MORPHINE_API void mapi_string_concat(morphine_coroutine_t U) {
     struct string *result = stringI_concat(U->I, a, b);
     stackI_replace(U, 1, valueI_object(result));
     stackI_pop(U, 1);
+}
+
+MORPHINE_API int mapi_string_compare(morphine_coroutine_t U, const char *cstr) {
+    struct string *string = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
+    size_t len = strlen(cstr);
+
+    if (string->size > len) {
+        return -1;
+    } else if (string->size < len) {
+        return 1;
+    }
+
+    return strcmp(string->chars, cstr);
 }

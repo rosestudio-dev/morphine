@@ -10,8 +10,7 @@ static void create(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
-            maux_expect(U, "integer");
-            ml_size size = mapi_get_size(U);
+            ml_size size = mapi_get_size(U, NULL);
 
             mapi_push_vector(U, size);
             for (ml_size i = 0; i < size; i++) {
@@ -50,12 +49,12 @@ static void resize(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 2);
+
             mapi_push_arg(U, 0);
             maux_expect(U, "vector");
-            mapi_push_arg(U, 1);
-            maux_expect(U, "integer");
 
-            ml_size size = mapi_get_size(U);
+            mapi_push_arg(U, 1);
+            ml_size size = mapi_get_size(U, NULL);
             mapi_pop(U, 1);
 
             mapi_vector_resize(U, size);
@@ -67,12 +66,12 @@ static void add(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 3);
+
             mapi_push_arg(U, 0);
             maux_expect(U, "vector");
-            mapi_push_arg(U, 1);
-            maux_expect(U, "integer");
 
-            ml_size index = mapi_get_index(U);
+            mapi_push_arg(U, 1);
+            ml_size index = mapi_get_size(U, "index");
             mapi_pop(U, 1);
 
             mapi_push_arg(U, 2);
@@ -86,12 +85,12 @@ static void remove_(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 2);
+
             mapi_push_arg(U, 0);
             maux_expect(U, "vector");
-            mapi_push_arg(U, 1);
-            maux_expect(U, "integer");
 
-            ml_size index = mapi_get_index(U);
+            mapi_push_arg(U, 1);
+            ml_size index = mapi_get_size(U, "index");
             mapi_pop(U, 1);
 
             mapi_vector_remove(U, index);

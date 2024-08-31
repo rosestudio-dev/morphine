@@ -30,12 +30,10 @@ static void substring(morphine_coroutine_t U) {
             size_t len = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "index");
-            size_t start = mapi_get_size(U);
+            size_t start = mapi_get_size(U, "index");
 
             mapi_push_arg(U, 2);
-            maux_expect(U, "index");
-            size_t end = mapi_get_size(U);
+            size_t end = mapi_get_size(U, "index");
 
             mapi_pop(U, 3);
 
@@ -87,8 +85,7 @@ static void codeat(morphine_coroutine_t U) {
             size_t len = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "index");
-            size_t at = mapi_get_size(U);
+            size_t at = mapi_get_size(U, "index");
 
             mapi_pop(U, 2);
 
@@ -112,8 +109,7 @@ static void charat(morphine_coroutine_t U) {
             size_t len = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "index");
-            size_t at = mapi_get_size(U);
+            size_t at = mapi_get_size(U, "index");
 
             mapi_pop(U, 2);
 
@@ -226,8 +222,7 @@ static void repeat(morphine_coroutine_t U) {
             maux_expect(U, "string");
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "size");
-            size_t count = mapi_get_size(U);
+            size_t count = mapi_get_size(U, "count");
 
             mapi_pop(U, 2);
 
@@ -467,7 +462,7 @@ static void indexof(morphine_coroutine_t U) {
             }
 
             if (found) {
-                mapi_push_size(U, index);
+                mapi_push_size(U, index, "index");
             } else {
                 mapi_push_nil(U);
             }
@@ -505,7 +500,7 @@ static void lastindexof(morphine_coroutine_t U) {
             }
 
             if (found) {
-                mapi_push_size(U, index);
+                mapi_push_size(U, index, "index");
             } else {
                 mapi_push_nil(U);
             }
@@ -863,11 +858,11 @@ static void format(morphine_coroutine_t U) {
                 } else {
                     if (index > 0) {
                         mapi_rotate(U, 2);
-                        mapi_push_size(U, parsed);
+                        mapi_push_size(U, parsed, "count");
                         mapi_table_get(U);
                         mapi_to_string(U);
                     } else {
-                        mapi_push_size(U, parsed);
+                        mapi_push_size(U, parsed, "count");
                         mapi_table_get(U);
                         mapi_to_string(U);
                     }

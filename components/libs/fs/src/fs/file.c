@@ -163,7 +163,7 @@ MORPHINE_API void mlapi_fs_file(
     bool write,
     bool binary
 ) {
-    const char *path = mapi_get_string(U);
+    const char *path = mapi_get_cstr(U);
     struct file_data *D = mapi_push_userdata_uni(U, sizeof(struct file_data));
 
     (*D) = (struct file_data) {

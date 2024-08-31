@@ -23,7 +23,8 @@ static morphine_library_t *(*builtins[])(void) = {
     mlib_builtin_registry,
     mlib_builtin_sio,
     mlib_builtin_binary,
-    mlib_builtin_bitwise
+    mlib_builtin_bitwise,
+    mlib_builtin_function
 };
 
 static void library(morphine_coroutine_t U) {
@@ -38,7 +39,7 @@ static void library(morphine_coroutine_t U) {
             }
 
             mapi_push_arg(U, 0);
-            const char *name = mapi_get_string(U);
+            const char *name = mapi_get_cstr(U);
 
             mapi_library(U, name, reload);
             maux_nb_return();

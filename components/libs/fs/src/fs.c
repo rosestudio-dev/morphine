@@ -49,7 +49,7 @@ static void dir(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            const char *path = mapi_get_string(U);
+            const char *path = mapi_get_cstr(U);
 
             if (mkdir(path, 0700)) {
                 mapi_error(U, "cannot create dir");
@@ -63,7 +63,7 @@ static void list(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            const char *path = mapi_get_string(U);
+            const char *path = mapi_get_cstr(U);
 
             DIR *dir = opendir(path);
             if (dir == NULL) {
@@ -95,7 +95,7 @@ static void info(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            const char *path = mapi_get_string(U);
+            const char *path = mapi_get_cstr(U);
 
             struct stat st;
             if (stat(path, &st)) {
@@ -130,7 +130,7 @@ static void info(morphine_coroutine_t U) {
             mapi_push_string(U, "owner");
             struct passwd *pw = getpwuid(st.st_uid);
             if (pw == NULL) {
-                mapi_push_size(U, st.st_uid);
+                mapi_push_size(U, st.st_uid, "uid");
             } else {
                 mapi_push_string(U, pw->pw_name);
             }

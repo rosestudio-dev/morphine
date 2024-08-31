@@ -17,12 +17,15 @@ MORPHINE_API void mapi_push_integer(morphine_coroutine_t U, ml_integer value) {
     stackI_push(U, valueI_integer(value));
 }
 
-MORPHINE_API void mapi_push_size(morphine_coroutine_t U, size_t value) {
-    stackI_push(U, valueI_size(valueI_csize2size(U->I, value)));
-}
+MORPHINE_API void mapi_push_size(morphine_coroutine_t U, size_t value, const char *name) {
+    ml_size size;
+    if(name == NULL) {
+        size = valueI_csize2size(U->I, value);
+    } else {
+        size = valueI_csize2namedsize(U->I, value, name);
+    }
 
-MORPHINE_API void mapi_push_index(morphine_coroutine_t U, size_t value) {
-    stackI_push(U, valueI_size(valueI_csize2index(U->I, value)));
+    stackI_push(U, valueI_size(size));
 }
 
 MORPHINE_API void mapi_push_decimal(morphine_coroutine_t U, ml_decimal value) {
@@ -41,14 +44,13 @@ MORPHINE_API ml_integer mapi_get_integer(morphine_coroutine_t U) {
     return valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
 }
 
-MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t U) {
+MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t U, const char *name) {
     ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
-    return valueI_integer2size(U->I, integer);
-}
-
-MORPHINE_API ml_size mapi_get_index(morphine_coroutine_t U) {
-    ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
-    return valueI_integer2index(U->I, integer);
+    if(name == NULL) {
+        return valueI_integer2size(U->I, integer);
+    } else {
+        return valueI_integer2namedsize(U->I, integer, name);
+    }
 }
 
 MORPHINE_API ml_decimal mapi_get_decimal(morphine_coroutine_t U) {
@@ -69,15 +71,9 @@ MORPHINE_API void mapi_to_integer(morphine_coroutine_t U) {
     stackI_replace(U, 0, result);
 }
 
-MORPHINE_API void mapi_to_size(morphine_coroutine_t U) {
+MORPHINE_API void mapi_to_size(morphine_coroutine_t U, const char *name) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2size(U->I, value);
-    stackI_replace(U, 0, result);
-}
-
-MORPHINE_API void mapi_to_index(morphine_coroutine_t U) {
-    struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2index(U->I, value);
+    struct value result = valueI_value2size(U->I, value, name);
     stackI_replace(U, 0, result);
 }
 
@@ -87,15 +83,9 @@ MORPHINE_API void mapi_to_based_integer(morphine_coroutine_t U, ml_size base) {
     stackI_replace(U, 0, result);
 }
 
-MORPHINE_API void mapi_to_based_size(morphine_coroutine_t U, ml_size base) {
+MORPHINE_API void mapi_to_based_size(morphine_coroutine_t U, ml_size base, const char *name) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2basedsize(U->I, value, base);
-    stackI_replace(U, 0, result);
-}
-
-MORPHINE_API void mapi_to_based_index(morphine_coroutine_t U, ml_size base) {
-    struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2basedindex(U->I, value, base);
+    struct value result = valueI_value2basedsize(U->I, value, base, name);
     stackI_replace(U, 0, result);
 }
 
@@ -117,10 +107,10 @@ MORPHINE_API void mapi_to_string(morphine_coroutine_t U) {
     stackI_replace(U, 0, result);
 }
 
-MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t U, size_t value) {
-    return valueI_csize2size(U->I, value);
-}
-
-MORPHINE_API ml_size mapi_csize2index(morphine_coroutine_t U, size_t value) {
-    return valueI_csize2index(U->I, value);
+MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t U, size_t value, const char *name) {
+    if(name == NULL) {
+        return valueI_csize2size(U->I, value);
+    } else {
+        return valueI_csize2namedsize(U->I, value, name);
+    }
 }

@@ -23,7 +23,7 @@ static void delay(morphine_coroutine_t U) {
             uint64_t *time = mapi_userdata_pointer(U, NULL);
 
             mapi_push_arg(U, 0);
-            ml_size size = mapi_get_size(U);
+            ml_size size = mapi_get_size(U, "millis");
             mapi_pop(U, 1);
 
             if (get_millis() - *time < size) {

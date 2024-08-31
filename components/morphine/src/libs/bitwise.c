@@ -82,7 +82,7 @@ static void shl(morphine_coroutine_t U) {
             ml_integer a = mapi_get_integer(U);
 
             mapi_push_arg(U, 1);
-            ml_size b = mapi_get_size(U);
+            ml_size b = mapi_get_size(U, "count");
 
             ml_integer result = a << b;
             mapi_push_integer(U, result);
@@ -99,7 +99,7 @@ static void shr(morphine_coroutine_t U) {
             ml_integer a = mapi_get_integer(U);
 
             mapi_push_arg(U, 1);
-            ml_size b = mapi_get_size(U);
+            ml_size b = mapi_get_size(U, "count");
 
             ml_integer result = a >> b;
             mapi_push_integer(U, result);
@@ -116,7 +116,7 @@ static void rtl(morphine_coroutine_t U) {
             ml_integer a = mapi_get_integer(U);
 
             mapi_push_arg(U, 1);
-            ml_size b = mapi_get_size(U);
+            ml_size b = mapi_get_size(U, "count");
 
             ml_integer result = (a << (b % ML_INTEGER_BITS)) |
                                 (a >> ((ML_INTEGER_BITS - b) % ML_INTEGER_BITS));
@@ -134,7 +134,7 @@ static void rtr(morphine_coroutine_t U) {
             ml_integer a = mapi_get_integer(U);
 
             mapi_push_arg(U, 1);
-            ml_size b = mapi_get_size(U);
+            ml_size b = mapi_get_size(U, "count");
 
             ml_integer result = (a >> (b % ML_INTEGER_BITS)) |
                                 (a << ((ML_INTEGER_BITS - b) % ML_INTEGER_BITS));

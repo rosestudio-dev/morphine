@@ -3,7 +3,6 @@
 //
 
 #include <morphine.h>
-#include <string.h>
 #include "morphine/libs/builtin.h"
 
 static void current(morphine_coroutine_t U) {
@@ -50,8 +49,7 @@ static void priority(morphine_coroutine_t U) {
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "index");
-            ml_size priority = mapi_get_index(U);
+            ml_size priority = mapi_get_size(U, "priority");
             mapi_coroutine_priority(coroutine, priority);
             maux_nb_leave();
     maux_nb_end
@@ -145,7 +143,7 @@ static void guardlock(morphine_coroutine_t U) {
 
             mapi_peek(U, 0);
         maux_nb_operation(1, "type")
-            if (strcmp(mapi_get_string(U), "coroutine.guard") != 0) {
+            if (mapi_string_compare(U, "coroutine.guard") != 0) {
                 mapi_error(U, "expected coroutine.guard");
             } else {
                 mapi_pop(U, 1);
@@ -177,7 +175,7 @@ static void guardunlock(morphine_coroutine_t U) {
 
             mapi_peek(U, 0);
         maux_nb_operation(1, "type")
-            if (strcmp(mapi_get_string(U), "coroutine.guard") != 0) {
+            if (mapi_string_compare(U, "coroutine.guard") != 0) {
                 mapi_error(U, "expected coroutine.guard");
             } else {
                 mapi_pop(U, 1);
