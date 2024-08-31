@@ -7,6 +7,7 @@ c_warning_flags = [
     '-Werror',
     '-Wno-error=conversion',
     '-Wno-error=cast-align',
+    '-Wno-error=pointer-to-int-cast',
     '-Wdouble-promotion',
     '-Wshadow',
     '-Wformat',
@@ -40,6 +41,7 @@ script_data = script_path / 'data.py'
 python = find_program('python', required : true)
 
 c_args = c_warning_flags + c_common_flags
+link_args = []
 
 # Subdirs
 

@@ -248,3 +248,19 @@ MORPHINE_AUX void maux_sio_extract_string(morphine_coroutine_t U) {
     mapi_rotate(U, 3);
     mapi_pop(U, 1);
 }
+
+MORPHINE_AUX morphine_sio_interface_t maux_sio_interface_srw(
+    morphine_sio_read_t read,
+    morphine_sio_write_t write
+) {
+    return (morphine_sio_interface_t) {
+        .write = write,
+        .read = read,
+        .flush = NULL,
+        .open = NULL,
+        .close = NULL,
+        .seek = NULL,
+        .tell = NULL,
+        .eos = NULL
+    };
+}

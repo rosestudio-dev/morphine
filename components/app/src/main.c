@@ -128,35 +128,13 @@ static int launcher(struct environment *env, int argc, char **argv) {
         .states.stack_grow = 64,
     };
 
-    morphine_sio_interface_t io_interface = {
-        .write = io_write,
-        .read = NULL,
-        .flush = NULL,
-        .open = NULL,
-        .close = NULL,
-        .seek = NULL,
-        .tell = NULL,
-        .eos = NULL
-    };
-
-    morphine_sio_interface_t error_interface = {
-        .write = io_error_write,
-        .read = NULL,
-        .flush = NULL,
-        .open = NULL,
-        .close = NULL,
-        .seek = NULL,
-        .tell = NULL,
-        .eos = NULL
-    };
-
     morphine_platform_t instance_platform = {
         .functions.malloc = vmmalloc,
         .functions.realloc = vmrealloc,
         .functions.free = vmfree,
         .functions.signal = signal,
-        .sio_io_interface = io_interface,
-        .sio_error_interface = error_interface,
+        .sio_io_interface = maux_sio_interface_swo(io_write),
+        .sio_error_interface = maux_sio_interface_swo(io_error_write),
     };
 
     morphine_instance_t I = mapi_open(instance_platform, settings, env);

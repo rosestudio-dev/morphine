@@ -25,31 +25,28 @@ morphine_noret static void signal(morphine_instance_t I) {
 }
 
 static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    (void) A;
-    (void) data;
-
-    fwrite(buffer, size, 1, stdout);
-    return size;
+    return fwrite(buffer, size, 1, stdout);
 }
 
 static size_t io_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
-    (void) A;
-    (void) data;
-
     return fread(buffer, size, 1, stdin);
 }
 
 static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    (void) A;
-    (void) data;
-
-    fwrite(buffer, size, 1, stderr);
-    return size;
+    return fwrite(buffer, size, 1, stderr);
 }
 
-static void *vmmalloc(void *data, size_t size) { (void) data; return malloc(size); }
-static void *vmrealloc(void *data, void *pointer, size_t size) { (void) data; return realloc(pointer, size); }
-static void vmfree(void *data, void *pointer) { (void) data; free(pointer); }
+static void *vmmalloc(void *data, size_t size) {
+    return malloc(size);
+}
+
+static void *vmrealloc(void *data, void *pointer, size_t size) {
+    return realloc(pointer, size);
+}
+
+static void vmfree(void *data, void *pointer) {
+    free(pointer);
+}
 
 static void launcher(struct environment *env, const char *text, size_t size) {
     morphine_settings_t settings = {
@@ -65,35 +62,13 @@ static void launcher(struct environment *env, const char *text, size_t size) {
         .states.stack_grow = 64,
     };
 
-    morphine_sio_interface_t io_interface = {
-        .write = io_write,
-        .read = io_read,
-        .flush = NULL,
-        .open = NULL,
-        .close = NULL,
-        .seek = NULL,
-        .tell = NULL,
-        .eos = NULL
-    };
-
-    morphine_sio_interface_t error_interface = {
-        .write = io_error_write,
-        .read = NULL,
-        .flush = NULL,
-        .open = NULL,
-        .close = NULL,
-        .seek = NULL,
-        .tell = NULL,
-        .eos = NULL
-    };
-
     morphine_platform_t instance_platform = {
         .functions.malloc = vmmalloc,
         .functions.realloc = vmrealloc,
         .functions.free = vmfree,
         .functions.signal = signal,
-        .sio_io_interface = io_interface,
-        .sio_error_interface = error_interface,
+        .sio_io_interface = maux_sio_interface_srw(io_read, io_write),
+        .sio_error_interface = maux_sio_interface_swo(io_error_write),
     };
 
     morphine_instance_t I = mapi_open(instance_platform, settings, env);

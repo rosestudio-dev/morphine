@@ -25,6 +25,7 @@ morphine = library(
     'morphine', sources, mversion_h,
     include_directories : [headers, include],
     c_args : c_args,
+    link_args : link_args,
     c_shared_args : c_shared_flags,
     install : true,
 )

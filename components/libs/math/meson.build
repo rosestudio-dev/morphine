@@ -14,6 +14,7 @@ morphinelmath = library(
     include_directories : [include],
     dependencies : [morphine_dep, m_dep],
     c_args : c_args,
+    link_args : link_args,
     c_shared_args : c_shared_flags,
     install : true,
 )
