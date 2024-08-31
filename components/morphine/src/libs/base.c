@@ -242,6 +242,16 @@ static void changeenv(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void extractcallable(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mapi_extract_callable(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static morphine_library_function_t functions[] = {
     { "version",             version },
     { "print",               print },
@@ -254,6 +264,7 @@ static morphine_library_function_t functions[] = {
     { "pscall",              pscall },
     { "error",               error },
     { "changeenv",           changeenv },
+    { "extractcallable",     extractcallable },
     { NULL, NULL }
 };
 
