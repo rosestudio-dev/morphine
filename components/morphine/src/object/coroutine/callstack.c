@@ -65,6 +65,7 @@ static inline void stackI_call(
 
     size_t slots_count = 0;
     size_t params_count = 0;
+    ml_size args_count;
 
     if (valueI_is_function(source)) {
         struct function *function = valueI_as_function(source);
@@ -73,12 +74,11 @@ static inline void stackI_call(
             throwI_error(I, "incomplete function");
         }
 
-        if (argc != function->arguments_count) {
-            throwI_error(I, "wrong arguments count");
-        }
-
         slots_count = function->slots_count;
         params_count = function->params_count;
+        args_count = function->arguments_count;
+    } else {
+        args_count = argc;
     }
 
     // get env
@@ -103,7 +103,7 @@ static inline void stackI_call(
 
     U->callstack.uninit_callinfo = callinfo;
 
-    size_t raise_size = slots_count + params_count + argc + 7;
+    size_t raise_size = slots_count + params_count + args_count + 7;
     struct value *base = stackI_raise(U, raise_size);
 
     (*callinfo) = (struct callinfo) {
@@ -115,12 +115,12 @@ static inline void stackI_call(
         .s.result = (base + 5),
         .s.thrown = (base + 6),
         .s.args = (base + 7),
-        .s.slots = (base + 7 + argc),
-        .s.params = (base + 7 + argc + slots_count),
+        .s.slots = (base + 7 + args_count),
+        .s.params = (base + 7 + args_count + slots_count),
         .s.space = (U->stack.allocated + U->stack.top),
         .s.top = (U->stack.allocated + U->stack.top),
         .pop_size = pop_size,
-        .arguments_count = argc,
+        .arguments_count = args_count,
         .pc.position = 0,
         .pc.state = 0,
         .catch.enable = false,
@@ -143,20 +143,15 @@ static inline void stackI_call(
     U->callstack.uninit_callinfo = NULL;
 }
 
-static inline struct callinfo *checkargs(morphine_coroutine_t U, ml_size argc) {
+static inline void stackI_set_args_unsafe(morphine_coroutine_t U, struct value *args, ml_size argc) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
 
-    if (argc != callinfo->arguments_count) {
-        throwI_error(U->I, "wrong arguments count");
+    ml_size arguments = argc;
+    if (arguments > callinfo->arguments_count) {
+        arguments = callinfo->arguments_count;
     }
 
-    return callinfo;
-}
-
-static inline void stackI_set_args_unsafe(morphine_coroutine_t U, struct value *args, ml_size argc) {
-    struct callinfo *callinfo = checkargs(U, argc);
-
-    for (ml_size i = 0; i < argc; i++) {
+    for (ml_size i = 0; i < arguments; i++) {
         callinfo->s.args[i] = args[i];
     }
 }
