@@ -26,11 +26,8 @@ async function hlrun() {
     transformers: [
       {
         preprocess(code) {
-          const formated = code.replaceAll("\n\n", "\n \n")
-          if (formated.endsWith('\n')) {
-            return `${formated}\n`
-          } else {
-            return formated
+          if (code.endsWith('\n')) {
+            return `${code}\n`
           }
         },
         pre(node) {
@@ -45,12 +42,24 @@ async function hlrun() {
         },
         span(node) {
           node.tagName = "div"
-          this.addClassToHast(node, 'codepart')
+          this.addClassToHast(node, 'consolelinepart')
           this.addClassToHast(node, 'consoletext')
         },
         line(node) {
           node.tagName = "pre"
-          this.addClassToHast(node, 'codeline')
+          if (node.children.length === 0) {
+            node.children.push({
+              type: "element",
+              tagName: "div",
+              properties: {
+                class: ['consolelinepart', 'consoletext']
+              },
+              children: [
+                {type: "text", value: " "}
+              ]
+            })
+          }
+          this.addClassToHast(node, 'consoleline')
         },
         code(node) {
           node.tagName = "div"
@@ -97,12 +106,12 @@ function autoScroll() {
   tab-size: 4;
 }
 
-.codeline {
+.consoleline {
   @apply block m-0 p-0;
   line-height: 0;
 }
 
-.codepart {
+.consolelinepart {
   @apply inline-block;
 }
 </style>

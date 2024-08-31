@@ -51,11 +51,8 @@ async function hlrun() {
     transformers: [
       {
         preprocess(code) {
-          const formated = code.replaceAll("\n\n", "\n \n")
-          if (formated.endsWith('\n')) {
-            return `${formated}\n`
-          } else {
-            return formated
+          if (code.endsWith('\n')) {
+            return `${code}\n`
           }
         },
         pre(node) {
@@ -70,11 +67,24 @@ async function hlrun() {
         },
         span(node) {
           node.tagName = "div"
-          this.addClassToHast(node, 'codepart')
+          this.addClassToHast(node, 'codelinepart')
           this.addClassToHast(node, 'codetext')
+          console.log(node)
         },
         line(node) {
           node.tagName = "pre"
+          if (node.children.length === 0) {
+            node.children.push({
+              type: "element",
+              tagName: "div",
+              properties: {
+                class: ['codelinepart', 'codetext']
+              },
+              children: [
+                {type: "text", value: " "}
+              ]
+            })
+          }
           this.addClassToHast(node, 'codeline')
         },
         code(node) {
@@ -152,7 +162,7 @@ function handleTab(e) {
   line-height: 0;
 }
 
-.codepart {
+.codelinepart {
   @apply inline-block;
 }
 </style>
