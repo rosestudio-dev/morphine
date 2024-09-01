@@ -502,11 +502,6 @@ static inline op_result_t interpreter_fun_and(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_boolean(a) && valueI_is_boolean(b))) {
-        (*result) = valueI_boolean(valueI_as_boolean(a) && valueI_as_boolean(b));
-        return NORMAL;
-    }
-
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_AND, &mt_field)) {
         if (callstackI_is_callable(U->I, mt_field)) {
@@ -520,7 +515,13 @@ static inline op_result_t interpreter_fun_and(
         return NORMAL;
     }
 
-    throwI_error(U->I, "and supports only boolean");
+    if (likely(valueI_istrue(a))) {
+        (*result) = b;
+    } else {
+        (*result) = a;
+    }
+
+    return NORMAL;
 }
 
 static inline op_result_t interpreter_fun_or(
@@ -537,11 +538,6 @@ static inline op_result_t interpreter_fun_or(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_boolean(a) && valueI_is_boolean(b))) {
-        (*result) = valueI_boolean(valueI_as_boolean(a) || valueI_as_boolean(b));
-        return NORMAL;
-    }
-
     struct value mt_field;
     if (metatableI_test(U->I, a, MF_OR, &mt_field)) {
         if (callstackI_is_callable(U->I, mt_field)) {
@@ -555,7 +551,13 @@ static inline op_result_t interpreter_fun_or(
         return NORMAL;
     }
 
-    throwI_error(U->I, "or supports only boolean");
+    if (likely(valueI_istrue(a))) {
+        (*result) = a;
+    } else {
+        (*result) = b;
+    }
+
+    return NORMAL;
 }
 
 static inline op_result_t interpreter_fun_concat(

@@ -28,7 +28,7 @@
 
 #define sp_dispatch(o) switch (o)
 #define sp_case(o) case (o):
-#define sp_continue() morphinem_blk_start break; morphinem_blk_end
+#define sp_continue() break;
 
 // access
 
@@ -197,7 +197,7 @@ sp_case(MORPHINE_OPCODE_JUMP_IF)
             {
                 struct value cond = slot(C, arg1);
 
-                if (valueI_as_boolean_or_error(U->I, cond)) {
+                if (valueI_istrue(cond)) {
                     *position = arg2;
                 } else {
                     *position = arg3;

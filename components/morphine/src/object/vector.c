@@ -258,7 +258,7 @@ struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
         gcI_barrier(I, result, result->values[i]);
     }
 
-    return vector;
+    return result;
 }
 
 struct value vectorI_first(morphine_instance_t I, struct vector *vector, bool *has) {

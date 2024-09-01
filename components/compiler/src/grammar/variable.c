@@ -101,13 +101,23 @@ static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
     if (parser_look(C, et_word())) {
         struct mc_lex_token token = parser_consume(C, et_word());
 
-        struct mc_ast_expression_value *value =
-            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
+        if (extract_callable) {
+            struct mc_ast_expression_value *value =
+                mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
 
-        value->type = MCEXPR_VALUE_TYPE_STR;
-        value->value.string = token.word;
+            value->type = MCEXPR_VALUE_TYPE_STR;
+            value->value.string = token.word;
 
-        callable = mcapi_ast_value2expression(value);
+            callable = mcapi_ast_value2expression(value);
+        } else {
+            struct mc_ast_expression_variable *variable =
+                mcapi_ast_create_expression_variable(parser_U(C), parser_A(C), token.line);
+
+            variable->index = token.word;
+            variable->ignore_mutable = false;
+
+            callable = mcapi_ast_variable2expression(variable);
+        }
     } else {
         parser_consume(C, et_operator(LBRACKET));
         callable = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));

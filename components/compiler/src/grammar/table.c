@@ -40,8 +40,10 @@ struct mc_ast_node *rule_table(struct parse_controller *C) {
         ml_line intermediate_line = parser_get_line(C);
 
         struct mc_ast_expression *key;
-        if (parser_look(C, et_word())) {
-            struct mc_lex_token token = parser_consume(C, et_word());
+        struct mc_lex_token token;
+        bool is_word = parser_look(C, et_word());
+        if (is_word) {
+            token = parser_consume(C, et_word());
 
             struct mc_ast_expression_value *expr_value =
                 mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
@@ -57,6 +59,14 @@ struct mc_ast_node *rule_table(struct parse_controller *C) {
         struct mc_ast_expression *value;
         if (parser_match(C, et_operator(EQ))) {
             value = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+        } else if (is_word) {
+            struct mc_ast_expression_variable *variable_value =
+                mcapi_ast_create_expression_variable(parser_U(C), parser_A(C), intermediate_line);
+
+            variable_value->index = token.word;
+            variable_value->ignore_mutable = false;
+
+            value = mcapi_ast_variable2expression(variable_value);
         } else {
             struct mc_ast_expression_value *expr_value =
                 mcapi_ast_create_expression_value(parser_U(C), parser_A(C), intermediate_line);

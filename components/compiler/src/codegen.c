@@ -1048,7 +1048,7 @@ static void visitor_function(
                 set_case(variable)
                 set_case(access)
                 default:
-                    mapi_error(C->U, "unsupported for set");
+                    codegen_errorf(C, "unsupported for set");
             }
             break;
         }
