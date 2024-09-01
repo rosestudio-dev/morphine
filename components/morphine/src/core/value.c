@@ -5,13 +5,13 @@
 #include <string.h>
 #include "morphine/core/value.h"
 #include "morphine/core/throw.h"
+#include "morphine/core/usertype.h"
 #include "morphine/object/string.h"
 #include "morphine/object/function.h"
 #include "morphine/object/native.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/userdata.h"
 #include "morphine/platform/conversions.h"
-#include "morphine/core/usertype.h"
 
 bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
     if (likely(a.type != b.type)) {
@@ -65,7 +65,12 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_STRING:
             return value;
         case VALUE_TYPE_USERDATA:
-            return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object.userdata));
+            if (valueI_as_userdata(value)->is_typed) {
+                struct usertype_info info = usertypeI_info(I, valueI_as_userdata(value)->typed.usertype);
+                return valueI_object(stringI_createf(I, "[object:userdata:%p|%s]", value.object.userdata, info.name));
+            } else {
+                return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object.userdata));
+            }
         case VALUE_TYPE_TABLE:
             return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
         case VALUE_TYPE_VECTOR:
