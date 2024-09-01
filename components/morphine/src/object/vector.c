@@ -157,10 +157,10 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
     gcI_barrier(I, vector, value);
 
     vector->size.accessible++;
-    for (ml_size i = index; i < vector->size.accessible - 1; i++) {
-        ml_size from = vector->size.accessible - i - 1;
-        ml_size to = vector->size.accessible - i - 2;
-        vector->values[from] = vector->values[to];
+    for (ml_size i = 0; i < vector->size.accessible - 1 - index; i++) {
+        ml_size from = vector->size.accessible - i - 2;
+        ml_size to = vector->size.accessible - i - 1;
+        vector->values[to] = vector->values[from];
     }
 
     vector->values[index] = value;
