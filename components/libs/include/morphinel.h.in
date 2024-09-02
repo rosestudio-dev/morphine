@@ -1,0 +1,38 @@
+//
+// Created by why-iskra on 14.06.2024.
+//
+
+#pragma once
+
+#ifdef __cplusplus
+extern "C" {
+#endif
+
+#include <morphine.h>
+
+#mesondefine MORPHINEL_USE_MATH
+#mesondefine MORPHINEL_USE_FS
+#mesondefine MORPHINEL_USE_SYSTEM
+#mesondefine MORPHINEL_USE_BIGINT
+
+#ifdef MORPHINEL_USE_MATH
+#include <morphinel/math.h>
+#endif
+
+#ifdef MORPHINEL_USE_FS
+#include <morphinel/fs.h>
+#endif
+
+#ifdef MORPHINEL_USE_SYSTEM
+#include <morphinel/system.h>
+#endif
+
+#ifdef MORPHINEL_USE_BIGINT
+#include <morphinel/bigint.h>
+#endif
+
+MORPHINE_API void mlapi_import_all(morphine_instance_t);
+
+#ifdef __cplusplus
+}
+#endif

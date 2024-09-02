@@ -139,10 +139,7 @@ static int launcher(struct environment *env, int argc, char **argv) {
 
     morphine_instance_t I = mapi_open(instance_platform, settings, env);
     mapi_library_load(I, mclib_compiler());
-    mapi_library_load(I, mllib_bigint());
-    mapi_library_load(I, mllib_system());
-    mapi_library_load(I, mllib_math());
-    mapi_library_load(I, mllib_fs());
+    mlapi_import_all(I);
 
     morphine_coroutine_t U = mapi_coroutine(I, "app");
 

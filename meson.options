@@ -1,3 +1,8 @@
 option('buildapp', type : 'feature', value : 'enabled')
-option('buildlibs', type : 'feature', value : 'enabled')
 option('buildcompiler', type : 'feature', value : 'enabled')
+option('buildlibs', type : 'feature', value : 'enabled')
+
+option('uselib_math', type : 'feature', value : 'enabled')
+option('uselib_fs', type : 'feature', value : 'enabled')
+option('uselib_system', type : 'feature', value : 'enabled')
+option('uselib_bigint', type : 'feature', value : 'enabled')
