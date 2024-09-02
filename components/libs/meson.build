@@ -3,11 +3,13 @@
 subdir('math')
 subdir('fs')
 subdir('system')
+subdir('bigint')
 
 dependencies = [
     morphinelmath_dep,
     morphinelfs_dep,
     morphinelsystem_dep,
+    morphinelbigint_dep,
 ]
 
 # dep
