@@ -37,3 +37,23 @@ static inline void gcI_pools_remove(
     object->next = NULL;
     object->prev = NULL;
 }
+
+static inline void gcI_pools_merge(
+    struct object **from,
+    struct object **pool
+) {
+    struct object *object = *from;
+    if (*pool == NULL) {
+        *pool = object;
+    } else if(object != NULL) {
+        struct object *last = *pool;
+        while (last->prev != NULL) {
+            last = last->prev;
+        }
+
+        last->prev = object;
+        object->next = last;
+    }
+
+    *from = NULL;
+}

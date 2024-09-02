@@ -30,7 +30,6 @@ executable(
         morphinel_dep
     ],
     c_args : c_args,
-    link_args : link_args,
-    link_args : '-flto',
+    link_args : [link_args, '-flto'],
     install : true
 )

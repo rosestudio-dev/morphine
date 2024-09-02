@@ -4,10 +4,11 @@
 
 #include "morphine/gc/control.h"
 #include "morphine/gc/safe.h"
+#include "morphine/gc/pools.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
-#include "stages/impl.h"
 #include "morphine/utils/overflow.h"
+#include "stages/impl.h"
 
 static inline bool gc_need(morphine_instance_t I, size_t reserved) {
     overflow_add(reserved, I->G.bytes.allocated, SIZE_MAX) {
@@ -124,31 +125,10 @@ resolve:
 }
 
 static inline void recover_pool(morphine_instance_t I, struct object **pool) {
-    if (*pool != NULL) {
-        struct object *end = NULL;
-        struct object *current = *pool;
-        while (current != NULL) {
-            end = current;
-            current = current->prev;
-        }
-
-        if (end != NULL) {
-            struct object *allocated = I->G.pools.allocated;
-
-            if (allocated != NULL) {
-                allocated->next = end;
-            }
-            end->prev = allocated;
-
-            I->G.pools.allocated = *pool;
-        }
-
-        *pool = NULL;
-    }
+    gcI_pools_merge(pool, &I->G.pools.allocated);
 }
 
 static void recover_pools(morphine_instance_t I) {
-    recover_pool(I, &I->G.pools.sweep);
     recover_pool(I, &I->G.pools.black);
     recover_pool(I, &I->G.pools.black_coroutines);
     recover_pool(I, &I->G.pools.grey);
