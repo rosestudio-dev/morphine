@@ -3,6 +3,7 @@ import {computed, nextTick, ref, watch} from "vue";
 import {codeToHtml} from "shiki";
 import {useData} from "vitepress";
 import {bundledThemesInfo} from "shiki/themes";
+import {throttle} from 'throttle-debounce';
 
 const {isDark} = useData()
 const model = defineModel()
@@ -13,11 +14,20 @@ let themeRef = computed(() => isDark.value ? 'vitesse-dark' : 'vitesse-light')
 let areaRef = ref()
 let outputRef = ref()
 let preStyleRef = ref()
+let hasScrollBarRef = ref(false)
 
-watch(model, hlrun, {immediate: true})
+watch(model, throttle(250, async () => { await hlrun() }), {immediate: true})
 watch(themeRef, hlrun, {immediate: true})
 
 watch(outputRef, autoScroll, {immediate: true})
+
+function hasScrollBar(elem) {
+  if (!elem) {
+    return false
+  }
+
+  return elem.scrollHeight > elem.clientHeight
+}
 
 async function hlrun() {
   outputRef.value = await codeToHtml(model.value, {
@@ -76,6 +86,7 @@ function autoScroll() {
 
   nextTick(() => {
     areaRef.value.scrollTop = areaRef.value.scrollHeight;
+    hasScrollBarRef.value = hasScrollBar(areaRef.value)
   })
 }
 </script>
@@ -85,7 +96,8 @@ function autoScroll() {
        :style="[preStyleRef, { colorScheme: currentThemeType }]">
     <div class="relative w-full h-full">
       <span
-          class="opacity-15 hover:opacity-85 transition duration-300 ease-out absolute top-4 right-4 text-neutral-200 bg-neutral-900 rounded-lg px-2 py-1 select-none z-10">
+          class="opacity-15 hover:opacity-85 transition duration-300 ease-out absolute top-4 text-neutral-200 bg-neutral-800 rounded-lg px-2 py-1 select-none z-10"
+          :class="{'right-4':!hasScrollBarRef, 'right-6':hasScrollBarRef}">
         {{ props.name }}
       </span>
       <div

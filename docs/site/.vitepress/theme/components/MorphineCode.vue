@@ -3,8 +3,14 @@ import {computed, nextTick, ref, watch} from "vue";
 import {codeToHtml} from 'shiki'
 import {bundledThemesInfo} from 'shiki/themes'
 import {useData} from "vitepress";
-import scriptRaw from '../playground/script.ms?raw';
 import grammarRaw from '../grammar/morphine.json?raw';
+
+import script1Raw from '../playground/script1.ms?raw'
+import script2Raw from '../playground/script2.ms?raw'
+import script3Raw from '../playground/script3.ms?raw'
+import script4Raw from '../playground/script4.ms?raw'
+
+const scripts = [script1Raw, script2Raw, script3Raw, script4Raw]
 
 const model = defineModel()
 const {isDark} = useData()
@@ -13,7 +19,7 @@ function getInput() {
   let inputRef = ref("")
   const text = localStorage.getItem("morphine-playground-code")
   if (text == null) {
-    inputRef.value = scriptRaw
+    inputRef.value = scripts[Math.floor(Math.random() * scripts.length)]
   } else {
     inputRef.value = text
   }
@@ -33,10 +39,23 @@ let codeareaRef = ref()
 let inputRef = getInput()
 let outputRef = ref()
 let preStyleRef = ref()
+let hasScrollBarRef = ref(false)
 
 watch(inputRef, hlrun, {immediate: true})
 watch(themeRef, hlrun, {immediate: true})
 watch(langRef, hlrun, {immediate: true})
+
+function hasScrollBar(elem) {
+  if (!elem) {
+    return false
+  }
+
+  return elem.scrollHeight > elem.clientHeight
+}
+
+function changeScript() {
+  inputRef.value = scripts[Math.floor(Math.random() * scripts.length)]
+}
 
 async function hlrun() {
   model.value = inputRef.value
@@ -102,6 +121,7 @@ function syncScroll() {
 
   highlightRef.value.scrollTop = codeareaRef.value.scrollTop
   highlightRef.value.scrollLeft = codeareaRef.value.scrollLeft
+  hasScrollBarRef.value = hasScrollBar(highlightRef.value)
 }
 
 function onInput() {
@@ -139,6 +159,15 @@ function handleTab(e) {
           @input="onInput"
           @scroll="syncScroll"
           @keydown.tab="handleTab"/>
+      <div
+          class="opacity-15 hover:opacity-85 transition duration-300 ease-out absolute top-4 text-neutral-200 bg-neutral-800 rounded-lg px-2 py-1 select-none z-10"
+          :class="{'right-4':!hasScrollBarRef, 'right-6':hasScrollBarRef}"
+          @click="changeScript">
+        <svg xmlns="http://www.w3.org/2000/svg" height="24px" viewBox="0 -960 960 960" width="24px" fill="#e8eaed">
+          <path
+              d="M600-160q-17 0-28.5-11.5T560-200q0-17 11.5-28.5T600-240h64l-99-99q-12-12-11.5-28.5T566-396q12-12 28.5-12t28.5 12l97 98v-62q0-17 11.5-28.5T760-400q17 0 28.5 11.5T800-360v160q0 17-11.5 28.5T760-160H600Zm-428-12q-11-11-11-28t11-28l492-492h-64q-17 0-28.5-11.5T560-760q0-17 11.5-28.5T600-800h160q17 0 28.5 11.5T800-760v160q0 17-11.5 28.5T760-560q-17 0-28.5-11.5T720-600v-64L228-172q-11 11-28 11t-28-11Zm-1-560q-11-11-11-28t11-28q11-11 27.5-11t28.5 11l168 167q11 11 11.5 27.5T395-565q-11 11-28 11t-28-11L171-732Z"/>
+        </svg>
+      </div>
     </div>
   </div>
 </template>

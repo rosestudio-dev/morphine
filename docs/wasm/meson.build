@@ -22,6 +22,16 @@ executable(
             dirs : [meson.project_source_root() / 'deps' / 'lib'],
             required : true,
         ),
+        cc.find_library(
+            'libmorphinel',
+            dirs : [meson.project_source_root() / 'deps' / 'lib'],
+            required : true,
+        ),
+        cc.find_library(
+            'libmorphinelbigint',
+            dirs : [meson.project_source_root() / 'deps' / 'lib'],
+            required : true,
+        ),
     ],
     include_directories : ['deps' / 'include'],
     link_args : [

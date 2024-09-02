@@ -6,6 +6,7 @@
 #include <setjmp.h>
 #include <morphine.h>
 #include <morphinec.h>
+#include <morphinel.h>
 #include <malloc.h>
 
 struct environment {
@@ -73,6 +74,7 @@ static void launcher(struct environment *env, const char *text, size_t size) {
 
     morphine_instance_t I = mapi_open(instance_platform, settings, env);
     mapi_library_load(I, mclib_compiler());
+    mlapi_import_all(I);
 
     morphine_coroutine_t U = mapi_coroutine(I, "wasm-app");
 

@@ -1,6 +1,7 @@
 /*
  * Mandelbrot set
  */
+
 val base = env.library("base")
 val chars = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"]
 for(var y = -1.3; y <= 1.3; y += 0.3)
@@ -19,8 +20,3 @@ for(var y = -1.3; y <= 1.3; y += 0.3)
     end
     base.print("\n")
 end
-
-/*
- * Cause stack overflow
- */
-(fun recursive() = invoked())()

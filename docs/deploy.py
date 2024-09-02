@@ -45,10 +45,17 @@ def copy(src, dest):
 def prepare():
     step("Install deps", [npm, "i"], "site")
 
+    libs = [
+        "-Duselib_math=disabled",
+        "-Duselib_fs=disabled",
+        "-Duselib_system=disabled",
+        "-Duselib_bigint=enabled",
+    ]
+
     step("Configure morphine",
          [meson, "setup", "docs/wasm/buildmorphine", "-Dprefix=" + cwd + "/wasm/deps", "-Ddefault_library=static",
-          "-Dbuildapp=disabled", "-Dbuildlibs=disabled", "-Doptimization=2", "-Dbuildtype=release", "--cross",
-          "docs/wasm/cross/wasm.ini"], "..")
+          "-Dbuildapp=disabled", "-Dbuildlibs=enabled", "-Doptimization=2", "-Dbuildtype=release", "--cross",
+          "docs/wasm/cross/wasm.ini"] + libs, "..")
     step("Compile morphine", [meson, "install", "--quiet"], "wasm/buildmorphine")
     insert_gitignore("wasm/deps")
 
