@@ -64,7 +64,7 @@ static struct {
     operator(SLASHEQ, "/="),
     operator(PERCENTEQ, "%="),
     operator(DOTDOTEQ, "..="),
-    operator(AT, "@")
+    operator(EXCL, "!")
 #undef operator
 };
 
@@ -106,7 +106,7 @@ static inline void opchars_append(morphine_coroutine_t U, struct mc_lex *L, char
     }
 
     L->opchars.string[L->opchars.size] = c;
-    L->opchars.size = 0;
+    L->opchars.size ++;
 }
 
 static void create_opchars(morphine_coroutine_t U, struct mc_lex *L) {

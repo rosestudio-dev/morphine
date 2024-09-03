@@ -54,18 +54,13 @@ static struct mc_ast_node *rule_variable_call(struct parse_controller *C) {
 
     ml_line line = parser_get_line(C);
 
-    struct mc_ast_expression_value *self_value =
-        mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
-
-    self_value->type = MCEXPR_VALUE_TYPE_NIL;
-
     struct mc_ast_expression_call *call =
         mcapi_ast_create_expression_call(parser_U(C), parser_A(C), line, count);
 
     function_arguments(C, call->arguments);
 
     call->extract_callable = false;
-    call->self = mcapi_ast_value2expression(self_value);
+    call->self = NULL;
     call->callable = NULL;
 
     return mcapi_ast_expression_call2node(call);
@@ -74,10 +69,7 @@ static struct mc_ast_node *rule_variable_call(struct parse_controller *C) {
 static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
     size_t count;
     {
-        bool extract_callable = parser_match(C, et_operator(COLON));
-        if (!extract_callable) {
-            parser_consume(C, et_operator(RARROW));
-        }
+        parser_consume(C, et_operator(COLON));
 
         if (!parser_match(C, et_word())) {
             parser_consume(C, et_operator(LBRACKET));
@@ -92,32 +84,19 @@ static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
 
     ml_line line = parser_get_line(C);
 
-    bool extract_callable = parser_match(C, et_operator(COLON));
-    if (!extract_callable) {
-        parser_consume(C, et_operator(RARROW));
-    }
+    parser_consume(C, et_operator(COLON));
 
     struct mc_ast_expression *callable;
     if (parser_look(C, et_word())) {
         struct mc_lex_token token = parser_consume(C, et_word());
 
-        if (extract_callable) {
-            struct mc_ast_expression_value *value =
-                mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
+        struct mc_ast_expression_value *value =
+            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
 
-            value->type = MCEXPR_VALUE_TYPE_STR;
-            value->value.string = token.word;
+        value->type = MCEXPR_VALUE_TYPE_STR;
+        value->value.string = token.word;
 
-            callable = mcapi_ast_value2expression(value);
-        } else {
-            struct mc_ast_expression_variable *variable =
-                mcapi_ast_create_expression_variable(parser_U(C), parser_A(C), token.line);
-
-            variable->index = token.word;
-            variable->ignore_mutable = false;
-
-            callable = mcapi_ast_variable2expression(variable);
-        }
+        callable = mcapi_ast_value2expression(value);
     } else {
         parser_consume(C, et_operator(LBRACKET));
         callable = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
@@ -129,9 +108,50 @@ static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
 
     function_arguments(C, call->arguments);
 
-    call->extract_callable = extract_callable;
+    call->extract_callable = true;
     call->self = NULL;
     call->callable = callable;
+
+    return mcapi_ast_expression_call2node(call);
+}
+
+static struct mc_ast_node *rule_variable_call_another_self(struct parse_controller *C) {
+    size_t count;
+    {
+        parser_consume(C, et_operator(EXCL));
+
+        if (parser_match(C, et_operator(LBRACKET))) {
+            parser_reduce(C, rule_expression);
+            parser_consume(C, et_operator(RBRACKET));
+        } else {
+            parser_reduce(C, rule_constant);
+        }
+
+        count = function_arguments(C, NULL);
+    }
+
+    parser_reset(C);
+
+    ml_line line = parser_get_line(C);
+
+    parser_consume(C, et_operator(EXCL));
+
+    struct mc_ast_expression *self;
+    if (parser_match(C, et_operator(LBRACKET))) {
+        self = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+        parser_consume(C, et_operator(RBRACKET));
+    } else {
+        self = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_constant));
+    }
+
+    struct mc_ast_expression_call *call =
+        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), line, count);
+
+    function_arguments(C, call->arguments);
+
+    call->extract_callable = false;
+    call->self = self;
+    call->callable = NULL;
 
     return mcapi_ast_expression_call2node(call);
 }
@@ -148,8 +168,10 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
                 parser_consume(C, et_word());
             } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE))) {
                 parser_reduce(C, rule_variable_call);
-            } else if (parser_look(C, et_operator(COLON)) || parser_look(C, et_operator(RARROW))) {
+            } else if (parser_look(C, et_operator(COLON))) {
                 parser_reduce(C, rule_variable_call_self);
+            } else if (parser_look(C, et_operator(EXCL))) {
+                parser_reduce(C, rule_variable_call_another_self);
             } else {
                 break;
             }
@@ -202,7 +224,7 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
             call->callable = expression;
 
             expression = next_expression;
-        } else if (parser_look(C, et_operator(COLON)) || parser_look(C, et_operator(RARROW))) {
+        } else if (parser_look(C, et_operator(COLON))) {
             struct mc_ast_expression *next_expression =
                 mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_variable_call_self));
 
@@ -210,6 +232,16 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
                 mcapi_ast_expression2call(parser_U(C), next_expression);
 
             call->self = expression;
+
+            expression = next_expression;
+        } else if (parser_look(C, et_operator(EXCL))) {
+            struct mc_ast_expression *next_expression =
+                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_variable_call_another_self));
+
+            struct mc_ast_expression_call *call =
+                mcapi_ast_expression2call(parser_U(C), next_expression);
+
+            call->callable = expression;
 
             expression = next_expression;
         } else {

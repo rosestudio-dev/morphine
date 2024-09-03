@@ -426,10 +426,14 @@ decl_expr(call) {
         case 0:
             codegen_expression(C, expression->callable, codegen_result(C), 1);
         case 1:
-            data->self = codegen_declare_temporary(C);
-            codegen_expression(C, expression->self, data->self, 2);
+            if(expression->self != NULL) {
+                data->self = codegen_declare_temporary(C);
+                codegen_expression(C, expression->self, data->self, 2);
+            } else {
+                codegen_jump(C, 2);
+            }
         case 2:
-            if (expression->extract_callable) {
+            if (expression->self != NULL && expression->extract_callable) {
                 codegen_instruction_GET(C, data->self, codegen_result(C), codegen_result(C));
             }
 
@@ -451,7 +455,12 @@ decl_expr(call) {
                 codegen_instruction_PARAM(C, data->slots[i], i);
             }
 
-            codegen_instruction_CALL(C, codegen_result(C), expression->args_count, data->self);
+            if(expression->self != NULL) {
+                codegen_instruction_SCALL(C, codegen_result(C), expression->args_count, data->self);
+            } else {
+                codegen_instruction_CALL(C, codegen_result(C), expression->args_count);
+            }
+
             codegen_instruction_RESULT(C, codegen_result(C));
             codegen_complete(C);
         default:

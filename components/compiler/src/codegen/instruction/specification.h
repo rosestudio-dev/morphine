@@ -31,7 +31,8 @@ instr_func3(GET_CLOSURE, slot, index, slot)
 instr_func3(SET_CLOSURE, slot, index, slot)
 
 instr_func3(CLOSURE, slot, count, slot)
-instr_func3(CALL, slot, count, slot)
+instr_func2(CALL, slot, count)
+instr_func3(SCALL, slot, count, slot)
 instr_func1(LEAVE, slot)
 instr_func1(RESULT, slot)
 

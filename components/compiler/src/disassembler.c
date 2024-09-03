@@ -36,6 +36,7 @@ static const char *opcode2str(morphine_opcode_t opcode) {
         opcode_case(SET_CLOSURE)
         opcode_case(CLOSURE)
         opcode_case(CALL)
+        opcode_case(SCALL)
         opcode_case(LEAVE)
         opcode_case(RESULT)
         opcode_case(ADD)
@@ -134,6 +135,9 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             printf(SLOT" = closure from "SLOT" with size "APR, arg(3), arg(1), arg(2));
             return;
         case MORPHINE_OPCODE_CALL:
+            printf("call "SLOT" with "APR" args", arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_SCALL:
             printf("call(self "SLOT") "SLOT" with "APR" args", arg(3), arg(1), arg(2));
             return;
         case MORPHINE_OPCODE_LEAVE:

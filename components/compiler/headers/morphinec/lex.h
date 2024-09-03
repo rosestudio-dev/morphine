@@ -53,7 +53,7 @@ enum mc_lex_token_operator {
     MCLTOP_SLASHEQ,    // /=
     MCLTOP_PERCENTEQ,  // %=
     MCLTOP_DOTDOTEQ,   // ..=
-    MCLTOP_AT,         // @
+    MCLTOP_EXCL,       // !
 };
 
 struct mc_lex_token {

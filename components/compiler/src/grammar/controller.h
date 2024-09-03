@@ -122,6 +122,7 @@ rule(postfix);
 rule(primary);
 rule(variable);
 rule(value);
+rule(constant);
 rule(table);
 rule(vector);
 rule(function);
