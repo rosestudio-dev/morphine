@@ -114,12 +114,14 @@ static void resume(morphine_coroutine_t U) {
 static void launch(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
+            if (mapi_args(U) < 2) {
+                maux_expect_args(U, 2);
+            }
+
             mapi_push_arg(U, 0);
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            mapi_push_nil(coroutine);
-            mapi_rotate(coroutine, 2);
             for (ml_size i = 1; i < mapi_args(U); i++) {
                 mapi_push_arg(U, i);
                 mapi_move(U, coroutine);
@@ -136,14 +138,22 @@ static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 2);
+
             mapi_push_arg(U, 0);
             const char *name = mapi_get_cstr(U);
+
             mapi_push_arg(U, 1);
             maux_expect(U, "callable");
+
             morphine_coroutine_t coroutine = mapi_push_coroutine(U, name);
+
+            mapi_push_self(U);
+            mapi_copy(U, coroutine, 0);
+            mapi_pop(U, 1);
+
             mapi_rotate(U, 2);
             mapi_copy(U, coroutine, 0);
-            mapi_rotate(U, 2);
+            mapi_pop(U, 1);
 
             maux_nb_return();
     maux_nb_end

@@ -214,14 +214,23 @@ void callstackI_call_unsafe(
     }
 }
 
-void callstackI_call_stack(
+void callstackI_call_from_api(
     morphine_coroutine_t U,
     struct value callable,
-    struct value self,
+    struct value *self,
     size_t offset,
     ml_size argc,
     size_t pop_size
 ) {
+    struct callinfo *callinfo = callstackI_info(U);
+
+    struct value extracted_self = valueI_nil;
+    if (self != NULL) {
+        extracted_self = *self;
+    } else if(callinfo != NULL) {
+        extracted_self = *callinfo->s.self;
+    }
+
     struct value mt_field;
     if (unlikely(metatableI_test(U->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(U->I);
@@ -240,15 +249,14 @@ void callstackI_call_stack(
             tableI_set(U->I, table, key, arg);
         }
 
-        struct value new_args[2] = { self, args_table };
+        struct value new_args[2] = { extracted_self, args_table };
 
         stackI_call(U, mt_field, callable, 2, pop_size);
         stackI_set_args_unsafe(U, new_args, 2);
 
         gcI_reset_safe(U->I, rollback);
     } else {
-        struct callinfo *callinfo = callstackI_info(U);
-        stackI_call(U, callable, self, argc, pop_size);
+        stackI_call(U, callable, extracted_self, argc, pop_size);
 
         struct callinfo *newcallinfo = callstackI_info(U);
         ml_size arguments = argc;
@@ -268,10 +276,10 @@ void callstackI_call_stack(
     }
 }
 
-void callstackI_call_params(
+void callstackI_call_from_interpreter(
     morphine_coroutine_t U,
     struct value callable,
-    struct value self,
+    struct value *self,
     ml_size argc,
     size_t pop_size
 ) {
@@ -280,6 +288,13 @@ void callstackI_call_params(
 
     if (params_count < argc) {
         throwI_error(U->I, "arguments count is greater than params count");
+    }
+
+    struct value extracted_self = valueI_nil;
+    if (self != NULL) {
+        extracted_self = *self;
+    } else {
+        extracted_self = *callinfo->s.self;
     }
 
     struct value mt_field;
@@ -295,14 +310,14 @@ void callstackI_call_params(
             tableI_set(U->I, table, key, arg);
         }
 
-        struct value new_args[2] = { self, args_table };
+        struct value new_args[2] = { extracted_self, args_table };
 
         stackI_call(U, mt_field, callable, 2, pop_size);
         stackI_set_args_unsafe(U, new_args, 2);
 
         gcI_reset_safe(U->I, rollback);
     } else {
-        stackI_call(U, callable, self, argc, pop_size);
+        stackI_call(U, callable, extracted_self, argc, pop_size);
         stackI_set_args_unsafe(U, callinfo->s.params, argc);
     }
 }

@@ -265,15 +265,38 @@ sp_case(MORPHINE_OPCODE_CALL)
                 }
 
                 struct value callable = slot(C, arg1);
+                ml_size count = arg2;
+
+                callstackI_continue(U, 1);
+
+                callstackI_call_from_interpreter(
+                    U,
+                    callable,
+                    NULL,
+                    count,
+                    0
+                );
+
+                clear_params(C, count);
+                sp_yield();
+            }
+sp_case(MORPHINE_OPCODE_SCALL)
+            {
+                if (callstackI_state(U) == 1) {
+                    callstackI_continue(U, 0);
+                    sp_end();
+                }
+
+                struct value callable = slot(C, arg1);
                 struct value self = slot(C, arg3);
                 ml_size count = arg2;
 
                 callstackI_continue(U, 1);
 
-                callstackI_call_params(
+                callstackI_call_from_interpreter(
                     U,
                     callable,
-                    self,
+                    &self,
                     count,
                     0
                 );

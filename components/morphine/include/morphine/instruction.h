@@ -43,7 +43,8 @@ typedef enum {
     MORPHINE_OPCODE_GET_CLOSURE,     // [closure (slot), closure (index), dest (slot)]                get closure by (index) from (closure) to (dest)
     MORPHINE_OPCODE_SET_CLOSURE,     // [closure (slot), closure (index), src (slot)]                 set (src) to (closure) by (index)
 
-    MORPHINE_OPCODE_CALL,            // [function (slot), params (count), self (slot)]                call (function) with count (params) and (self)
+    MORPHINE_OPCODE_CALL,            // [function (slot), params (count)]                             call (function) with count (params)
+    MORPHINE_OPCODE_SCALL,           // [function (slot), params (count), self (slot)]                call (function) with count (params) change (self)
     MORPHINE_OPCODE_LEAVE,           // [return (slot)]                                               leave with (return)
     MORPHINE_OPCODE_RESULT,          // [dest (slot)]                                                 set result value to (dest)
 

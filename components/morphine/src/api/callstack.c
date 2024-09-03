@@ -41,7 +41,7 @@
  */
 MORPHINE_API void mapi_call(morphine_coroutine_t U, ml_size argc) {
     struct value callable = stackI_peek(U, argc);
-    callstackI_call_stack(U, callable, valueI_nil, 0, argc, ((size_t) argc) + 1);
+    callstackI_call_from_api(U, callable, NULL, 0, argc, ((size_t) argc) + 1);
 }
 
 /*
@@ -67,7 +67,7 @@ MORPHINE_API void mapi_call(morphine_coroutine_t U, ml_size argc) {
  */
 MORPHINE_API void mapi_calli(morphine_coroutine_t U, ml_size argc) {
     struct value callable = stackI_peek(U, 0);
-    callstackI_call_stack(U, callable, valueI_nil, 1, argc, ((size_t) argc) + 1);
+    callstackI_call_from_api(U, callable, NULL, 1, argc, ((size_t) argc) + 1);
 }
 
 /*
@@ -94,7 +94,7 @@ MORPHINE_API void mapi_calli(morphine_coroutine_t U, ml_size argc) {
 MORPHINE_API void mapi_callself(morphine_coroutine_t U, ml_size argc) {
     struct value self = stackI_peek(U, argc + 1);
     struct value callable = stackI_peek(U, argc);
-    callstackI_call_stack(U, callable, self, 0, argc, ((size_t) argc) + 2);
+    callstackI_call_from_api(U, callable, &self, 0, argc, ((size_t) argc) + 2);
 }
 
 /*
@@ -121,7 +121,7 @@ MORPHINE_API void mapi_callself(morphine_coroutine_t U, ml_size argc) {
 MORPHINE_API void mapi_callselfi(morphine_coroutine_t U, ml_size argc) {
     struct value callable = stackI_peek(U, 1);
     struct value self = stackI_peek(U, 0);
-    callstackI_call_stack(U, callable, self, 2, argc, ((size_t) argc) + 2);
+    callstackI_call_from_api(U, callable, &self, 2, argc, ((size_t) argc) + 2);
 }
 
 /*

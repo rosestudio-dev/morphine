@@ -68,19 +68,19 @@ void callstackI_call_unsafe(
     size_t pop_size
 );
 
-void callstackI_call_stack(
+void callstackI_call_from_api(
     morphine_coroutine_t U,
     struct value callable,
-    struct value self,
+    struct value *self,
     size_t offset,
     ml_size argc,
     size_t pop_size
 );
 
-void callstackI_call_params(
+void callstackI_call_from_interpreter(
     morphine_coroutine_t U,
     struct value callable,
-    struct value self,
+    struct value *self,
     ml_size argc,
     size_t pop_size
 );
