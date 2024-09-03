@@ -249,6 +249,7 @@ static void guard(morphine_coroutine_t U) {
             mapi_set_metatable(U);
             mapi_table_mode_fixed(U, true);
             mapi_table_mode_lock_metatable(U);
+            mapi_table_mode_lock(U);
 
             maux_nb_return();
     maux_nb_end

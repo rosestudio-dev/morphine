@@ -125,12 +125,12 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
         throwI_error(I, "vector is null");
     }
 
-    if (vector->mode.fixed) {
-        throwI_error(I, "vector is fixed");
-    }
-
     if (!vector->mode.mutable) {
         throwI_error(I, "vector is immutable");
+    }
+
+    if (vector->mode.fixed) {
+        throwI_error(I, "vector is fixed");
     }
 
     if (index > vector->size.accessible) {
@@ -171,12 +171,12 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
         throwI_error(I, "vector is null");
     }
 
-    if (vector->mode.fixed) {
-        throwI_error(I, "vector is fixed");
-    }
-
     if (!vector->mode.mutable) {
         throwI_error(I, "vector is immutable");
+    }
+
+    if (vector->mode.fixed) {
+        throwI_error(I, "vector is fixed");
     }
 
     if (index >= vector->size.accessible) {
@@ -216,12 +216,12 @@ void vectorI_resize(morphine_instance_t I, struct vector *vector, ml_size size) 
         throwI_error(I, "vector is null");
     }
 
-    if (vector->mode.fixed) {
-        throwI_error(I, "vector is fixed");
-    }
-
     if (!vector->mode.mutable) {
         throwI_error(I, "vector is immutable");
+    }
+
+    if (vector->mode.fixed) {
+        throwI_error(I, "vector is fixed");
     }
 
     vector->values = allocI_vec(

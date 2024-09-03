@@ -777,12 +777,12 @@ struct value tableI_remove(morphine_instance_t I, struct table *table, struct va
         throwI_error(I, "table is null");
     }
 
-    if (table->mode.fixed) {
-        throwI_error(I, "table is fixed");
-    }
-
     if (!table->mode.mutable) {
         throwI_error(I, "table is immutable");
+    }
+
+    if (table->mode.fixed) {
+        throwI_error(I, "table is fixed");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -824,12 +824,12 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
         throwI_error(I, "table is null");
     }
 
-    if (table->mode.fixed) {
-        throwI_error(I, "table is fixed");
-    }
-
     if (!table->mode.mutable) {
         throwI_error(I, "table is immutable");
+    }
+
+    if (table->mode.fixed) {
+        throwI_error(I, "table is fixed");
     }
 
     struct bucket *current = table->hashmap.buckets.head;

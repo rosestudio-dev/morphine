@@ -266,7 +266,15 @@ static void bigint_metatable_wrap(morphine_coroutine_t U) {
     mapi_push_native(U, "bigint.negate", lib_bigint_negate);
     mapi_table_set(U);
 
+    mapi_push_string(U, "_mf_mask");
+    mapi_push_nil(U);
+    mapi_table_set(U);
+
     mapi_set_metatable(U);
+    mapi_table_mode_mutable(U, false);
+    mapi_table_mode_lock_metatable(U);
+    mapi_table_mode_lock(U);
+
     mapi_rotate(U, 2);
     mapi_pop(U, 1);
 }
