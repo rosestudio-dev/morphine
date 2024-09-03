@@ -122,7 +122,7 @@ static inline struct mc_ast_node *mcapi_ast_statement2node(struct mc_ast_stateme
 #define ast_declare_expr(name, args) ast_declare_node(expression, MCEXPRT, name, args)
 #define ast_declare_stmt(name, args) ast_declare_node(statement, MCSTMTT, name, args)
 
-#define ast_decompose_part(type) bool is_decompose; union { struct { size_t size; type *values; struct mc_ast_expression **keys; } decompose; type value; }
+#define ast_extract_part(type) bool is_extract; union { struct { size_t size; type *values; struct mc_ast_expression **keys; } extract; type value; }
 
 // types
 
@@ -288,13 +288,13 @@ ast_declare_stmt(for, ast_noargs)
 
 ast_declare_stmt(assigment, ast_args(size_t count))
     struct mc_ast_expression *expression;
-    ast_decompose_part(struct mc_ast_expression *);
+    ast_extract_part(struct mc_ast_expression *);
 };
 
 ast_declare_stmt(declaration, ast_args(size_t count))
     bool mutable;
     struct mc_ast_expression *expression;
-    ast_decompose_part(struct mc_ast_expression_variable *);
+    ast_extract_part(struct mc_ast_expression_variable *);
 };
 
 ast_declare_stmt(iterator, ast_noargs)
@@ -302,7 +302,7 @@ ast_declare_stmt(iterator, ast_noargs)
     struct mc_ast_statement *statement;
 };
 
-#undef ast_decompose_part
+#undef ast_extract_part
 #undef ast_args
 #undef ast_noargs
 #undef ast_declare_node

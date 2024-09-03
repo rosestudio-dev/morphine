@@ -2,11 +2,11 @@
 // Created by why-iskra on 12.08.2024.
 //
 
-#include "decompose.h"
+#include "extract.h"
 #include "arguments.h"
 
-size_t extra_consume_decompose(struct parse_controller *C, bool is_word) {
-    if (!parser_match(C, et_predef_word(decompose))) {
+size_t extra_consume_extract(struct parse_controller *C, bool is_word) {
+    if (!parser_match(C, et_predef_word(extract))) {
         if (is_word) {
             parser_consume(C, et_word());
         } else {
@@ -33,7 +33,7 @@ size_t extra_consume_decompose(struct parse_controller *C, bool is_word) {
     return extra_arguments_finish(C, &A);
 }
 
-void extra_extract_decompose(
+void extra_get_extract(
     struct parse_controller *C,
     bool is_word,
     struct mc_ast_expression_variable **variables,
@@ -41,7 +41,7 @@ void extra_extract_decompose(
     struct mc_ast_expression **keys
 ) {
     ml_line line = parser_get_line(C);
-    if (!parser_match(C, et_predef_word(decompose))) {
+    if (!parser_match(C, et_predef_word(extract))) {
         if (is_word) {
             struct mc_lex_token token = parser_consume(C, et_word());
             struct mc_ast_expression_variable *variable =

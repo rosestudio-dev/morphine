@@ -566,7 +566,7 @@ decl_stmt(declaration) {
             data->slot = codegen_declare_temporary(C);
             codegen_expression(C, statement->expression, data->slot, 1);
         case 1:
-            if (statement->is_decompose) {
+            if (statement->is_extract) {
                 data->index = 0;
                 data->key = codegen_declare_temporary(C);
                 codegen_jump(C, 2);
@@ -575,8 +575,8 @@ decl_stmt(declaration) {
                 codegen_set(C, mcapi_ast_variable2expression(statement->value), data->slot, 4);
             }
         case 2:
-            if (data->index < statement->decompose.size) {
-                codegen_expression(C, statement->decompose.keys[data->index], data->key, 3);
+            if (data->index < statement->extract.size) {
+                codegen_expression(C, statement->extract.keys[data->index], data->key, 3);
             } else {
                 codegen_complete(C);
             }
@@ -585,8 +585,8 @@ decl_stmt(declaration) {
             data->index++;
 
             codegen_instruction_GET(C, data->slot, data->key, data->key);
-            codegen_declare_variable(C, statement->decompose.values[index]->index, statement->mutable);
-            codegen_set(C, mcapi_ast_variable2expression(statement->decompose.values[index]), data->key, 2);
+            codegen_declare_variable(C, statement->extract.values[index]->index, statement->mutable);
+            codegen_set(C, mcapi_ast_variable2expression(statement->extract.values[index]), data->key, 2);
         }
         case 4:
             codegen_complete(C);
@@ -608,7 +608,7 @@ decl_stmt(assigment) {
             data->slot = codegen_declare_temporary(C);
             codegen_expression(C, statement->expression, data->slot, 1);
         case 1:
-            if (statement->is_decompose) {
+            if (statement->is_extract) {
                 data->index = 0;
                 data->key = codegen_declare_temporary(C);
                 codegen_jump(C, 2);
@@ -616,8 +616,8 @@ decl_stmt(assigment) {
                 codegen_set(C, statement->value, data->slot, 4);
             }
         case 2:
-            if (data->index < statement->decompose.size) {
-                codegen_expression(C, statement->decompose.keys[data->index], data->key, 3);
+            if (data->index < statement->extract.size) {
+                codegen_expression(C, statement->extract.keys[data->index], data->key, 3);
             } else {
                 codegen_complete(C);
             }
@@ -626,7 +626,7 @@ decl_stmt(assigment) {
             data->index++;
 
             codegen_instruction_GET(C, data->slot, data->key, data->key);
-            codegen_set(C, statement->decompose.values[index], data->key, 2);
+            codegen_set(C, statement->extract.values[index], data->key, 2);
         }
         case 4:
             codegen_complete(C);
@@ -742,7 +742,7 @@ decl_stmt(iterator) {
             data->key = codegen_declare_temporary(C);
             data->value = codegen_declare_temporary(C);
 
-            if (statement->declaration->is_decompose && statement->declaration->decompose.size == 2) {
+            if (statement->declaration->is_extract && statement->declaration->extract.size == 2) {
                 codegen_jump(C, 2);
             } else {
                 size_t constant_key = codegen_add_constant_cstr(C, "key");
@@ -753,9 +753,9 @@ decl_stmt(iterator) {
                 codegen_jump(C, 4);
             }
         case 2:
-            codegen_expression(C, statement->declaration->decompose.keys[0], data->key, 3);
+            codegen_expression(C, statement->declaration->extract.keys[0], data->key, 3);
         case 3:
-            codegen_expression(C, statement->declaration->decompose.keys[1], data->value, 4);
+            codegen_expression(C, statement->declaration->extract.keys[1], data->value, 4);
         case 4:
             codegen_instruction_ITERATOR_INIT(C, data->slot, data->key, data->value);
             codegen_jump(C, 5);
@@ -768,7 +768,7 @@ decl_stmt(iterator) {
             codegen_anchor_change(C, anchor);
             codegen_instruction_ITERATOR_NEXT(C, data->slot, data->value);
 
-            if (statement->declaration->is_decompose) {
+            if (statement->declaration->is_extract) {
                 data->index = 0;
                 codegen_jump(C, 6);
             } else {
@@ -780,8 +780,8 @@ decl_stmt(iterator) {
                 codegen_set(C, mcapi_ast_variable2expression(statement->declaration->value), data->value, 8);
             }
         case 6:
-            if (data->index < statement->declaration->decompose.size) {
-                codegen_expression(C, statement->declaration->decompose.keys[data->index], data->key, 7);
+            if (data->index < statement->declaration->extract.size) {
+                codegen_expression(C, statement->declaration->extract.keys[data->index], data->key, 7);
             } else {
                 codegen_jump(C, 8);
             }
@@ -792,12 +792,12 @@ decl_stmt(iterator) {
             codegen_instruction_GET(C, data->value, data->key, data->key);
             codegen_declare_variable(
                 C,
-                statement->declaration->decompose.values[index]->index,
+                statement->declaration->extract.values[index]->index,
                 statement->declaration->mutable
             );
             codegen_set(
                 C,
-                mcapi_ast_variable2expression(statement->declaration->decompose.values[index]),
+                mcapi_ast_variable2expression(statement->declaration->extract.values[index]),
                 data->key,
                 6
             );

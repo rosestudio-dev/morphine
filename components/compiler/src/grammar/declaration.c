@@ -3,10 +3,10 @@
 //
 
 #include "controller.h"
-#include "extra/decompose.h"
+#include "extra/extract.h"
 
 struct mc_ast_node *rule_declaration(struct parse_controller *C) {
-    size_t decompose_size = 0;
+    size_t extract_size = 0;
     {
         if (parser_look(C, et_predef_word(fun))) {
             parser_reduce(C, rule_function);
@@ -16,7 +16,7 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
                 parser_error(C, "expect val, var or fun");
             }
 
-            decompose_size = extra_consume_decompose(C, true);
+            extract_size = extra_consume_extract(C, true);
 
             parser_consume(C, et_operator(EQ));
             parser_reduce(C, rule_expression);
@@ -28,9 +28,9 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
     ml_line line = parser_get_line(C);
 
     struct mc_ast_statement_declaration *declaration =
-        mcapi_ast_create_statement_declaration(parser_U(C), parser_A(C), line, decompose_size);
+        mcapi_ast_create_statement_declaration(parser_U(C), parser_A(C), line, extract_size);
 
-    declaration->is_decompose = decompose_size > 0;
+    declaration->is_extract = extract_size > 0;
 
     if (parser_look(C, et_predef_word(fun))) {
         struct mc_ast_expression_function *function =
@@ -53,16 +53,16 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
 
         declaration->mutable = is_var;
 
-        if (decompose_size > 0) {
-            extra_extract_decompose(
+        if (extract_size > 0) {
+            extra_get_extract(
                 C,
                 true,
-                declaration->decompose.values,
+                declaration->extract.values,
                 NULL,
-                declaration->decompose.keys
+                declaration->extract.keys
             );
         } else {
-            extra_extract_decompose(
+            extra_get_extract(
                 C,
                 true,
                 &declaration->value,

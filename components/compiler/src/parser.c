@@ -97,7 +97,7 @@ static struct {
     word(end),
     word(pass),
     word(iterator),
-    word(decompose),
+    word(extract),
     word(as),
     word(in),
 #undef word

@@ -43,7 +43,7 @@ fun tobytes<auto>(program, param)
     end
 
     fun convert<auto>()
-        val decompose modifier, param = do
+        val extract modifier, param = do
             val last = string.charat(param, lenof param - 1)
 
             val int = if (string.isalpha(last))
@@ -74,7 +74,7 @@ fun tobytes<auto>(program, param)
         end
     end
 
-    val decompose result, error = base.pcall(convert)
+    val extract result, error = base.pcall(convert)
 
     if (result == nil)
         help(program, "invalid bytes param", true)
@@ -185,7 +185,7 @@ fun parse_arguments<auto>()
 end
 
 fun launch<auto>()
-    val decompose config as "result" = base.pcall(parse_arguments)
+    val extract config as "result" = base.pcall(parse_arguments)
 
     if (config == nil)
         leave
@@ -214,7 +214,7 @@ fun launch<auto>()
                 name = config.name
             }
 
-            val decompose result, error = base.pcall(compile)
+            val extract result, error = base.pcall(compile)
             if (error != nil)
                 help(config.app_path, error, false)
             end

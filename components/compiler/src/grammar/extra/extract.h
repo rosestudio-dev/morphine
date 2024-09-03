@@ -6,9 +6,9 @@
 
 #include "../controller.h"
 
-size_t extra_consume_decompose(struct parse_controller *, bool is_word);
+size_t extra_consume_extract(struct parse_controller *, bool is_word);
 
-void extra_extract_decompose(
+void extra_get_extract(
     struct parse_controller *,
     bool is_word,
     struct mc_ast_expression_variable **variables,

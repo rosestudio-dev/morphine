@@ -3,7 +3,7 @@
 //
 
 #include "controller.h"
-#include "extra/decompose.h"
+#include "extra/extract.h"
 
 #define assigment_table_size (sizeof(assigment_table) / sizeof(assigment_table[0]))
 
@@ -59,13 +59,13 @@ static struct mc_ast_expression *build_assigment(
 }
 
 struct mc_ast_node *rule_assigment(struct parse_controller *C) {
-    size_t decompose_size;
+    size_t extract_size;
     bool simple_expression = false;
     ml_line line;
     {
-        decompose_size = extra_consume_decompose(C, false);
+        extract_size = extra_consume_extract(C, false);
         line = parser_get_line(C);
-        if (decompose_size > 0) {
+        if (extract_size > 0) {
             parser_consume(C, et_operator(EQ));
             parser_reduce(C, rule_expression);
         } else if (match_assigment_operator(C)) {
@@ -92,12 +92,12 @@ struct mc_ast_node *rule_assigment(struct parse_controller *C) {
     }
 
     struct mc_ast_statement_assigment *assigment =
-        mcapi_ast_create_statement_assigment(parser_U(C), parser_A(C), line, decompose_size);
+        mcapi_ast_create_statement_assigment(parser_U(C), parser_A(C), line, extract_size);
 
-    if (decompose_size > 0) {
-        assigment->is_decompose = true;
-        extra_extract_decompose(
-            C, false, NULL, assigment->decompose.values, assigment->decompose.keys
+    if (extract_size > 0) {
+        assigment->is_extract = true;
+        extra_get_extract(
+            C, false, NULL, assigment->extract.values, assigment->extract.keys
         );
 
         parser_consume(C, et_operator(EQ));
@@ -105,8 +105,8 @@ struct mc_ast_node *rule_assigment(struct parse_controller *C) {
         assigment->expression =
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
     } else {
-        assigment->is_decompose = false;
-        extra_extract_decompose(
+        assigment->is_extract = false;
+        extra_get_extract(
             C, false, NULL, &assigment->value, NULL
         );
 

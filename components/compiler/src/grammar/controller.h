@@ -41,7 +41,7 @@ enum predefined_word {
     PW_end,
     PW_pass,
     PW_iterator,
-    PW_decompose,
+    PW_extract,
     PW_as,
     PW_in,
 };

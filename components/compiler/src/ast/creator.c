@@ -43,10 +43,10 @@ ast_impl_stmt(assigment, ast_args(size_t count)) {
     struct mc_ast_statement_assigment *assigment =
         mcapi_ast_statement2assigment(U, statement);
 
-    assigment->is_decompose = count > 0;
-    assigment->decompose.size = count;
-    assigment->decompose.keys = ((void *) assigment) + sizeof(struct mc_ast_statement_assigment);
-    assigment->decompose.values = ((void *) assigment) +
+    assigment->is_extract = count > 0;
+    assigment->extract.size = count;
+    assigment->extract.keys = ((void *) assigment) + sizeof(struct mc_ast_statement_assigment);
+    assigment->extract.values = ((void *) assigment) +
                               sizeof(struct mc_ast_statement_assigment) +
                               sizeof(struct mc_ast_expression *) * count;
 
@@ -65,10 +65,10 @@ ast_impl_stmt(declaration, ast_args(size_t count)) {
     struct mc_ast_statement_declaration *declaration =
         mcapi_ast_statement2declaration(U, statement);
 
-    declaration->is_decompose = count > 0;
-    declaration->decompose.size = count;
-    declaration->decompose.keys = ((void *) declaration) + sizeof(struct mc_ast_statement_declaration);
-    declaration->decompose.values = ((void *) declaration) +
+    declaration->is_extract = count > 0;
+    declaration->extract.size = count;
+    declaration->extract.keys = ((void *) declaration) + sizeof(struct mc_ast_statement_declaration);
+    declaration->extract.values = ((void *) declaration) +
                               sizeof(struct mc_ast_statement_declaration) +
                               sizeof(struct mc_ast_expression *) * count;
 
