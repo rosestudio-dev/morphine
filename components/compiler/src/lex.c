@@ -6,9 +6,10 @@
 #include <ctype.h>
 #include "morphinec/lex.h"
 
+#define OPCHARS_AMORTIZATION 4
+
 #define isnewline(c) ((c) == '\n' || (c) == '\r')
 #define eoschar '\0'
-#define opchars "+-*/%()[]{}=<>!&|.,^~?:;"
 
 #define lex_cl_error(U, line, str) mapi_errorf((U), "line %"MLIMIT_LINE_PR": "str, (line))
 #define lex_error(U, L, str) lex_cl_error(U, (L)->line, str)
@@ -18,6 +19,12 @@ struct mc_lex {
     size_t len;
     size_t pos;
     ml_line line;
+
+    struct {
+        size_t allocated;
+        size_t size;
+        char *string;
+    } opchars;
 };
 
 static struct {
@@ -39,7 +46,6 @@ static struct {
     operator(GT, ">"),
     operator(GTEQ, ">="),
     operator(COLON, ":"),
-    operator(DOLLAR, "$"),
     operator(SEMICOLON, ";"),
     operator(LPAREN, "("),
     operator(RPAREN, ")"),
@@ -58,8 +64,7 @@ static struct {
     operator(SLASHEQ, "/="),
     operator(PERCENTEQ, "%="),
     operator(DOTDOTEQ, "..="),
-    operator(LARROW, "<-"),
-    operator(RARROW, "->")
+    operator(AT, "@")
 #undef operator
 };
 
@@ -71,13 +76,52 @@ static void lex_userdata_init(morphine_instance_t I, void *data) {
         .text = NULL,
         .len = 0,
         .pos = 0,
-        .line = 1
+        .line = 1,
+        .opchars.allocated = 0,
+        .opchars.size = 0,
+        .opchars.string = NULL,
     };
 }
 
 static void lex_userdata_free(morphine_instance_t I, void *data) {
     struct mc_lex *L = data;
     mapi_allocator_free(I, L->text);
+    mapi_allocator_free(I, L->opchars.string);
+}
+
+static inline void opchars_append(morphine_coroutine_t U, struct mc_lex *L, char c) {
+    if (L->opchars.size > L->opchars.allocated) {
+        mapi_error(U, "broken lexer operator chars");
+    }
+
+    if (L->opchars.size == L->opchars.allocated) {
+        L->opchars.string = mapi_allocator_vec(
+            mapi_instance(U),
+            L->opchars.string,
+            L->opchars.allocated + OPCHARS_AMORTIZATION,
+            sizeof(char)
+        );
+
+        L->opchars.allocated += OPCHARS_AMORTIZATION;
+    }
+
+    L->opchars.string[L->opchars.size] = c;
+    L->opchars.size = 0;
+}
+
+static void create_opchars(morphine_coroutine_t U, struct mc_lex *L) {
+    opchars_append(U, L, '\0');
+
+    for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
+        const char *op = operator_table[i].str;
+        size_t size = strlen(op);
+        for (size_t n = 0; n < size; n++) {
+            if (strchr(L->opchars.string, op[n]) == NULL) {
+                L->opchars.string[L->opchars.size - 1] = op[n];
+                opchars_append(U, L, '\0');
+            }
+        }
+    }
 }
 
 MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U, const char *text, size_t len) {
@@ -91,6 +135,7 @@ MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U, const char *t
     );
 
     struct mc_lex *L = mapi_push_userdata(U, MC_LEX_USERDATA_TYPE);
+    create_opchars(U, L);
 
     L->text = mapi_allocator_vec(mapi_instance(U), NULL, len, sizeof(char));
     L->len = len;
@@ -522,7 +567,7 @@ static struct mc_lex_token lex_operator(morphine_coroutine_t U, struct mc_lex *L
             break;
         }
 
-        if (current == eoschar || strchr(opchars, current) == NULL) {
+        if (current == eoschar || strchr(L->opchars.string, current) == NULL) {
             break;
         }
     }
@@ -585,7 +630,7 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
         return lex_word(U, L, T);
     }
 
-    if (strchr(opchars, current) != NULL) {
+    if (strchr(L->opchars.string, current) != NULL) {
         return lex_operator(U, L);
     }
 

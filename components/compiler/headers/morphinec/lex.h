@@ -35,7 +35,6 @@ enum mc_lex_token_operator {
     MCLTOP_LTEQ,       // <=
     MCLTOP_GTEQ,       // >=
     MCLTOP_COLON,      // :
-    MCLTOP_DOLLAR,     // $
     MCLTOP_SEMICOLON,  // ;
     MCLTOP_LPAREN,     // (
     MCLTOP_RPAREN,     // )
@@ -54,8 +53,7 @@ enum mc_lex_token_operator {
     MCLTOP_SLASHEQ,    // /=
     MCLTOP_PERCENTEQ,  // %=
     MCLTOP_DOTDOTEQ,   // ..=
-    MCLTOP_LARROW,     // <-
-    MCLTOP_RARROW,     // ->
+    MCLTOP_AT,         // @
 };
 
 struct mc_lex_token {
