@@ -3,7 +3,7 @@
 //
 
 #include <setjmp.h>
-#include <stdio.h>
+#include <string.h>
 #include "morphinec/parser.h"
 #include "grammar/controller.h"
 
@@ -59,55 +59,51 @@ struct parse_controller {
     } reduce_data;
 };
 
-// functions
+static struct {
+    const char *name;
+    enum predefined_word type;
+} predefined_table[] = {
+#define word(n) { .type = PW_##n, .name = #n }
+    word(true),
+    word(false),
+    word(env),
+    word(self),
+    word(invoked),
+    word(nil),
+    word(val),
+    word(static),
+    word(var),
+    word(and),
+    word(or),
+    word(not),
+    word(recursive),
+    word(auto),
+    word(fun),
+    word(if),
+    word(else),
+    word(elif),
+    word(while),
+    word(do),
+    word(for),
+    word(break),
+    word(continue),
+    word(return),
+    word(leave),
+    word(eval),
+    word(typeof),
+    word(lenof),
+    word(yield),
+    word(ref),
+    word(end),
+    word(pass),
+    word(iterator),
+    word(decompose),
+    word(as),
+    word(in),
+#undef word
+};
 
-//static void print_stack(morphine_coroutine_t U, struct mc_parser *P) {
-//    for (size_t i = 0; i < P->stack.size; i++) {
-//        struct context *current = P->context.current;
-//        while (current != NULL) {
-//            if (current->from == i) {
-//                printf("| ");
-//            }
-//
-//            current = current->prev;
-//        }
-//
-//        struct element element = P->stack.elements[i];
-//        if (element.is_reduced) {
-//            printf("[%s]", mcapi_ast_type_name(U, element.reduced.node));
-//        } else {
-//            switch (element.token.type) {
-//                case MCLTT_EOS:
-//                    printf("EOS");
-//                    break;
-//                case MCLTT_INTEGER:
-//                    printf("INT");
-//                    break;
-//                case MCLTT_DECIMAL:
-//                    printf("DEC");
-//                    break;
-//                case MCLTT_STRING:
-//                    printf("STR");
-//                    break;
-//                case MCLTT_WORD:
-//                    printf("WRD");
-//                    break;
-//                case MCLTT_PREDEFINED_WORD:
-//                    printf("%s", mcapi_lex_predefined2str(U, element.token.predefined_word));
-//                    break;
-//                case MCLTT_OPERATOR:
-//                    printf("%s", mcapi_lex_operator2name(U, element.token.operator));
-//                    break;
-//                case MCLTT_COMMENT:
-//                    printf("CMM");
-//                    break;
-//            }
-//        }
-//
-//        printf(" ");
-//    }
-//    printf("\n");
-//}
+// functions
 
 static void push_element(
     morphine_coroutine_t U,
@@ -191,7 +187,8 @@ static struct mc_lex_token next_token(
     struct mc_lex_token token;
     do {
         token = mcapi_lex_step(U, L, T);
-    } while (token.type == MCLTT_COMMENT);
+    } while (token.type == MCLTT_COMMENT ||
+             token.type == MCLTT_MULTILINE_COMMENT);
 
     return token;
 }
@@ -236,19 +233,74 @@ static void shift(struct parse_controller *C, struct element element, bool need_
     }
 }
 
-static bool token_soft_eq(struct mc_lex_token token, struct mc_lex_token test) {
-    switch (token.type) {
-        case MCLTT_EOS:
-        case MCLTT_INTEGER:
-        case MCLTT_DECIMAL:
-        case MCLTT_STRING:
-        case MCLTT_WORD:
-        case MCLTT_COMMENT:
-            return test.type == token.type;
-        case MCLTT_PREDEFINED_WORD:
-            return test.type == token.type && test.predefined_word == token.predefined_word;
-        case MCLTT_OPERATOR:
-            return test.type == token.type && test.operator == token.operator;
+static const char *predefined2str(morphine_coroutine_t U, enum predefined_word predefined_word) {
+    for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
+        if (predefined_table[i].type == predefined_word) {
+            return predefined_table[i].name;
+        }
+    }
+
+    mapi_error(U, "wrong predefined word");
+}
+
+static bool is_predefined(
+    struct parse_controller *C,
+    enum predefined_word expected,
+    mc_strtable_index_t word
+) {
+    struct mc_strtable_entry entry = mcapi_strtable_access(C->U, C->T, word);
+    for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
+        if (strlen(predefined_table[i].name) != entry.size) {
+            continue;
+        }
+
+        if (memcmp(predefined_table[i].name, entry.string, entry.size) == 0) {
+            return predefined_table[i].type == expected;
+        }
+    }
+
+    return false;
+}
+
+static bool is_not_predefined(
+    struct parse_controller *C,
+    mc_strtable_index_t word
+) {
+    struct mc_strtable_entry entry = mcapi_strtable_access(C->U, C->T, word);
+    for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
+        if (strlen(predefined_table[i].name) != entry.size) {
+            continue;
+        }
+
+        if (memcmp(predefined_table[i].name, entry.string, entry.size) == 0) {
+            return false;
+        }
+    }
+
+    return true;
+}
+
+static bool is_expected_token(
+    struct parse_controller *C,
+    struct expected_token expected,
+    struct mc_lex_token token
+) {
+    switch (expected.type) {
+        case ETT_INTEGER:
+            return token.type == MCLTT_INTEGER;
+        case ETT_DECIMAL:
+            return token.type == MCLTT_DECIMAL;
+        case ETT_STRING:
+            return token.type == MCLTT_STRING;
+        case ETT_WORD:
+            return token.type == MCLTT_EXTENDED_WORD ||
+                   (token.type == MCLTT_WORD && is_not_predefined(C, token.word));
+        case ETT_EOS:
+            return token.type == MCLTT_EOS;
+        case ETT_OPERATOR:
+            return token.type == MCLTT_OPERATOR && expected.op == token.op;
+        case ETT_PREDEFINED_WORD:
+            return token.type == MCLTT_WORD && is_predefined(C, expected.predefined_word, token.word);
     }
 
     return false;
@@ -277,15 +329,15 @@ morphine_noret void parser_error(struct parse_controller *C, const char *text) {
     mapi_errorf(C->U, "line %"MLIMIT_LINE_PR": %s", parser_get_line(C), text);
 }
 
-bool parser_look(struct parse_controller *C, struct mc_lex_token expected) {
+bool parser_look(struct parse_controller *C, struct expected_token expected) {
     struct element element = current_element(C, NULL);
-    return token_soft_eq(expected, element.token);
+    return is_expected_token(C, expected, element.token);
 }
 
-bool parser_match(struct parse_controller *C, struct mc_lex_token expected) {
+bool parser_match(struct parse_controller *C, struct expected_token expected) {
     bool need_push = false;
     struct element element = current_element(C, &need_push);
-    if (!element.is_reduced && token_soft_eq(expected, element.token)) {
+    if (!element.is_reduced && is_expected_token(C, expected, element.token)) {
         shift(C, element, need_push);
         return true;
     }
@@ -293,39 +345,36 @@ bool parser_match(struct parse_controller *C, struct mc_lex_token expected) {
     return false;
 }
 
-struct mc_lex_token parser_consume(struct parse_controller *C, struct mc_lex_token expected) {
+struct mc_lex_token parser_consume(struct parse_controller *C, struct expected_token expected) {
     bool need_push = false;
     struct element element = current_element(C, &need_push);
-    if (!element.is_reduced && token_soft_eq(expected, element.token)) {
+    if (!element.is_reduced && is_expected_token(C, expected, element.token)) {
         shift(C, element, need_push);
         return element.token;
     }
 
     const char *name = "???";
     switch (expected.type) {
-        case MCLTT_EOS:
+        case ETT_EOS:
             name = "eos";
             break;
-        case MCLTT_INTEGER:
+        case ETT_INTEGER:
             name = "integer";
             break;
-        case MCLTT_DECIMAL:
+        case ETT_DECIMAL:
             name = "decimal";
             break;
-        case MCLTT_STRING:
+        case ETT_STRING:
             name = "text";
             break;
-        case MCLTT_WORD:
+        case ETT_WORD:
             name = "word";
             break;
-        case MCLTT_COMMENT:
-            name = "comment";
+        case ETT_PREDEFINED_WORD:
+            name = predefined2str(C->U, expected.predefined_word);
             break;
-        case MCLTT_PREDEFINED_WORD:
-            name = mcapi_lex_predefined2str(C->U, expected.predefined_word);
-            break;
-        case MCLTT_OPERATOR:
-            name = mcapi_lex_operator2str(C->U, expected.operator);
+        case ETT_OPERATOR:
+            name = mcapi_lex_operator2str(C->U, expected.op);
             break;
     }
 

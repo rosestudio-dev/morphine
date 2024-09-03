@@ -7,7 +7,7 @@
 static size_t consume_block(
     struct parse_controller *C,
     size_t closes_size,
-    struct mc_lex_token *closes,
+    struct expected_token *closes,
     size_t *close_index,
     parse_function_t function
 ) {
@@ -31,7 +31,7 @@ static size_t consume_block(
 size_t extra_consume_statement_block(
     struct parse_controller *C,
     size_t closes_size,
-    struct mc_lex_token *closes,
+    struct expected_token *closes,
     size_t *close_index
 ) {
     return consume_block(
@@ -42,7 +42,7 @@ size_t extra_consume_statement_block(
 size_t extra_consume_expression_block(
     struct parse_controller *C,
     size_t closes_size,
-    struct mc_lex_token *closes,
+    struct expected_token *closes,
     size_t *close_index
 ) {
     size_t size = consume_block(
@@ -59,7 +59,7 @@ size_t extra_consume_expression_block(
 void extra_extract_statement_block(
     struct parse_controller *C,
     size_t closes_size,
-    struct mc_lex_token *closes,
+    struct expected_token *closes,
     size_t size,
     struct mc_ast_statement **statements
 ) {
@@ -80,7 +80,7 @@ void extra_extract_statement_block(
 void extra_extract_expression_block(
     struct parse_controller *C,
     size_t closes_size,
-    struct mc_lex_token *closes,
+    struct expected_token *closes,
     size_t size,
     struct mc_ast_statement **statements,
     struct mc_ast_expression **expression

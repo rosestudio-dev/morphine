@@ -6,13 +6,13 @@
 #include "extra/block.h"
 
 static struct mc_ast_node *rule_statement_elif(struct parse_controller *C) {
-    struct mc_lex_token if_closes[] = {
+    struct expected_token if_closes[] = {
         et_predef_word(elif),
         et_predef_word(else),
         et_predef_word(end)
     };
 
-    struct mc_lex_token else_closes[] = {
+    struct expected_token else_closes[] = {
         et_predef_word(end)
     };
 
@@ -80,13 +80,13 @@ static struct mc_ast_node *rule_statement_elif(struct parse_controller *C) {
 }
 
 static struct mc_ast_node *rule_expression_elif(struct parse_controller *C) {
-    struct mc_lex_token if_closes[] = {
+    struct expected_token if_closes[] = {
         et_predef_word(elif),
         et_predef_word(else),
         et_predef_word(end)
     };
 
-    struct mc_lex_token else_closes[] = {
+    struct expected_token else_closes[] = {
         et_predef_word(end)
     };
 

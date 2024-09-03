@@ -8,15 +8,15 @@
 #define assigment_table_size (sizeof(assigment_table) / sizeof(assigment_table[0]))
 
 static struct {
-    struct mc_lex_token token;
+    struct expected_token expected_token;
     enum mc_expression_binary_type binary_type;
 } assigment_table[] = {
-    { .token = et_operator(PLUSEQ), .binary_type = MCEXPR_BINARY_TYPE_ADD },
-    { .token = et_operator(MINUSEQ), .binary_type = MCEXPR_BINARY_TYPE_SUB },
-    { .token = et_operator(STAREQ), .binary_type = MCEXPR_BINARY_TYPE_MUL },
-    { .token = et_operator(SLASHEQ), .binary_type = MCEXPR_BINARY_TYPE_DIV },
-    { .token = et_operator(PERCENTEQ), .binary_type = MCEXPR_BINARY_TYPE_MOD },
-    { .token = et_operator(DOTDOTEQ), .binary_type = MCEXPR_BINARY_TYPE_CONCAT },
+    { .expected_token = et_operator(PLUSEQ), .binary_type = MCEXPR_BINARY_TYPE_ADD },
+    { .expected_token = et_operator(MINUSEQ), .binary_type = MCEXPR_BINARY_TYPE_SUB },
+    { .expected_token = et_operator(STAREQ), .binary_type = MCEXPR_BINARY_TYPE_MUL },
+    { .expected_token = et_operator(SLASHEQ), .binary_type = MCEXPR_BINARY_TYPE_DIV },
+    { .expected_token = et_operator(PERCENTEQ), .binary_type = MCEXPR_BINARY_TYPE_MOD },
+    { .expected_token = et_operator(DOTDOTEQ), .binary_type = MCEXPR_BINARY_TYPE_CONCAT },
 };
 
 static bool match_assigment_operator(struct parse_controller *C) {
@@ -25,7 +25,7 @@ static bool match_assigment_operator(struct parse_controller *C) {
     }
 
     for (size_t i = 0; i < assigment_table_size; i++) {
-        if (parser_match(C, assigment_table[i].token)) {
+        if (parser_match(C, assigment_table[i].expected_token)) {
             return true;
         }
     }
@@ -39,7 +39,7 @@ static struct mc_ast_expression *build_assigment(
 ) {
     for (size_t i = 0; i < assigment_table_size; i++) {
         ml_line line = parser_get_line(C);
-        if (parser_match(C, assigment_table[i].token)) {
+        if (parser_match(C, assigment_table[i].expected_token)) {
             struct mc_ast_expression *expression =
                 mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 

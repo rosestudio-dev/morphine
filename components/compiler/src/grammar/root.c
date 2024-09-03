@@ -6,7 +6,7 @@
 #include "extra/block.h"
 
 struct mc_ast_node *parse_root(struct parse_controller *C) {
-    struct mc_lex_token closes[] = { et_eos() };
+    struct expected_token closes[] = { et_eos() };
     size_t count = extra_consume_statement_block(C, array_closes_size(closes), closes, NULL);
 
     parser_reset(C);

@@ -14,10 +14,11 @@ enum mc_lex_token_type {
     MCLTT_INTEGER,
     MCLTT_DECIMAL,
     MCLTT_STRING,
-    MCLTT_WORD,
-    MCLTT_PREDEFINED_WORD,
     MCLTT_OPERATOR,
+    MCLTT_WORD,
+    MCLTT_EXTENDED_WORD,
     MCLTT_COMMENT,
+    MCLTT_MULTILINE_COMMENT,
 };
 
 enum mc_lex_token_operator {
@@ -57,45 +58,6 @@ enum mc_lex_token_operator {
     MCLTOP_RARROW,     // ->
 };
 
-enum mc_lex_token_predefined_word {
-    MCLTPW_true,
-    MCLTPW_false,
-    MCLTPW_env,
-    MCLTPW_self,
-    MCLTPW_invoked,
-    MCLTPW_nil,
-    MCLTPW_val,
-    MCLTPW_static,
-    MCLTPW_var,
-    MCLTPW_and,
-    MCLTPW_or,
-    MCLTPW_not,
-    MCLTPW_recursive,
-    MCLTPW_auto,
-    MCLTPW_fun,
-    MCLTPW_if,
-    MCLTPW_else,
-    MCLTPW_elif,
-    MCLTPW_while,
-    MCLTPW_do,
-    MCLTPW_for,
-    MCLTPW_break,
-    MCLTPW_continue,
-    MCLTPW_return,
-    MCLTPW_leave,
-    MCLTPW_eval,
-    MCLTPW_typeof,
-    MCLTPW_lenof,
-    MCLTPW_yield,
-    MCLTPW_ref,
-    MCLTPW_end,
-    MCLTPW_pass,
-    MCLTPW_iterator,
-    MCLTPW_decompose,
-    MCLTPW_as,
-    MCLTPW_in,
-};
-
 struct mc_lex_token {
     enum mc_lex_token_type type;
     ml_line line;
@@ -111,8 +73,7 @@ struct mc_lex_token {
         mc_strtable_index_t string;
         mc_strtable_index_t word;
         mc_strtable_index_t comment;
-        enum mc_lex_token_predefined_word predefined_word;
-        enum mc_lex_token_operator operator;
+        enum mc_lex_token_operator op;
     };
 };
 
@@ -126,4 +87,3 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(morphine_coroutine_t, struct mc_
 MORPHINE_API const char *mcapi_lex_type2str(morphine_coroutine_t, enum mc_lex_token_type);
 MORPHINE_API const char *mcapi_lex_operator2str(morphine_coroutine_t, enum mc_lex_token_operator);
 MORPHINE_API const char *mcapi_lex_operator2name(morphine_coroutine_t, enum mc_lex_token_operator);
-MORPHINE_API const char *mcapi_lex_predefined2str(morphine_coroutine_t, enum mc_lex_token_predefined_word);

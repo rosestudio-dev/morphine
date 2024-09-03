@@ -7,9 +7,9 @@
 struct arguments extra_arguments_init_full(
     struct parse_controller *C,
     bool consume_open,
-    struct mc_lex_token open,
-    struct mc_lex_token close,
-    struct mc_lex_token separator
+    struct expected_token open,
+    struct expected_token close,
+    struct expected_token separator
 ) {
     bool opened = true;
     if (consume_open) {
@@ -35,7 +35,7 @@ struct arguments extra_arguments_init_full(
 
 struct arguments extra_arguments_init_simple(
     struct parse_controller *C,
-    struct mc_lex_token separator
+    struct expected_token separator
 ) {
     (void) C;
 

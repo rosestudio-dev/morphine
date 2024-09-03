@@ -21,50 +21,6 @@ struct mc_lex {
 };
 
 static struct {
-    const char *name;
-    enum mc_lex_token_predefined_word type;
-} predefined_table[] = {
-#define word(n) { .type = MCLTPW_##n, .name = #n }
-    word(true),
-    word(false),
-    word(env),
-    word(self),
-    word(invoked),
-    word(nil),
-    word(val),
-    word(static),
-    word(var),
-    word(and),
-    word(or),
-    word(not),
-    word(recursive),
-    word(auto),
-    word(fun),
-    word(if),
-    word(else),
-    word(elif),
-    word(while),
-    word(do),
-    word(for),
-    word(break),
-    word(continue),
-    word(return),
-    word(leave),
-    word(eval),
-    word(typeof),
-    word(lenof),
-    word(yield),
-    word(ref),
-    word(end),
-    word(pass),
-    word(iterator),
-    word(decompose),
-    word(as),
-    word(in),
-#undef word
-};
-
-static struct {
     const char *str;
     const char *name;
     enum mc_lex_token_operator type;
@@ -252,7 +208,7 @@ static struct mc_lex_token multiline_comment(
     );
 
     return (struct mc_lex_token) {
-        .type = MCLTT_COMMENT,
+        .type = MCLTT_MULTILINE_COMMENT,
         .comment = index,
         .line = L->line,
         .range.from = start,
@@ -441,48 +397,6 @@ static struct mc_lex_token lex_string(
     };
 }
 
-static struct mc_lex_token handle_word(
-    morphine_coroutine_t U,
-    struct mc_lex *L,
-    struct mc_strtable *T,
-    size_t from,
-    size_t to,
-    ml_line line
-) {
-    const char *str = L->text + from;
-    size_t size = to - from;
-
-    if (size == 0) {
-        lex_error(U, L, "empty word");
-    }
-
-    for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
-        if (strlen(predefined_table[i].name) != size) {
-            continue;
-        }
-
-        if (memcmp(predefined_table[i].name, str, size) == 0) {
-            return (struct mc_lex_token) {
-                .type = MCLTT_PREDEFINED_WORD,
-                .predefined_word = predefined_table[i].type,
-                .line = line,
-                .range.from = from,
-                .range.to = to
-            };
-        }
-    }
-
-    mc_strtable_index_t index = mcapi_strtable_record(U, T, str, size);
-
-    return (struct mc_lex_token) {
-        .type = MCLTT_WORD,
-        .word = index,
-        .line = line,
-        .range.from = from,
-        .range.to = to
-    };
-}
-
 static struct mc_lex_token lex_extended_word(
     morphine_coroutine_t U,
     struct mc_lex *L,
@@ -509,7 +423,22 @@ static struct mc_lex_token lex_extended_word(
     size_t to = L->pos;
     next(L);
 
-    return handle_word(U, L, T, from, to, saved_line);
+    const char *str = L->text + from;
+    size_t size = to - from;
+
+    if (size == 0) {
+        lex_cl_error(U, saved_line, "empty extended word");
+    }
+
+    mc_strtable_index_t index = mcapi_strtable_record(U, T, str, size);
+
+    return (struct mc_lex_token) {
+        .type = MCLTT_EXTENDED_WORD,
+        .word = index,
+        .line = saved_line,
+        .range.from = from,
+        .range.to = to
+    };
 }
 
 static struct mc_lex_token lex_word(
@@ -517,6 +446,7 @@ static struct mc_lex_token lex_word(
     struct mc_lex *L,
     struct mc_strtable *T
 ) {
+    ml_line saved_line = L->line;
     char current = peek(L, 0);
 
     size_t from = L->pos;
@@ -525,7 +455,23 @@ static struct mc_lex_token lex_word(
     }
 
     size_t to = L->pos;
-    return handle_word(U, L, T, from, to, L->line);
+
+    const char *str = L->text + from;
+    size_t size = to - from;
+
+    if (size == 0) {
+        lex_cl_error(U, saved_line, "empty word");
+    }
+
+    mc_strtable_index_t index = mcapi_strtable_record(U, T, str, size);
+
+    return (struct mc_lex_token) {
+        .type = MCLTT_WORD,
+        .word = index,
+        .line = saved_line,
+        .range.from = from,
+        .range.to = to
+    };
 }
 
 static bool handle_operator(
@@ -552,7 +498,7 @@ static bool handle_operator(
             if (token != NULL) {
                 *token = (struct mc_lex_token) {
                     .type = MCLTT_OPERATOR,
-                    .operator = operator_table[i].type,
+                    .op = operator_table[i].type,
                     .line = line,
                     .range.from = from,
                     .range.to = to
@@ -661,12 +607,14 @@ MORPHINE_API const char *mcapi_lex_type2str(
             return "string";
         case MCLTT_WORD:
             return "word";
-        case MCLTT_PREDEFINED_WORD:
-            return "predefined_word";
+        case MCLTT_EXTENDED_WORD:
+            return "extended_word";
         case MCLTT_OPERATOR:
             return "operator";
         case MCLTT_COMMENT:
             return "comment";
+        case MCLTT_MULTILINE_COMMENT:
+            return "multiline_comment";
     }
 
     mapi_error(U, "wrong token type");
@@ -696,17 +644,4 @@ MORPHINE_API const char *mcapi_lex_operator2name(
     }
 
     mapi_error(U, "wrong operator type");
-}
-
-MORPHINE_API const char *mcapi_lex_predefined2str(
-    morphine_coroutine_t U,
-    enum mc_lex_token_predefined_word predefined_word
-) {
-    for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
-        if (predefined_table[i].type == predefined_word) {
-            return predefined_table[i].name;
-        }
-    }
-
-    mapi_error(U, "wrong predefined word");
 }
