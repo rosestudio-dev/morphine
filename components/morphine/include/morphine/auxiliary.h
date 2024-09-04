@@ -8,3 +8,4 @@
 #include "auxiliary/expect.h"
 #include "auxiliary/library.h"
 #include "auxiliary/sio.h"
+#include "auxiliary/registry.h"

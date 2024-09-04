@@ -16,6 +16,17 @@ static void get(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void remove(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            bool has = mapi_registry_remove(U);
+            mapi_push_boolean(U, has);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void has(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -48,10 +59,11 @@ static void clear(morphine_coroutine_t U) {
 }
 
 static morphine_library_function_t functions[] = {
-    { "get",   get },
-    { "set",   set },
-    { "has",   has },
-    { "clear", clear },
+    { "get",    get },
+    { "set",    set },
+    { "remove", remove },
+    { "has",    has },
+    { "clear",  clear },
     { NULL, NULL }
 };
 

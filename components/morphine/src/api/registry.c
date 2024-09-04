@@ -18,20 +18,20 @@ MORPHINE_API void mapi_registry_set_key(morphine_coroutine_t U) {
 }
 
 MORPHINE_API bool mapi_registry_get(morphine_coroutine_t U) {
-    struct value value = stackI_peek(U, 0);
+    struct value key = stackI_peek(U, 0);
 
     bool has = false;
-    struct value result = registryI_get(U, value, &has);
+    struct value result = registryI_get(U, key, &has);
     stackI_replace(U, 0, result);
 
     return has;
 }
 
 MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t U) {
-    struct value value = stackI_peek(U, 0);
+    struct value key = stackI_peek(U, 0);
 
     bool has = false;
-    struct value result = registryI_get(U, value, &has);
+    struct value result = registryI_get(U, key, &has);
 
     if (has) {
         stackI_replace(U, 0, result);
@@ -50,20 +50,20 @@ MORPHINE_API void mapi_registry_set(morphine_coroutine_t U) {
 }
 
 MORPHINE_API bool mapi_registry_remove(morphine_coroutine_t U) {
-    struct value value = stackI_peek(U, 0);
+    struct value key = stackI_peek(U, 0);
 
     bool has = false;
-    struct value result = registryI_remove(U, value, &has);
+    struct value result = registryI_remove(U, key, &has);
     stackI_replace(U, 0, result);
 
     return has;
 }
 
 MORPHINE_API void mapi_registry_removeoe(morphine_coroutine_t U) {
-    struct value value = stackI_peek(U, 0);
+    struct value key = stackI_peek(U, 0);
 
     bool has = false;
-    struct value result = registryI_remove(U, value, &has);
+    struct value result = registryI_remove(U, key, &has);
 
     if (has) {
         stackI_replace(U, 0, result);
