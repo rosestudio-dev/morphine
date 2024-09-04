@@ -87,6 +87,17 @@ typedef struct {
 
 typedef struct {
     const char *name;
+
+    struct {
+        size_t allocate;
+        morphine_userdata_init_t init;
+        morphine_userdata_free_t free;
+        bool require_metatable;
+    } params;
+} morphine_library_type_t;
+
+typedef struct {
+    const char *name;
     morphine_native_t function;
 } morphine_library_function_t;
 
@@ -104,17 +115,6 @@ typedef struct {
     const char *name;
     const char *string;
 } morphine_library_string_t;
-
-typedef struct {
-    const char *name;
-
-    struct {
-        size_t allocate;
-        morphine_userdata_init_t init;
-        morphine_userdata_free_t free;
-        bool require_metatable;
-    } params;
-} morphine_library_type_t;
 
 typedef struct {
     const char *name;

@@ -34,53 +34,95 @@ static void grow(morphine_instance_t I) {
     }
 }
 
+static void constructor_insert(
+    morphine_instance_t I,
+    struct table *root_table,
+    const char *name,
+    struct value value
+) {
+    struct table *dest_table = root_table;
+    size_t name_len = strlen(name);
+    size_t last = 0;
+    for (size_t i = 0; i < name_len; i++) {
+        if (name[i] != '.') {
+            continue;
+        }
+
+        size_t part_size = i - last;
+
+        if (part_size == 0) {
+            throwI_error(I, "empty sub-library name");
+        }
+
+        char *buffer;
+        struct string *key = stringI_createn(I, part_size, &buffer);
+        memcpy(buffer, name + last, part_size * sizeof(char));
+
+        size_t rollback = gcI_safe_obj(I, objectI_cast(key));
+
+        bool has = false;
+        struct value dest_table_value = tableI_get(I, dest_table, valueI_object(key), &has);
+
+        if (!has) {
+            struct table *nested_table = tableI_create(I);
+            gcI_safe_obj(I, objectI_cast(nested_table));
+            dest_table_value = valueI_object(nested_table);
+
+            tableI_set(I, dest_table, valueI_object(key), dest_table_value);
+        }
+
+        dest_table = valueI_as_table_or_error(I, dest_table_value);
+        last = i + 1;
+        gcI_reset_safe(I, rollback);
+    }
+
+    size_t part_size = name_len - last;
+
+    if (part_size == 0) {
+        throwI_error(I, "empty library entry name");
+    }
+
+    char *buffer;
+    struct string *key = stringI_createn(I, part_size, &buffer);
+    memcpy(buffer, name + last, part_size * sizeof(char));
+    size_t rollback = gcI_safe_obj(I, objectI_cast(key));
+
+    tableI_set(I, dest_table, valueI_object(key), value);
+
+    gcI_reset_safe(I, rollback);
+}
+
 static struct table *construct(morphine_instance_t I, morphine_library_t *L) {
     struct table *result = tableI_create(I);
     size_t rollback = gcI_safe_obj(I, objectI_cast(result));
 
     for (morphine_library_function_t *entry = L->functions; entry != NULL && entry->name != NULL; entry++) {
-        struct string *key = stringI_create(I, entry->name);
-        size_t rollback_key = gcI_safe_obj(I, objectI_cast(key));
-
         struct string *name = stringI_createf(I, "%s.%s", L->name, entry->name);
-        gcI_safe_obj(I, objectI_cast(name));
+        size_t rollback_key = gcI_safe_obj(I, objectI_cast(name));
 
         struct native *value = nativeI_create(I, name->chars, entry->function);
         gcI_safe_obj(I, objectI_cast(value));
 
-        tableI_set(I, result, valueI_object(key), valueI_object(value));
+        constructor_insert(I, result, entry->name, valueI_object(value));
 
         gcI_reset_safe(I, rollback_key);
     }
 
     for (morphine_library_string_t *entry = L->strings; entry != NULL && entry->name != NULL; entry++) {
-        struct string *key = stringI_create(I, entry->name);
-        size_t rollback_key = gcI_safe_obj(I, objectI_cast(key));
-
         struct string *value = stringI_create(I, entry->string);
-        gcI_safe_obj(I, objectI_cast(value));
+        size_t rollback_key = gcI_safe_obj(I, objectI_cast(value));
 
-        tableI_set(I, result, valueI_object(key), valueI_object(value));
+        constructor_insert(I, result, entry->name, valueI_object(value));
 
         gcI_reset_safe(I, rollback_key);
     }
 
     for (morphine_library_integer_t *entry = L->integers; entry != NULL && entry->name != NULL; entry++) {
-        struct string *key = stringI_create(I, entry->name);
-        size_t rollback_key = gcI_safe_obj(I, objectI_cast(key));
-
-        tableI_set(I, result, valueI_object(key), valueI_integer(entry->integer));
-
-        gcI_reset_safe(I, rollback_key);
+        constructor_insert(I, result, entry->name, valueI_integer(entry->integer));
     }
 
     for (morphine_library_decimal_t *entry = L->decimals; entry != NULL && entry->name != NULL; entry++) {
-        struct string *key = stringI_create(I, entry->name);
-        size_t rollback_key = gcI_safe_obj(I, objectI_cast(key));
-
-        tableI_set(I, result, valueI_object(key), valueI_decimal(entry->decimal));
-
-        gcI_reset_safe(I, rollback_key);
+        constructor_insert(I, result, entry->name, valueI_decimal(entry->decimal));
     }
 
     tableI_mode_fixed(I, result, true);
