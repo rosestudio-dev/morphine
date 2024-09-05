@@ -3,7 +3,7 @@
   "name": "morphine",
   "patterns": [
     {
-      "match": "\\b(val|var|static|recursive|auto|fun|if|else|elif|while|do|for|break|continue|return|leave|eval|yield|end|pass|iterator|decompose)\\b",
+      "match": "\\b(val|var|static|recursive|auto|fun|if|else|elif|while|do|for|break|continue|return|leave|eval|yield|end|pass|iterator|extract)\\b",
       "name": "keyword.control.morphine"
     },
     {

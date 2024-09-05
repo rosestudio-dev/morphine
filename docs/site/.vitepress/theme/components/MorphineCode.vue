@@ -9,8 +9,19 @@ import script1Raw from '../playground/script1.ms?raw'
 import script2Raw from '../playground/script2.ms?raw'
 import script3Raw from '../playground/script3.ms?raw'
 import script4Raw from '../playground/script4.ms?raw'
+import script5Raw from '../playground/script5.ms?raw'
+import script6Raw from '../playground/script6.ms?raw'
+import script7Raw from '../playground/script7.ms?raw'
 
-const scripts = [script1Raw, script2Raw, script3Raw, script4Raw]
+const scripts = [
+  script1Raw,
+  script2Raw,
+  script3Raw,
+  script4Raw,
+  script5Raw,
+  script6Raw,
+  script7Raw
+]
 
 const model = defineModel()
 const {isDark} = useData()
@@ -54,7 +65,13 @@ function hasScrollBar(elem) {
 }
 
 function changeScript() {
-  inputRef.value = scripts[Math.floor(Math.random() * scripts.length)]
+  let index = Math.floor(Math.random() * scripts.length)
+  let result = scripts[index];
+  if (result == inputRef.value) {
+    result = (index + 1) % scripts.length
+  }
+
+  inputRef.value = result
 }
 
 async function hlrun() {
