@@ -223,7 +223,7 @@ fun launch<auto>()
         end
 
         if (config.disassembly)
-            compiler.disassembly(sio.io(), content)
+            compiler.disassembly(content)
             base.println()
         end
 
