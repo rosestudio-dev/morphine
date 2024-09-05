@@ -82,6 +82,10 @@
         {
           "match": "\\\\[\\\\\"'0bnrt]",
           "name": "constant.character.escape.morphine"
+        },
+        {
+          "match": "\\\\u([0-9A-Fa-f]{1,8}|\\{[0-9A-Fa-f]{1,8}\\})",
+          "name": "constant.character.escape.morphine"
         }
       ]
     }

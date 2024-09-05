@@ -12,6 +12,7 @@ import script4Raw from '../playground/script4.ms?raw'
 import script5Raw from '../playground/script5.ms?raw'
 import script6Raw from '../playground/script6.ms?raw'
 import script7Raw from '../playground/script7.ms?raw'
+import script8Raw from '../playground/script8.ms?raw'
 
 const scripts = [
   script1Raw,
@@ -20,7 +21,8 @@ const scripts = [
   script4Raw,
   script5Raw,
   script6Raw,
-  script7Raw
+  script7Raw,
+  script8Raw
 ]
 
 const model = defineModel()
