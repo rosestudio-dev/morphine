@@ -192,6 +192,24 @@ decl_expr(global) {
     serializer_complete(C);
 }
 
+decl_expr(leave) {
+    switch (state) {
+        case 0: {
+            if (expression->expression == NULL) {
+                serializer_complete(C);
+            }
+
+            serializer_enter_expression(C, expression->expression, 1);
+        }
+        case 1: {
+            serializer_set(C, "expression");
+            serializer_complete(C);
+        }
+        default:
+            break;
+    }
+}
+
 struct table_data {
     ml_size index;
 };
@@ -471,24 +489,6 @@ decl_stmt(eval) {
         case 0: {
             serializer_push_boolean(C, statement->implicit);
             serializer_set(C, "implicit");
-
-            serializer_enter_expression(C, statement->expression, 1);
-        }
-        case 1: {
-            serializer_set(C, "expression");
-            serializer_complete(C);
-        }
-        default:
-            break;
-    }
-}
-
-decl_stmt(leave) {
-    switch (state) {
-        case 0: {
-            if (statement->expression == NULL) {
-                serializer_complete(C);
-            }
 
             serializer_enter_expression(C, statement->expression, 1);
         }

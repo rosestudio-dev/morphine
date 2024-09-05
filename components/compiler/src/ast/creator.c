@@ -8,7 +8,6 @@
 
 ast_standard_impl_stmt(eval)
 ast_standard_impl_stmt(simple)
-ast_standard_impl_stmt(leave)
 ast_standard_impl_stmt(while)
 ast_standard_impl_stmt(for)
 ast_standard_impl_stmt(iterator)
@@ -80,6 +79,7 @@ ast_impl_stmt(declaration, ast_args(size_t count)) {
 ast_standard_impl_expr(value)
 ast_standard_impl_expr(function)
 ast_standard_impl_expr(global)
+ast_standard_impl_expr(leave)
 ast_standard_impl_expr(variable)
 ast_standard_impl_expr(binary)
 ast_standard_impl_expr(unary)

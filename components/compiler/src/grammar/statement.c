@@ -24,15 +24,6 @@ static struct mc_ast_node *rule_statement(struct parse_controller *C) {
         return mcapi_ast_statement_simple2node(simple);
     }
 
-    if (parser_match(C, et_predef_word(leave))) {
-        struct mc_ast_statement_leave *leave =
-            mcapi_ast_create_statement_leave(parser_U(C), parser_A(C), line);
-
-        leave->expression = NULL;
-
-        return mcapi_ast_statement_leave2node(leave);
-    }
-
     if (parser_match(C, et_predef_word(break))) {
         struct mc_ast_statement_simple *simple =
             mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
@@ -62,18 +53,6 @@ static struct mc_ast_node *rule_statement(struct parse_controller *C) {
         eval->expression = expression;
 
         return mcapi_ast_statement_eval2node(eval);
-    }
-
-    if (parser_match(C, et_predef_word(return))) {
-        struct mc_ast_expression *expression =
-            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
-
-        struct mc_ast_statement_leave *leave =
-            mcapi_ast_create_statement_leave(parser_U(C), parser_A(C), line);
-
-        leave->expression = expression;
-
-        return mcapi_ast_statement_leave2node(leave);
     }
 
     if (parser_look(C, et_predef_word(while))) {

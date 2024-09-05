@@ -86,6 +86,7 @@ struct mc_ast_node *rule_assigment(struct parse_controller *C) {
 
         eval->expression = expression;
         eval->implicit = expression->type != MCEXPRT_call &&
+                         expression->type != MCEXPRT_leave &&
                          expression->type != MCEXPRT_increment;
 
         return mcapi_ast_statement_eval2node(eval);

@@ -120,12 +120,18 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
     struct mc_ast_statement *statement;
     ml_line eq_line = parser_get_line(C);
     if (parser_match(C, et_operator(EQ))) {
-        struct mc_ast_statement_leave *leave =
-            mcapi_ast_create_statement_leave(parser_U(C), parser_A(C), eq_line);
+        struct mc_ast_expression_leave *leave =
+            mcapi_ast_create_expression_leave(parser_U(C), parser_A(C), eq_line);
 
         leave->expression = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
-        statement = mcapi_ast_leave2statement(leave);
+        struct mc_ast_statement_eval *eval =
+            mcapi_ast_create_statement_eval(parser_U(C), parser_A(C), eq_line);
+
+        eval->expression = mcapi_ast_leave2expression(leave);
+        eval->implicit = false;
+
+        statement = mcapi_ast_eval2statement(eval);
     } else {
         statement = mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
     }

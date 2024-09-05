@@ -321,6 +321,37 @@ decl_expr(global) {
     }
 }
 
+struct leave_data {
+    struct instruction_slot slot;
+};
+
+decl_expr(leave) {
+    if (expression->expression != NULL) {
+        decl_data(leave);
+        switch (state) {
+            case 0:
+                data->slot = codegen_declare_temporary(C);
+                codegen_expression(C, expression->expression, data->slot, 1);
+            case 1:
+                codegen_instruction_LEAVE(C, data->slot);
+
+                size_t constant = codegen_add_constant_nil(C);
+                codegen_instruction_LOAD(C, constant, codegen_result(C));
+                codegen_complete(C);
+            default:
+                break;
+        }
+    } else {
+        struct instruction_slot slot = codegen_declare_temporary(C);
+        size_t constant = codegen_add_constant_nil(C);
+
+        codegen_instruction_LOAD(C, constant, slot);
+        codegen_instruction_LEAVE(C, slot);
+        codegen_instruction_LOAD(C, constant, codegen_result(C));
+        codegen_complete(C);
+    }
+}
+
 struct table_data {
     struct instruction_slot key;
     struct instruction_slot value;
@@ -848,32 +879,6 @@ decl_stmt(simple) {
         case MCSTMT_SIMPLE_TYPE_CONTINUE:
             codegen_instruction_JUMP(C, codegen_scope_continue_anchor(C));
             codegen_complete(C);
-    }
-}
-
-struct leave_data {
-    struct instruction_slot slot;
-};
-
-decl_stmt(leave) {
-    if (statement->expression != NULL) {
-        decl_data(leave);
-        switch (state) {
-            case 0:
-                data->slot = codegen_declare_temporary(C);
-                codegen_expression(C, statement->expression, data->slot, 1);
-            case 1:
-                codegen_instruction_LEAVE(C, data->slot);
-                codegen_complete(C);
-            default:
-                break;
-        }
-    } else {
-        struct instruction_slot slot = codegen_declare_temporary(C);
-        size_t constant = codegen_add_constant_nil(C);
-        codegen_instruction_LOAD(C, constant, slot);
-        codegen_instruction_LEAVE(C, slot);
-        codegen_complete(C);
     }
 }
 

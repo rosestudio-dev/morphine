@@ -18,7 +18,6 @@ enum mc_statement_type {
     MCSTMTT_block,
     MCSTMTT_simple,
     MCSTMTT_eval,
-    MCSTMTT_leave,
     MCSTMTT_while,
     MCSTMTT_for,
     MCSTMTT_iterator,
@@ -34,6 +33,7 @@ enum mc_expression_type {
     MCEXPRT_increment,
     MCEXPRT_variable,
     MCEXPRT_global,
+    MCEXPRT_leave,
     MCEXPRT_table,
     MCEXPRT_vector,
     MCEXPRT_access,
@@ -189,6 +189,10 @@ ast_declare_expr(global, ast_noargs)
     enum mc_expression_global_type type;
 };
 
+ast_declare_expr(leave, ast_noargs)
+    struct mc_ast_expression *expression;
+};
+
 ast_declare_expr(variable, ast_noargs)
     bool ignore_mutable;
     mc_strtable_index_t index;
@@ -267,10 +271,6 @@ ast_declare_stmt(if, ast_noargs)
 
 ast_declare_stmt(simple, ast_noargs)
     enum mc_statement_simple_type type;
-};
-
-ast_declare_stmt(leave, ast_noargs)
-    struct mc_ast_expression *expression;
 };
 
 ast_declare_stmt(while, ast_noargs)
