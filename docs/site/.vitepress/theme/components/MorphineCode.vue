@@ -68,7 +68,7 @@ function changeScript() {
   let index = Math.floor(Math.random() * scripts.length)
   let result = scripts[index];
   if (result == inputRef.value) {
-    result = (index + 1) % scripts.length
+    result = scripts[(index + 1) % scripts.length]
   }
 
   inputRef.value = result
