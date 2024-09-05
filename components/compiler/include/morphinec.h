@@ -8,7 +8,7 @@
 extern "C" {
 #endif
 
-#include "morphinec/lib.h"
+#include "morphinec/library.h"
 #include "morphinec/compiler.h"
 
 #ifdef __cplusplus
