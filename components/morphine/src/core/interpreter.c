@@ -537,11 +537,7 @@ static inline bool execute_step(morphine_instance_t I, struct interpreter *E) {
         E->next = NULL;
         gcI_full(I, 0);
 
-        if (I->G.finalizer.work) {
-            return true;
-        } else {
-            return false;
-        }
+        return I->G.finalizer.work;
     }
 
     if (likely(E->running == NULL)) {
