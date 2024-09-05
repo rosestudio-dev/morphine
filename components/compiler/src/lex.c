@@ -106,7 +106,7 @@ static inline void opchars_append(morphine_coroutine_t U, struct mc_lex *L, char
     }
 
     L->opchars.string[L->opchars.size] = c;
-    L->opchars.size ++;
+    L->opchars.size++;
 }
 
 static void create_opchars(morphine_coroutine_t U, struct mc_lex *L) {
@@ -338,6 +338,78 @@ static void safe_append(char *buffer, size_t *index, char c) {
     (*index)++;
 }
 
+static void handle_utf8(morphine_coroutine_t U, struct mc_lex *L, char *buffer, size_t *index) {
+    char chars[8];
+    const size_t chars_size = sizeof(chars) / sizeof(char);
+
+    bool wrapped = false;
+    if (peek(L, 1) == '{') {
+        next(L);
+        wrapped = true;
+    }
+
+    uint32_t unicode = 0;
+    size_t hex_count = 0;
+    for (; hex_count < chars_size; hex_count++) {
+        char c = peek(L, 1);
+        if (isxdigit(c)) {
+            next(L);
+            char value;
+            if (c >= '0' && c <= '9') {
+                value = (char) (c - '0');
+            } else if (c >= 'a' && c <= 'f') {
+                value = (char) (10 + (c - 'a'));
+            } else if (c >= 'A' && c <= 'F') {
+                value = (char) (10 + (c - 'A'));
+            } else {
+                lex_error(U, L, "undefined hex char");
+            }
+
+            chars[hex_count] = value;
+        } else if (hex_count == 0) {
+            lex_error(U, L, "empty unicode escape symbol");
+        } else {
+            break;
+        }
+    }
+
+    if (wrapped && peek(L, 1) != '}') {
+        lex_error(U, L, "unclosed unicode escape symbol");
+    } else if (wrapped) {
+        next(L);
+    }
+
+    for (size_t i = 0; i < hex_count; i++) {
+        unicode = unicode | ((((uint32_t) chars[i]) & 0xF) << ((hex_count - i - 1) * 4));
+    }
+
+    if (unicode > 0x7FFFFFFFu) {
+        lex_error(U, L, "unicode escape symbol overflow");
+    }
+
+    if (unicode < 0x80) {
+        safe_append(buffer, index, (char) unicode);
+    } else {
+        size_t count = 0;
+        memset(chars, 0, chars_size);
+
+        uint32_t offset = 0x3f;
+        do {
+            chars[count] = (char) (0x80 | (unicode & 0x3f));
+            count++;
+            unicode = unicode >> 6;
+            offset = offset >> 1;
+        } while (unicode > offset);
+
+        chars[count] = (char) (((~offset) << 1) | unicode);
+        count++;
+
+        for (size_t i = 0; i < count; i++) {
+            safe_append(buffer, index, chars[count - i - 1]);
+        }
+    }
+}
+
 static size_t handle_string(morphine_coroutine_t U, struct mc_lex *L, char *buffer) {
     char open = peek(L, 0);
 
@@ -400,6 +472,10 @@ static size_t handle_string(morphine_coroutine_t U, struct mc_lex *L, char *buff
                 case 't':
                     safe_append(buffer, &count, '\t');
                     break;
+                case 'u': {
+                    handle_utf8(U, L, buffer, &count);
+                    break;
+                }
                 default:
                     lex_error(U, L, "unknown escape symbol");
             }
