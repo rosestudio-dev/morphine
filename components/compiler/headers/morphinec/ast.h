@@ -260,6 +260,7 @@ ast_declare_stmt(eval, ast_noargs)
 
 ast_declare_stmt(block, ast_args(size_t count))
     size_t count;
+    bool inlined;
     struct mc_ast_statement **statements;
 };
 

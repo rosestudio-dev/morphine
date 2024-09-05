@@ -457,7 +457,7 @@ decl_expr(call) {
         case 0:
             codegen_expression(C, expression->callable, codegen_result(C), 1);
         case 1:
-            if(expression->self != NULL) {
+            if (expression->self != NULL) {
                 data->self = codegen_declare_temporary(C);
                 codegen_expression(C, expression->self, data->self, 2);
             } else {
@@ -486,7 +486,7 @@ decl_expr(call) {
                 codegen_instruction_PARAM(C, data->slots[i], i);
             }
 
-            if(expression->self != NULL) {
+            if (expression->self != NULL) {
                 codegen_instruction_SCALL(C, codegen_result(C), expression->args_count, data->self);
             } else {
                 codegen_instruction_CALL(C, codegen_result(C), expression->args_count);
@@ -890,12 +890,17 @@ decl_stmt(block) {
     decl_data(statement_block);
     switch (state) {
         case 0:
-            codegen_enter_scope(C, false);
+            if (!statement->inlined) {
+                codegen_enter_scope(C, false);
+            }
             data->index = 0;
             codegen_jump(C, 1);
         case 1:
             if (data->index >= statement->count) {
-                codegen_exit_scope(C);
+                if (!statement->inlined) {
+                    codegen_exit_scope(C);
+                }
+
                 codegen_complete(C);
             } else {
                 codegen_statement(C, statement->statements[data->index], 2);

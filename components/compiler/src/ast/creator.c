@@ -25,6 +25,7 @@ ast_impl_stmt(block, ast_args(size_t count)) {
         mcapi_ast_statement2block(U, statement);
 
     block->count = count;
+    block->inlined = false;
     block->statements = ((void *) block) + sizeof(struct mc_ast_statement_block);
 
     return block;

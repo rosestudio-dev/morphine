@@ -24,6 +24,9 @@ struct mc_ast_node *rule_dowhile(struct parse_controller *C) {
     struct mc_ast_statement *statement =
         mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
 
+    struct mc_ast_statement_block *block = mcapi_ast_statement2block(parser_U(C), statement);
+    block->inlined = true;
+
     if (parser_match(C, et_predef_word(while))) {
         parser_consume(C, et_operator(LPAREN));
         struct mc_ast_expression *expression =
