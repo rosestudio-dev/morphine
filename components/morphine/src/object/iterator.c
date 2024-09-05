@@ -3,36 +3,46 @@
 //
 
 #include "morphine/object/iterator.h"
-#include "morphine/core/throw.h"
 #include "morphine/object/table.h"
+#include "morphine/object/vector.h"
+#include "morphine/object/string.h"
+#include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
-#include "morphine/object/vector.h"
 #include "morphine/gc/safe.h"
 
 struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
     struct table *table = valueI_safe_as_table(value, NULL);
     struct vector *vector = valueI_safe_as_vector(value, NULL);
-    if (table == NULL && vector == NULL) {
-        throwI_error(I, "iterator only supports table");
+    struct string *string = valueI_safe_as_string(value, NULL);
+
+    enum iterator_type type;
+    struct object *object;
+    if (table != NULL) {
+        type = ITERATOR_TYPE_TABLE;
+        object = objectI_cast(table);
+    } else if (vector != NULL) {
+        type = ITERATOR_TYPE_VECTOR;
+        object = objectI_cast(vector);
+    } else if (string != NULL) {
+        type = ITERATOR_TYPE_STRING;
+        object = objectI_cast(string);
+    } else {
+        throwI_error(I, "iterator only supports table, vector or string");
     }
 
     struct iterator *result = allocI_uni(I, NULL, sizeof(struct iterator));
 
     (*result) = (struct iterator) {
+        .type = type,
+        .iterable.object = object,
         .name.key = valueI_nil,
         .name.value = valueI_nil,
         .next.has = false,
         .next.key = valueI_nil,
+        .result.key = valueI_nil,
+        .result.value = valueI_nil
     };
-
-    if (table != NULL) {
-        result->type = ITERATOR_TYPE_TABLE;
-        result->iterable.table = table;
-    } else {
-        result->type = ITERATOR_TYPE_VECTOR;
-        result->iterable.vector = vector;
-    }
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_ITERATOR);
 
@@ -55,14 +65,20 @@ void iteratorI_init(
 
     switch (iterator->type) {
         case ITERATOR_TYPE_TABLE:
-            iterator->next.key = tableI_first(
+            iterator->next.key = tableI_iterator_first(
                 I, iterator->iterable.table,
                 &iterator->next.has
             );
             break;
         case ITERATOR_TYPE_VECTOR:
-            iterator->next.key = vectorI_first(
+            iterator->next.key = vectorI_iterator_first(
                 I, iterator->iterable.vector,
+                &iterator->next.has
+            );
+            break;
+        case ITERATOR_TYPE_STRING:
+            iterator->next.key = stringI_iterator_first(
+                I, iterator->iterable.string,
                 &iterator->next.has
             );
             break;
@@ -91,18 +107,24 @@ struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
         throwI_error(I, "iterator is null");
     }
 
-    struct pair result;
     switch (iterator->type) {
         case ITERATOR_TYPE_TABLE:
-            result = tableI_next(
+            iterator->result = tableI_iterator_next(
                 I, iterator->iterable.table,
                 &iterator->next.key,
                 &iterator->next.has
             );
             break;
         case ITERATOR_TYPE_VECTOR:
-            result = vectorI_next(
+            iterator->result = vectorI_iterator_next(
                 I, iterator->iterable.vector,
+                &iterator->next.key,
+                &iterator->next.has
+            );
+            break;
+        case ITERATOR_TYPE_STRING:
+            iterator->result = stringI_iterator_next(
+                I, iterator->iterable.string,
                 &iterator->next.key,
                 &iterator->next.has
             );
@@ -111,9 +133,11 @@ struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
             throwI_panic(I, "unknown iterable type");
     }
 
+    gcI_barrier(I, iterator, iterator->result.key);
+    gcI_barrier(I, iterator, iterator->result.value);
     gcI_barrier(I, iterator, iterator->next.key);
 
-    return result;
+    return iterator->result;
 }
 
 struct table *iteratorI_next_table(morphine_instance_t I, struct iterator *iterator) {

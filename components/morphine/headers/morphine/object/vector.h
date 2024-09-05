@@ -40,5 +40,5 @@ struct value vectorI_remove(morphine_instance_t, struct vector *, ml_size index)
 void vectorI_resize(morphine_instance_t, struct vector *, ml_size size);
 struct vector *vectorI_copy(morphine_instance_t, struct vector *);
 
-struct value vectorI_first(morphine_instance_t, struct vector *, bool *has);
-struct pair vectorI_next(morphine_instance_t, struct vector *, struct value *key, bool *next);
+struct value vectorI_iterator_first(morphine_instance_t, struct vector *, bool *has);
+struct pair vectorI_iterator_next(morphine_instance_t, struct vector *, struct value *key, bool *next);

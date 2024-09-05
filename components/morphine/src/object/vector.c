@@ -261,7 +261,7 @@ struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
     return result;
 }
 
-struct value vectorI_first(morphine_instance_t I, struct vector *vector, bool *has) {
+struct value vectorI_iterator_first(morphine_instance_t I, struct vector *vector, bool *has) {
     if (vector == NULL) {
         throwI_error(I, "vector is null");
     }
@@ -277,7 +277,7 @@ struct value vectorI_first(morphine_instance_t I, struct vector *vector, bool *h
     return valueI_integer(0);
 }
 
-struct pair vectorI_next(
+struct pair vectorI_iterator_next(
     morphine_instance_t I,
     struct vector *vector,
     struct value *key,

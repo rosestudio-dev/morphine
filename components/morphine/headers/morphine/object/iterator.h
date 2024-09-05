@@ -9,6 +9,7 @@
 enum iterator_type {
     ITERATOR_TYPE_TABLE,
     ITERATOR_TYPE_VECTOR,
+    ITERATOR_TYPE_STRING,
 };
 
 struct iterator {
@@ -24,12 +25,15 @@ struct iterator {
         struct object *object;
         struct table *table;
         struct vector *vector;
+        struct string *string;
     } iterable;
 
     struct {
         bool has;
         struct value key;
     } next;
+
+    struct pair result;
 };
 
 struct iterator *iteratorI_create(morphine_instance_t, struct value);

@@ -130,3 +130,66 @@ uint64_t stringI_hash(morphine_instance_t I, struct string *string) {
 
     return result;
 }
+
+struct value stringI_iterator_first(morphine_instance_t I, struct string *string, bool *has) {
+    if (string == NULL) {
+        throwI_error(I, "string is null");
+    }
+
+    if (has != NULL) {
+        (*has) = string->size > 0;
+    }
+
+    if (string->size == 0) {
+        return valueI_nil;
+    }
+
+    return valueI_integer(0);
+}
+
+struct pair stringI_iterator_next(
+    morphine_instance_t I,
+    struct string *string,
+    struct value *key,
+    bool *next
+) {
+    if (string == NULL) {
+        throwI_error(I, "string is null");
+    }
+
+    if (key == NULL) {
+        if (next != NULL) {
+            (*next) = false;
+        }
+
+        return valueI_pair(valueI_nil, valueI_nil);
+    }
+
+    ml_size index = valueI_integer2index(I, valueI_as_integer_or_error(I, *key));
+
+    if (index >= string->size) {
+        if (next != NULL) {
+            (*next) = false;
+        }
+
+        (*key) = valueI_nil;
+        return valueI_pair(valueI_nil, valueI_nil);
+    }
+
+    bool has_next = (index + 1) < string->size;
+    if (next != NULL) {
+        (*next) = has_next;
+    }
+
+    if (has_next) {
+        (*key) = valueI_size(valueI_csize2index(I, index + 1));
+    } else {
+        (*key) = valueI_nil;
+    }
+
+    char *buffer;
+    struct string *char_string = stringI_createn(I, 1, &buffer);
+    buffer[0] = string->chars[index];
+
+    return valueI_pair(valueI_size(index), valueI_object(char_string));
+}

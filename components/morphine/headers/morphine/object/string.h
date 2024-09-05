@@ -28,3 +28,6 @@ void stringI_free(morphine_instance_t, struct string *);
 
 struct string *stringI_concat(morphine_instance_t, struct string *, struct string *);
 uint64_t stringI_hash(morphine_instance_t, struct string *);
+
+struct value stringI_iterator_first(morphine_instance_t, struct string *, bool *has);
+struct pair stringI_iterator_next(morphine_instance_t, struct string *, struct value *key, bool *next);

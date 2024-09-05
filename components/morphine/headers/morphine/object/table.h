@@ -78,5 +78,5 @@ struct pair tableI_idx_get(morphine_instance_t, struct table *, ml_size, bool *h
 void tableI_clear(morphine_instance_t, struct table *);
 struct table *tableI_copy(morphine_instance_t, struct table *);
 
-struct value tableI_first(morphine_instance_t, struct table *, bool *has);
-struct pair tableI_next(morphine_instance_t, struct table *, struct value *key, bool *next);
+struct value tableI_iterator_first(morphine_instance_t, struct table *, bool *has);
+struct pair tableI_iterator_next(morphine_instance_t, struct table *, struct value *key, bool *next);

@@ -875,7 +875,7 @@ struct table *tableI_copy(morphine_instance_t I, struct table *table) {
     return result;
 }
 
-struct value tableI_first(morphine_instance_t I, struct table *table, bool *has) {
+struct value tableI_iterator_first(morphine_instance_t I, struct table *table, bool *has) {
     if (table == NULL) {
         throwI_error(I, "table is null");
     }
@@ -894,7 +894,7 @@ struct value tableI_first(morphine_instance_t I, struct table *table, bool *has)
     return bucket->pair.key;
 }
 
-struct pair tableI_next(morphine_instance_t I, struct table *table, struct value *key, bool *next) {
+struct pair tableI_iterator_next(morphine_instance_t I, struct table *table, struct value *key, bool *next) {
     if (table == NULL) {
         throwI_error(I, "table is null");
     }
