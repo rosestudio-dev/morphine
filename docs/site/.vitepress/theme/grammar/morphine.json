@@ -19,6 +19,18 @@
       "name": "constant.numeric.morphine"
     },
     {
+      "match": "\\b0x[0-9A-Fa-f]+\\b",
+      "name": "constant.numeric.morphine"
+    },
+    {
+      "match": "\\b0o[0-7]+\\b",
+      "name": "constant.numeric.morphine"
+    },
+    {
+      "match": "\\b0b[01]+\\b",
+      "name": "constant.numeric.morphine"
+    },
+    {
       "match": "\\b([a-zA-Z_][0-9a-zA-Z_]*|`.*?`)\\b"
     },
     {
