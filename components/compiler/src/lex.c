@@ -10,6 +10,9 @@
 
 #define isnewline(c) ((c) == '\n' || (c) == '\r')
 #define eoschar '\0'
+#define baseddigits "0123456789abcdef"
+
+#define array_size(a, t) (sizeof(a) / sizeof(t))
 
 #define lex_cl_error(U, line, str) mapi_errorf((U), "line %"MLIMIT_LINE_PR": "str, (line))
 #define lex_error(U, L, str) lex_cl_error(U, (L)->line, str)
@@ -112,7 +115,7 @@ static inline void opchars_append(morphine_coroutine_t U, struct mc_lex *L, char
 static void create_opchars(morphine_coroutine_t U, struct mc_lex *L) {
     opchars_append(U, L, '\0');
 
-    for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
+    for (size_t i = 0; i < array_size(operator_table, operator_table[0]); i++) {
         const char *op = operator_table[i].str;
         size_t size = strlen(op);
         for (size_t n = 0; n < size; n++) {
@@ -261,9 +264,74 @@ static struct mc_lex_token multiline_comment(
     };
 }
 
+static struct mc_lex_token lex_number_based(morphine_coroutine_t U, struct mc_lex *L, ml_size base) {
+    if (base > array_size(baseddigits, char) - 1) {
+        lex_error(U, L, "number base is out of range");
+    }
+
+    size_t from = L->pos;
+
+    next(L);
+    next(L);
+
+    size_t start = L->pos;
+
+    char current = peek(L, 0);
+    while (true) {
+        bool is_digit = false;
+        for (ml_size i = 0; i < base; i++) {
+            if (baseddigits[i] == tolower(current)) {
+                is_digit = true;
+                break;
+            }
+        }
+
+        if (!is_digit) {
+            break;
+        }
+
+        current = next(L);
+    }
+
+    size_t size = L->pos - start;
+
+    char buffer[257];
+    memset(buffer, 0, array_size(buffer, char));
+    if (size > array_size(buffer, char) - 1) {
+        lex_error(U, L, "invalid number");
+    }
+
+    strncpy(buffer, L->text + start, size);
+
+    ml_integer result = 0;
+    bool success = mapi_platform_str2int(buffer, &result, base);
+    if (!success) {
+        lex_error(U, L, "invalid integer");
+    }
+
+    return (struct mc_lex_token) {
+        .type = MCLTT_INTEGER,
+        .integer = result,
+        .line = L->line,
+        .range.from = from,
+        .range.to = L->pos
+    };
+}
+
 static struct mc_lex_token lex_number(morphine_coroutine_t U, struct mc_lex *L) {
     size_t start = L->pos;
     bool dot = false;
+
+    if (peek(L, 0) == '0') {
+        switch (peek(L, 1)) {
+            case 'b':
+                return lex_number_based(U, L, 2);
+            case 'o':
+                return lex_number_based(U, L, 8);
+            case 'x':
+                return lex_number_based(U, L, 16);
+        }
+    }
 
     size_t count_after_dot = 0;
     char current = peek(L, 0);
@@ -292,8 +360,8 @@ static struct mc_lex_token lex_number(morphine_coroutine_t U, struct mc_lex *L) 
     size_t size = L->pos - start;
 
     char buffer[65];
-    memset(buffer, 0, 65);
-    if (size > 64) {
+    memset(buffer, 0, array_size(buffer, char));
+    if (size > array_size(buffer, char) - 1) {
         lex_error(U, L, "invalid number");
     }
 
@@ -340,7 +408,7 @@ static void safe_append(char *buffer, size_t *index, char c) {
 
 static void handle_utf8(morphine_coroutine_t U, struct mc_lex *L, char *buffer, size_t *index) {
     char chars[8];
-    const size_t chars_size = sizeof(chars) / sizeof(char);
+    const size_t chars_size = array_size(chars, char);
 
     bool wrapped = false;
     if (peek(L, 1) == '{') {
@@ -610,7 +678,7 @@ static bool handle_operator(
         lex_error(U, L, "empty operator");
     }
 
-    for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
+    for (size_t i = 0; i < array_size(operator_table, operator_table[0]); i++) {
         if (strlen(operator_table[i].str) != size) {
             continue;
         }
@@ -745,7 +813,7 @@ MORPHINE_API const char *mcapi_lex_operator2str(
     morphine_coroutine_t U,
     enum mc_lex_token_operator operator
 ) {
-    for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
+    for (size_t i = 0; i < array_size(operator_table, operator_table[0]); i++) {
         if (operator_table[i].type == operator) {
             return operator_table[i].str;
         }
@@ -758,7 +826,7 @@ MORPHINE_API const char *mcapi_lex_operator2name(
     morphine_coroutine_t U,
     enum mc_lex_token_operator operator
 ) {
-    for (size_t i = 0; i < sizeof(operator_table) / sizeof(operator_table[0]); i++) {
+    for (size_t i = 0; i < array_size(operator_table, operator_table[0]); i++) {
         if (operator_table[i].type == operator) {
             return operator_table[i].name;
         }
