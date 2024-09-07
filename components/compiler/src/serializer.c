@@ -189,8 +189,9 @@ MORPHINE_API bool mcapi_serializer_step(
     switch (event) {
         case MCVE_INIT: {
             controller.callback.function = mcapi_ast_get_root_function(A);
+            goto case_enter_function;
         }
-        case MCVE_ENTER_FUNCTION: {
+        case MCVE_ENTER_FUNCTION: case_enter_function: {
             struct mc_ast_function *function = controller.callback.function;
 
             mapi_push_table(U);
@@ -239,8 +240,9 @@ MORPHINE_API bool mcapi_serializer_step(
             maux_table_set(U, "statics");
 
             controller.callback.node = mcapi_ast_statement2node(function->body);
+            goto case_enter_node;
         }
-        case MCVE_ENTER_NODE: {
+        case MCVE_ENTER_NODE: case_enter_node: {
             mapi_push_table(U);
             mapi_push_string(U, mcapi_ast_type_name(U, controller.callback.node));
             maux_table_set(U, "type");
