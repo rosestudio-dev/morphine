@@ -20,7 +20,7 @@ static void print(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_library_get(U, "value", "tostr");
+            mapi_library(U, "value.tostr", false);
             mapi_calli(U, 1);
         maux_nb_state(1)
             mapi_push_result(U);
@@ -48,7 +48,7 @@ static void println(morphine_coroutine_t U) {
                 mapi_push_arg(U, 0);
             }
 
-            maux_library_get(U, "value", "tostr");
+            mapi_library(U, "value.tostr", false);
             mapi_calli(U, 1);
         maux_nb_state(1)
             mapi_push_result(U);

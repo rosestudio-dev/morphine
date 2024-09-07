@@ -285,7 +285,7 @@ static void tostr(morphine_coroutine_t U) {
 
             mapi_iterator_next(U);
             mapi_rotate(U, 2);
-            maux_library_get(U, "value", "tostr");
+            mapi_library(U, "value.tostr", false);
             mapi_calli(U, 1);
         maux_nb_state(2)
             mapi_push_result(U);
@@ -293,7 +293,7 @@ static void tostr(morphine_coroutine_t U) {
             mapi_string_concat(U);
             mapi_peek(U, 1);
 
-            maux_library_get(U, "value", "tostr");
+            mapi_library(U, "value.tostr", false);
             mapi_calli(U, 1);
         maux_nb_state(3)
             mapi_push_result(U);

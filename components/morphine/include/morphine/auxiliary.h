@@ -6,7 +6,6 @@
 
 #include "auxiliary/nativebuilder.h"
 #include "auxiliary/expect.h"
-#include "auxiliary/library.h"
 #include "auxiliary/sio.h"
 #include "auxiliary/registry.h"
 #include "auxiliary/table.h"

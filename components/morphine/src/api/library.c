@@ -27,6 +27,6 @@ MORPHINE_API void mapi_library_load(morphine_instance_t I, morphine_library_t *L
 }
 
 MORPHINE_API void mapi_library(morphine_coroutine_t U, const char *name, bool reload) {
-    struct table *table = librariesI_get(U->I, name, reload);
-    stackI_push(U, valueI_object(table));
+    struct value value = librariesI_get(U->I, name, reload);
+    stackI_push(U, value);
 }

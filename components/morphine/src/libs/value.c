@@ -18,10 +18,10 @@ static void tostr(morphine_coroutine_t U) {
                     maux_nb_return();
                 }
             } else if (mapi_is_type(U, "vector")) {
-                maux_library_get(U, "vector", "tostr");
+                mapi_library(U, "vector.tostr", false);
                 mapi_calli(U, 1);
             } else if (mapi_is_type(U, "table")) {
-                maux_library_get(U, "table", "tostr");
+                mapi_library(U, "table.tostr", false);
                 mapi_calli(U, 1);
             } else {
                 mapi_to_string(U);
