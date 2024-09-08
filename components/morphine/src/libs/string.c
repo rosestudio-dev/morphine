@@ -802,99 +802,133 @@ static void format(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 2);
 
+            mapi_bind_registry(U);
+
+            mapi_push_size(U, 0, "state");
+            maux_registry_set(U, "state");
+
+            mapi_push_size(U, 0, "index");
+            maux_registry_set(U, "index");
+
+            mapi_push_size(U, 0, "index");
+            maux_registry_set(U, "last_index");
+
+            mapi_push_size(U, 0, "index");
+            maux_registry_set(U, "table_index");
+
             mapi_push_arg(U, 0);
             maux_expect(U, "string");
-            const char *string = mapi_get_string(U);
-            size_t strlen = mapi_string_len(U);
+            mapi_pop(U, 1);
 
             mapi_push_arg(U, 1);
             maux_expect(U, "table");
 
-            bool found = false;
-            size_t parsed = 0;
-            size_t index = 0;
-            for (size_t i = 0; i < strlen; i++) {
-                if (string[i] != '$') {
-                    continue;
-                }
+            mapi_push_string(U, "");
+            maux_nb_im_continue(1);
+        maux_nb_state(1)
+            mapi_push_arg(U, 0);
+            const char *string = mapi_get_string(U);
+            size_t strlen = mapi_string_len(U);
+            mapi_pop(U, 1);
 
-                found = true;
+            maux_registry_get(U, "state");
+            enum format_state {
+                TEXT = 0,
+                FOUND = 1,
+                RECOGNIZE = 2,
+                CONCAT = 3,
+            } state = mapi_get_size(U, "state");
+            mapi_pop(U, 1);
 
-                size_t offset = 0;
-                if (i + 1 < strlen && string[i + 1] == '$') {
-                    if (index > 0) {
-                        mapi_rotate(U, 2);
+            maux_registry_get(U, "index");
+            size_t index = mapi_get_size(U, "index");
+            mapi_pop(U, 1);
+
+            maux_registry_get(U, "last_index");
+            size_t last_index = mapi_get_size(U, "index");
+            mapi_pop(U, 1);
+
+            maux_registry_get(U, "table_index");
+            size_t table_index = mapi_get_size(U, "index");
+            mapi_pop(U, 1);
+
+            size_t parse_index = 0;
+            for (; index < strlen; index++) {
+                switch (state) {
+                    case TEXT: {
+                        if (string[index] == '$') {
+                            mapi_push_stringn(U, string + last_index, index - last_index);
+                            mapi_string_concat(U);
+                            state = FOUND;
+                        }
+                        break;
                     }
+                    case FOUND: {
+                        if (string[index] == '{') {
+                            parse_index = index + 1;
+                            state = RECOGNIZE;
+                        } else if (string[index] == '$') {
+                            mapi_push_string(U, "$");
+                            mapi_string_concat(U);
 
-                    mapi_push_string(U, "$");
-
-                    offset = 1;
-                } else if (i + 1 < strlen && string[i + 1] == '{') {
-                    size_t c = i + 2;
-                    bool closed = false;
-                    for (; c < strlen; c++) {
-                        if (string[c] == '}') {
-                            closed = true;
+                            last_index = index + 1;
+                            state = TEXT;
+                        } else {
+                            last_index = index - 1;
+                            state = TEXT;
+                        }
+                        break;
+                    }
+                    case RECOGNIZE: {
+                        if (string[index] != '}') {
                             break;
                         }
-                    }
 
-                    if (!closed) {
-                        mapi_errorf(U, "format access key isn't closed");
-                    }
-
-                    if (index > 0) {
                         mapi_rotate(U, 2);
-                        mapi_push_stringn(U, string + i + 2, c - i - 2);
-                        mapi_table_get(U);
-                        mapi_to_string(U);
-                    } else {
-                        mapi_push_stringn(U, string + i + 2, c - i - 2);
-                        mapi_table_get(U);
-                        mapi_to_string(U);
-                    }
 
-                    offset = c - i;
-                } else {
-                    if (index > 0) {
+                        if (index - parse_index == 0) {
+                            mapi_push_size(U, table_index, "index");
+                            table_index++;
+                        } else {
+                            mapi_push_stringn(U, string + parse_index, index - parse_index);
+                            table_index++;
+                        }
+
+                        mapi_table_get(U);
                         mapi_rotate(U, 2);
-                        mapi_push_size(U, parsed, "count");
-                        mapi_table_get(U);
-                        mapi_to_string(U);
-                    } else {
-                        mapi_push_size(U, parsed, "count");
-                        mapi_table_get(U);
-                        mapi_to_string(U);
+                        mapi_rotate(U, 3);
+
+                        last_index = index + 1;
+                        state = CONCAT;
+
+                        mapi_push_size(U, state, "state");
+                        maux_registry_set(U, "state");
+
+                        mapi_push_size(U, index, "index");
+                        maux_registry_set(U, "index");
+
+                        mapi_push_size(U, last_index, "index");
+                        maux_registry_set(U, "last_index");
+
+                        mapi_push_size(U, table_index, "index");
+                        maux_registry_set(U, "table_index");
+
+                        mapi_library(U, "value.tostr", false);
+                        maux_nb_calli(1, 1);
                     }
-
-                    parsed++;
+                    case CONCAT: {
+                        mapi_push_result(U);
+                        mapi_string_concat(U);
+                        state = TEXT;
+                        break;
+                    }
+                    default:
+                        mapi_error(U, "undefined state");
                 }
-
-                if (index > 0) {
-                    mapi_peek(U, 2);
-                    mapi_push_stringn(U, string + index, i - index);
-                    mapi_string_concat(U);
-                    mapi_rotate(U, 2);
-                    mapi_string_concat(U);
-                } else {
-                    mapi_push_stringn(U, string, i);
-                    mapi_rotate(U, 2);
-                    mapi_string_concat(U);
-                }
-
-                index = i + offset + 1;
-                i += offset;
             }
 
-            if (found && strlen > index) {
-                mapi_push_stringn(U, string + index, strlen - index);
-                mapi_string_concat(U);
-            }
-
-            if (!found) {
-                mapi_pop(U, 1);
-            }
-
+            mapi_push_stringn(U, string + last_index, strlen - last_index);
+            mapi_string_concat(U);
             maux_nb_return();
     maux_nb_end
 }
