@@ -104,6 +104,10 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "expression_global";
                 case MCEXPRT_leave:
                     return "expression_leave";
+                case MCEXPRT_break:
+                    return "expression_break";
+                case MCEXPRT_continue:
+                    return "expression_continue";
                 case MCEXPRT_table:
                     return "expression_table";
                 case MCEXPRT_vector:
@@ -126,8 +130,10 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
             switch (statement->type) {
                 case MCSTMTT_block:
                     return "statement_block";
-                case MCSTMTT_simple:
-                    return "statement_simple";
+                case MCSTMTT_pass:
+                    return "statement_pass";
+                case MCSTMTT_yield:
+                    return "statement_yield";
                 case MCSTMTT_eval:
                     return "statement_eval";
                 case MCSTMTT_while:

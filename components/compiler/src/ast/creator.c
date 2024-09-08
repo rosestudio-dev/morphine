@@ -7,7 +7,8 @@
 // statements
 
 ast_standard_impl_stmt(eval)
-ast_standard_impl_stmt(simple)
+ast_standard_impl_stmt(pass)
+ast_standard_impl_stmt(yield)
 ast_standard_impl_stmt(while)
 ast_standard_impl_stmt(for)
 ast_standard_impl_stmt(iterator)
@@ -81,6 +82,8 @@ ast_standard_impl_expr(value)
 ast_standard_impl_expr(function)
 ast_standard_impl_expr(global)
 ast_standard_impl_expr(leave)
+ast_standard_impl_expr(break)
+ast_standard_impl_expr(continue)
 ast_standard_impl_expr(variable)
 ast_standard_impl_expr(binary)
 ast_standard_impl_expr(unary)

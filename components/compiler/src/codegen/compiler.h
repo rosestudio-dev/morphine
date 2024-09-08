@@ -17,6 +17,8 @@ expr(increment);
 expr(variable);
 expr(global);
 expr(leave);
+expr(break);
+expr(continue);
 expr(table);
 expr(vector);
 expr(access);
@@ -26,7 +28,8 @@ expr(block);
 expr(if);
 
 stmt(block);
-stmt(simple);
+stmt(pass);
+stmt(yield);
 stmt(eval);
 stmt(while);
 stmt(for);

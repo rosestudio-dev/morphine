@@ -210,6 +210,20 @@ decl_expr(leave) {
     }
 }
 
+decl_expr(break) {
+    (void) state;
+    (void) expression;
+
+    serializer_complete(C);
+}
+
+decl_expr(continue) {
+    (void) state;
+    (void) expression;
+
+    serializer_complete(C);
+}
+
 struct table_data {
     ml_size index;
 };
@@ -463,24 +477,17 @@ decl_stmt(block) {
     }
 }
 
-decl_stmt(simple) {
+decl_stmt(pass) {
     (void) state;
+    (void) statement;
 
-    switch (statement->type) {
-        case MCSTMT_SIMPLE_TYPE_PASS:
-            serializer_push_cstr(C, "pass");
-            break;
-        case MCSTMT_SIMPLE_TYPE_YIELD:
-            serializer_push_cstr(C, "yield");
-            break;
-        case MCSTMT_SIMPLE_TYPE_BREAK:
-            serializer_push_cstr(C, "break");
-            break;
-        case MCSTMT_SIMPLE_TYPE_CONTINUE:
-            serializer_push_cstr(C, "continue");
-            break;
-    }
-    serializer_set(C, "type");
+    serializer_complete(C);
+}
+
+decl_stmt(yield) {
+    (void) state;
+    (void) statement;
+
     serializer_complete(C);
 }
 

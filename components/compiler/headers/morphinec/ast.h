@@ -16,7 +16,8 @@ enum mc_ast_node_type {
 
 enum mc_statement_type {
     MCSTMTT_block,
-    MCSTMTT_simple,
+    MCSTMTT_pass,
+    MCSTMTT_yield,
     MCSTMTT_eval,
     MCSTMTT_while,
     MCSTMTT_for,
@@ -34,6 +35,8 @@ enum mc_expression_type {
     MCEXPRT_variable,
     MCEXPRT_global,
     MCEXPRT_leave,
+    MCEXPRT_break,
+    MCEXPRT_continue,
     MCEXPRT_table,
     MCEXPRT_vector,
     MCEXPRT_access,
@@ -126,13 +129,6 @@ static inline struct mc_ast_node *mcapi_ast_statement2node(struct mc_ast_stateme
 
 // types
 
-enum mc_statement_simple_type {
-    MCSTMT_SIMPLE_TYPE_PASS,
-    MCSTMT_SIMPLE_TYPE_YIELD,
-    MCSTMT_SIMPLE_TYPE_BREAK,
-    MCSTMT_SIMPLE_TYPE_CONTINUE
-};
-
 enum mc_expression_value_type {
     MCEXPR_VALUE_TYPE_NIL,
     MCEXPR_VALUE_TYPE_INT,
@@ -192,6 +188,10 @@ ast_declare_expr(global, ast_noargs)
 ast_declare_expr(leave, ast_noargs)
     struct mc_ast_expression *expression;
 };
+
+ast_declare_expr(break, ast_noargs) };
+
+ast_declare_expr(continue, ast_noargs) };
 
 ast_declare_expr(variable, ast_noargs)
     bool ignore_mutable;
@@ -270,9 +270,9 @@ ast_declare_stmt(if, ast_noargs)
     struct mc_ast_statement *else_statement;
 };
 
-ast_declare_stmt(simple, ast_noargs)
-    enum mc_statement_simple_type type;
-};
+ast_declare_stmt(pass, ast_noargs) };
+
+ast_declare_stmt(yield, ast_noargs) };
 
 ast_declare_stmt(while, ast_noargs)
     bool first_condition;

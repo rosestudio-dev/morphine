@@ -130,7 +130,8 @@ static void visitor_function(
 
             switch (statement->type) {
                 stmt_case(block)
-                stmt_case(simple)
+                stmt_case(pass)
+                stmt_case(yield)
                 stmt_case(eval)
                 stmt_case(while)
                 stmt_case(for)
@@ -153,6 +154,8 @@ static void visitor_function(
                 expr_case(variable)
                 expr_case(global)
                 expr_case(leave)
+                expr_case(break)
+                expr_case(continue)
                 expr_case(table)
                 expr_case(vector)
                 expr_case(access)

@@ -352,6 +352,26 @@ decl_expr(leave) {
     }
 }
 
+decl_expr(break) {
+    (void) state;
+    (void) expression;
+
+    size_t constant = codegen_add_constant_nil(C);
+    codegen_instruction_LOAD(C, constant, codegen_result(C));
+    codegen_instruction_JUMP(C, codegen_scope_break_anchor(C));
+    codegen_complete(C);
+}
+
+decl_expr(continue) {
+    (void) state;
+    (void) expression;
+
+    size_t constant = codegen_add_constant_nil(C);
+    codegen_instruction_LOAD(C, constant, codegen_result(C));
+    codegen_instruction_JUMP(C, codegen_scope_continue_anchor(C));
+    codegen_complete(C);
+}
+
 struct table_data {
     struct instruction_slot key;
     struct instruction_slot value;
@@ -865,21 +885,19 @@ decl_stmt(eval) {
     }
 }
 
-decl_stmt(simple) {
+decl_stmt(pass) {
     (void) state;
-    switch (statement->type) {
-        case MCSTMT_SIMPLE_TYPE_PASS:
-            codegen_complete(C);
-        case MCSTMT_SIMPLE_TYPE_YIELD:
-            codegen_instruction_YIELD(C);
-            codegen_complete(C);
-        case MCSTMT_SIMPLE_TYPE_BREAK:
-            codegen_instruction_JUMP(C, codegen_scope_break_anchor(C));
-            codegen_complete(C);
-        case MCSTMT_SIMPLE_TYPE_CONTINUE:
-            codegen_instruction_JUMP(C, codegen_scope_continue_anchor(C));
-            codegen_complete(C);
-    }
+    (void) statement;
+
+    codegen_complete(C);
+}
+
+decl_stmt(yield) {
+    (void) state;
+    (void) statement;
+
+    codegen_instruction_YIELD(C);
+    codegen_complete(C);
 }
 
 struct statement_block_data {

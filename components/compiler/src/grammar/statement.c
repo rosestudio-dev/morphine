@@ -7,39 +7,17 @@
 static struct mc_ast_node *rule_statement(struct parse_controller *C) {
     ml_line line = parser_get_line(C);
     if (parser_match(C, et_predef_word(pass))) {
-        struct mc_ast_statement_simple *simple =
-            mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
+        struct mc_ast_statement_pass *pass =
+            mcapi_ast_create_statement_pass(parser_U(C), parser_A(C), line);
 
-        simple->type = MCSTMT_SIMPLE_TYPE_PASS;
-
-        return mcapi_ast_statement_simple2node(simple);
+        return mcapi_ast_statement_pass2node(pass);
     }
 
     if (parser_match(C, et_predef_word(yield))) {
-        struct mc_ast_statement_simple *simple =
-            mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
+        struct mc_ast_statement_yield *yield =
+            mcapi_ast_create_statement_yield(parser_U(C), parser_A(C), line);
 
-        simple->type = MCSTMT_SIMPLE_TYPE_YIELD;
-
-        return mcapi_ast_statement_simple2node(simple);
-    }
-
-    if (parser_match(C, et_predef_word(break))) {
-        struct mc_ast_statement_simple *simple =
-            mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
-
-        simple->type = MCSTMT_SIMPLE_TYPE_BREAK;
-
-        return mcapi_ast_statement_simple2node(simple);
-    }
-
-    if (parser_match(C, et_predef_word(continue))) {
-        struct mc_ast_statement_simple *simple =
-            mcapi_ast_create_statement_simple(parser_U(C), parser_A(C), line);
-
-        simple->type = MCSTMT_SIMPLE_TYPE_CONTINUE;
-
-        return mcapi_ast_statement_simple2node(simple);
+        return mcapi_ast_statement_yield2node(yield);
     }
 
     if (parser_match(C, et_predef_word(eval))) {
