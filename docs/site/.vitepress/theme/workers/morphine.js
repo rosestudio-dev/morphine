@@ -1,5 +1,7 @@
 import Module from "../../generated/morphine.js";
 
+const encoder = new TextEncoder();
+
 const packageSize = 64
 
 let outBuffer = []
@@ -35,12 +37,19 @@ function sendAll() {
 
 async function call(code, stdin) {
     const module = await Module({
-        stdout: (c) => { send(c, true) },
-        stderr: (c) => { send(c, false) },
-        stdin: () => { return stdin.shift() }
+        stdout: (c) => {
+            send(c, true)
+        },
+        stderr: (c) => {
+            send(c, false)
+        },
+        stdin: () => {
+            return stdin.shift()
+        }
     })
 
-    module.ccall("morphine", "number", ["string", "number"], [code, code.length])
+    const codeArray = encoder.encode(code)
+    module.ccall("morphine", "number", ["array", "number"], [codeArray, codeArray.length])
 }
 
 onmessage = function (e) {
