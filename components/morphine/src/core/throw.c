@@ -122,7 +122,8 @@ void throwI_handler(morphine_instance_t I) {
 
         // set error value
         if (throw->is_message) {
-            *callinfo->s.thrown = valueI_object(stringI_create(I, throw->error.message));
+            struct value value = valueI_object(stringI_create(I, throw->error.message));
+            *callinfo->s.thrown = value;
         } else {
             *callinfo->s.thrown = throw->error.value;
             throw->error.value = valueI_nil;
