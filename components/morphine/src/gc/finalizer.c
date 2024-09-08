@@ -22,6 +22,7 @@ static void give_away(morphine_instance_t I, struct object *candidate) {
 
 static void finalizer(morphine_coroutine_t U) {
     morphine_instance_t I = U->I;
+    throwI_catchable(U, 1);
 
     if (callstackI_state(U) == 0) {
         callstackI_continue(U, 0);
@@ -39,13 +40,13 @@ static void finalizer(morphine_coroutine_t U) {
             return;
         }
 
-        callstackI_continue(U, 1);
-
         I->G.finalizer.candidate = candidate;
 
         struct value candidate_value = valueI_object(candidate);
         struct value callable = valueI_nil;
         candidate->flags.finalized = true;
+
+        callstackI_continue(U, 1);
         if (metatableI_test(U->I, candidate_value, MF_GC, &callable)) {
             callstackI_call_unsafe(U, callable, candidate_value, NULL, 0, 0);
             return;
