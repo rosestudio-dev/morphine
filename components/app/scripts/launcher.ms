@@ -206,7 +206,7 @@ fun launch<auto>()
             result
         else
             val file = fs.file(config.program_path, "rb")
-            val text = sio.extractstring(file)
+            val text = sio.readall(file)
             sio.close(file)
 
             fun compile<auto>() = compiler.compile {

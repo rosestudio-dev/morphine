@@ -213,32 +213,32 @@ static void buffer(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void extractstring(morphine_coroutine_t U) {
+static void readall(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_sio_extract_string(U);
+            maux_sio_read_all(U);
             maux_nb_return();
     maux_nb_end
 }
 
 static morphine_library_function_t functions[] = {
-    { "isopened",      isopened },
-    { "close",         close },
-    { "flush",         flush },
-    { "read",          read },
-    { "write",         write },
-    { "seekset",       seekset },
-    { "seekcur",       seekcur },
-    { "seekprv",       seekprv },
-    { "seekend",       seekend },
-    { "tell",          tell },
-    { "eos",           eos },
-    { "io",            io },
-    { "error",         error },
-    { "buffer",        buffer },
-    { "extractstring", extractstring },
+    { "isopened", isopened },
+    { "close",    close },
+    { "flush",    flush },
+    { "read",     read },
+    { "write",    write },
+    { "seekset",  seekset },
+    { "seekcur",  seekcur },
+    { "seekprv",  seekprv },
+    { "seekend",  seekend },
+    { "tell",     tell },
+    { "eos",      eos },
+    { "io",       io },
+    { "error",    error },
+    { "buffer",   buffer },
+    { "readall",  readall },
     { NULL, NULL }
 };
 
