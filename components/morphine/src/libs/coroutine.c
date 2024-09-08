@@ -114,8 +114,8 @@ static void resume(morphine_coroutine_t U) {
 static void launch(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            if (mapi_args(U) < 2) {
-                maux_expect_args(U, 2);
+            if (mapi_args(U) < 1) {
+                maux_expect_args(U, 1);
             }
 
             mapi_push_arg(U, 0);
