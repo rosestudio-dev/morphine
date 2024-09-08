@@ -76,8 +76,6 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_value(I, function->statics[i]);
             }
 
-            mark_value(I, function->registry_key);
-
             return size_function(function);
         }
         case OBJ_TYPE_USERDATA: {
@@ -99,12 +97,6 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             return size_coroutine(coroutine);
         }
-        case OBJ_TYPE_NATIVE: {
-            struct native *native = cast(struct native *, obj);
-            mark_value(I, native->registry_key);
-
-            return size_native(native);
-        }
         case OBJ_TYPE_ITERATOR: {
             struct iterator *iterator = cast(struct iterator *, obj);
 
@@ -125,6 +117,9 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             mark_value(I, sio->hold_value);
 
             return size_sio(sio);
+        }
+        case OBJ_TYPE_NATIVE: {
+            return size_native(cast(struct native *, obj));
         }
         case OBJ_TYPE_STRING: {
             return size_string(cast(struct string *, obj));

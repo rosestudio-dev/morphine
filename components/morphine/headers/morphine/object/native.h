@@ -12,8 +12,6 @@ struct native {
     morphine_native_t function;
     const char *name;
     size_t name_len;
-
-    struct value registry_key;
 };
 
 struct native *nativeI_create(morphine_instance_t, const char *name, morphine_native_t function);

@@ -50,42 +50,40 @@ static void compile(morphine_coroutine_t U) {
                 mcapi_compile(U, name, vector);
                 maux_nb_return();
             } else {
-                mapi_bind_registry(U);
-
                 const char *text = mapi_get_string(U);
                 ml_size text_len = mapi_string_len(U);
 
                 mapi_push_boolean(U, vector);
-                maux_registry_set(U, "vector");
+                maux_localstorage_set(U, "vector");
 
                 mapi_push_string(U, name);
-                maux_registry_set(U, "name");
+                maux_localstorage_set(U, "name");
 
                 mcapi_push_strtable(U);
-                maux_registry_set(U, "T");
+                maux_localstorage_set(U, "T");
 
                 mcapi_push_ast(U);
-                maux_registry_set(U, "A");
+                maux_localstorage_set(U, "A");
 
                 mcapi_push_lex(U, text, text_len);
-                maux_registry_set(U, "LV");
+                maux_localstorage_set(U, "LV");
 
                 mcapi_push_parser(U);
-                maux_registry_set(U, "PG");
+                maux_localstorage_set(U, "PG");
 
                 maux_nb_continue(1);
             }
         maux_nb_state(1)
-            maux_registry_get(U, "T");
+            maux_localstorage_get(U, "T");
             struct mc_strtable *T = mcapi_get_strtable(U);
 
-            maux_registry_get(U, "A");
+            maux_localstorage_get(U, "A");
             struct mc_ast *A = mcapi_get_ast(U);
 
-            maux_registry_get(U, "LV");
+            maux_localstorage_get(U, "LV");
             struct mc_lex *L = mcapi_get_lex(U);
 
-            maux_registry_get(U, "PG");
+            maux_localstorage_get(U, "PG");
             struct mc_parser *P = mcapi_get_parser(U);
 
             bool next = mcapi_parser_step(U, P, A, L, T);
@@ -95,24 +93,24 @@ static void compile(morphine_coroutine_t U) {
                 maux_nb_continue(1);
             } else {
                 mcapi_push_visitor(U);
-                maux_registry_set(U, "LV");
+                maux_localstorage_set(U, "LV");
 
                 mcapi_push_codegen(U);
-                maux_registry_set(U, "PG");
+                maux_localstorage_set(U, "PG");
 
                 maux_nb_continue(2);
             }
         maux_nb_state(2)
-            maux_registry_get(U, "T");
+            maux_localstorage_get(U, "T");
             struct mc_strtable *T = mcapi_get_strtable(U);
 
-            maux_registry_get(U, "A");
+            maux_localstorage_get(U, "A");
             struct mc_ast *A = mcapi_get_ast(U);
 
-            maux_registry_get(U, "LV");
+            maux_localstorage_get(U, "LV");
             struct mc_visitor *V = mcapi_get_visitor(U);
 
-            maux_registry_get(U, "PG");
+            maux_localstorage_get(U, "PG");
             struct mc_codegen *G = mcapi_get_codegen(U);
 
             if (mcapi_codegen_step(U, G, V, T, A)) {
@@ -120,10 +118,10 @@ static void compile(morphine_coroutine_t U) {
                 maux_nb_continue(2);
             }
 
-            maux_registry_get(U, "vector");
+            maux_localstorage_get(U, "vector");
             bool vector = mapi_get_boolean(U);
 
-            maux_registry_get(U, "name");
+            maux_localstorage_get(U, "name");
             const char *name = mapi_get_cstr(U);
 
             mcapi_codegen_build(U, G, T, A, name, vector);
@@ -377,33 +375,31 @@ static void ast(morphine_coroutine_t U) {
 
                 maux_nb_return();
             } else {
-                mapi_bind_registry(U);
-
                 mcapi_push_strtable(U);
-                maux_registry_set(U, "T");
+                maux_localstorage_set(U, "T");
 
                 mcapi_push_ast(U);
-                maux_registry_set(U, "A");
+                maux_localstorage_set(U, "A");
 
                 mcapi_push_lex(U, text, text_len);
-                maux_registry_set(U, "LV");
+                maux_localstorage_set(U, "LV");
 
                 mcapi_push_parser(U);
-                maux_registry_set(U, "P");
+                maux_localstorage_set(U, "P");
 
                 maux_nb_continue(1);
             }
         maux_nb_state(1)
-            maux_registry_get(U, "T");
+            maux_localstorage_get(U, "T");
             struct mc_strtable *T = mcapi_get_strtable(U);
 
-            maux_registry_get(U, "A");
+            maux_localstorage_get(U, "A");
             struct mc_ast *A = mcapi_get_ast(U);
 
-            maux_registry_get(U, "LV");
+            maux_localstorage_get(U, "LV");
             struct mc_lex *L = mcapi_get_lex(U);
 
-            maux_registry_get(U, "P");
+            maux_localstorage_get(U, "P");
             struct mc_parser *P = mcapi_get_parser(U);
 
             bool next = mcapi_parser_step(U, P, A, L, T);
@@ -413,18 +409,18 @@ static void ast(morphine_coroutine_t U) {
                 maux_nb_continue(1);
             } else {
                 mcapi_push_visitor(U);
-                maux_registry_set(U, "LV");
+                maux_localstorage_set(U, "LV");
 
                 maux_nb_continue(2);
             }
         maux_nb_state(2)
-            maux_registry_get(U, "T");
+            maux_localstorage_get(U, "T");
             struct mc_strtable *T = mcapi_get_strtable(U);
 
-            maux_registry_get(U, "A");
+            maux_localstorage_get(U, "A");
             struct mc_ast *A = mcapi_get_ast(U);
 
-            maux_registry_get(U, "LV");
+            maux_localstorage_get(U, "LV");
             struct mc_visitor *V = mcapi_get_visitor(U);
 
             mapi_pop(U, 3);

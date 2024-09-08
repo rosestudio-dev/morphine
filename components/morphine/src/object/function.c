@@ -62,7 +62,6 @@ struct function *functionI_create(
         .constants = NULL,
         .instructions = NULL,
         .statics = NULL,
-        .registry_key = valueI_nil
     };
 
     memcpy(result_name, name, ((size_t) name_len) * sizeof(char));

@@ -73,8 +73,8 @@ static inline void record(morphine_instance_t I) {
         mark_object(I, objectI_cast(I->env));
     }
 
-    if (I->registry != NULL) {
-        mark_object(I, objectI_cast(I->registry));
+    if (I->localstorage != NULL) {
+        mark_object(I, objectI_cast(I->localstorage));
     }
 
     mark_object(I, objectI_cast(I->sio.error));

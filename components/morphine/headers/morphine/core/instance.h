@@ -23,7 +23,7 @@ struct instance {
     struct usertypes usertypes;
 
     struct table *env;
-    struct table *registry;
+    struct table *localstorage;
 
     struct {
         struct string *names[MFS_COUNT];

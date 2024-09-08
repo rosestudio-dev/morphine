@@ -28,8 +28,6 @@ struct function {
     morphine_instruction_t *instructions;
     struct value *constants;
     struct value *statics;
-
-    struct value registry_key;
 };
 
 struct function *functionI_create(

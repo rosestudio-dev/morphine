@@ -17,7 +17,7 @@ static inline void callstack_recover(struct coroutine *U, struct value *stack) {
         stackI_ptr_recover(current->s.source);
         stackI_ptr_recover(current->s.env);
         stackI_ptr_recover(current->s.self);
-        stackI_ptr_recover(current->s.registry);
+        stackI_ptr_recover(current->s.localstorage_key);
         stackI_ptr_recover(current->s.result);
         stackI_ptr_recover(current->s.thrown);
         stackI_ptr_recover(current->s.args);

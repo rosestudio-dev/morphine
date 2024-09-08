@@ -29,7 +29,6 @@ struct native *nativeI_create(morphine_instance_t I, const char *name, morphine_
         .function = function,
         .name = result_name,
         .name_len = name_len,
-        .registry_key = valueI_nil
     };
 
     memcpy(result_name, name, name_len * sizeof(char));

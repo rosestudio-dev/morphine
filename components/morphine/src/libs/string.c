@@ -802,19 +802,17 @@ static void format(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 2);
 
-            mapi_bind_registry(U);
-
             mapi_push_size(U, 0, "state");
-            maux_registry_set(U, "state");
+            maux_localstorage_set(U, "state");
 
             mapi_push_size(U, 0, "index");
-            maux_registry_set(U, "index");
+            maux_localstorage_set(U, "index");
 
             mapi_push_size(U, 0, "index");
-            maux_registry_set(U, "last_index");
+            maux_localstorage_set(U, "last_index");
 
             mapi_push_size(U, 0, "index");
-            maux_registry_set(U, "table_index");
+            maux_localstorage_set(U, "table_index");
 
             mapi_push_arg(U, 0);
             maux_expect(U, "string");
@@ -831,7 +829,7 @@ static void format(morphine_coroutine_t U) {
             size_t strlen = mapi_string_len(U);
             mapi_pop(U, 1);
 
-            maux_registry_get(U, "state");
+            maux_localstorage_get(U, "state");
             enum format_state {
                 TEXT = 0,
                 FOUND = 1,
@@ -840,15 +838,15 @@ static void format(morphine_coroutine_t U) {
             } state = mapi_get_size(U, "state");
             mapi_pop(U, 1);
 
-            maux_registry_get(U, "index");
+            maux_localstorage_get(U, "index");
             size_t index = mapi_get_size(U, "index");
             mapi_pop(U, 1);
 
-            maux_registry_get(U, "last_index");
+            maux_localstorage_get(U, "last_index");
             size_t last_index = mapi_get_size(U, "index");
             mapi_pop(U, 1);
 
-            maux_registry_get(U, "table_index");
+            maux_localstorage_get(U, "table_index");
             size_t table_index = mapi_get_size(U, "index");
             mapi_pop(U, 1);
 
@@ -902,16 +900,16 @@ static void format(morphine_coroutine_t U) {
                         state = CONCAT;
 
                         mapi_push_size(U, state, "state");
-                        maux_registry_set(U, "state");
+                        maux_localstorage_set(U, "state");
 
                         mapi_push_size(U, index, "index");
-                        maux_registry_set(U, "index");
+                        maux_localstorage_set(U, "index");
 
                         mapi_push_size(U, last_index, "index");
-                        maux_registry_set(U, "last_index");
+                        maux_localstorage_set(U, "last_index");
 
                         mapi_push_size(U, table_index, "index");
-                        maux_registry_set(U, "table_index");
+                        maux_localstorage_set(U, "table_index");
 
                         mapi_library(U, "value.tostr", false);
                         maux_nb_calli(1, 1);

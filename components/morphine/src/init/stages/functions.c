@@ -20,7 +20,6 @@ static morphine_library_t *(*builtins[])(void) = {
     mlib_builtin_table,
     mlib_builtin_userdata,
     mlib_builtin_vector,
-    mlib_builtin_registry,
     mlib_builtin_sio,
     mlib_builtin_binary,
     mlib_builtin_bitwise,

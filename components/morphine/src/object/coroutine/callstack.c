@@ -15,7 +15,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 #include "morphine/misc/metatable.h"
-#include "morphine/misc/registry.h"
+#include "morphine/misc/localstorage.h"
 #include "morphine/utils/overflow.h"
 
 static inline struct value extract_callable(
@@ -111,7 +111,7 @@ static inline void stackI_call(
         .s.source = (base + 1),
         .s.env = (base + 2),
         .s.self = (base + 3),
-        .s.registry = (base + 4),
+        .s.localstorage_key = (base + 4),
         .s.result = (base + 5),
         .s.thrown = (base + 6),
         .s.args = (base + 7),
@@ -135,6 +135,7 @@ static inline void stackI_call(
     *callinfo->s.source = source;
     *callinfo->s.env = env;
     *callinfo->s.self = self;
+    *callinfo->s.localstorage_key = valueI_raw(callinfo);
 
     // add callinfo
 
@@ -324,7 +325,7 @@ void callstackI_call_from_interpreter(
 
 void callstackI_pop(morphine_coroutine_t U) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
-    registryI_clear_by_key(U->I, *callinfo->s.registry);
+    localstorageI_clear(U);
 
     size_t pop_size = callinfo->pop_size;
 
@@ -397,13 +398,6 @@ void callstackI_continue(morphine_coroutine_t U, size_t state) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
     callinfo->pc.state = state;
     callinfo->exit = false;
-}
-
-void callstackI_bind_registry(morphine_coroutine_t U) {
-    struct callinfo *callinfo = callstackI_info_or_error(U);
-    struct value key = valueI_raw(callinfo);
-    *callinfo->s.registry = key;
-    registryI_set_key(U->I, *callinfo->s.callable, key);
 }
 
 size_t callstackI_state(morphine_coroutine_t U) {

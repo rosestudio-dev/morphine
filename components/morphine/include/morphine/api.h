@@ -45,7 +45,6 @@ MORPHINE_API void mapi_push_arg(morphine_coroutine_t, ml_size index);
 MORPHINE_API void mapi_push_env(morphine_coroutine_t);
 MORPHINE_API void mapi_push_self(morphine_coroutine_t);
 MORPHINE_API void mapi_change_env(morphine_coroutine_t);
-MORPHINE_API void mapi_bind_registry(morphine_coroutine_t);
 
 // error
 
@@ -301,15 +300,14 @@ MORPHINE_API void mapi_copy(morphine_coroutine_t, morphine_coroutine_t to, size_
 MORPHINE_API void mapi_stack_reset(morphine_coroutine_t);
 MORPHINE_API size_t mapi_stack(morphine_coroutine_t);
 
-// registry
+// localstorage
 
-MORPHINE_API void mapi_registry_set_key(morphine_coroutine_t);
-MORPHINE_API void mapi_registry_set(morphine_coroutine_t);
-MORPHINE_API bool mapi_registry_get(morphine_coroutine_t);
-MORPHINE_API bool mapi_registry_remove(morphine_coroutine_t);
-MORPHINE_API void mapi_registry_getoe(morphine_coroutine_t);
-MORPHINE_API void mapi_registry_removeoe(morphine_coroutine_t);
-MORPHINE_API void mapi_registry_clear(morphine_coroutine_t);
+MORPHINE_API void mapi_localstorage_set(morphine_coroutine_t);
+MORPHINE_API bool mapi_localstorage_get(morphine_coroutine_t);
+MORPHINE_API bool mapi_localstorage_remove(morphine_coroutine_t);
+MORPHINE_API void mapi_localstorage_getoe(morphine_coroutine_t);
+MORPHINE_API void mapi_localstorage_removeoe(morphine_coroutine_t);
+MORPHINE_API void mapi_localstorage_clear(morphine_coroutine_t);
 
 // sio
 
