@@ -44,6 +44,14 @@ function terminate(print) {
   }, 0)
 }
 
+function updateText(ref, msg) {
+  let text = ref.value + msg
+  if (text.length > 16384) {
+    text = text.substring(text.length - 16384, text.length)
+  }
+  ref.value = text
+}
+
 function inputClick() {
   if (runningRef.value) {
     return
@@ -81,11 +89,11 @@ const runClick = debounce(200, () => {
         break
       }
       case "stdout": {
-        outputConsoleRef.value += msg.data.text
+        updateText(outputConsoleRef, msg.data.text)
         break
       }
       case "stderr": {
-        errorConsoleRef.value += msg.data.text
+        updateText(errorConsoleRef, msg.data.text)
         break
       }
     }
