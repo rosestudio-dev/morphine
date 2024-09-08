@@ -44,8 +44,10 @@
         } \
     morphinem_blk_end
 
-#define slot(C, a) ((C)->s.slots[(a)])
-#define param(C, a) ((C)->s.params[(a)])
+#define set_slot(C, a, x)  morphinem_blk_start struct value _temp = (x); (C)->s.slots[(a)] = _temp; morphinem_blk_end
+#define get_slot(C, a, n)  struct value n = ((C)->s.slots[(a)]); morphinem_blk_start morphinem_blk_end
+#define set_param(C, a, x) morphinem_blk_start struct value _temp = (x); (C)->s.params[(a)] = _temp; morphinem_blk_end
+#define get_param(C, a, n) struct value n = ((C)->s.params[(a)]); morphinem_blk_start morphinem_blk_end
 
 #define arg1 instruction.argument1
 #define arg2 instruction.argument2
@@ -55,7 +57,7 @@
 
 static inline void clear_params(struct callinfo *C, ml_size count) {
     for (ml_size i = 0; i < count; i++) {
-        param(C, i) = valueI_nil;
+        set_param(C, i, valueI_nil);
     }
 }
 
@@ -86,106 +88,108 @@ sp_case(MORPHINE_OPCODE_YIELD)
             }
 sp_case(MORPHINE_OPCODE_LOAD)
             {
-                slot(C, arg2) = F->constants[arg1];
+                set_slot(C, arg2, F->constants[arg1]);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_MOVE)
             {
-                slot(C, arg2) = slot(C, arg1);
+                get_slot(C, arg1, value);
+                set_slot(C, arg2, value);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_PARAM)
             {
-                param(C, arg2) = slot(C, arg1);
+                get_slot(C, arg1, value);
+                set_param(C, arg2, value);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ARG)
             {
-                slot(C, arg2) = C->s.args[arg1];
+                set_slot(C, arg2, C->s.args[arg1]);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ENV)
             {
-                slot(C, arg1) = *C->s.env;
+                set_slot(C, arg1, *C->s.env);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_SELF)
             {
-                slot(C, arg1) = *C->s.self;
+                set_slot(C, arg1, *C->s.self);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_INVOKED)
             {
-                slot(C, arg1) = *C->s.callable;
+                set_slot(C, arg1, *C->s.callable);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_VECTOR)
             {
-                slot(C, arg1) = valueI_object(vectorI_create(U->I, arg2));
+                set_slot(C, arg1, valueI_object(vectorI_create(U->I, arg2)));
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_TABLE)
             {
-                slot(C, arg1) = valueI_object(tableI_create(U->I));
+                set_slot(C, arg1, valueI_object(tableI_create(U->I)));
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_GET)
             {
-                struct value container = slot(C, arg1);
-                struct value key = slot(C, arg2);
+                get_slot(C, arg1, container);
+                get_slot(C, arg2, key);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_get, 1, container, key, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_SET)
             {
-                struct value container = slot(C, arg1);
-                struct value key = slot(C, arg2);
-                struct value value = slot(C, arg3);
+                get_slot(C, arg1, container);
+                get_slot(C, arg2, key);
+                get_slot(C, arg3, value);
 
                 complex_fun(interpreter_fun_set, 1, container, key, value);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ITERATOR)
             {
-                struct value container = slot(C, arg1);
+                get_slot(C, arg1, container);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_iterator, 1, container, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ITERATOR_INIT)
             {
-                struct value iterator = slot(C, arg1);
-                struct value key_name = slot(C, arg2);
-                struct value value_name = slot(C, arg3);
+                get_slot(C, arg1, iterator);
+                get_slot(C, arg2, key_name);
+                get_slot(C, arg3, value_name);
 
                 complex_fun(interpreter_fun_iterator_init, 1, iterator, key_name, value_name);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ITERATOR_HAS)
             {
-                struct value iterator = slot(C, arg1);
+                get_slot(C, arg1, iterator);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_iterator_has, 1, iterator, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ITERATOR_NEXT)
             {
-                struct value iterator = slot(C, arg1);
+                get_slot(C, arg1, iterator);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_iterator_next, 1, iterator, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_JUMP)
@@ -195,7 +199,7 @@ sp_case(MORPHINE_OPCODE_JUMP)
             }
 sp_case(MORPHINE_OPCODE_JUMP_IF)
             {
-                struct value cond = slot(C, arg1);
+                get_slot(C, arg1, cond);
 
                 if (valueI_istrue(cond)) {
                     *position = arg2;
@@ -207,54 +211,62 @@ sp_case(MORPHINE_OPCODE_JUMP_IF)
             }
 sp_case(MORPHINE_OPCODE_GET_STATIC)
             {
-                struct value extracted = callstackI_extract_callable(U->I, slot(C, arg1));
+                get_slot(C, arg1, callable);
+                struct value extracted = callstackI_extract_callable(U->I, callable);
                 struct function *function = valueI_as_function_or_error(U->I, extracted);
-                slot(C, arg3) = functionI_static_get(
+                struct value result = functionI_static_get(
                     U->I,
                     function,
                     arg2
                 );
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_SET_STATIC)
             {
-                struct value extracted = callstackI_extract_callable(U->I, slot(C, arg1));
+                get_slot(C, arg1, callable);
+                struct value extracted = callstackI_extract_callable(U->I, callable);
                 struct function *function = valueI_as_function_or_error(U->I, extracted);
+                get_slot(C, arg3, value);
                 functionI_static_set(
                     U->I,
                     function,
                     arg2,
-                    slot(C, arg3)
+                    value
                 );
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_GET_CLOSURE)
             {
-                slot(C, arg3) = closureI_get(
+                get_slot(C, arg1, callable);
+                struct closure *closure = valueI_as_closure_or_error(U->I, callable);
+                struct value result = closureI_get(
                     U->I,
-                    valueI_as_closure_or_error(U->I, slot(C, arg1)),
+                    closure,
                     arg2
                 );
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_SET_CLOSURE)
             {
+                get_slot(C, arg1, callable);
+                struct closure *closure = valueI_as_closure_or_error(U->I, callable);
+                get_slot(C, arg3, value);
                 closureI_set(
                     U->I,
-                    valueI_as_closure_or_error(U->I, slot(C, arg1)),
+                    closure,
                     arg2,
-                    slot(C, arg3)
+                    value
                 );
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_CLOSURE)
             {
-                struct value callable = slot(C, arg1);
+                get_slot(C, arg1, callable);
                 ml_size count = arg2;
-
                 struct closure *closure = closureI_create(U->I, callable, count);
-
-                slot(C, arg3) = valueI_object(closure);
+                set_slot(C, arg3, valueI_object(closure));
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_CALL)
@@ -264,7 +276,7 @@ sp_case(MORPHINE_OPCODE_CALL)
                     sp_end();
                 }
 
-                struct value callable = slot(C, arg1);
+                get_slot(C, arg1, callable);
                 ml_size count = arg2;
 
                 callstackI_continue(U, 1);
@@ -287,8 +299,8 @@ sp_case(MORPHINE_OPCODE_SCALL)
                     sp_end();
                 }
 
-                struct value callable = slot(C, arg1);
-                struct value self = slot(C, arg3);
+                get_slot(C, arg1, callable);
+                get_slot(C, arg3, self);
                 ml_size count = arg2;
 
                 callstackI_continue(U, 1);
@@ -306,183 +318,185 @@ sp_case(MORPHINE_OPCODE_SCALL)
             }
 sp_case(MORPHINE_OPCODE_LEAVE)
             {
-                callstackI_return(U, slot(C, arg1));
+                get_slot(C, arg1, value);
+                callstackI_return(U, value);
                 (*position)++;
                 sp_yield();
             }
 sp_case(MORPHINE_OPCODE_RESULT)
             {
-                slot(C, arg1) = callstackI_result(U);
+                struct value value = callstackI_result(U);
+                set_slot(C, arg1, value);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ADD)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_add, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_SUB)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_sub, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_MUL)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_mul, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_DIV)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_div, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_MOD)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_mod, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_EQUAL)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_equal, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_LESS)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_less, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_AND)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_and, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_OR)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_or, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_CONCAT)
             {
-                struct value a = slot(C, arg1);
-                struct value b = slot(C, arg2);
+                get_slot(C, arg1, a);
+                get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_concat, 1, a, b, &result);
 
-                slot(C, arg3) = result;
+                set_slot(C, arg3, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_TYPE)
             {
-                struct value a = slot(C, arg1);
+                get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_type, 1, a, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_NEGATIVE)
             {
-                struct value a = slot(C, arg1);
+                get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_negative, 1, a, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_NOT)
             {
-                struct value a = slot(C, arg1);
+                get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_not, 1, a, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_REF)
             {
-                struct value a = slot(C, arg1);
+                get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_ref, 1, a, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_DEREF)
             {
-                struct value a = slot(C, arg1);
+                get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_deref, 1, a, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_LENGTH)
             {
-                struct value a = slot(C, arg1);
+                get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_length, 1, a, &result);
 
-                slot(C, arg2) = result;
+                set_slot(C, arg2, result);
                 sp_end();
             }
         }
