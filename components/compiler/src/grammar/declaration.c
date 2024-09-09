@@ -36,10 +36,15 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
         struct mc_ast_expression_function *function =
             mcapi_ast_node2function_expression(parser_U(C), parser_reduce(C, rule_function));
 
+        if (function->ref->anonymous) {
+            parser_error(C, "unable to declare anonymous function");
+        }
+
         struct mc_ast_expression_variable *variable =
             mcapi_ast_create_expression_variable(parser_U(C), parser_A(C), line);
 
         variable->ignore_mutable = true;
+
         variable->index = function->ref->name;
 
         declaration->mutable = false;
