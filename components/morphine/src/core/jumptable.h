@@ -12,10 +12,10 @@
 
 static const void *const sp_dispatch_tab[] = {
 #define mis_instruction_label(n)             &&OL_MORPHINE_OPCODE_##n,
-#define mis_instruction_args0(n)             mis_instruction_label(n)
-#define mis_instruction_args1(n, a1)         mis_instruction_label(n)
-#define mis_instruction_args2(n, a1, a2)     mis_instruction_label(n)
-#define mis_instruction_args3(n, a1, a2, a3) mis_instruction_label(n)
+#define mis_instruction_args0(n, s)             mis_instruction_label(n)
+#define mis_instruction_args1(n, s, a1)         mis_instruction_label(n)
+#define mis_instruction_args2(n, s, a1, a2)     mis_instruction_label(n)
+#define mis_instruction_args3(n, s, a1, a2, a3) mis_instruction_label(n)
 
 #include "morphine/instruction/specification.h"
 

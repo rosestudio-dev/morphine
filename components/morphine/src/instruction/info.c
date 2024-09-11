@@ -6,10 +6,10 @@
 #include "morphine/utils/semicolon.h"
 
 static const ml_size opcode_args[] = {
-#define mis_instruction_args0(n)             0,
-#define mis_instruction_args1(n, a1)         1,
-#define mis_instruction_args2(n, a1, a2)     2,
-#define mis_instruction_args3(n, a1, a2, a3) 3,
+#define mis_instruction_args0(n, s)             0,
+#define mis_instruction_args1(n, s, a1)         1,
+#define mis_instruction_args2(n, s, a1, a2)     2,
+#define mis_instruction_args3(n, s, a1, a2, a3) 3,
 
 #include "morphine/instruction/specification.h"
 
@@ -61,10 +61,10 @@ bool instructionI_validate(
 
 
     switch (instruction.opcode) {
-#define mis_instruction_args0(n)             case MORPHINE_OPCODE_##n: arg_undefined(1); arg_undefined(2); arg_undefined(3); return true;
-#define mis_instruction_args1(n, a1)         case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_undefined(2); arg_undefined(3); return true;
-#define mis_instruction_args2(n, a1, a2)     case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_undefined(3); return true;
-#define mis_instruction_args3(n, a1, a2, a3) case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_##a3(3);      return true;
+#define mis_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: arg_undefined(1); arg_undefined(2); arg_undefined(3); return true;
+#define mis_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_undefined(2); arg_undefined(3); return true;
+#define mis_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_undefined(3); return true;
+#define mis_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_##a3(3);      return true;
 
 #include "morphine/instruction/specification.h"
 

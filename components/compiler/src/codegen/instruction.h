@@ -18,10 +18,10 @@
 
 #define instruction_argument(n)              , n
 #define instruction_function(n, args...)     void codegen_instruction_##n(struct codegen_controller * args);
-#define mis_instruction_args0(n)             instruction_function(n)
-#define mis_instruction_args1(n, a1)         instruction_function(n, instruction_argument(a1))
-#define mis_instruction_args2(n, a1, a2)     instruction_function(n, instruction_argument(a1) instruction_argument(a2))
-#define mis_instruction_args3(n, a1, a2, a3) instruction_function(n, instruction_argument(a1) instruction_argument(a2) instruction_argument(a3))
+#define mis_instruction_args0(n, s)             instruction_function(n)
+#define mis_instruction_args1(n, s, a1)         instruction_function(n, instruction_argument(a1))
+#define mis_instruction_args2(n, s, a1, a2)     instruction_function(n, instruction_argument(a1) instruction_argument(a2))
+#define mis_instruction_args3(n, s, a1, a2, a3) instruction_function(n, instruction_argument(a1) instruction_argument(a2) instruction_argument(a3))
 
 #include "morphine/instruction/specification.h"
 
