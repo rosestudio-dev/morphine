@@ -7,27 +7,37 @@
 #include "controller.h"
 
 #define slot   struct instruction_slot
-#define index  size_t
-#define count  size_t
-#define anchor anchor_t
+#define count          size_t
+#define anchor         anchor_t
+#define constant_index size_t
+#define param_index    size_t
+#define argument_index size_t
+#define static_index   size_t
+#define closure_index  size_t
+#define params_count   size_t
 
-#define instr_arg(n) , n
-#define instr_func(n, args...)     void codegen_instruction_##n(struct codegen_controller * args);
-#define instr_func0(n)             instr_func(n)
-#define instr_func1(n, a1)         instr_func(n, instr_arg(a1))
-#define instr_func2(n, a1, a2)     instr_func(n, instr_arg(a1) instr_arg(a2))
-#define instr_func3(n, a1, a2, a3) instr_func(n, instr_arg(a1) instr_arg(a2) instr_arg(a3))
+#define instruction_argument(n) , n
+#define instruction_function(n, args...) void codegen_instruction_##n(struct codegen_controller * args);
+#define instruction_args0(n)             instruction_function(n)
+#define instruction_args1(n, a1)         instruction_function(n, instruction_argument(a1))
+#define instruction_args2(n, a1, a2)     instruction_function(n, instruction_argument(a1) instruction_argument(a2))
+#define instruction_args3(n, a1, a2, a3) instruction_function(n, instruction_argument(a1) instruction_argument(a2) instruction_argument(a3))
 
 #include "instruction/specification.h"
 
 #undef slot
-#undef index
 #undef count
 #undef anchor
+#undef constant_index
+#undef param_index
+#undef argument_index
+#undef static_index
+#undef closure_index
+#undef params_count
 
-#undef instr_arg
-#undef instr_func
-#undef instr_func0
-#undef instr_func1
-#undef instr_func2
-#undef instr_func3
+#undef instruction_argument
+#undef instruction_function
+#undef instruction_args0
+#undef instruction_args1
+#undef instruction_args2
+#undef instruction_args3

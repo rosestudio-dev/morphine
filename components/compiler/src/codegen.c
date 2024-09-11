@@ -1178,6 +1178,25 @@ static inline void update_slot_argument(
     }
 }
 
+static inline void update_param_argument(
+    struct instruction_argument argument,
+    size_t *params
+) {
+    if (argument.type == IAT_params_count) {
+        if (argument.value_params_count > *params) {
+            *params = argument.value_params_count;
+        }
+        return;
+    }
+
+    if (argument.type == IAT_param_index) {
+        if (argument.value_param_index + 1 > *params) {
+            *params = argument.value_param_index + 1;
+        }
+        return;
+    }
+}
+
 static inline size_t compiled_size(struct mc_codegen *G) {
     size_t size = 0;
     struct context *context = G->compiled;
@@ -1198,16 +1217,6 @@ static inline ml_argument argument_normalize(
     switch (argument.type) {
         case IAT_stub:
             return 0;
-        case IAT_index:
-            if (argument.value_index > MLIMIT_ARGUMENT_MAX) {
-                mapi_error(U, "index too big");
-            }
-            return (ml_argument) argument.value_index;
-        case IAT_count:
-            if (argument.value_count > MLIMIT_ARGUMENT_MAX) {
-                mapi_error(U, "count too big");
-            }
-            return (ml_argument) argument.value_count;
         case IAT_slot: {
             size_t slot;
             if (argument.value_slot.is_variable) {
@@ -1235,6 +1244,41 @@ static inline ml_argument argument_normalize(
 
             return (ml_argument) position;
         }
+        case IAT_constant_index:
+            if (argument.value_constant_index > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "constant index too big");
+            }
+            return (ml_argument) argument.value_constant_index;
+        case IAT_param_index:
+            if (argument.value_param_index > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "param index too big");
+            }
+            return (ml_argument) argument.value_param_index;
+        case IAT_argument_index:
+            if (argument.value_argument_index > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "argument index too big");
+            }
+            return (ml_argument) argument.value_argument_index;
+        case IAT_static_index:
+            if (argument.value_static_index > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "static index too big");
+            }
+            return (ml_argument) argument.value_static_index;
+        case IAT_closure_index:
+            if (argument.value_closure_index > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "closure index too big");
+            }
+            return (ml_argument) argument.value_closure_index;
+        case IAT_params_count:
+            if (argument.value_count > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "params count too big");
+            }
+            return (ml_argument) argument.value_count;
+        case IAT_count:
+            if (argument.value_params_count > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "count too big");
+            }
+            return (ml_argument) argument.value_params_count;
     }
 
     mapi_error(U, "undefined argument");
@@ -1276,15 +1320,13 @@ static inline void fill_vector(
         for (size_t index = 0; index < context->instructions.size; index++) {
             struct instruction instruction = context->instructions.array[index];
 
-            if (instruction.opcode == MORPHINE_OPCODE_PARAM) {
-                if (params < instruction.argument2.value_index + 1) {
-                    params = instruction.argument2.value_index + 1;
-                }
-            }
-
             update_slot_argument(instruction.argument1, &variables, &temporaries);
             update_slot_argument(instruction.argument2, &variables, &temporaries);
             update_slot_argument(instruction.argument3, &variables, &temporaries);
+
+            update_param_argument(instruction.argument1, &params);
+            update_param_argument(instruction.argument2, &params);
+            update_param_argument(instruction.argument3, &params);
         }
 
         const char *name;
