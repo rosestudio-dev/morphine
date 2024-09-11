@@ -1231,12 +1231,12 @@ static inline ml_argument argument_normalize(
 
             return (ml_argument) slot;
         }
-        case IAT_anchor: {
-            if (argument.value_anchor >= context->anchors.size) {
+        case IAT_position: {
+            if (argument.value_position >= context->anchors.size) {
                 mapi_error(U, "unknown anchor");
             }
 
-            size_t position = context->anchors.array[argument.value_anchor];
+            size_t position = context->anchors.array[argument.value_position];
 
             if (position > MLIMIT_ARGUMENT_MAX) {
                 mapi_error(U, "position too big");
@@ -1244,6 +1244,11 @@ static inline ml_argument argument_normalize(
 
             return (ml_argument) position;
         }
+        case IAT_size:
+            if (argument.value_size > MLIMIT_ARGUMENT_MAX) {
+                mapi_error(U, "size too big");
+            }
+            return (ml_argument) argument.value_size;
         case IAT_constant_index:
             if (argument.value_constant_index > MLIMIT_ARGUMENT_MAX) {
                 mapi_error(U, "constant index too big");
@@ -1270,13 +1275,8 @@ static inline ml_argument argument_normalize(
             }
             return (ml_argument) argument.value_closure_index;
         case IAT_params_count:
-            if (argument.value_count > MLIMIT_ARGUMENT_MAX) {
-                mapi_error(U, "params count too big");
-            }
-            return (ml_argument) argument.value_count;
-        case IAT_count:
             if (argument.value_params_count > MLIMIT_ARGUMENT_MAX) {
-                mapi_error(U, "count too big");
+                mapi_error(U, "params count too big");
             }
             return (ml_argument) argument.value_params_count;
     }
