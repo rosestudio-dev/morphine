@@ -264,7 +264,7 @@ static void print_instructions(morphine_coroutine_t U) {
         printf("%s    ", opcode2str(instruction.opcode));
         spaces(U, strlen(opcode2str(instruction.opcode)), name_len);
 
-        size_t args = mapi_opcode_args(U, instruction.opcode);
+        ml_size args = mapi_opcode_args(U, instruction.opcode);
 
         if (args > 0) {
             printf("%"MLIMIT_ARGUMENT_PR" ", instruction.argument1);

@@ -312,7 +312,7 @@ static void getinstruction(morphine_coroutine_t U) {
             mapi_push_size(U, instruction.line, "line");
             mapi_table_set(U);
 
-            size_t count = mapi_opcode_args(U, instruction.opcode);
+            ml_size count = mapi_opcode_args(U, instruction.opcode);
 
             mapi_push_string(U, "argument1");
             if (count > 0) {
@@ -362,7 +362,7 @@ static void setinstruction(morphine_coroutine_t U) {
                 instruction.line = mapi_get_size(U, "line");
                 mapi_pop(U, 1);
 
-                size_t count = mapi_opcode_args(U, instruction.opcode);
+                ml_size count = mapi_opcode_args(U, instruction.opcode);
 
                 if (count > 0) {
                     mapi_push_string(U, "argument1");
@@ -398,7 +398,7 @@ static void setinstruction(morphine_coroutine_t U) {
                 mapi_push_arg(U, 3);
                 instruction.line = mapi_get_size(U, "line");
 
-                size_t count = mapi_opcode_args(U, instruction.opcode);
+                ml_size count = mapi_opcode_args(U, instruction.opcode);
                 maux_expect_args(U, 4 + count);
 
                 if (count > 0) {

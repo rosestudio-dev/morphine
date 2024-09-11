@@ -291,7 +291,7 @@ static void write_objects_data(struct data *D) {
                     write_opcode(D, instruction.opcode);
                     write_ml_line(D, instruction.line);
 
-                    uint8_t count = instructionI_opcode_args(instruction.opcode, NULL);
+                    ml_size count = instructionI_opcode_args(instruction.opcode, NULL);
 
                     if (count > 0) {
                         write_ml_argument(D, instruction.argument1);

@@ -285,7 +285,7 @@ static void read_objects_data(struct data *D) {
                     instruction.argument3 = 0;
 
                     bool valid = false;
-                    uint8_t count = instructionI_opcode_args(instruction.opcode, &valid);
+                    ml_size count = instructionI_opcode_args(instruction.opcode, &valid);
 
                     if (!valid) {
                         throwI_error(D->I, "corrupted binary");

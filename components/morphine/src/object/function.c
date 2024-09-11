@@ -149,13 +149,7 @@ void functionI_instruction_set(
         throwI_error(I, "instruction index was out of bounce");
     }
 
-    bool is_valid = instructionI_validate(
-        instruction,
-        function->arguments_count,
-        function->slots_count,
-        function->params_count,
-        function->constants_count
-    );
+    bool is_valid = instructionI_validate(instruction, function);
 
     if (!is_valid) {
         throwI_error(I, "instruction structure corrupted");
