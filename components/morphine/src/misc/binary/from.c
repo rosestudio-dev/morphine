@@ -169,13 +169,16 @@ static void read_objects_info(struct data *D) {
             case VALUE_TYPE_STRING: {
                 ml_size size = get_ml_size(D);
 
-                char *buffer = NULL;
-                struct string *string = stringI_createn(D->I, size, &buffer);
-                size_t rollback = gcI_safe_obj(D->I, objectI_cast(string));
+                struct userdata *userdata = userdataI_create_vec(D->I, size, sizeof(char));
+                size_t rollback = gcI_safe_obj(D->I, objectI_cast(userdata));
 
+                char *buffer = userdata->data;
                 for (ml_size i = 0; i < size; i++) {
                     buffer[i] = get_char(D);
                 }
+
+                struct string *string = stringI_createn(D->I, size, buffer);
+                gcI_safe_obj(D->I, objectI_cast(string));
 
                 vectorI_set(D->I, D->vector, vector_index, valueI_object(string));
 

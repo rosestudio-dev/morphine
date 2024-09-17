@@ -47,28 +47,6 @@ static inline void record(morphine_instance_t I) {
         }
     }
 
-    for (enum metatable_field mf = MFS_START; mf < MFS_COUNT; mf++) {
-        mark_object(I, objectI_cast(I->metatable.names[mf]));
-    }
-
-    for (enum value_type type = VALUE_TYPES_START; type < VALUE_TYPES_COUNT; type++) {
-        struct table *table = I->metatable.defaults[type];
-        if (table != NULL) {
-            mark_object(I, objectI_cast(table));
-        }
-    }
-
-    for (size_t i = 0; i < I->libraries.size; i++) {
-        struct library *library = I->libraries.array + i;
-        if (library->table != NULL) {
-            mark_object(I, objectI_cast(library->table));
-        }
-    }
-
-    if (!I->E.throw.is_message) {
-        mark_value(I, I->E.throw.error.value);
-    }
-
     if (I->env != NULL) {
         mark_object(I, objectI_cast(I->env));
     }
@@ -76,9 +54,6 @@ static inline void record(morphine_instance_t I) {
     if (I->localstorage != NULL) {
         mark_object(I, objectI_cast(I->localstorage));
     }
-
-    mark_object(I, objectI_cast(I->sio.error));
-    mark_object(I, objectI_cast(I->sio.io));
 
     {
         size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);

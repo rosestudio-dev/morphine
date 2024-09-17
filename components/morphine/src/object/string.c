@@ -4,8 +4,10 @@
 
 #include "morphine/object/string.h"
 #include "morphine/core/throw.h"
+#include "morphine/core/sso.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/utils/overflow.h"
+#include "morphine/params.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -49,15 +51,19 @@ static struct string *create(morphine_instance_t I, size_t size, char **buffer) 
     return result;
 }
 
-struct string *stringI_createn(morphine_instance_t I, size_t size, char **buffer) {
-    return create(I, size, buffer);
-}
+struct string *stringI_createn(morphine_instance_t I, size_t size, const char *str) {
+    {
+        struct string *sso_string = ssoI_get(I, str, size);
+        if (sso_string != NULL) {
+            return sso_string;
+        }
+    }
 
-struct string *stringI_create(morphine_instance_t I, const char *str) {
-    size_t size = strlen(str);
     char *buffer = NULL;
     struct string *result = create(I, size, &buffer);
-    strcpy(buffer, str);
+    memcpy(buffer, str, size * sizeof(char));
+
+    ssoI_rec(I, result);
 
     return result;
 }
@@ -74,6 +80,18 @@ struct string *stringI_createva(morphine_instance_t I, const char *str, va_list 
 
     size_t size = (size_t) rawsize;
 
+    if (size <= MPARAM_SSO_MAX_LEN) {
+        char buffer[MPARAM_SSO_MAX_LEN];
+        va_copy(temp, args);
+        vsnprintf(buffer, size + 1, str, temp);
+        va_end(temp);
+
+        struct string *sso_string = ssoI_get(I, buffer, size);
+        if (sso_string != NULL) {
+            return sso_string;
+        }
+    }
+
     char *buffer = NULL;
     struct string *result = create(I, size, &buffer);
 
@@ -81,7 +99,13 @@ struct string *stringI_createva(morphine_instance_t I, const char *str, va_list 
     vsnprintf(buffer, size + 1, str, temp);
     va_end(temp);
 
+    ssoI_rec(I, result);
+
     return result;
+}
+
+struct string *stringI_create(morphine_instance_t I, const char *str) {
+    return stringI_createn(I, strlen(str), str);
 }
 
 struct string *stringI_createf(morphine_instance_t I, const char *str, ...) {
@@ -106,11 +130,7 @@ struct string *stringI_get(morphine_instance_t I, struct string *string, ml_size
         throwI_error(I, "string index out of bounce");
     }
 
-    char *buffer;
-    struct string *result = create(I, 1, &buffer);
-    buffer[0] = string->chars[index];
-
-    return result;
+    return stringI_createn(I, 1, string->chars + index);
 }
 
 struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
@@ -122,10 +142,24 @@ struct string *stringI_concat(morphine_instance_t I, struct string *a, struct st
         throwI_error(I, "too big concat string length");
     }
 
+    size_t size = a->size + b->size;
+    if (size <= MPARAM_SSO_MAX_LEN) {
+        char buffer[MPARAM_SSO_MAX_LEN];
+        memcpy(buffer, a->chars, ((size_t) a->size) * sizeof(char));
+        memcpy(buffer + a->size, b->chars, ((size_t) b->size) * sizeof(char));
+
+        struct string *sso_string = ssoI_get(I, buffer, size);
+        if (sso_string != NULL) {
+            return sso_string;
+        }
+    }
+
     char *buffer;
-    struct string *result = create(I, a->size + b->size, &buffer);
-    memcpy(buffer, a->chars, a->size);
-    memcpy(buffer + a->size, b->chars, b->size);
+    struct string *result = create(I, size, &buffer);
+    memcpy(buffer, a->chars, ((size_t) a->size) * sizeof(char));
+    memcpy(buffer + a->size, b->chars, ((size_t) b->size) * sizeof(char));
+
+    ssoI_rec(I, result);
 
     return result;
 }
@@ -145,6 +179,10 @@ uint64_t stringI_hash(morphine_instance_t I, struct string *string) {
     string->hash.value = result;
 
     return result;
+}
+
+uint64_t stringI_rawhash(size_t size, const char *str) {
+    return hash(size, str);
 }
 
 struct value stringI_iterator_first(morphine_instance_t I, struct string *string, bool *has) {
@@ -203,9 +241,6 @@ struct pair stringI_iterator_next(
         (*key) = valueI_nil;
     }
 
-    char *buffer;
-    struct string *char_string = stringI_createn(I, 1, &buffer);
-    buffer[0] = string->chars[index];
-
+    struct string *char_string = stringI_get(I, string, index);
     return valueI_pair(valueI_size(index), valueI_object(char_string));
 }

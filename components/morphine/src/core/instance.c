@@ -27,7 +27,11 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
         .usertypes = usertypeI_prototype(),
         .data = data,
         .env = NULL,
-        .localstorage = NULL
+        .localstorage = NULL,
+
+#ifdef MORPHINE_ENABLE_SSO
+        .sso = ssoI_prototype(),
+#endif
     };
 
     gcI_prototype(I, sizeof(struct instance));

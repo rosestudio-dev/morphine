@@ -7,6 +7,7 @@
 // modules
 
 #define MORPHINE_ENABLE_JUMPTABLE
+#define MORPHINE_ENABLE_SSO
 
 // tags
 

@@ -126,7 +126,97 @@ static inline bool finalize(morphine_instance_t I) {
     return has_to_be_finalize || has_simple_finalized;
 }
 
+static inline bool mark_sso(morphine_instance_t I) {
+    bool marked = false;
+
+#ifdef MORPHINE_ENABLE_SSO
+    for (size_t r = 0; r < MPARAM_SSO_HASHTABLE_ROWS; r++) {
+        for (size_t c = 0; c < MPARAM_SSO_HASHTABLE_COLS; c++) {
+            struct string *string = I->sso.table[r][c];
+            if (string != NULL && mark_object(I, objectI_cast(string))) {
+                marked = true;
+            }
+        }
+    }
+#else
+    (void) I;
+#endif
+
+    return marked;
+}
+
+static inline bool mark_sio(morphine_instance_t I) {
+    bool marked = false;
+
+    if (mark_object(I, objectI_cast(I->sio.io))) {
+        marked = true;
+    }
+
+    if (mark_object(I, objectI_cast(I->sio.error))) {
+        marked = true;
+    }
+
+    return marked;
+}
+
+static inline bool mark_metatable(morphine_instance_t I) {
+    bool marked = false;
+
+    for (enum metatable_field mf = MFS_START; mf < MFS_COUNT; mf++) {
+        if (mark_object(I, objectI_cast(I->metatable.names[mf]))) {
+            marked = true;
+        }
+    }
+
+    for (enum value_type type = VALUE_TYPES_START; type < VALUE_TYPES_COUNT; type++) {
+        struct table *table = I->metatable.defaults[type];
+        if (table != NULL && mark_object(I, objectI_cast(table))) {
+            marked = true;
+        }
+    }
+
+    return marked;
+}
+
+static inline bool mark_libraries(morphine_instance_t I) {
+    bool marked = false;
+    for (size_t i = 0; i < I->libraries.size; i++) {
+        struct library *library = I->libraries.array + i;
+        if (library->table != NULL && mark_object(I, objectI_cast(library->table))) {
+            marked = true;
+        }
+    }
+
+    return marked;
+}
+
+static inline bool mark_throw(morphine_instance_t I) {
+    if (!I->E.throw.is_message) {
+        return mark_value(I, I->E.throw.error.value);
+    }
+
+    return false;
+}
+
+static inline bool mark(morphine_instance_t I) {
+    bool sso_marked = mark_sso(I);
+    bool sio_marked = mark_sio(I);
+    bool metatable_marked = mark_metatable(I);
+    bool libraries_marked = mark_libraries(I);
+    bool throw_marked = mark_throw(I);
+
+    return sso_marked ||
+           sio_marked ||
+           metatable_marked ||
+           libraries_marked ||
+           throw_marked;
+}
+
 void gcstageI_resolve(morphine_instance_t I, bool emergency) {
+    if (mark(I)) {
+        while (gcstageI_increment(I, SIZE_MAX)) { }
+    }
+
     if (finalize(I)) {
         while (gcstageI_increment(I, SIZE_MAX)) { }
     }

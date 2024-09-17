@@ -52,10 +52,7 @@ static struct string *access(
             throwI_error(I, "empty sub-library name");
         }
 
-        char *buffer;
-        struct string *key = stringI_createn(I, part_size, &buffer);
-        memcpy(buffer, name + last, part_size * sizeof(char));
-
+        struct string *key = stringI_createn(I, part_size, name + last);
         size_t rollback = gcI_safe_obj(I, objectI_cast(key));
 
         bool has = false;
@@ -80,11 +77,7 @@ static struct string *access(
         throwI_error(I, "empty library entry name");
     }
 
-    char *buffer;
-    struct string *key = stringI_createn(I, part_size, &buffer);
-    memcpy(buffer, name + last, part_size * sizeof(char));
-
-    return key;
+    return stringI_createn(I, part_size, name + last);
 }
 
 static void constructor_insert(

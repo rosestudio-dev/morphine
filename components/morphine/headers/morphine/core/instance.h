@@ -10,6 +10,7 @@
 #include "morphine/core/interpreter.h"
 #include "morphine/core/libraries.h"
 #include "morphine/core/usertype.h"
+#include "morphine/core/sso.h"
 #include "morphine/misc/metatable.h"
 
 struct instance {
@@ -21,6 +22,10 @@ struct instance {
     struct interpreter E;
     struct libraries libraries;
     struct usertypes usertypes;
+
+#ifdef MORPHINE_ENABLE_SSO
+    struct sso sso;
+#endif
 
     struct table *env;
     struct table *localstorage;
