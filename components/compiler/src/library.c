@@ -189,150 +189,174 @@ static void disassembly(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void strtable_create(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 0);
-            mcapi_push_strtable(U);
-            maux_nb_return();
-    maux_nb_end
+static void push_token(
+    morphine_coroutine_t U,
+    struct mc_strtable *T,
+    struct mc_lex_token token
+) {
+    mapi_push_table(U);
+
+    mapi_push_string(U, "type");
+    switch (token.type) {
+        case MCLTT_EOS:
+            mapi_push_string(U, "eos");
+            mapi_table_set(U);
+            break;
+        case MCLTT_INTEGER:
+            mapi_push_string(U, "integer");
+            mapi_table_set(U);
+            break;
+        case MCLTT_DECIMAL:
+            mapi_push_string(U, "decimal");
+            mapi_table_set(U);
+            break;
+        case MCLTT_STRING:
+            mapi_push_string(U, "string");
+            mapi_table_set(U);
+            break;
+        case MCLTT_OPERATOR:
+            mapi_push_string(U, "operator");
+            mapi_table_set(U);
+            break;
+        case MCLTT_WORD:
+            mapi_push_string(U, "word");
+            mapi_table_set(U);
+            break;
+        case MCLTT_EXTENDED_WORD:
+            mapi_push_string(U, "extended_word");
+            mapi_table_set(U);
+            break;
+        case MCLTT_COMMENT:
+            mapi_push_string(U, "comment");
+            mapi_table_set(U);
+            break;
+        case MCLTT_MULTILINE_COMMENT:
+            mapi_push_string(U, "multiline_comment");
+            mapi_table_set(U);
+            break;
+    }
+
+    mapi_push_string(U, "value");
+    switch (token.type) {
+        case MCLTT_EOS:
+            mapi_pop(U, 1);
+            break;
+        case MCLTT_INTEGER:
+            mapi_push_integer(U, token.integer);
+            mapi_table_set(U);
+            break;
+        case MCLTT_DECIMAL:
+            mapi_push_decimal(U, token.decimal);
+            mapi_table_set(U);
+            break;
+        case MCLTT_OPERATOR:
+            mapi_push_string(U, mcapi_lex_operator2name(U, token.op));
+            mapi_table_set(U);
+            break;
+        case MCLTT_STRING: {
+            struct mc_strtable_entry entry = mcapi_strtable_access(U, T, token.string);
+            mapi_push_stringn(U, entry.string, entry.size);
+            mapi_table_set(U);
+            break;
+        }
+        case MCLTT_WORD:
+        case MCLTT_EXTENDED_WORD: {
+            struct mc_strtable_entry entry = mcapi_strtable_access(U, T, token.word);
+            mapi_push_stringn(U, entry.string, entry.size);
+            mapi_table_set(U);
+            break;
+        }
+        case MCLTT_COMMENT:
+        case MCLTT_MULTILINE_COMMENT: {
+            struct mc_strtable_entry entry = mcapi_strtable_access(U, T, token.comment);
+            mapi_push_stringn(U, entry.string, entry.size);
+            mapi_table_set(U);
+            break;
+        }
+    }
+
+    mapi_push_string(U, "line");
+    mapi_push_size(U, token.line, "line");
+    mapi_table_set(U);
+
+    mapi_push_string(U, "range");
+    mapi_push_table(U);
+
+    mapi_push_string(U, "from");
+    mapi_push_size(U, token.range.from, "index");
+    mapi_table_set(U);
+
+    mapi_push_string(U, "to");
+    mapi_push_size(U, token.range.to, "index");
+    mapi_table_set(U);
+
+    mapi_table_set(U);
 }
 
-static void strtable_access(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 2);
-            mapi_push_arg(U, 0);
-            struct mc_strtable *strtable = mcapi_get_strtable(U);
-            mapi_push_arg(U, 1);
-            ml_size index = mapi_get_size(U, "index");
-
-            if (mcapi_strtable_has(strtable, index)) {
-                struct mc_strtable_entry entry = mcapi_strtable_access(U, strtable, index);
-                mapi_push_stringn(U, entry.string, entry.size);
-            } else {
-                mapi_push_nil(U);
-            }
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void lex_create(morphine_coroutine_t U) {
+static void lex(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
+
+            bool yieldable = false;
+            if (mapi_is_type(U, "table")) {
+                mapi_push_string(U, "yieldable");
+                if (mapi_table_get(U)) {
+                    yieldable = mapi_get_boolean(U);
+                }
+                mapi_pop(U, 1);
+
+                mapi_push_string(U, "text");
+                mapi_table_get(U);
+            }
+
             const char *text = mapi_get_string(U);
-            size_t size = mapi_string_len(U);
+            ml_size text_len = mapi_string_len(U);
 
-            mcapi_push_lex(U, text, size);
-            maux_nb_return();
-    maux_nb_end
-}
+            if (!yieldable) {
+                struct mc_strtable *strtable = mcapi_push_strtable(U);
+                struct mc_lex *lex = mcapi_push_lex(U, text, text_len);
 
-static void lex_token(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 2);
-            mapi_push_arg(U, 0);
-            struct mc_lex *lex = mcapi_get_lex(U);
-            mapi_push_arg(U, 1);
-            struct mc_strtable *strtable = mcapi_get_strtable(U);
+                mapi_push_vector(U, 0);
+                mapi_vector_mode_fixed(U, false);
+                struct mc_lex_token token;
+                do {
+                    token = mcapi_lex_step(U, lex, strtable);
+                    push_token(U, strtable, token);
+                    mapi_vector_push(U);
+                } while (token.type != MCLTT_EOS);
+                maux_nb_return();
+            } else {
+                mcapi_push_strtable(U);
+                maux_localstorage_set(U, "T");
 
-            struct mc_lex_token token = mcapi_lex_step(U, lex, strtable);
+                mcapi_push_lex(U, text, text_len);
+                maux_localstorage_set(U, "L");
 
-            mapi_push_table(U);
+                mapi_push_vector(U, 0);
+                mapi_vector_mode_fixed(U, false);
 
-            mapi_push_string(U, "type");
-            switch (token.type) {
-                case MCLTT_EOS:
-                    mapi_push_string(U, "eos");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_INTEGER:
-                    mapi_push_string(U, "integer");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_DECIMAL:
-                    mapi_push_string(U, "decimal");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_STRING:
-                    mapi_push_string(U, "string");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_OPERATOR:
-                    mapi_push_string(U, "operator");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_WORD:
-                    mapi_push_string(U, "word");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_EXTENDED_WORD:
-                    mapi_push_string(U, "extended_word");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_COMMENT:
-                    mapi_push_string(U, "comment");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_MULTILINE_COMMENT:
-                    mapi_push_string(U, "multiline_comment");
-                    mapi_table_set(U);
-                    break;
+                maux_nb_continue(1);
             }
+        maux_nb_state(1)
+            maux_localstorage_get(U, "T");
+            struct mc_strtable *T = mcapi_get_strtable(U);
 
-            mapi_push_string(U, "value");
-            switch (token.type) {
-                case MCLTT_EOS:
-                    mapi_pop(U, 1);
-                    break;
-                case MCLTT_INTEGER:
-                    mapi_push_integer(U, token.integer);
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_DECIMAL:
-                    mapi_push_decimal(U, token.decimal);
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_STRING:
-                    mapi_push_size(U, token.string, "index");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_OPERATOR:
-                    mapi_push_string(U, mcapi_lex_operator2name(U, token.op));
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_WORD:
-                case MCLTT_EXTENDED_WORD:
-                    mapi_push_size(U, token.word, "index");
-                    mapi_table_set(U);
-                    break;
-                case MCLTT_COMMENT:
-                case MCLTT_MULTILINE_COMMENT:
-                    mapi_push_size(U, token.comment, "index");
-                    mapi_table_set(U);
-                    break;
+            maux_localstorage_get(U, "L");
+            struct mc_lex *L = mcapi_get_lex(U);
+
+            mapi_pop(U, 2);
+
+            struct mc_lex_token token = mcapi_lex_step(U, L, T);
+            push_token(U, T, token);
+            mapi_vector_push(U);
+
+            if (token.type == MCLTT_EOS) {
+                maux_nb_return();
+            } else {
+                maux_nb_continue(1);
             }
-
-            mapi_push_string(U, "line");
-            mapi_push_size(U, token.line, "line");
-            mapi_table_set(U);
-
-            mapi_push_string(U, "range");
-            mapi_push_table(U);
-
-            mapi_push_string(U, "from");
-            mapi_push_size(U, token.range.from, "index");
-            mapi_table_set(U);
-
-            mapi_push_string(U, "to");
-            mapi_push_size(U, token.range.to, "index");
-            mapi_table_set(U);
-
-            mapi_table_set(U);
-            maux_nb_return();
     maux_nb_end
 }
 
@@ -434,13 +458,10 @@ static void ast(morphine_coroutine_t U) {
 }
 
 static morphine_library_function_t functions[] = {
-    { "compile",         compile },
-    { "disassembly",     disassembly },
-    { "strtable.create", strtable_create },
-    { "strtable.access", strtable_access },
-    { "lex.create",      lex_create },
-    { "lex.token",       lex_token },
-    { "ast",             ast },
+    { "compile",     compile },
+    { "disassembly", disassembly },
+    { "lex",         lex },
+    { "ast",         ast },
 
     { NULL, NULL }
 };

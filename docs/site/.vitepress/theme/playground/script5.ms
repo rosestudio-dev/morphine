@@ -9,10 +9,8 @@ val code = "
 val base = env.library("base")
 val compiler = env.library("compiler")
 
-val strtable = compiler.strtable.create()
-val lex = compiler.lex.create(code)
+val tokens = compiler.lex(code)
 
-do
-    val token = compiler.lex.token(lex, strtable)
-    base.println(token)
-end while(token.type != "eos")
+iterator(extract key, value in tokens)
+    base.println(value)
+end
