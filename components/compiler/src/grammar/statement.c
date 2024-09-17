@@ -70,7 +70,7 @@ struct mc_ast_node *rule_statement_explicit_without_semicolon(struct parse_contr
         struct mc_ast_statement_eval *eval = mcapi_ast_statement2eval(parser_U(C), statement);
 
         if (eval->implicit) {
-            parser_error(C, "implicit statement");
+            parser_errorf(C, "implicit statement");
         }
     }
 

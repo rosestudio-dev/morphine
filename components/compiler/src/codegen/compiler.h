@@ -26,6 +26,7 @@ expr(call);
 expr(function);
 expr(block);
 expr(if);
+expr(asm);
 
 stmt(block);
 stmt(pass);

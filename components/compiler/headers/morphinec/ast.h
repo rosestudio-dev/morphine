@@ -44,6 +44,7 @@ enum mc_expression_type {
     MCEXPRT_function,
     MCEXPRT_block,
     MCEXPRT_if,
+    MCEXPRT_asm,
 };
 
 struct mc_ast_node {
@@ -301,6 +302,69 @@ ast_declare_stmt(declaration, ast_args(size_t count))
 ast_declare_stmt(iterator, ast_noargs)
     struct mc_ast_statement_declaration *declaration;
     struct mc_ast_statement *statement;
+};
+
+// asm
+
+enum mc_asm_data_type {
+    MCADT_NIL,
+    MCADT_INTEGER,
+    MCADT_DECIMAL,
+    MCADT_BOOLEAN,
+    MCADT_STRING,
+};
+
+enum mc_asm_argument_type {
+    MCAAT_WORD,
+    MCAAT_NUMBER
+};
+
+struct mc_asm_data {
+    mc_strtable_index_t name;
+    enum mc_asm_data_type type;
+    union {
+        ml_integer integer;
+        ml_decimal decimal;
+        bool boolean;
+        mc_strtable_index_t string;
+    };
+};
+
+struct mc_asm_argument {
+    enum mc_asm_argument_type type;
+    union {
+        mc_strtable_index_t word;
+        ml_integer number;
+    };
+};
+
+struct mc_asm_instruction {
+    ml_line line;
+    morphine_opcode_t opcode;
+    struct mc_asm_argument arguments[3];
+};
+
+struct mc_asm_anchor {
+    mc_strtable_index_t anchor;
+    size_t instruction;
+};
+
+ast_declare_expr(
+    asm,
+    ast_args(size_t data_count, size_t slots_count, size_t code_count, size_t anchors_count)
+)
+    bool has_emitter;
+    mc_strtable_index_t emitter;
+
+    size_t data_count;
+    size_t slots_count;
+    size_t code_count;
+    size_t anchors_count;
+
+    struct mc_asm_data *data;
+    mc_strtable_index_t *slots;
+    struct mc_asm_instruction *code;
+    struct mc_asm_anchor *anchors;
 };
 
 #undef ast_extract_part

@@ -669,6 +669,20 @@ morphine_noret void codegen_errorf(struct codegen_controller *C, const char *str
     }
 }
 
+morphine_noret void codegen_lined_errorf(struct codegen_controller *C, ml_line line, const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    mapi_push_stringv(C->U, str, args);
+    va_end(args);
+
+    mapi_errorf(
+        C->U,
+        "line %"MLIMIT_LINE_PR": %s",
+        line,
+        mapi_get_string(C->U)
+    );
+}
+
 morphine_noret void codegen_statement(
     struct codegen_controller *C,
     struct mc_ast_statement *statement,
@@ -1040,6 +1054,7 @@ static void visitor_function(
                 expr_case(function)
                 expr_case(block)
                 expr_case(if)
+                expr_case(asm)
             }
             break;
         }

@@ -50,7 +50,7 @@ size_t extra_consume_expression_block(
     );
 
     if (size == 0) {
-        parser_error(C, "empty expression block");
+        parser_errorf(C, "empty expression block");
     }
 
     return size - 1;
@@ -74,7 +74,7 @@ void extra_extract_statement_block(
         }
     }
 
-    parser_error(C, "unclosed block");
+    parser_errorf(C, "unclosed block");
 }
 
 void extra_extract_expression_block(
@@ -93,7 +93,7 @@ void extra_extract_expression_block(
             struct mc_ast_statement_eval *eval = mcapi_ast_statement2eval(parser_U(C), statement);
 
             if (eval->implicit) {
-                parser_error(C, "implicit expression");
+                parser_errorf(C, "implicit expression");
             }
         }
 
@@ -104,7 +104,7 @@ void extra_extract_expression_block(
         mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_implicit));
 
     if (statement->type != MCSTMTT_eval) {
-        parser_error(C, "expression block must contain eval expression at the end");
+        parser_errorf(C, "expression block must contain eval expression at the end");
     }
 
     struct mc_ast_statement_eval *eval = mcapi_ast_statement2eval(parser_U(C), statement);
@@ -116,5 +116,5 @@ void extra_extract_expression_block(
         }
     }
 
-    parser_error(C, "unclosed block");
+    parser_errorf(C, "unclosed block");
 }

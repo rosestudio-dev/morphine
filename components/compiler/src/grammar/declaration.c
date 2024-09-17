@@ -13,7 +13,7 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
         } else {
             if (!parser_match(C, et_predef_word(val)) &&
                 !parser_match(C, et_predef_word(var))) {
-                parser_error(C, "expect val, var or fun");
+                parser_errorf(C, "expect val, var or fun");
             }
 
             extract_size = extra_consume_extract(C, true);
@@ -37,7 +37,7 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
             mcapi_ast_node2function_expression(parser_U(C), parser_reduce(C, rule_function));
 
         if (function->ref->anonymous) {
-            parser_error(C, "unable to declare anonymous function");
+            parser_errorf(C, "unable to declare anonymous function");
         }
 
         struct mc_ast_expression_variable *variable =

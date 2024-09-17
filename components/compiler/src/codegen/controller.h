@@ -74,6 +74,7 @@ struct codegen_controller;
 
 struct mc_strtable_entry codegen_string(struct codegen_controller *, mc_strtable_index_t);
 morphine_noret void codegen_errorf(struct codegen_controller *, const char *, ...);
+morphine_noret void codegen_lined_errorf(struct codegen_controller *, ml_line, const char *, ...);
 
 morphine_noret void codegen_statement(
     struct codegen_controller *,

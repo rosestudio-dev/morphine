@@ -52,6 +52,7 @@ struct parse_controller {
     struct mc_lex *L;
     struct mc_strtable *T;
 
+    enum predefined_word_mode predefined_word_mode;
     size_t position;
     jmp_buf reduce_jump;
     struct {
@@ -59,48 +60,28 @@ struct parse_controller {
     } reduce_data;
 };
 
-static struct {
+struct predefined_word_entry {
     const char *name;
-    enum predefined_word type;
-} predefined_table[] = {
-#define word(n) { .type = PW_##n, .name = #n }
-    word(true),
-    word(false),
-    word(env),
-    word(self),
-    word(invoked),
-    word(nil),
-    word(val),
-    word(static),
-    word(var),
-    word(and),
-    word(or),
-    word(not),
-    word(recursive),
-    word(auto),
-    word(fun),
-    word(if),
-    word(else),
-    word(elif),
-    word(while),
-    word(do),
-    word(for),
-    word(break),
-    word(continue),
-    word(return),
-    word(leave),
-    word(eval),
-    word(typeof),
-    word(lenof),
-    word(yield),
-    word(ref),
-    word(end),
-    word(pass),
-    word(iterator),
-    word(extract),
-    word(as),
-    word(in),
-#undef word
+    union {
+        enum predefined_word_normal normal_type;
+        enum predefined_word_asm asm_type;
+    };
+};
+
+static struct predefined_word_entry predefined_normal_table[] = {
+#define predef_word(n) { .normal_type = PWN_##n, .name = #n },
+
+#include "grammar/predefword/normal.h"
+
+#undef predef_word
+};
+
+static struct predefined_word_entry predefined_asm_table[] = {
+#define predef_word(n) { .asm_type = PWA_##n, .name = #n },
+
+#include "grammar/predefword/asm.h"
+
+#undef predef_word
 };
 
 // functions
@@ -158,7 +139,7 @@ static void push_context(
     *context = (struct context) {
         .from = P->stack.size,
         .function = function,
-        .prev = P->context.current
+        .prev = P->context.current,
     };
 
     P->context.current = context;
@@ -233,29 +214,81 @@ static void shift(struct parse_controller *C, struct element element, bool need_
     }
 }
 
-static const char *predefined2str(morphine_coroutine_t U, enum predefined_word predefined_word) {
-    for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
-        if (predefined_table[i].type == predefined_word) {
-            return predefined_table[i].name;
+static const char *predefined2str(struct parse_controller *C, struct predefined_word predefined_word) {
+    size_t size;
+    struct predefined_word_entry *table;
+    switch (predefined_word.mode) {
+        case PWM_NORMAL: {
+            size = sizeof(predefined_normal_table) / sizeof(predefined_normal_table[0]);
+            table = predefined_normal_table;
+            break;
+        }
+        case PWM_ASM: {
+            size = sizeof(predefined_asm_table) / sizeof(predefined_asm_table[0]);
+            table = predefined_asm_table;
+            break;
+        }
+        default:
+            mapi_error(C->U, "unsupported predefined word mode");
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        switch (predefined_word.mode) {
+            case PWM_NORMAL:
+                if (table[i].normal_type == predefined_word.normal_type) {
+                    return table[i].name;
+                }
+                break;
+            case PWM_ASM:
+                if (table[i].asm_type == predefined_word.asm_type) {
+                    return table[i].name;
+                }
+                break;
         }
     }
 
-    mapi_error(U, "wrong predefined word");
+    mapi_error(C->U, "wrong predefined word");
 }
 
 static bool is_predefined(
     struct parse_controller *C,
-    enum predefined_word expected,
+    struct predefined_word predefined_word,
     mc_strtable_index_t word
 ) {
+    if (C->predefined_word_mode != predefined_word.mode) {
+        return false;
+    }
+
+    size_t size;
+    struct predefined_word_entry *table;
+    switch (C->predefined_word_mode) {
+        case PWM_NORMAL: {
+            size = sizeof(predefined_normal_table) / sizeof(predefined_normal_table[0]);
+            table = predefined_normal_table;
+            break;
+        }
+        case PWM_ASM: {
+            size = sizeof(predefined_asm_table) / sizeof(predefined_asm_table[0]);
+            table = predefined_asm_table;
+            break;
+        }
+        default:
+            mapi_error(C->U, "unsupported predefined word mode");
+    }
+
     struct mc_strtable_entry entry = mcapi_strtable_access(C->U, C->T, word);
-    for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
-        if (strlen(predefined_table[i].name) != entry.size) {
+    for (size_t i = 0; i < size; i++) {
+        if (strlen(table[i].name) != entry.size) {
             continue;
         }
 
-        if (memcmp(predefined_table[i].name, entry.string, entry.size) == 0) {
-            return predefined_table[i].type == expected;
+        if (memcmp(table[i].name, entry.string, entry.size) == 0) {
+            switch (C->predefined_word_mode) {
+                case PWM_NORMAL:
+                    return table[i].normal_type == predefined_word.normal_type;
+                case PWM_ASM:
+                    return table[i].asm_type == predefined_word.asm_type;
+            }
         }
     }
 
@@ -266,13 +299,30 @@ static bool is_not_predefined(
     struct parse_controller *C,
     mc_strtable_index_t word
 ) {
+    size_t size;
+    struct predefined_word_entry *table;
+    switch (C->predefined_word_mode) {
+        case PWM_NORMAL: {
+            size = sizeof(predefined_normal_table) / sizeof(predefined_normal_table[0]);
+            table = predefined_normal_table;
+            break;
+        }
+        case PWM_ASM: {
+            size = sizeof(predefined_asm_table) / sizeof(predefined_asm_table[0]);
+            table = predefined_asm_table;
+            break;
+        }
+        default:
+            mapi_error(C->U, "unsupported predefined word mode");
+    }
+
     struct mc_strtable_entry entry = mcapi_strtable_access(C->U, C->T, word);
-    for (size_t i = 0; i < sizeof(predefined_table) / sizeof(predefined_table[0]); i++) {
-        if (strlen(predefined_table[i].name) != entry.size) {
+    for (size_t i = 0; i < size; i++) {
+        if (strlen(table[i].name) != entry.size) {
             continue;
         }
 
-        if (memcmp(predefined_table[i].name, entry.string, entry.size) == 0) {
+        if (memcmp(table[i].name, entry.string, entry.size) == 0) {
             return false;
         }
     }
@@ -301,6 +351,8 @@ static bool is_expected_token(
             return token.type == MCLTT_OPERATOR && expected.op == token.op;
         case ETT_PREDEFINED_WORD:
             return token.type == MCLTT_WORD && is_predefined(C, expected.predefined_word, token.word);
+        case ETT_IMPLICIT_WORD:
+            return token.type == MCLTT_WORD;
     }
 
     return false;
@@ -325,8 +377,22 @@ ml_line parser_get_line(struct parse_controller *C) {
     }
 }
 
-morphine_noret void parser_error(struct parse_controller *C, const char *text) {
-    mapi_errorf(C->U, "line %"MLIMIT_LINE_PR": %s", parser_get_line(C), text);
+morphine_noret void parser_errorf(struct parse_controller *C, const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    mapi_push_stringv(C->U, str, args);
+    va_end(args);
+
+    mapi_errorf(
+        C->U,
+        "line %"MLIMIT_LINE_PR": %s",
+        parser_get_line(C),
+        mapi_get_string(C->U)
+    );
+}
+
+struct mc_strtable_entry parser_string(struct parse_controller *C, mc_strtable_index_t index) {
+    return mcapi_strtable_access(C->U, C->T, index);
 }
 
 bool parser_look(struct parse_controller *C, struct expected_token expected) {
@@ -367,11 +433,12 @@ struct mc_lex_token parser_consume(struct parse_controller *C, struct expected_t
         case ETT_STRING:
             name = "text";
             break;
+        case ETT_IMPLICIT_WORD:
         case ETT_WORD:
             name = "word";
             break;
         case ETT_PREDEFINED_WORD:
-            name = predefined2str(C->U, expected.predefined_word);
+            name = predefined2str(C, expected.predefined_word);
             break;
         case ETT_OPERATOR:
             name = mcapi_lex_operator2str(C->U, expected.op);
@@ -403,6 +470,11 @@ struct mc_ast_node *parser_reduce(struct parse_controller *C, parse_function_t f
 
 void parser_reset(struct parse_controller *C) {
     C->position = 0;
+    C->predefined_word_mode = PWM_NORMAL;
+}
+
+void parser_change_mode(struct parse_controller *C, enum predefined_word_mode mode) {
+    C->predefined_word_mode = mode;
 }
 
 // api
@@ -475,6 +547,7 @@ MORPHINE_API bool mcapi_parser_step(
         .L = L,
         .T = T,
         .position = 0,
+        .predefined_word_mode = PWM_NORMAL,
         .reduce_data.function = NULL
     };
 

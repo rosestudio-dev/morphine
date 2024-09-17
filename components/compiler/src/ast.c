@@ -122,6 +122,8 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "expression_block";
                 case MCEXPRT_if:
                     return "expression_if";
+                case MCEXPRT_asm:
+                    return "expression_asm";
             }
             break;
         }

@@ -36,6 +36,7 @@ morphine_noret void serializer_complete(struct serializer_controller *);
 void *serializer_saved(struct serializer_controller *);
 void *serializer_alloc_saved_uni(struct serializer_controller *, size_t);
 
+void serializer_push_nil(struct serializer_controller *);
 void serializer_push_string(struct serializer_controller *, mc_strtable_index_t);
 void serializer_push_cstr(struct serializer_controller *, const char *);
 void serializer_push_integer(struct serializer_controller *, ml_integer);

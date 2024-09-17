@@ -4,10 +4,11 @@
 
 #include "compiler.h"
 #include "instruction.h"
+#include "morphine/utils/overflow.h"
 
 #define ARGS_LIMIT 256
 
-#define decl_data_sized(t, size) struct t##_data *data = codegen_saved(C); do { if (data == NULL) { data = codegen_alloc_saved_uni(C, sizeof(struct t##_data) + (size)); } } while(0)
+#define decl_data_sized(t, size) struct t##_data *data = codegen_saved(C); do { if (data == NULL) { data = codegen_alloc_saved_uni(C, overflow_op_add(sizeof(struct t##_data), (size), SIZE_MAX, codegen_errorf(C, #t" overflow"))); } } while(0)
 #define decl_data(t)             decl_data_sized(t, 0)
 
 #define decl_expr(n) void codegen_compile_expression_##n(struct codegen_controller *C, struct mc_ast_expression_##n *expression, size_t state)
@@ -963,6 +964,371 @@ decl_stmt(if) {
         case 3:
             codegen_anchor_change(C, data->anchor_end);
             codegen_complete(C);
+        default:
+            break;
+    }
+}
+
+struct asm_data {
+    size_t index;
+    size_t *constants;
+    size_t *anchors;
+    struct instruction_slot *slots;
+};
+
+static size_t integer2size(
+    struct codegen_controller *C,
+    ml_line line,
+    ml_integer value
+) {
+    if (value < 0 || value > MLIMIT_SIZE_MAX) {
+        codegen_lined_errorf(C, line, "expected size");
+    }
+
+    return (size_t) value;
+}
+
+static anchor_t arg_get_position(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    if (argument.type != MCAAT_WORD) {
+        codegen_lined_errorf(C, line, "expected anchor");
+    }
+
+    for (size_t i = 0; i < asm_expr->anchors_count; i++) {
+        if (asm_expr->anchors[i].anchor == argument.word) {
+            return data->anchors[i];
+        }
+    }
+
+    codegen_lined_errorf(C, line, "anchor not found");
+}
+
+static size_t arg_get_size(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    (void) asm_expr;
+    (void) data;
+
+    if (argument.type != MCAAT_NUMBER) {
+        codegen_lined_errorf(C, line, "expected size");
+    }
+
+    return integer2size(C, line, argument.number);
+}
+
+static size_t arg_get_closure_index(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    (void) asm_expr;
+    (void) data;
+
+    if (argument.type != MCAAT_WORD) {
+        codegen_lined_errorf(C, line, "expected closure");
+    }
+
+    struct variable_info info = codegen_get_variable(C, argument.word);
+    if (info.type != VIT_CLOSURE) {
+        codegen_lined_errorf(C, line, "'%s' isn't closure", codegen_string(C, argument.word).string);
+    }
+
+    return info.closure_variable;
+}
+
+static size_t arg_get_static_index(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    (void) asm_expr;
+    (void) data;
+
+    if (argument.type != MCAAT_WORD) {
+        codegen_lined_errorf(C, line, "expected static");
+    }
+
+    struct variable_info info = codegen_get_variable(C, argument.word);
+    if (info.type != VIT_STATIC) {
+        codegen_lined_errorf(C, line, "'%s' isn't static", codegen_string(C, argument.word).string);
+    }
+
+    return info.static_variable;
+}
+
+static struct instruction_slot arg_get_slot(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    if (argument.type != MCAAT_WORD) {
+        codegen_lined_errorf(C, line, "expected slot");
+    }
+
+    for (size_t i = 0; i < asm_expr->slots_count; i++) {
+        if (asm_expr->slots[i] == argument.word) {
+            return data->slots[i];
+        }
+    }
+
+    if (asm_expr->has_emitter && asm_expr->emitter == argument.word) {
+        return codegen_result(C);
+    }
+
+    struct variable_info info = codegen_get_variable(C, argument.word);
+    if (info.type != VIT_VARIABLE) {
+        codegen_lined_errorf(C, line, "'%s' isn't slot", codegen_string(C, argument.word).string);
+    }
+
+    return info.variable;
+}
+
+static size_t arg_get_argument_index(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    (void) asm_expr;
+    (void) data;
+
+    if (argument.type != MCAAT_WORD) {
+        codegen_lined_errorf(C, line, "expected argument");
+    }
+
+    struct variable_info info = codegen_get_variable(C, argument.word);
+    if (info.type != VIT_ARGUMENT) {
+        codegen_lined_errorf(C, line, "'%s' isn't argument", codegen_string(C, argument.word).string);
+    }
+
+    return info.argument;
+}
+
+static size_t arg_get_constant_index(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    if (argument.type != MCAAT_WORD) {
+        codegen_lined_errorf(C, line, "expected constant");
+    }
+
+    for (size_t i = 0; i < asm_expr->data_count; i++) {
+        if (asm_expr->data[i].name == argument.word) {
+            return data->constants[i];
+        }
+    }
+
+    codegen_lined_errorf(C, line, "constant not found");
+}
+
+static size_t arg_get_param_index(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    (void) asm_expr;
+    (void) data;
+
+    if (argument.type != MCAAT_NUMBER) {
+        codegen_lined_errorf(C, line, "expected param index");
+    }
+
+    return integer2size(C, line, argument.number);
+}
+
+static size_t arg_get_params_count(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    (void) asm_expr;
+    (void) data;
+
+    if (argument.type != MCAAT_NUMBER) {
+        codegen_lined_errorf(C, line, "expected param count");
+    }
+
+    return integer2size(C, line, argument.number);
+}
+
+static void add_asm_instruction(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    size_t index
+) {
+    for (size_t i = 0; i < asm_expr->anchors_count; i++) {
+        if (index == asm_expr->anchors[i].instruction) {
+            codegen_anchor_change(C, data->anchors[i]);
+        }
+    }
+
+    struct mc_asm_instruction instruction = asm_expr->code[index];
+    switch (instruction.opcode) {
+#define arg(n, i)                               arg_get_##n(C, asm_expr, data, instruction.line, instruction.arguments[i])
+#define mis_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: codegen_instruction_##n(C); break;
+#define mis_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0)); break;
+#define mis_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0), arg(a2, 1)); break;
+#define mis_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0), arg(a2, 1), arg(a3, 2)); break;
+
+#include "morphine/instruction/specification.h"
+
+#undef mis_instruction_args0
+#undef mis_instruction_args1
+#undef mis_instruction_args2
+#undef mis_instruction_args3
+    }
+}
+
+decl_expr(asm) {
+    size_t alloc_size_anchors = overflow_op_mul(
+        expression->anchors_count,
+        sizeof(anchor_t),
+        SIZE_MAX,
+        codegen_errorf(C, "anchors overflow")
+    );
+
+    size_t alloc_size_constants = overflow_op_mul(
+        expression->data_count,
+        sizeof(size_t),
+        SIZE_MAX,
+        codegen_errorf(C, "constants overflow")
+    );
+
+    size_t alloc_size_slots = overflow_op_mul(
+        expression->slots_count,
+        sizeof(struct instruction_slot),
+        SIZE_MAX,
+        codegen_errorf(C, "slots overflow")
+    );
+
+    size_t alloc_size = overflow_op_add(
+        alloc_size_constants,
+        alloc_size_anchors,
+        SIZE_MAX,
+        codegen_errorf(C, "asm overflow")
+    );
+
+    alloc_size = overflow_op_add(
+        alloc_size,
+        alloc_size_slots,
+        SIZE_MAX,
+        codegen_errorf(C, "asm overflow")
+    );
+
+    overflow_mul(expression->anchors_count, sizeof(anchor_t), SIZE_MAX) {
+        codegen_errorf(C, "anchors overflow");
+    }
+
+    decl_data_sized(asm, alloc_size);
+    data->anchors = ((void *) data) + sizeof(struct asm_data);
+    data->constants = ((void *) data->anchors) + alloc_size_anchors;
+    data->slots = ((void *) data->constants) + alloc_size_constants;
+
+    switch (state) {
+        case 0: {
+            data->index = 0;
+            codegen_jump(C, 1);
+        }
+        case 1: {
+            if (data->index < expression->data_count) {
+                codegen_jump(C, 2);
+            } else {
+                codegen_jump(C, 3);
+            }
+        }
+        case 2: {
+            for (size_t i = 0; i < expression->slots_count; i++) {
+                if (i != data->index && expression->data[i].name == expression->data[data->index].name) {
+                    codegen_errorf(
+                        C,
+                        "constant '%s' already declared",
+                        codegen_string(C, expression->data[i].name).string
+                    );
+                }
+            }
+
+            struct mc_asm_data asm_data = expression->data[data->index];
+            switch (asm_data.type) {
+                case MCADT_NIL:
+                    data->constants[data->index] = codegen_add_constant_nil(C);
+                    break;
+                case MCADT_INTEGER:
+                    data->constants[data->index] = codegen_add_constant_int(C, asm_data.integer);
+                    break;
+                case MCADT_DECIMAL:
+                    data->constants[data->index] = codegen_add_constant_dec(C, asm_data.decimal);
+                    break;
+                case MCADT_BOOLEAN:
+                    data->constants[data->index] = codegen_add_constant_bool(C, asm_data.boolean);
+                    break;
+                case MCADT_STRING:
+                    data->constants[data->index] = codegen_add_constant_str(C, asm_data.string);
+                    break;
+                default:
+                    codegen_errorf(C, "unsupported constant");
+            }
+
+            data->index++;
+            codegen_jump(C, 1);
+        }
+        case 3: {
+            for (size_t i = 0; i < expression->anchors_count; i++) {
+                data->anchors[i] = codegen_add_anchor(C);
+            }
+            codegen_jump(C, 4);
+        }
+        case 4: {
+            for (size_t i = 0; i < expression->slots_count; i++) {
+                for (size_t j = 0; j < expression->slots_count; j++) {
+                    if (i != j && expression->slots[i] == expression->slots[j]) {
+                        codegen_errorf(
+                            C,
+                            "slot '%s' already declared",
+                            codegen_string(C, expression->slots[i]).string
+                        );
+                    }
+                }
+            }
+
+            for (size_t i = 0; i < expression->slots_count; i++) {
+                data->slots[i] = codegen_declare_temporary(C);
+            }
+            codegen_jump(C, 5);
+        }
+        case 5: {
+            size_t nil = codegen_add_constant_nil(C);
+            codegen_instruction_LOAD(C, nil, codegen_result(C));
+
+            for (size_t i = 0; i < expression->code_count; i++) {
+                add_asm_instruction(C, expression, data, i);
+            }
+
+            codegen_complete(C);
+        }
         default:
             break;
     }

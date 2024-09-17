@@ -744,3 +744,151 @@ decl_stmt(if) {
             break;
     }
 }
+
+static const char *opcode2str(morphine_opcode_t opcode) {
+    switch (opcode) {
+#define mis_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: return #s;
+#define mis_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: return #s;
+#define mis_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: return #s;
+#define mis_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: return #s;
+
+#include "morphine/instruction/specification.h"
+
+#undef mis_instruction_args0
+#undef mis_instruction_args1
+#undef mis_instruction_args2
+#undef mis_instruction_args3
+    }
+
+    return "?";
+}
+
+static size_t opcode2args(morphine_opcode_t opcode) {
+    switch (opcode) {
+#define mis_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: return 0;
+#define mis_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: return 1;
+#define mis_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: return 2;
+#define mis_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: return 3;
+
+#include "morphine/instruction/specification.h"
+
+#undef mis_instruction_args0
+#undef mis_instruction_args1
+#undef mis_instruction_args2
+#undef mis_instruction_args3
+    }
+
+    return 0;
+}
+
+decl_expr(asm) {
+    switch (state) {
+        case 0: {
+            if (expression->has_emitter) {
+                serializer_push_string(C, expression->emitter);
+                serializer_set(C, "emitter");
+            }
+
+            serializer_jump(C, 1);
+        }
+        case 1: {
+            serializer_push_vector(C, expression->data_count);
+            for (size_t i = 0; i < expression->data_count; i++) {
+                struct mc_asm_data data = expression->data[i];
+
+                serializer_push_table(C);
+
+                serializer_push_string(C, data.name);
+                serializer_set(C, "name");
+
+                switch (data.type) {
+                    case MCADT_NIL:
+                        serializer_push_nil(C);
+                        break;
+                    case MCADT_INTEGER:
+                        serializer_push_integer(C, data.integer);
+                        break;
+                    case MCADT_DECIMAL:
+                        serializer_push_decimal(C, data.decimal);
+                        break;
+                    case MCADT_BOOLEAN:
+                        serializer_push_boolean(C, data.boolean);
+                        break;
+                    case MCADT_STRING:
+                        serializer_push_string(C, data.string);
+                        break;
+                }
+                serializer_set(C, "value");
+
+                serializer_vector_set(C, i);
+            }
+            serializer_set(C, "data");
+
+            serializer_jump(C, 2);
+        }
+        case 2: {
+            serializer_push_vector(C, expression->slots_count);
+            for (size_t i = 0; i < expression->slots_count; i++) {
+                serializer_push_string(C, expression->slots[i]);
+                serializer_vector_set(C, i);
+            }
+            serializer_set(C, "slots");
+
+            serializer_jump(C, 3);
+        }
+        case 3: {
+            serializer_push_vector(C, expression->anchors_count);
+            for (size_t i = 0; i < expression->anchors_count; i++) {
+                struct mc_asm_anchor anchor = expression->anchors[i];
+                serializer_push_table(C);
+
+                serializer_push_string(C, anchor.anchor);
+                serializer_set(C, "anchor");
+
+                serializer_push_size(C, anchor.instruction, "index");
+                serializer_set(C, "index");
+
+                serializer_vector_set(C, i);
+            }
+            serializer_set(C, "anchors");
+
+            serializer_jump(C, 4);
+        }
+        case 4: {
+            serializer_push_vector(C, expression->code_count);
+            for (size_t i = 0; i < expression->code_count; i++) {
+                struct mc_asm_instruction instruction = expression->code[i];
+                serializer_push_table(C);
+
+                serializer_push_cstr(C, opcode2str(instruction.opcode));
+                serializer_set(C, "opcode");
+
+                serializer_push_size(C, instruction.line, "line");
+                serializer_set(C, "line");
+
+                size_t size = opcode2args(instruction.opcode);
+                serializer_push_vector(C, size);
+                for (size_t index = 0; index < size; index++) {
+                    struct mc_asm_argument argument = instruction.arguments[index];
+                    switch (argument.type) {
+                        case MCAAT_WORD:
+                            serializer_push_string(C, argument.word);
+                            break;
+                        case MCAAT_NUMBER:
+                            serializer_push_integer(C, argument.number);
+                            break;
+                    }
+                    serializer_vector_set(C, index);
+                }
+                serializer_set(C, "arguments");
+
+                serializer_vector_set(C, i);
+            }
+            serializer_set(C, "code");
+
+            serializer_complete(C);
+        }
+        default:
+            break;
+    }
+}

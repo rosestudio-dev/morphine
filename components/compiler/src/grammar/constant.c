@@ -107,5 +107,5 @@ struct mc_ast_node *rule_constant(struct parse_controller *C) {
         return mcapi_ast_expression_global2node(global);
     }
 
-    parser_error(C, "unexpected token");
+    parser_errorf(C, "unexpected token");
 }

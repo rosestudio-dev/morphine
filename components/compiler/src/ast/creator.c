@@ -3,6 +3,19 @@
 //
 
 #include "creator.h"
+#include "morphine/utils/overflow.h"
+
+#define ast_args(args...) , args
+#define ast_noargs
+#define ast_impl_node(ntype, name, args...) MORPHINE_API struct mc_ast_##ntype##_##name *mcapi_ast_create_##ntype##_##name(morphine_coroutine_t U, struct mc_ast *A, ml_line line args)
+
+#define ast_impl_expr(name, args) ast_impl_node(expression, name, args)
+#define ast_impl_stmt(name, args) ast_impl_node(statement, name, args)
+
+#define ast_standard_impl_expr(name) ast_impl_expr(name, ast_noargs) { return (struct mc_ast_expression_##name *) ast_create_expression(U, A, MCEXPRT_##name, line, sizeof(struct mc_ast_expression_##name)); }
+#define ast_standard_impl_stmt(name) ast_impl_stmt(name, ast_noargs) { return (struct mc_ast_statement_##name *) ast_create_statement(U, A, MCSTMTT_##name, line, sizeof(struct mc_ast_statement_##name)); }
+
+#define ast_overflow_error(name) mapi_errorf(U, "line %"MLIMIT_LINE_PR": "name" overflow", line)
 
 // statements
 
@@ -15,11 +28,22 @@ ast_standard_impl_stmt(iterator)
 ast_standard_impl_stmt(if)
 
 ast_impl_stmt(block, ast_args(size_t count)) {
-    size_t size = sizeof(struct mc_ast_statement_block) +
-                  sizeof(struct mc_ast_statement *) * count;
+    size_t alloc_size_statements = overflow_op_mul(
+        sizeof(struct mc_ast_statement *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("statements")
+    );
+
+    size_t alloc_size = overflow_op_add(
+        sizeof(struct mc_ast_statement_block),
+        alloc_size_statements,
+        SIZE_MAX,
+        ast_overflow_error("statement block")
+    );
 
     struct mc_ast_statement *statement = ast_create_statement(
-        U, A, MCSTMTT_block, line, size
+        U, A, MCSTMTT_block, line, alloc_size
     );
 
     struct mc_ast_statement_block *block =
@@ -33,12 +57,26 @@ ast_impl_stmt(block, ast_args(size_t count)) {
 }
 
 ast_impl_stmt(assigment, ast_args(size_t count)) {
-    size_t size = sizeof(struct mc_ast_statement_assigment) +
-                  sizeof(struct mc_ast_expression *) * count +
-                  sizeof(struct mc_ast_expression *) * count;
+    size_t alloc_size_keys = overflow_op_mul(
+        sizeof(struct mc_ast_expression *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("keys")
+    );
+
+    size_t alloc_size_values = overflow_op_mul(
+        sizeof(struct mc_ast_expression *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("values")
+    );
+
+    size_t alloc_size = sizeof(struct mc_ast_statement_assigment);
+    alloc_size = overflow_op_add(alloc_size, alloc_size_keys, SIZE_MAX, ast_overflow_error("assigment"));
+    alloc_size = overflow_op_add(alloc_size, alloc_size_values, SIZE_MAX, ast_overflow_error("assigment"));
 
     struct mc_ast_statement *statement = ast_create_statement(
-        U, A, MCSTMTT_assigment, line, size
+        U, A, MCSTMTT_assigment, line, alloc_size
     );
 
     struct mc_ast_statement_assigment *assigment =
@@ -47,20 +85,32 @@ ast_impl_stmt(assigment, ast_args(size_t count)) {
     assigment->is_extract = count > 0;
     assigment->extract.size = count;
     assigment->extract.keys = ((void *) assigment) + sizeof(struct mc_ast_statement_assigment);
-    assigment->extract.values = ((void *) assigment) +
-                              sizeof(struct mc_ast_statement_assigment) +
-                              sizeof(struct mc_ast_expression *) * count;
+    assigment->extract.values = ((void *) assigment->extract.keys) + alloc_size_keys;
 
     return assigment;
 }
 
 ast_impl_stmt(declaration, ast_args(size_t count)) {
-    size_t size = sizeof(struct mc_ast_statement_declaration) +
-                  sizeof(struct mc_ast_expression_variable *) * count +
-                  sizeof(struct mc_ast_expression *) * count;
+    size_t alloc_size_keys = overflow_op_mul(
+        sizeof(struct mc_ast_expression_variable *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("keys")
+    );
+
+    size_t alloc_size_values = overflow_op_mul(
+        sizeof(struct mc_ast_expression *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("values")
+    );
+
+    size_t alloc_size = sizeof(struct mc_ast_statement_declaration);
+    alloc_size = overflow_op_add(alloc_size, alloc_size_keys, SIZE_MAX, ast_overflow_error("declaration"));
+    alloc_size = overflow_op_add(alloc_size, alloc_size_values, SIZE_MAX, ast_overflow_error("declaration"));
 
     struct mc_ast_statement *statement = ast_create_statement(
-        U, A, MCSTMTT_declaration, line, size
+        U, A, MCSTMTT_declaration, line, alloc_size
     );
 
     struct mc_ast_statement_declaration *declaration =
@@ -69,9 +119,7 @@ ast_impl_stmt(declaration, ast_args(size_t count)) {
     declaration->is_extract = count > 0;
     declaration->extract.size = count;
     declaration->extract.keys = ((void *) declaration) + sizeof(struct mc_ast_statement_declaration);
-    declaration->extract.values = ((void *) declaration) +
-                              sizeof(struct mc_ast_statement_declaration) +
-                              sizeof(struct mc_ast_expression *) * count;
+    declaration->extract.values = ((void *) declaration->extract.keys) + alloc_size_keys;
 
     return declaration;
 }
@@ -92,11 +140,22 @@ ast_standard_impl_expr(access)
 ast_standard_impl_expr(if)
 
 ast_impl_expr(vector, ast_args(size_t count)) {
-    size_t size = sizeof(struct mc_ast_expression_vector) +
-                  sizeof(struct mc_ast_expression *) * count;
+    size_t alloc_size_values = overflow_op_mul(
+        sizeof(struct mc_ast_expression *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("values")
+    );
+
+    size_t alloc_size = overflow_op_add(
+        sizeof(struct mc_ast_expression_vector),
+        alloc_size_values,
+        SIZE_MAX,
+        ast_overflow_error("vector")
+    );
 
     struct mc_ast_expression *expression = ast_create_expression(
-        U, A, MCEXPRT_vector, line, size
+        U, A, MCEXPRT_vector, line, alloc_size
     );
 
     struct mc_ast_expression_vector *vector =
@@ -109,11 +168,26 @@ ast_impl_expr(vector, ast_args(size_t count)) {
 }
 
 ast_impl_expr(table, ast_args(size_t count)) {
-    size_t size = sizeof(struct mc_ast_expression_table) +
-                  sizeof(struct mc_ast_expression *) * count * 2;
+    size_t alloc_size_keys = overflow_op_mul(
+        sizeof(struct mc_ast_expression *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("keys")
+    );
+
+    size_t alloc_size_values = overflow_op_mul(
+        sizeof(struct mc_ast_expression *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("values")
+    );
+
+    size_t alloc_size = sizeof(struct mc_ast_expression_table);
+    alloc_size = overflow_op_add(alloc_size, alloc_size_keys, SIZE_MAX, ast_overflow_error("table"));
+    alloc_size = overflow_op_add(alloc_size, alloc_size_values, SIZE_MAX, ast_overflow_error("table"));
 
     struct mc_ast_expression *expression = ast_create_expression(
-        U, A, MCEXPRT_table, line, size
+        U, A, MCEXPRT_table, line, alloc_size
     );
 
     struct mc_ast_expression_table *table =
@@ -121,22 +195,29 @@ ast_impl_expr(table, ast_args(size_t count)) {
 
     table->count = count;
 
-    table->keys = ((void *) table) +
-                  sizeof(struct mc_ast_expression_table);
-
-    table->values = ((void *) table) +
-                    sizeof(struct mc_ast_expression_table) +
-                    sizeof(struct mc_ast_expression *) * count;
+    table->keys = ((void *) table) + sizeof(struct mc_ast_expression_table);
+    table->values = ((void *) table->keys) + alloc_size_keys;
 
     return table;
 }
 
 ast_impl_expr(call, ast_args(size_t args_count)) {
-    size_t size = sizeof(struct mc_ast_expression_call) +
-                  sizeof(struct mc_ast_expression *) * args_count;
+    size_t alloc_size_statements = overflow_op_mul(
+        sizeof(struct mc_ast_expression *),
+        args_count,
+        SIZE_MAX,
+        ast_overflow_error("args")
+    );
+
+    size_t alloc_size = overflow_op_add(
+        sizeof(struct mc_ast_expression_call),
+        alloc_size_statements,
+        SIZE_MAX,
+        ast_overflow_error("call")
+    );
 
     struct mc_ast_expression *expression = ast_create_expression(
-        U, A, MCEXPRT_call, line, size
+        U, A, MCEXPRT_call, line, alloc_size
     );
 
     struct mc_ast_expression_call *call =
@@ -149,11 +230,22 @@ ast_impl_expr(call, ast_args(size_t args_count)) {
 }
 
 ast_impl_expr(block, ast_args(size_t count)) {
-    size_t size = sizeof(struct mc_ast_expression_block) +
-                  sizeof(struct mc_ast_statement *) * count;
+    size_t alloc_size_statements = overflow_op_mul(
+        sizeof(struct mc_ast_statement *),
+        count,
+        SIZE_MAX,
+        ast_overflow_error("statements")
+    );
+
+    size_t alloc_size = overflow_op_add(
+        sizeof(struct mc_ast_expression_block),
+        alloc_size_statements,
+        SIZE_MAX,
+        ast_overflow_error("expression block")
+    );
 
     struct mc_ast_expression *expression = ast_create_expression(
-        U, A, MCEXPRT_block, line, size
+        U, A, MCEXPRT_block, line, alloc_size
     );
 
     struct mc_ast_expression_block *block =
@@ -163,4 +255,62 @@ ast_impl_expr(block, ast_args(size_t count)) {
     block->statements = ((void *) block) + sizeof(struct mc_ast_expression_block);
 
     return block;
+}
+
+ast_impl_expr(
+    asm,
+    ast_args(size_t data_count, size_t slots_count, size_t code_count, size_t anchors_count)
+) {
+    size_t alloc_size_data = overflow_op_mul(
+        sizeof(struct mc_asm_data),
+        data_count,
+        SIZE_MAX,
+        ast_overflow_error("data")
+    );
+
+    size_t alloc_size_slots = overflow_op_mul(
+        sizeof(mc_strtable_index_t),
+        slots_count,
+        SIZE_MAX,
+        ast_overflow_error("slots")
+    );
+
+    size_t alloc_size_code = overflow_op_mul(
+        sizeof(struct mc_asm_instruction),
+        code_count,
+        SIZE_MAX,
+        ast_overflow_error("code")
+    );
+
+    size_t alloc_size_anchors = overflow_op_mul(
+        sizeof(struct mc_asm_anchor),
+        anchors_count,
+        SIZE_MAX,
+        ast_overflow_error("anchors")
+    );
+
+    size_t alloc_size = sizeof(struct mc_ast_expression_asm);
+    alloc_size = overflow_op_add(alloc_size, alloc_size_data, SIZE_MAX, ast_overflow_error("asm"));
+    alloc_size = overflow_op_add(alloc_size, alloc_size_slots, SIZE_MAX, ast_overflow_error("asm"));
+    alloc_size = overflow_op_add(alloc_size, alloc_size_code, SIZE_MAX, ast_overflow_error("asm"));
+    alloc_size = overflow_op_add(alloc_size, alloc_size_anchors, SIZE_MAX, ast_overflow_error("asm"));
+
+    struct mc_ast_expression *expression = ast_create_expression(
+        U, A, MCEXPRT_asm, line, alloc_size
+    );
+
+    struct mc_ast_expression_asm *asm_expression =
+        mcapi_ast_expression2asm(U, expression);
+
+    asm_expression->data_count = data_count;
+    asm_expression->slots_count = slots_count;
+    asm_expression->code_count = code_count;
+    asm_expression->anchors_count = anchors_count;
+
+    asm_expression->data = ((void *) asm_expression) + sizeof(struct mc_ast_expression_asm);
+    asm_expression->slots = ((void *) asm_expression->data) + alloc_size_data;
+    asm_expression->code = ((void *) asm_expression->slots) + alloc_size_slots;
+    asm_expression->anchors = ((void *) asm_expression->code) + alloc_size_code;
+
+    return asm_expression;
 }

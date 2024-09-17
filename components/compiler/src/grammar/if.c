@@ -149,7 +149,7 @@ static struct mc_ast_node *rule_expression_elif(struct parse_controller *C) {
 
         else_expression = mcapi_ast_block2expression(else_block);
     } else {
-        parser_error(C, "expression if must contain else block");
+        parser_errorf(C, "expression if must contain else block");
     }
 
     expression_if->else_expression = else_expression;

@@ -71,6 +71,10 @@ void *serializer_alloc_saved_uni(struct serializer_controller *C, size_t size) {
     return mcapi_visitor_alloc_saved_uni(C->VC, size);
 }
 
+void serializer_push_nil(struct serializer_controller *C) {
+    mapi_push_nil(C->U);
+}
+
 void serializer_push_string(struct serializer_controller *C, mc_strtable_index_t index) {
     struct mc_strtable_entry entry = mcapi_strtable_access(C->U, C->T, index);
     mapi_push_stringn(C->U, entry.string, entry.size);
@@ -163,6 +167,7 @@ static void visitor_function(
                 expr_case(function)
                 expr_case(block)
                 expr_case(if)
+                expr_case(asm)
             }
             break;
         }

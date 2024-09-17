@@ -85,7 +85,8 @@ struct mc_ast_node *rule_assigment(struct parse_controller *C) {
             mcapi_ast_create_statement_eval(parser_U(C), parser_A(C), expression->node.line);
 
         eval->expression = expression;
-        eval->implicit = expression->type != MCEXPRT_call &&
+        eval->implicit = expression->type != MCEXPRT_asm &&
+                         expression->type != MCEXPRT_call &&
                          expression->type != MCEXPRT_leave &&
                          expression->type != MCEXPRT_break &&
                          expression->type != MCEXPRT_continue &&
