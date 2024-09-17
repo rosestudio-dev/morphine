@@ -44,7 +44,7 @@ fun tobytes<auto>(program, param)
 
     fun convert<auto>()
         val extract modifier, param = do
-            val last = string.charat(param, lenof param - 1)
+            val last = param[lenof param - 1]
 
             val int = if (string.isalpha(last))
                 value.toint(string.substring(param, 0, lenof param - 1))
@@ -113,16 +113,14 @@ fun parse_arguments<auto>()
             help(result.app_path, "empty command line arguments", true)
         end
 
-        val chars = string.chars(argument)
-
-        if (chars[0] != '-')
+        if (argument[0] != '-')
             break
         end
 
         var offset = 0
         var stop = false
-        for (var i = 1; i < lenof chars; i ++)
-            val char = chars[i]
+        for (var i = 1; i < lenof argument; i ++)
+            val char = argument[i]
             if (char == '-')
                 stop = true
                 break

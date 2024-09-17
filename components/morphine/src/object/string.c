@@ -97,6 +97,22 @@ void stringI_free(morphine_instance_t I, struct string *string) {
     allocI_free(I, string);
 }
 
+struct string *stringI_get(morphine_instance_t I, struct string *string, ml_size index) {
+    if (string == NULL) {
+        throwI_error(I, "string is null");
+    }
+
+    if (index >= string->size) {
+        throwI_error(I, "string index out of bounce");
+    }
+
+    char *buffer;
+    struct string *result = create(I, 1, &buffer);
+    buffer[0] = string->chars[index];
+
+    return result;
+}
+
 struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
     if (a == NULL || b == NULL) {
         throwI_error(I, "string is null");

@@ -74,50 +74,24 @@ static void chars(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void codeat(morphine_coroutine_t U) {
+static void codes(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
+            maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
             maux_expect(U, "string");
+
             const char *string = mapi_get_string(U);
-            size_t len = mapi_string_len(U);
+            ml_size len = mapi_string_len(U);
 
-            mapi_push_arg(U, 1);
-            size_t at = mapi_get_size(U, "index");
+            mapi_push_vector(U, len);
 
-            mapi_pop(U, 2);
-
-            if (at >= len) {
-                mapi_errorf(U, "cannot get code of char at %zu position", at);
+            for (ml_size i = 0; i < len; i++) {
+                mapi_push_size(U, (size_t) ((unsigned char) string[i]), "code");
+                mapi_vector_set(U, i);
             }
 
-            mapi_push_integer(U, string[at]);
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void charat(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 2);
-
-            mapi_push_arg(U, 0);
-            maux_expect(U, "string");
-            const char *string = mapi_get_string(U);
-            size_t len = mapi_string_len(U);
-
-            mapi_push_arg(U, 1);
-            size_t at = mapi_get_size(U, "index");
-
-            mapi_pop(U, 2);
-
-            if (at >= len) {
-                mapi_errorf(U, "cannot get char at %zu position", at);
-            }
-
-            mapi_push_stringf(U, "%c", string[at]);
             maux_nb_return();
     maux_nb_end
 }
@@ -947,8 +921,7 @@ static morphine_library_function_t functions[] = {
     { "repeat",       repeat },
 
     { "chars",        chars },
-    { "codeat",       codeat },
-    { "charat",       charat },
+    { "codes",        codes },
 
     { "contains",     contains },
     { "indexof",      indexof },

@@ -158,6 +158,10 @@ static inline op_result_t interpreter_fun_get(
         ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
         (*result) = vectorI_get(U->I, valueI_as_vector(container), index);
         return NORMAL;
+    } else if (valueI_is_string(container)) {
+        ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
+        (*result) = valueI_object(stringI_get(U->I, valueI_as_string(container), index));
+        return NORMAL;
     } else if (metatableI_test(U->I, container, MF_GET, &mt_field)) {
         if (callstackI_is_callable(U->I, mt_field)) {
             struct value new_args[] = { key };
@@ -173,7 +177,7 @@ static inline op_result_t interpreter_fun_get(
         return NORMAL;
     }
 
-    throwI_error(U->I, "get supports only table or vector");
+    throwI_error(U->I, "get supports only table, vector or string");
 }
 
 static inline op_result_t interpreter_fun_set(

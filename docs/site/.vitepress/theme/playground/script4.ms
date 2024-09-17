@@ -3,7 +3,7 @@
  */
 
 val base = env.library("base")
-val bigint = env.library("bigint").wrap
+val bigint = env.library("bigint.wrap")
 
 fun calcPi<bigint>(print)
     val ZERO = bigint(0)

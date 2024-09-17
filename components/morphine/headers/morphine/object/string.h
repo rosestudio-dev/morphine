@@ -26,6 +26,8 @@ struct string *stringI_create(morphine_instance_t, const char *);
 
 void stringI_free(morphine_instance_t, struct string *);
 
+struct string *stringI_get(morphine_instance_t, struct string *, ml_size);
+
 struct string *stringI_concat(morphine_instance_t, struct string *, struct string *);
 uint64_t stringI_hash(morphine_instance_t, struct string *);
 
