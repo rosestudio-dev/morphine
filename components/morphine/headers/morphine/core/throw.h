@@ -8,7 +8,7 @@
 #include "morphine/core/value.h"
 #include "morphine/utils/semicolon.h"
 
-#define throwI_errorf(I, ...) morphinem_blk_start morphine_instance_t _I = (I); throwI_errorv(_I, valueI_object(stringI_createf(_I, __VA_ARGS__))); morphinem_blk_end
+#define throwI_errorf(I, ...) semicolon_blk(morphine_instance_t _I = (I); throwI_errorv(_I, valueI_object(stringI_createf(_I, __VA_ARGS__)));)
 
 struct throw {
     bool inited;

@@ -4,5 +4,4 @@
 
 #pragma once
 
-#define morphinem_blk_start do {
-#define morphinem_blk_end   } while(0)
+#define semicolon_blk(x) do { x } while (0)

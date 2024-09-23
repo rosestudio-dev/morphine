@@ -14,16 +14,16 @@
 // loop
 
 #define sp_fetch() \
-    morphinem_blk_start \
-    if (unlikely(*position >= instructions_count)) { \
-        callstackI_return(U, valueI_nil); \
-        sp_yield(); \
-    } \
-    instruction = F->instructions[*position]; \
-    morphinem_blk_end
+    semicolon_blk( \
+        if (unlikely(*position >= instructions_count)) { \
+            callstackI_return(U, valueI_nil); \
+            sp_yield(); \
+        } \
+        instruction = F->instructions[*position]; \
+    )
 
-#define sp_yield() morphinem_blk_start return; morphinem_blk_end
-#define sp_next() morphinem_blk_start (*position)++; morphinem_blk_end
+#define sp_yield() semicolon_blk(return;)
+#define sp_next() semicolon_blk((*position)++;)
 #define sp_end() sp_next(); sp_continue()
 
 #define sp_dispatch(o) switch (o)
@@ -33,7 +33,7 @@
 // access
 
 #define complex_fun(name, s, ...) \
-    morphinem_blk_start \
+    semicolon_blk( \
         op_result_t operation_result = name(U, s, __VA_ARGS__, 0, true); \
         if(unlikely(operation_result != NORMAL)) { \
             if (operation_result == CALLED) { \
@@ -42,12 +42,12 @@
                 callstackI_continue(U, 0); \
             } \
         } \
-    morphinem_blk_end
+    )
 
-#define set_slot(C, a, x)  morphinem_blk_start struct value _temp = (x); (C)->s.slots[(a)] = _temp; morphinem_blk_end
-#define get_slot(C, a, n)  struct value n = ((C)->s.slots[(a)]); morphinem_blk_start morphinem_blk_end
-#define set_param(C, a, x) morphinem_blk_start struct value _temp = (x); (C)->s.params[(a)] = _temp; morphinem_blk_end
-#define get_param(C, a, n) struct value n = ((C)->s.params[(a)]); morphinem_blk_start morphinem_blk_end
+#define set_slot(C, a, x)  semicolon_blk(struct value _temp = (x); (C)->s.slots[(a)] = _temp;)
+#define get_slot(C, a, n)  struct value n = ((C)->s.slots[(a)]); semicolon_blk()
+#define set_param(C, a, x) semicolon_blk(struct value _temp = (x); (C)->s.params[(a)] = _temp;)
+#define get_param(C, a, n) struct value n = ((C)->s.params[(a)]); semicolon_blk()
 
 #define arg1 instruction.argument1
 #define arg2 instruction.argument2

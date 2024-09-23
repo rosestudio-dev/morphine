@@ -43,8 +43,8 @@ bool instructionI_validate(
         goto error;
     }
 
-#define arg_type_index(a, s) morphinem_blk_start if (instruction.argument##a >= (s)) goto error; morphinem_blk_end
-#define arg_type_size(a, s)  morphinem_blk_start if (instruction.argument##a > (s)) goto error; morphinem_blk_end
+#define arg_type_index(a, s) semicolon_blk(if (instruction.argument##a >= (s)) goto error;)
+#define arg_type_size(a, s)  semicolon_blk(if (instruction.argument##a > (s)) goto error;)
 
 #define arg_undefined(a)
 #define arg_position(a)
