@@ -249,14 +249,41 @@ MORPHINE_AUX void maux_sio_read_all(morphine_coroutine_t U) {
     mapi_pop(U, 1);
 }
 
-MORPHINE_AUX morphine_sio_interface_t maux_sio_interface_srw(
+MORPHINE_AUX void maux_sio_read_to(morphine_coroutine_t U, const char *exit) {
+    mapi_push_string(U, "");
+    while (true) {
+        char read = 0;
+
+        mapi_rotate(U, 2);
+        size_t read_count = mapi_sio_read(U, (uint8_t *) &read, sizeof(char));
+        mapi_rotate(U, 2);
+
+        if (read_count != sizeof(char)) {
+            mapi_error(U, "cannot read line");
+        }
+
+        if (strchr(exit, read) != NULL) {
+            break;
+        }
+
+        mapi_push_stringn(U, &read, 1);
+        mapi_string_concat(U);
+    }
+}
+
+MORPHINE_AUX void maux_sio_read_line(morphine_coroutine_t U) {
+    maux_sio_read_to(U, "\n\0");
+}
+
+MORPHINE_AUX morphine_sio_interface_t maux_sio_interface_srwf(
     morphine_sio_read_t read,
-    morphine_sio_write_t write
+    morphine_sio_write_t write,
+    morphine_sio_flush_t flush
 ) {
     return (morphine_sio_interface_t) {
         .write = write,
         .read = read,
-        .flush = NULL,
+        .flush = flush,
         .open = NULL,
         .close = NULL,
         .seek = NULL,

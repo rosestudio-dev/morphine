@@ -156,14 +156,14 @@ static void read(morphine_coroutine_t U) {
             memset(buffer, 0, size);
 
             mapi_push_arg(U, 0);
-            size_t lost = mapi_sio_read(U, buffer, size);
+            size_t read = mapi_sio_read(U, buffer, size);
 
             mapi_push_table(U);
             mapi_push_string(U, "result");
             mapi_push_stringn(U, (char *) buffer, size);
             mapi_table_set(U);
-            mapi_push_string(U, "lost");
-            mapi_push_size(U, lost, NULL);
+            mapi_push_string(U, "read");
+            mapi_push_size(U, read, NULL);
             mapi_table_set(U);
             maux_nb_return();
     maux_nb_end
@@ -223,6 +223,29 @@ static void readall(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void readto(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 2);
+            mapi_push_arg(U, 1);
+            const char *exit = mapi_get_cstr(U);
+
+            mapi_push_arg(U, 0);
+            maux_sio_read_to(U, exit);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void readline(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_sio_read_line(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static morphine_library_function_t functions[] = {
     { "isopened", isopened },
     { "close",    close },
@@ -239,6 +262,8 @@ static morphine_library_function_t functions[] = {
     { "error",    error },
     { "buffer",   buffer },
     { "readall",  readall },
+    { "readto",   readto },
+    { "readline", readline },
     { NULL, NULL }
 };
 
