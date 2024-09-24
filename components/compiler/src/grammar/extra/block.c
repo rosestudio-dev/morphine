@@ -9,7 +9,8 @@ static size_t consume_block(
     size_t closes_size,
     struct expected_token *closes,
     size_t *close_index,
-    parse_function_t function
+    parse_function_t function,
+    struct mc_ast_node **last
 ) {
     size_t size = 0;
     while (true) {
@@ -23,7 +24,11 @@ static size_t consume_block(
             }
         }
 
-        parser_reduce(C, function);
+        struct mc_ast_node *node = parser_reduce(C, function);
+        if (last != NULL) {
+            *last = node;
+        }
+
         size++;
     }
 }
@@ -35,7 +40,7 @@ size_t extra_consume_statement_block(
     size_t *close_index
 ) {
     return consume_block(
-        C, closes_size, closes, close_index, rule_statement_explicit
+        C, closes_size, closes, close_index, rule_statement_explicit, NULL
     );
 }
 
@@ -46,15 +51,30 @@ size_t extra_consume_expression_block(
     size_t *close_index,
     bool safe
 ) {
+    struct mc_ast_node *last = NULL;
     size_t size = consume_block(
-        C, closes_size, closes, close_index, rule_statement_implicit
+        C, closes_size, closes, close_index, rule_statement_implicit, &last
     );
 
-    if (size == 0) {
-        if (safe) {
+    if (safe) {
+        if (last == NULL) {
             return 0;
         }
 
+        struct mc_ast_statement *statement = mcapi_ast_node2statement(parser_U(C), last);
+
+        if (statement->type == MCSTMTT_eval) {
+            struct mc_ast_statement_eval *eval = mcapi_ast_statement2eval(parser_U(C), statement);
+
+            if (eval->implicit) {
+                return size - 1;
+            }
+        }
+
+        return size;
+    }
+
+    if (size == 0) {
         parser_errorf(C, "empty expression block");
     }
 
@@ -134,7 +154,7 @@ void extra_extract_expression_block(
     if (statement->type == MCSTMTT_eval) {
         struct mc_ast_statement_eval *eval = mcapi_ast_statement2eval(parser_U(C), statement);
         *expression = eval->expression;
-    } else if(safe) {
+    } else if (safe) {
         struct mc_ast_expression_value *value =
             mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
 

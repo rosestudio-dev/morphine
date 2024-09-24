@@ -8,38 +8,133 @@ val gc = env.library("gc")
 val fs = env.library("fs")
 val compiler = env.library("compiler")
 val binary = env.library("binary")
+val app = env.library("__app")
 
-fun help<auto>(program, message, usage)
+val originlibrary = env.library
+fun fakelibrary<auto>(name, reload)
+    val disabled = [
+        "__app"
+    ]
+
+    iterator(extract value in disabled)
+        if (value == name)
+            base.error("library not found")
+        end
+    end
+
+    return if (reload == nil)
+        originlibrary(name)
+    else
+        originlibrary(name, reload)
+    end
+end
+
+fun errln<auto>(error)
+    sio.flush(sio.io())
+    sio.write(sio.error(), value.tostr(error) .. "\n")
+    sio.flush(sio.error())
+end
+
+fun panic<auto>(error)
+    errln(error)
+    app.exit(1)
+end
+
+fun help<auto>(program, message)
     base.println("Morphine (version: " .. base.version().. ")")
 
     if (message != nil)
-        sio.write(sio.error(), "Message: " .. message .. "\n")
+        errln("Message: " .. value.tostr(message))
     end
 
-    if (usage)
-        base.println("Usage: " .. program .. " [options] [program [args]]")
-        base.println("Positional arguments:")
-        base.println("    program         Path to program")
-        base.println("    args            Program arguments")
-        base.println("Optional arguments:")
-        base.println("    -b              Binary program")
-        base.println("    -r              Run program")
-        base.println("    -e path         Export program")
-        base.println("    -n name  [main] Program name (gives an effect for a non-binary format)")
-        base.println("    -d              Disassembly program")
-        base.println("    -m bytes [256M] Allocation limit (possible suffixes: K, M, G)")
-        base.println("    -h              Print help message")
-        base.println("    --              Stop handling options")
+    base.println("Usage: " .. program .. " [options] [program [args]]")
+    base.println("Positional arguments:")
+    base.println("    program         Path to program")
+    base.println("    args            Program arguments")
+    base.println("Optional arguments:")
+    base.println("    -b              Binary program")
+    base.println("    -r              Run program")
+    base.println("    -e path         Export program")
+    base.println("    -n name  [main] Program name (gives an effect for a non-binary format)")
+    base.println("    -d              Disassembly program")
+    base.println("    -m bytes [256M] Allocation limit (possible suffixes: K, M, G)")
+    base.println("    -h              Print help message")
+    base.println("    --              Stop handling options")
+
+    app.exit(1)
+end
+
+fun repl<auto>()
+    val data = {
+        exit = false
+    }
+
+    fun exec<auto>(text)
+        val compiled = compiler.compile {
+            text = text,
+            name = "replfun",
+            expression = true
+        }
+
+        return base.changeenv(data.environment, compiled)
     end
 
-    if (message != nil)
-        env.exit(1)
+    fun exit<auto>()
+        data.exit = true
     end
+
+    fun block<auto>()
+        var text = ""
+        do
+            val line = app.readline(">> ")
+            text = text .. line .. "\n"
+        end while (line != "")
+
+        return exec(text)
+    end
+
+    fun help<auto>() =
+"Support functions:
+    type 'env.exit()'    to exit
+    type 'env.block()'   to execute block
+    type 'env.restore()' to restore env
+    type 'env.help()'    to print this message"
+
+    fun recursive restore<auto>()
+        data.environment ={
+            library = fakelibrary,
+            exit = exit,
+            block = block,
+            restore = restore,
+            help = help,
+        }
+    end
+
+    restore()
+
+    base.println("Welcome to morphine REPL!")
+    base.println("Version: " .. base.version())
+    base.println()
+    base.println(help())
+
+    while(not data.exit)
+        val line = app.readline("> ")
+
+        val extract result, error = base.pcall(exec, line)
+        if (error != nil)
+            base.println("error was caused:")
+            errln(error)
+        else
+            base.println(result)
+        end
+    end
+
+    base.println("Goodbye!")
 end
 
 fun tobytes<auto>(program, param)
     if (lenof param < 1)
-        help(program, "invalid bytes param", true)
+        help(program, "invalid bytes param")
     end
 
     fun convert<auto>()
@@ -77,21 +172,13 @@ fun tobytes<auto>(program, param)
     val extract result, error = base.pcall(convert)
 
     if (result == nil)
-        help(program, "invalid bytes param", true)
+        help(program, "invalid bytes param")
     end
 
     return result
 end
 
 fun parse_arguments<auto>()
-    if (lenof env.args < 1)
-        help("morphine", "empty command line arguments", true)
-    end
-
-    if (lenof env.args == 1)
-        help("morphine", "no arguments", true)
-    end
-
     val result = table.fixed {
         app_path = env.args[0],
         program_path = nil,
@@ -102,15 +189,25 @@ fun parse_arguments<auto>()
         name = "main",
         disassembly = false,
         export = nil,
+        repl = false,
         help = false
     }
+
+    if (lenof env.args < 1)
+        help("morphine", "empty command line arguments")
+    end
+
+    if (lenof env.args == 1)
+        result.repl = true
+        return result
+    end
 
     var require_path = false
     var parsed = 1
     for(pass; parsed < lenof env.args; parsed ++)
         val argument = env.args[parsed]
         if (lenof argument == 0)
-            help(result.app_path, "empty command line arguments", true)
+            help(result.app_path, "empty command line arguments")
         end
 
         if (argument[0] != '-')
@@ -137,27 +234,27 @@ fun parse_arguments<auto>()
                 require_path = true
                 offset ++
                 if (parsed + offset >= lenof env.args)
-                    help(result.app_path, "no export path", true)
+                    help(result.app_path, "no export path")
                 end
                 result.export = env.args[parsed + offset]
             elif (char == 'n')
                 require_path = true
                 offset ++
                 if (parsed + offset >= lenof env.args)
-                    help(result.app_path, "no name", true)
+                    help(result.app_path, "no name")
                 end
                 result.name = env.args[parsed + offset]
             elif (char == 'm')
                 offset ++
                 if (parsed + offset >= lenof env.args)
-                    help(result.app_path, "no bytes value", true)
+                    help(result.app_path, "no bytes value")
                 end
                 val value = env.args[parsed + offset]
                 result.gc_limit = tobytes(result.app_path, value)
             elif (char == 'h')
                 result.help = true
             else
-                help(result.app_path, nil, true)
+                help(result.app_path, "undefined argument '" .. char .. "'")
             end
         end
 
@@ -170,7 +267,7 @@ fun parse_arguments<auto>()
 
     if (parsed >= lenof env.args)
         if (require_path)
-            help(result.app_path, "program path is expected", true)
+            help(result.app_path, "program path is expected")
         else
             return result
         end
@@ -189,8 +286,13 @@ fun launch<auto>()
         leave
     end
 
+    if (config.repl)
+        repl()
+        leave
+    end
+
     if (config.help)
-        help(config.app_path, nil, true)
+        help(config.app_path)
     end
 
     gc.changelimit(config.gc_limit)
@@ -214,7 +316,7 @@ fun launch<auto>()
 
             val extract result, error = base.pcall(compile)
             if (error != nil)
-                help(config.app_path, error, false)
+                panic(error)
             end
 
             result
@@ -233,7 +335,7 @@ fun launch<auto>()
 
         if (config.execute)
             val environment = {
-                library = env.library,
+                library = fakelibrary,
                 args = vector.unfixed([])
             }
 

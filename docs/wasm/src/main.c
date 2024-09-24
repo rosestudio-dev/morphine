@@ -26,15 +26,15 @@ morphine_noret static void signal(morphine_instance_t I) {
 }
 
 static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    return fwrite(buffer, size, 1, stdout);
+    return fwrite(buffer, 1, size, stdout);
 }
 
 static size_t io_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
-    return fread(buffer, size, 1, stdin);
+    return fread(buffer, 1, size, stdin);
 }
 
 static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    return fwrite(buffer, size, 1, stderr);
+    return fwrite(buffer, 1, size, stderr);
 }
 
 static void *vmmalloc(void *data, size_t size) {
@@ -79,7 +79,7 @@ static void launcher(struct environment *env, const char *text, size_t size) {
     morphine_coroutine_t U = mapi_coroutine(I, "wasm-app");
 
     mapi_push_stringn(U, text, size);
-    mcapi_compile(U, "main", false);
+    mcapi_compile(U, "main", false, false);
 
     mapi_call(U, 0);
     mapi_interpreter(I);

@@ -21,15 +21,26 @@ morphine_scripts = custom_target(
     output : 'scripts.h'
 )
 
+cc = meson.get_compiler('c')
+readline_dep = cc.find_library('readline')
+
+addition_args = []
+
+if readline_dep.found()
+    addition_args += ['-DUSE_READLINE']
+endif
+
 executable(
     'morphine', sources, morphine_scripts,
-    build_by_default : true,
+    include_directories : ['include'],
     dependencies : [
         morphine_dep,
         morphinec_dep,
-        morphinel_dep
+        morphinel_dep,
+        readline_dep
     ],
-    c_args : c_args,
+    c_args : c_args + addition_args,
     link_args : [link_args, '-flto'],
+    build_by_default : true,
     install : true
 )

@@ -10,51 +10,43 @@
 #include <malloc.h>
 #include <scripts.h>
 
-struct environment {
-    jmp_buf abort_jmp;
-
-    struct {
-        int code;
-        morphine_instance_t I;
-        jmp_buf jmp;
-    } exit;
-};
-
-morphine_noret static void signal(morphine_instance_t I) {
-    struct environment *env = mapi_instance_data(I);
-    const char *message = mapi_signal_message(I);
-    fprintf(stderr, "morphine panic: %s\n", message);
-
-    if (I != NULL && !mapi_is_nested_signal(I)) {
-        mapi_close(I);
-    }
-
-    longjmp(env->abort_jmp, 1);
-}
-
-morphine_noret static void cexit(morphine_instance_t I, ml_integer code) {
-    struct environment *env = mapi_instance_data(I);
-
-    env->exit.I = I;
-    env->exit.code = (int) code;
-
-    longjmp(env->exit.jmp, 1);
-}
+#include "env.h"
+#include "library.h"
 
 static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
     (void) A;
     (void) data;
 
-    fwrite(buffer, size, 1, stdout);
-    return size;
+    return fwrite(buffer, 1, size, stdout);
+}
+
+static size_t io_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
+    (void) A;
+    (void) data;
+
+    return fread(buffer, 1, size, stdin);
+}
+
+static void io_flush(morphine_sio_accessor_t A, void *data) {
+    (void) A;
+    (void) data;
+
+    fflush(stdout);
 }
 
 static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
     (void) A;
     (void) data;
 
-    fwrite(buffer, size, 1, stderr);
+    fwrite(buffer, 1, size, stderr);
     return size;
+}
+
+static void io_error_flush(morphine_sio_accessor_t A, void *data) {
+    (void) A;
+    (void) data;
+
+    fflush(stderr);
 }
 
 static void *vmmalloc(void *data, size_t size) {
@@ -72,18 +64,12 @@ static void vmfree(void *data, void *pointer) {
     free(pointer);
 }
 
-static void exit_function(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
-            ml_integer code = mapi_get_integer(U);
-            cexit(mapi_instance(U), code);
-    maux_nb_end
-}
+static void init_args(morphine_coroutine_t U, int argc, char **args) {
+    if (argc < 0) {
+        argc = 0;
+    }
 
-static void init_args(morphine_coroutine_t U, size_t argc, char **args) {
-    ml_size argc_size = mapi_csize2size(U, argc, NULL);
+    ml_size argc_size = mapi_csize2size(U, (size_t) argc, NULL);
 
     mapi_push_env(U);
     mapi_push_string(U, "args");
@@ -96,17 +82,7 @@ static void init_args(morphine_coroutine_t U, size_t argc, char **args) {
     mapi_pop(U, 1);
 }
 
-static void init_functions(morphine_coroutine_t U) {
-    mapi_push_env(U);
-
-    mapi_push_string(U, "exit");
-    mapi_push_native(U, "exit", exit_function);
-    mapi_table_set(U);
-
-    mapi_pop(U, 1);
-}
-
-static int launcher(struct environment *env, int argc, char **argv) {
+static int launcher(struct env *env, int argc, char **argv) {
     if (setjmp(env->exit.jmp) == 1) {
         if (env->exit.I) {
             mapi_close(env->exit.I);
@@ -132,22 +108,22 @@ static int launcher(struct environment *env, int argc, char **argv) {
         .functions.malloc = vmmalloc,
         .functions.realloc = vmrealloc,
         .functions.free = vmfree,
-        .functions.signal = signal,
-        .sio_io_interface = maux_sio_interface_swo(io_write),
-        .sio_error_interface = maux_sio_interface_swo(io_error_write),
+        .functions.signal = env_signal,
+        .sio_io_interface = maux_sio_interface_srwf(io_read, io_write, io_flush),
+        .sio_error_interface = maux_sio_interface_swf(io_error_write, io_error_flush),
     };
 
     morphine_instance_t I = mapi_open(instance_platform, settings, env);
-    mapi_library_load(I, mclib_compiler());
     mlapi_import_all(I);
+    mapi_library_load(I, mclib_compiler());
+    mapi_library_load(I, mllib_launcher(I));
 
     morphine_coroutine_t U = mapi_coroutine(I, "app");
 
-    init_args(U, (size_t) argc, argv);
-    init_functions(U);
+    init_args(U, argc, argv);
 
     mapi_push_stringn(U, launcher_data, launcher_size);
-    mcapi_compile(U, "launcher", false);
+    mcapi_compile(U, "launcher", false, false);
 
     mapi_call(U, 0);
     mapi_interpreter(I);
@@ -158,10 +134,7 @@ static int launcher(struct environment *env, int argc, char **argv) {
 }
 
 int main(int argc, char **argv) {
-    struct environment environment = {
-        .exit.I = NULL,
-        .exit.code = 0,
-    };
+    struct env environment;
 
     if (setjmp(environment.abort_jmp) == 1) {
         return 1;
