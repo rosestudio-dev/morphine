@@ -509,7 +509,7 @@ static void parser_userdata_free(morphine_instance_t I, void *data) {
     parser_userdata_free_context(I, P->context.trash);
 }
 
-MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U) {
+MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U, bool expression) {
     mapi_type_declare(
         mapi_instance(U),
         MC_PARSER_USERDATA_TYPE,
@@ -520,7 +520,12 @@ MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U) {
     );
 
     struct mc_parser *P = mapi_push_userdata(U, MC_PARSER_USERDATA_TYPE);
-    push_context(U, P, parse_root);
+
+    if (expression) {
+        push_context(U, P, rule_expression_root);
+    } else {
+        push_context(U, P, rule_statement_root);
+    }
 
     return P;
 }

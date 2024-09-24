@@ -12,6 +12,7 @@
 MORPHINE_API void mcapi_compile(
     morphine_coroutine_t U,
     const char *name,
+    bool expression,
     bool vector
 ) {
     const char *text = mapi_get_string(U);
@@ -22,7 +23,7 @@ MORPHINE_API void mcapi_compile(
 
     {
         struct mc_lex *L = mcapi_push_lex(U, text, text_len);
-        struct mc_parser *P = mcapi_push_parser(U);
+        struct mc_parser *P = mcapi_push_parser(U, expression);
         while (mcapi_parser_step(U, P, A, L, T)) { }
         mapi_pop(U, 2);
     }

@@ -12,7 +12,7 @@
 
 struct mc_parser;
 
-MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t);
+MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t, bool expression);
 MORPHINE_API struct mc_parser *mcapi_get_parser(morphine_coroutine_t);
 MORPHINE_API bool mcapi_parser_step(
     morphine_coroutine_t,

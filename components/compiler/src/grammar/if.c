@@ -99,14 +99,14 @@ static struct mc_ast_node *rule_expression_elif(struct parse_controller *C) {
         parser_consume(C, et_operator(RPAREN));
 
         if_size = extra_consume_expression_block(
-            C, array_closes_size(if_closes), if_closes, &close_index
+            C, array_closes_size(if_closes), if_closes, &close_index, false
         );
 
         if (close_index == 0) {
             parser_reduce(C, rule_expression_elif);
         } else if (close_index == 1) {
             else_size = extra_consume_expression_block(
-                C, array_closes_size(else_closes), else_closes, NULL
+                C, array_closes_size(else_closes), else_closes, NULL, false
             );
         }
     }
@@ -128,7 +128,7 @@ static struct mc_ast_node *rule_expression_elif(struct parse_controller *C) {
 
     extra_extract_expression_block(
         C, array_closes_size(if_closes), if_closes, if_size,
-        if_block->statements, &if_block->expression
+        if_block->statements, &if_block->expression, false
     );
 
     expression_if->if_expression = mcapi_ast_block2expression(if_block);
@@ -144,7 +144,7 @@ static struct mc_ast_node *rule_expression_elif(struct parse_controller *C) {
 
         extra_extract_expression_block(
             C, array_closes_size(else_closes), else_closes, else_size,
-            else_block->statements, &else_block->expression
+            else_block->statements, &else_block->expression, false
         );
 
         else_expression = mcapi_ast_block2expression(else_block);

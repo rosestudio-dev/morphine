@@ -22,7 +22,7 @@ struct mc_ast_node *rule_statement_block(struct parse_controller *C) {
 
 struct mc_ast_node *rule_expression_block(struct parse_controller *C) {
     struct expected_token closes[] = { et_predef_word(end) };
-    size_t count = extra_consume_expression_block(C, array_closes_size(closes), closes, NULL);
+    size_t count = extra_consume_expression_block(C, array_closes_size(closes), closes, NULL, false);
 
     parser_reset(C);
 
@@ -31,7 +31,7 @@ struct mc_ast_node *rule_expression_block(struct parse_controller *C) {
         mcapi_ast_create_expression_block(parser_U(C), parser_A(C), line, count);
 
     extra_extract_expression_block(
-        C, array_closes_size(closes), closes, count, block->statements, &block->expression
+        C, array_closes_size(closes), closes, count, block->statements, &block->expression, false
     );
 
     return mcapi_ast_expression_block2node(block);

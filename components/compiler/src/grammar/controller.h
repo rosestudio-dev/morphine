@@ -9,13 +9,17 @@
 
 enum predefined_word_normal {
 #define predef_word(n) PWN_##n,
+
 #include "predefword/normal.h"
+
 #undef predef_word
 };
 
 enum predefined_word_asm {
 #define predef_word(n) PWA_##n,
+
 #include "predefword/asm.h"
+
 #undef predef_word
 };
 
@@ -77,11 +81,12 @@ struct mc_ast_node *parser_reduce(struct parse_controller *, parse_function_t);
 void parser_reset(struct parse_controller *);
 void parser_change_mode(struct parse_controller *, enum predefined_word_mode);
 
-struct mc_ast_node *parse_root(struct parse_controller *);
-
 // rules
 
 #define rule(name) struct mc_ast_node *rule_##name(struct parse_controller *)
+
+rule(statement_root);
+rule(expression_root);
 
 rule(statement_explicit);
 rule(statement_explicit_without_semicolon);

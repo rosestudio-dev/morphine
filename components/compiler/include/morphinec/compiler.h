@@ -9,5 +9,6 @@
 MORPHINE_API void mcapi_compile(
     morphine_coroutine_t,
     const char *name,
+    bool expression,
     bool vector
 );
