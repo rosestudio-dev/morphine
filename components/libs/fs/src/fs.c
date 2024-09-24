@@ -2,15 +2,15 @@
 // Created by why-iskra on 31.07.2024.
 //
 
-#include <morphinel/fs.h>
+#include "morphinel/fs.h"
+#include "morphinel/fs/file.h"
 #include <sys/stat.h>
 #include <dirent.h>
 #include <string.h>
 #include <pwd.h>
 #include <unistd.h>
-#include "morphinel/fs/file.h"
 
-static void file(morphine_coroutine_t U) {
+static void open(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 2);
@@ -41,20 +41,6 @@ static void file(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
             mlapi_fs_file(U, read, write, binary);
             maux_nb_return();
-    maux_nb_end
-}
-
-static void dir(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
-            const char *path = mapi_get_cstr(U);
-
-            if (mkdir(path, 0700)) {
-                mapi_error(U, "cannot create dir");
-            }
-            maux_nb_leave();
     maux_nb_end
 }
 
@@ -154,8 +140,7 @@ static void info(morphine_coroutine_t U) {
 }
 
 static morphine_library_function_t functions[] = {
-    { "file", file },
-    { "dir",  dir },
+    { "open", open },
     { "list", list },
     { "info", info },
     { NULL, NULL },

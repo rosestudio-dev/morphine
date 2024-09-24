@@ -299,13 +299,13 @@ fun launch<auto>()
 
     if (config.program_path != nil)
         val content = if (config.binary)
-            val file = fs.file(config.program_path, "rb")
+            val file = fs.open(config.program_path, "rb")
             val result = binary.receive(file)
             sio.close(file)
 
             result
         else
-            val file = fs.file(config.program_path, "rb")
+            val file = fs.open(config.program_path, "rb")
             val text = sio.readall(file)
             sio.close(file)
 
@@ -328,7 +328,7 @@ fun launch<auto>()
         end
 
         if (config.export != nil)
-            val file = fs.file(config.export, "wb")
+            val file = fs.open(config.export, "wb")
             binary.send(file, content)
             sio.close(file)
         end
