@@ -1,0 +1,9 @@
+//
+// Created by why-iskra on 26.09.2024.
+//
+
+#pragma once
+
+#mesondefine MORPHINE_VERSION_NAME
+#mesondefine MORPHINE_VERSION_CODE
+#mesondefine MORPHINE_BYTECODE_VERSION

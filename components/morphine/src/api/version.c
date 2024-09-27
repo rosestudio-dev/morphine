@@ -12,7 +12,6 @@
  */
 
 #include "morphine/api.h"
-#include "mversion.h"
 
 /*
  * {{docs body}}

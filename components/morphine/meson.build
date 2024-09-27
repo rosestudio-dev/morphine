@@ -7,22 +7,14 @@ sources = run_command(
     check : true
 ).stdout().strip().split('\n')
 
-mversion_h = custom_target(
-    command : [
-        python, script_version,
-        '-n', meson.project_version(),
-        '-c', version_code.to_string(),
-        '-b', bytecode_version.to_string(),
-        '-o', '@OUTPUT@'
-    ],
-    console : true,
-    output : 'mversion.h',
-    install : true,
-    install_dir : 'include',
-)
+# configuration
+
+subdir('include/morphine/config')
+
+# dep
 
 morphine = library(
-    'morphine', sources, mversion_h,
+    'morphine', sources, version_h_file, module_h_file,
     include_directories : [headers, include],
     c_args : c_args,
     link_args : link_args,
@@ -39,5 +31,20 @@ morphine_dep = declare_dependency(
 install_subdir(
     'include',
     install_dir : 'include',
+    exclude_files : [
+        'morphine/config/meson.build',
+        'morphine/config/version.h.in',
+        'morphine/config/module.h.in'
+    ],
     strip_directory : true,
+)
+
+install_data(
+    version_h_file,
+    install_dir : 'include/morphine/config'
+)
+
+install_data(
+    module_h_file,
+    install_dir : 'include/morphine/config'
 )

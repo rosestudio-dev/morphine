@@ -1,0 +1,9 @@
+//
+// Created by why-iskra on 26.09.2024.
+//
+
+#pragma once
+
+#mesondefine MORPHINE_ENABLE_JUMPTABLE
+#mesondefine MORPHINE_ENABLE_SSO
+#mesondefine MORPHINE_ENABLE_DEBUG

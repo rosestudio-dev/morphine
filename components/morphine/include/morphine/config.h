@@ -4,10 +4,8 @@
 
 #pragma once
 
-// modules
-
-#define MORPHINE_ENABLE_JUMPTABLE
-#define MORPHINE_ENABLE_SSO
+#include <morphine/config/version.h>
+#include <morphine/config/module.h>
 
 // modifiers
 

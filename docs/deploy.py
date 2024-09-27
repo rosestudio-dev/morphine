@@ -80,7 +80,7 @@ def prepare():
 
     step("Configure morphine",
          [meson, "setup", "docs/wasm/buildmorphine", "-Dprefix=" + cwd + "/wasm/deps", "-Ddefault_library=static",
-          "-Dbuildapp=disabled", "-Dbuildlibs=enabled", "-Doptimization=2", "-Dbuildtype=release", "--cross",
+          "-Dbuild_app=disabled", "-Dbuild_libs=enabled", "-Doptimization=2", "-Dbuildtype=release", "--cross",
           "docs/wasm/cross/wasm.ini"] + libs, "..")
     step("Compile morphine", [meson, "install", "--quiet"], "wasm/buildmorphine")
     insert_gitignore("wasm/deps")

@@ -14,7 +14,6 @@
 #include "morphine/object/sio.h"
 #include "morphine/algorithm/crc32.h"
 #include "morphine/instruction/info.h"
-#include "mversion.h"
 #include <string.h>
 
 struct data {
