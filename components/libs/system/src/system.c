@@ -3,6 +3,7 @@
 //
 
 #include "morphinel/system.h"
+#include "morphinel/system/popen.h"
 #include <sys/time.h>
 
 static uint64_t get_millis(void) {
@@ -43,10 +44,21 @@ static void millis(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void popen(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mlapi_system_popen(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static morphine_library_function_t functions[] = {
     { "millis", millis },
     { "delay",  delay },
-    { NULL,     NULL }
+    { "popen",  popen },
+    { NULL, NULL }
 };
 
 static morphine_library_t library = {

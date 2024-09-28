@@ -6,6 +6,10 @@
 
 #include <morphine.h>
 
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #define MC_BIGINT_USERDATA_TYPE "bigint"
 
 struct mc_bigint;
@@ -52,3 +56,7 @@ MORPHINE_API struct mc_bigint *mlapi_bigint_mod(
 );
 
 MORPHINE_API struct mc_bigint *mlapi_bigint_negate(morphine_coroutine_t, struct mc_bigint *, bool);
+
+#ifdef __cplusplus
+}
+#endif
