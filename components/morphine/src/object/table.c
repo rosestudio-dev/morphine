@@ -29,7 +29,7 @@ static uint64_t hashcode(morphine_instance_t I, struct value value) {
 
     switch (value.type) {
         case VALUE_TYPE_NIL:
-            return (uint64_t) valueI_as_nil(value);
+            return (uint64_t) (size_t) valueI_as_nil(value);
         case VALUE_TYPE_INTEGER:
             return (uint64_t) valueI_as_integer(value);
         case VALUE_TYPE_DECIMAL:
@@ -49,7 +49,7 @@ static uint64_t hashcode(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_ITERATOR:
         case VALUE_TYPE_SIO:
         case VALUE_TYPE_REFERENCE:
-            return (uint64_t) valueI_as_object(value);
+            return (uint64_t) (size_t) valueI_as_object(value);
     }
 
     throwI_panic(I, "unknown value type");
@@ -97,6 +97,10 @@ static inline int compare(morphine_instance_t I, struct value a, struct value b)
     }
 
     throwI_panic(I, "unsupported type");
+}
+
+static inline size_t hash2index(uint64_t hash, size_t size) {
+    return (size_t) (hash % size);
 }
 
 // linked list of buckets
@@ -508,7 +512,7 @@ static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
     struct bucket *current = hashmap->buckets.head;
     while (current != NULL) {
         uint64_t hash = hashcode(I, current->pair.key);
-        size_t index = hash % new_size;
+        size_t index = hash2index(hash, new_size);
 
         struct tree *tree = hashmap->hashing.trees + index;
 
@@ -537,7 +541,7 @@ static inline struct bucket *get(morphine_instance_t I, struct hashmap *hashmap,
     }
 
     uint64_t hash = hashcode(I, key);
-    size_t index = hash % hashmap->hashing.size;
+    size_t index = hash2index(hash, hashmap->hashing.size);
 
     struct tree *tree = hashmap->hashing.trees + index;
     return redblacktree_find(I, tree, key);
@@ -656,7 +660,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     gcI_barrier(I, table, value);
 
     uint64_t hash = hashcode(I, key);
-    size_t index = hash % hashmap->hashing.size;
+    size_t index = hash2index(hash, hashmap->hashing.size);
 
     struct tree *tree = hashmap->hashing.trees + index;
 
@@ -792,7 +796,7 @@ struct value tableI_remove(morphine_instance_t I, struct table *table, struct va
     }
 
     uint64_t hash = hashcode(I, key);
-    size_t index = hash % hashmap->hashing.size;
+    size_t index = hash2index(hash, hashmap->hashing.size);
 
     struct tree *tree = hashmap->hashing.trees + index;
     struct bucket *bucket = redblacktree_delete(I, tree, key);
