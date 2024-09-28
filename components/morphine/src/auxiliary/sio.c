@@ -249,7 +249,7 @@ MORPHINE_AUX void maux_sio_read_all(morphine_coroutine_t U) {
     mapi_pop(U, 1);
 }
 
-MORPHINE_AUX void maux_sio_read_to(morphine_coroutine_t U, const char *exit) {
+MORPHINE_AUX bool maux_sio_read_to(morphine_coroutine_t U, const char *exit, bool eof) {
     mapi_push_string(U, "");
     while (true) {
         char read = 0;
@@ -259,20 +259,22 @@ MORPHINE_AUX void maux_sio_read_to(morphine_coroutine_t U, const char *exit) {
         mapi_rotate(U, 2);
 
         if (read_count != sizeof(char)) {
-            mapi_error(U, "cannot read line");
+            return false;
         }
 
-        if (strchr(exit, read) != NULL) {
+        if ((eof && read == '\0') || strchr(exit, read) != NULL) {
             break;
         }
 
         mapi_push_stringn(U, &read, 1);
         mapi_string_concat(U);
     }
+
+    return true;
 }
 
-MORPHINE_AUX void maux_sio_read_line(morphine_coroutine_t U) {
-    maux_sio_read_to(U, "\n\0");
+MORPHINE_AUX bool maux_sio_read_line(morphine_coroutine_t U) {
+    return maux_sio_read_to(U, "\n", true);
 }
 
 MORPHINE_AUX morphine_sio_interface_t maux_sio_interface_srwf(

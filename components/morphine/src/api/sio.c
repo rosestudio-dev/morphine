@@ -129,11 +129,11 @@ MORPHINE_API void mapi_sio_accessor_free(morphine_sio_accessor_t A, void *pointe
     sioI_accessor_free(A, pointer);
 }
 
-MORPHINE_API void mapi_sio_accessor_error(morphine_sio_accessor_t A, const char *str) {
+MORPHINE_API morphine_noret void mapi_sio_accessor_error(morphine_sio_accessor_t A, const char *str) {
     sioI_accessor_error(A, str);
 }
 
-MORPHINE_API void mapi_sio_accessor_errorf(morphine_sio_accessor_t A, const char *str, ...) {
+MORPHINE_API morphine_noret void mapi_sio_accessor_errorf(morphine_sio_accessor_t A, const char *str, ...) {
     va_list args;
     va_start(args, str);
     sioI_accessor_errorv(A, str, args);

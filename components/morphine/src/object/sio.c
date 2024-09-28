@@ -231,18 +231,18 @@ void sioI_accessor_free(morphine_sio_accessor_t A, void *pointer) {
     allocI_free(A->I, pointer);
 }
 
-void sioI_accessor_error(morphine_sio_accessor_t A, const char *str) {
+morphine_noret void sioI_accessor_error(morphine_sio_accessor_t A, const char *str) {
     throwI_error(A->I, str);
 }
 
-void sioI_accessor_errorf(morphine_sio_accessor_t A, const char *str, ...) {
+morphine_noret void sioI_accessor_errorf(morphine_sio_accessor_t A, const char *str, ...) {
     va_list args;
     va_start(args, str);
     sioI_accessor_errorv(A, str, args);
     va_end(args);
 }
 
-void sioI_accessor_errorv(morphine_sio_accessor_t A, const char *str, va_list args) {
+morphine_noret void sioI_accessor_errorv(morphine_sio_accessor_t A, const char *str, va_list args) {
     struct string *result = stringI_createva(A->I, str, args);
     throwI_errorv(A->I, valueI_object(result));
 }

@@ -226,12 +226,15 @@ static void readall(morphine_coroutine_t U) {
 static void readto(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
+            maux_expect_args(U, 3);
             mapi_push_arg(U, 1);
             const char *exit = mapi_get_cstr(U);
 
+            mapi_push_arg(U, 2);
+            bool eof = mapi_get_boolean(U);
+
             mapi_push_arg(U, 0);
-            maux_sio_read_to(U, exit);
+            maux_sio_read_to(U, exit, eof);
             maux_nb_return();
     maux_nb_end
 }

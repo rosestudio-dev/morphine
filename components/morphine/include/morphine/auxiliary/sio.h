@@ -8,8 +8,8 @@
 
 MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t, size_t factor, bool read, bool write);
 MORPHINE_AUX void maux_sio_read_all(morphine_coroutine_t);
-MORPHINE_AUX void maux_sio_read_to(morphine_coroutine_t, const char *exit);
-MORPHINE_AUX void maux_sio_read_line(morphine_coroutine_t);
+MORPHINE_AUX bool maux_sio_read_to(morphine_coroutine_t, const char *exit, bool eof);
+MORPHINE_AUX bool maux_sio_read_line(morphine_coroutine_t);
 
 MORPHINE_AUX morphine_sio_interface_t maux_sio_interface_srwf(
     morphine_sio_read_t,

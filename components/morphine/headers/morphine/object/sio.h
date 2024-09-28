@@ -43,6 +43,6 @@ size_t sioI_vprintf(morphine_instance_t, struct sio *, const char *, va_list arg
 void *sioI_accessor_alloc(morphine_sio_accessor_t, void *, size_t);
 void *sioI_accessor_alloc_vec(morphine_sio_accessor_t, void *, size_t, size_t);
 void sioI_accessor_free(morphine_sio_accessor_t, void *);
-void sioI_accessor_error(morphine_sio_accessor_t, const char *);
-void sioI_accessor_errorf(morphine_sio_accessor_t, const char *, ...);
-void sioI_accessor_errorv(morphine_sio_accessor_t, const char *, va_list args);
+morphine_noret void sioI_accessor_error(morphine_sio_accessor_t, const char *);
+morphine_noret void sioI_accessor_errorf(morphine_sio_accessor_t, const char *, ...);
+morphine_noret void sioI_accessor_errorv(morphine_sio_accessor_t, const char *, va_list args);
