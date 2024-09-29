@@ -68,20 +68,19 @@ def remove(path):
 def prepare():
     step("Install deps", [npm, "i"], "site")
 
-    libs = [
-        "-Duselib_math=disabled",
-        "-Duselib_fs=disabled",
-        "-Duselib_system=disabled",
-        "-Duselib_bigint=enabled",
-    ]
-
     remove("site/src/generated")
     remove("site/.vitepress/generated")
 
     step("Configure morphine",
-         [meson, "setup", "docs/wasm/buildmorphine", "-Dprefix=" + cwd + "/wasm/deps", "-Ddefault_library=static",
-          "-Dbuild_app=disabled", "-Dbuild_libs=enabled", "-Doptimization=2", "-Dbuildtype=release", "--cross",
-          "docs/wasm/cross/wasm.ini"] + libs, "..")
+         [meson, "setup", "docs/wasm/buildmorphine", "-Dprefix=" + cwd + "/wasm/deps",
+          "-Dbuild_app=disabled",
+          "-Dbuild_libs=enabled",
+          "-Dlibs=bigint",
+          "-Doptimization=2",
+          "-Dbuildtype=release",
+          "-Ddefault_library=static",
+          "--cross",
+          "docs/wasm/cross/wasm.ini"], "..")
     step("Compile morphine", [meson, "install", "--quiet"], "wasm/buildmorphine")
     insert_gitignore("wasm/deps")
 

@@ -1,0 +1,10 @@
+//
+// Created by why-iskra on 02.09.2024.
+//
+
+#include <morphinel.h>
+
+MORPHINE_API void mlapi_import_all(morphine_instance_t I) {
+    (void) I;
+    @imports@
+}

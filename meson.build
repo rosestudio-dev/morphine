@@ -1,6 +1,6 @@
 project(
     'morphine', 'c',
-    version : '0.0.1',
+    version : '0.1-1dev',
     license : 'MIT',
     license_files : ['LICENSE'],
     default_options : {

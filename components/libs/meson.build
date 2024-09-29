@@ -1,49 +1,21 @@
-# options
-
-uselib_math = get_option('uselib_math').enabled()
-uselib_fs = get_option('uselib_fs').enabled()
-uselib_system = get_option('uselib_system').enabled()
-uselib_bigint = get_option('uselib_bigint').enabled()
-
-# libs
-
-dependencies = []
-
-if uselib_math
-    subdir('math')
-    dependencies += morphinelmath_dep
-endif
-
-if uselib_fs
-    subdir('fs')
-    dependencies += morphinelfs_dep
-endif
-
-if uselib_system
-    subdir('system')
-    dependencies += morphinelsystem_dep
-endif
-
-if uselib_bigint
-    subdir('bigint')
-    dependencies += morphinelbigint_dep
-endif
-
 # configuration
 
+subdir('targets')
 subdir('include')
+subdir('src')
 
 # dep
 
+dependencies = []
+
+foreach target : targets
+    dependencies += target['data']['dep']
+endforeach
+
 include = include_directories('include')
 
-sources = run_command(
-    python, script_walker, '-p', 'src/**/*.c',
-    check : true
-).stdout().strip().split('\n')
-
 morphinel = library(
-    'morphinel', sources,
+    'morphinel', import_c_file,
     include_directories : [include],
     dependencies : [
         dependencies,
@@ -76,3 +48,11 @@ install_data(
     morphinel_h_file,
     install_dir : 'include'
 )
+
+foreach target : targets
+    install_subdir(
+        'targets' / target['name'] / target['data']['include'],
+        install_dir : 'include',
+        strip_directory : true,
+    )
+endforeach

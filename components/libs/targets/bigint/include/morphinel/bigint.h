@@ -4,14 +4,15 @@
 
 #pragma once
 
+#include <morphine.h>
+
 #ifdef __cplusplus
 extern "C" {
 #endif
 
-#include <morphine.h>
+#include "bigint/object.h"
 
-@includes@
-MORPHINE_API void mlapi_import_all(morphine_instance_t);
+MORPHINE_LIB morphine_library_t *mllib_bigint(void);
 
 #ifdef __cplusplus
 }
