@@ -74,7 +74,10 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             printf(SLOT" = iterator from "SLOT, arg(2), arg(1));
             return;
         case MORPHINE_OPCODE_ITERATOR_INIT:
-            printf("init iterator in "SLOT" with name "SLOT" for key and "SLOT" for value", arg(1), arg(2), arg(3));
+            printf("init iterator in "SLOT" with name "SLOT" for key and "SLOT" for value",
+                   arg(1),
+                   arg(2),
+                   arg(3));
             return;
         case MORPHINE_OPCODE_ITERATOR_HAS:
             printf(SLOT" = iterator has in "SLOT, arg(2), arg(1));
@@ -184,9 +187,10 @@ static inline void spaces(morphine_coroutine_t U, size_t len, size_t count) {
 static void print_instructions(morphine_coroutine_t U) {
     size_t name_len = 0;
     size_t max_line = 0;
-    size_t max_arg1 = 0;
-    size_t max_arg2 = 0;
-    size_t max_arg3 = 0;
+    size_t max_args[MORPHINE_INSTRUCTION_ARGS_COUNT];
+    for (size_t i = 0; i < MORPHINE_INSTRUCTION_ARGS_COUNT; i++) {
+        max_args[i] = 0;
+    }
 
     ml_size count = mapi_instruction_size(U);
     for (ml_size i = 0; i < count; i++) {
@@ -201,24 +205,19 @@ static void print_instructions(morphine_coroutine_t U) {
             max_line = instruction.line;
         }
 
-        if (max_arg1 < instruction.argument1) {
-            max_arg1 = instruction.argument1;
-        }
-
-        if (max_arg2 < instruction.argument2) {
-            max_arg2 = instruction.argument2;
-        }
-
-        if (max_arg3 < instruction.argument3) {
-            max_arg3 = instruction.argument3;
+        for (size_t a = 0; a < MORPHINE_INSTRUCTION_ARGS_COUNT; a++) {
+            if (max_args[a] < instruction.arguments[a]) {
+                max_args[a] = instruction.arguments[a];
+            }
         }
     }
 
     size_t index_len = numlen(count - 1);
     size_t line_len = numlen(max_line);
-    size_t arg1_len = numlen(max_arg1);
-    size_t arg2_len = numlen(max_arg2);
-    size_t arg3_len = numlen(max_arg3);
+    size_t args_lens[MORPHINE_INSTRUCTION_ARGS_COUNT];
+    for (size_t i = 0; i < MORPHINE_INSTRUCTION_ARGS_COUNT; i++) {
+        args_lens[i] = numlen(max_args[i]);
+    }
 
     printf("instructions (%"MLIMIT_SIZE_PR"):\n", count);
     for (ml_size i = 0; i < count; i++) {
@@ -233,32 +232,18 @@ static void print_instructions(morphine_coroutine_t U) {
         printf("%s    ", opcode2str(instruction.opcode));
         spaces(U, strlen(opcode2str(instruction.opcode)), name_len);
 
-        ml_size args = mapi_opcode_args(U, instruction.opcode);
-
-        if (args > 0) {
-            printf("%"MLIMIT_ARGUMENT_PR" ", instruction.argument1);
-            spaces(U, numlen(instruction.argument1), arg1_len);
-        } else {
-            printn(" ", 1);
-            spaces(U, 0, arg1_len);
+        size_t args = mapi_opcode(U, instruction.opcode);
+        for (size_t a = 0; a < MORPHINE_INSTRUCTION_ARGS_COUNT; a++) {
+            if (a < args) {
+                printf("%"MLIMIT_ARGUMENT_PR" ", instruction.arguments[a]);
+                spaces(U, numlen(instruction.arguments[a]), args_lens[a]);
+            } else {
+                printn(" ", 1);
+                spaces(U, 0, args_lens[a]);
+            }
         }
 
-        if (args > 1) {
-            printf("%"MLIMIT_ARGUMENT_PR" ", instruction.argument2);
-            spaces(U, numlen(instruction.argument2), arg2_len);
-        } else {
-            printn(" ", 1);
-            spaces(U, 0, arg2_len);
-        }
-
-        if (args > 2) {
-            printf("%"MLIMIT_ARGUMENT_PR, instruction.argument3);
-            spaces(U, numlen(instruction.argument3), arg3_len);
-        } else {
-            spaces(U, 0, arg3_len);
-        }
-
-        printn("    ; ", 6);
+        printn("   ; ", 5);
 
         print_description(U, instruction);
 
@@ -321,13 +306,16 @@ MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
     ml_size params = mapi_function_params(U);
     ml_size statics = mapi_static_size(U);
 
-    printf("function %s (at line: %"MLIMIT_LINE_PR")\n", name, line);
+    printf("function\n");
+    printf("    name:    %s\n", name);
+    printf("    line:    %"MLIMIT_LINE_PR"\n", line);
     printf("    args:    %"MLIMIT_SIZE_PR"\n", args);
     printf("    slots:   %"MLIMIT_SIZE_PR"\n", slots);
     printf("    params:  %"MLIMIT_SIZE_PR"\n", params);
     printf("    statics: %"MLIMIT_SIZE_PR"\n", statics);
-
     print_instructions(U);
     print_constants(U);
+    printf("end\n");
+
     mapi_pop(U, 2);
 }

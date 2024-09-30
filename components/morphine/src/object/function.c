@@ -149,6 +149,11 @@ void functionI_instruction_set(
         throwI_error(I, "instruction index was out of bounce");
     }
 
+    for (size_t i = instructionI_opcode_args(instruction.opcode, NULL);
+         i < MORPHINE_INSTRUCTION_ARGS_COUNT; i++) {
+        instruction.arguments[i] = 0;
+    }
+
     bool is_valid = instructionI_validate(instruction, function);
 
     if (!is_valid) {
@@ -193,11 +198,11 @@ void functionI_constant_set(
     }
 
     bool supported = valueI_is_nil(value) ||
-        valueI_is_integer(value) ||
-        valueI_is_decimal(value) ||
-        valueI_is_boolean(value) ||
-        valueI_is_string(value) ||
-        valueI_is_function(value);
+                     valueI_is_integer(value) ||
+                     valueI_is_decimal(value) ||
+                     valueI_is_boolean(value) ||
+                     valueI_is_string(value) ||
+                     valueI_is_function(value);
 
     if (!supported) {
         throwI_error(I, "unsupported constant type");

@@ -1069,6 +1069,9 @@ static size_t arg_get_static_index(
     return info.static_variable;
 }
 
+#define arg_get_sslot(C, e, d, l, a) arg_get_slot((C), (e), (d), (l), (a))
+#define arg_get_dslot(C, e, d, l, a) arg_get_slot((C), (e), (d), (l), (a))
+
 static struct instruction_slot arg_get_slot(
     struct codegen_controller *C,
     struct mc_ast_expression_asm *asm_expr,

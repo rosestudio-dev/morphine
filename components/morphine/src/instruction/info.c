@@ -53,7 +53,8 @@ bool instructionI_validate(
 #define arg_closure_index(a)
 #define arg_static_index(a)
 
-#define arg_slot(a)           arg_type_index(a, function->slots_count)
+#define arg_sslot(a)          arg_type_index(a, function->slots_count)
+#define arg_dslot(a)          arg_type_index(a, function->slots_count)
 #define arg_constant_index(a) arg_type_index(a, function->constants_count)
 #define arg_param_index(a)    arg_type_index(a, function->params_count)
 #define arg_argument_index(a) arg_type_index(a, function->arguments_count)

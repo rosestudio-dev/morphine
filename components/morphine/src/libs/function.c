@@ -312,31 +312,16 @@ static void getinstruction(morphine_coroutine_t U) {
             mapi_push_size(U, instruction.line, "line");
             mapi_table_set(U);
 
-            ml_size count = mapi_opcode_args(U, instruction.opcode);
-
-            mapi_push_string(U, "argument1");
-            if (count > 0) {
-                mapi_push_size(U, instruction.argument1, "argument");
-            } else {
-                mapi_push_nil(U);
+            size_t count = mapi_opcode(U, instruction.opcode);
+            for (size_t i = 0; i < MORPHINE_INSTRUCTION_ARGS_COUNT; i++) {
+                mapi_push_stringf(U, "argument%zu", i);
+                if (i < count) {
+                    mapi_push_size(U, instruction.arguments[i], "argument");
+                } else {
+                    mapi_push_nil(U);
+                }
+                mapi_table_set(U);
             }
-            mapi_table_set(U);
-
-            mapi_push_string(U, "argument2");
-            if (count > 1) {
-                mapi_push_size(U, instruction.argument2, "argument");
-            } else {
-                mapi_push_nil(U);
-            }
-            mapi_table_set(U);
-
-            mapi_push_string(U, "argument3");
-            if (count > 2) {
-                mapi_push_size(U, instruction.argument3, "argument");
-            } else {
-                mapi_push_nil(U);
-            }
-            mapi_table_set(U);
             maux_nb_return();
     maux_nb_end
 }
@@ -362,33 +347,12 @@ static void setinstruction(morphine_coroutine_t U) {
                 instruction.line = mapi_get_size(U, "line");
                 mapi_pop(U, 1);
 
-                ml_size count = mapi_opcode_args(U, instruction.opcode);
-
-                if (count > 0) {
-                    mapi_push_string(U, "argument1");
+                size_t count = mapi_opcode(U, instruction.opcode);
+                for (size_t i = 0; i < count; i++) {
+                    mapi_push_stringf(U, "argument%zu", i);
                     mapi_table_getoe(U);
-                    instruction.argument1 = (ml_argument) mapi_get_size(U, "argument");
+                    instruction.arguments[i] = (ml_argument) mapi_get_size(U, "argument");
                     mapi_pop(U, 1);
-                } else {
-                    instruction.argument1 = 0;
-                }
-
-                if (count > 1) {
-                    mapi_push_string(U, "argument2");
-                    mapi_table_getoe(U);
-                    instruction.argument2 = (ml_argument) mapi_get_size(U, "argument");
-                    mapi_pop(U, 1);
-                } else {
-                    instruction.argument2 = 0;
-                }
-
-                if (count > 2) {
-                    mapi_push_string(U, "argument3");
-                    mapi_table_getoe(U);
-                    instruction.argument3 = (ml_argument) mapi_get_size(U, "argument");
-                    mapi_pop(U, 1);
-                } else {
-                    instruction.argument3 = 0;
                 }
             } else {
                 maux_expect_args(U, 4);
@@ -398,28 +362,11 @@ static void setinstruction(morphine_coroutine_t U) {
                 mapi_push_arg(U, 3);
                 instruction.line = mapi_get_size(U, "line");
 
-                ml_size count = mapi_opcode_args(U, instruction.opcode);
+                ml_size count = mapi_opcode(U, instruction.opcode);
                 maux_expect_args(U, 4 + count);
-
-                if (count > 0) {
-                    mapi_push_arg(U, 4);
-                    instruction.argument1 = (ml_argument) mapi_get_size(U, "argument");
-                } else {
-                    instruction.argument1 = 0;
-                }
-
-                if (count > 1) {
-                    mapi_push_arg(U, 5);
-                    instruction.argument2 = (ml_argument) mapi_get_size(U, "argument");
-                } else {
-                    instruction.argument2 = 0;
-                }
-
-                if (count > 2) {
-                    mapi_push_arg(U, 6);
-                    instruction.argument3 = (ml_argument) mapi_get_size(U, "argument");
-                } else {
-                    instruction.argument3 = 0;
+                for (ml_size i = 0; i < count; i++) {
+                    mapi_push_arg(U, i + 4);
+                    instruction.arguments[i] = (ml_argument) mapi_get_size(U, "argument");
                 }
             }
 

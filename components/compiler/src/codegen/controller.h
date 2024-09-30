@@ -11,7 +11,8 @@ typedef size_t variable_slot_t;
 typedef size_t temporary_slot_t;
 
 enum instruction_argument_type {
-    IAT_slot,
+    IAT_sslot,
+    IAT_dslot,
     IAT_size,
     IAT_position,
     IAT_constant_index,
@@ -45,7 +46,11 @@ struct instruction_argument {
 
     union {
         size_t value_stub;
+
+        struct instruction_slot value_sslot;
+        struct instruction_slot value_dslot;
         struct instruction_slot value_slot;
+
         anchor_t value_position;
         size_t value_size;
 

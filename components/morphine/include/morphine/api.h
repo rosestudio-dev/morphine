@@ -250,7 +250,7 @@ MORPHINE_API morphine_instruction_t mapi_instruction_get(morphine_coroutine_t, m
 MORPHINE_API void mapi_instruction_set(morphine_coroutine_t, ml_size index, morphine_instruction_t);
 MORPHINE_API ml_size mapi_instruction_size(morphine_coroutine_t);
 
-MORPHINE_API ml_size mapi_opcode_args(morphine_coroutine_t, morphine_opcode_t);
+MORPHINE_API ml_size mapi_opcode(morphine_coroutine_t, morphine_opcode_t);
 
 // allocation
 

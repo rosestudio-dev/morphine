@@ -9,6 +9,8 @@
 #include <stdbool.h>
 #include "limits.h"
 
+#define MORPHINE_INSTRUCTION_ARGS_COUNT 3
+
 #define MORPHINE_OPCODES_START (MORPHINE_OPCODE_YIELD)
 #define MORPHINE_OPCODES_COUNT (MORPHINE_OPCODE_LENGTH + 1)
 
@@ -30,8 +32,15 @@ typedef enum {
 
 typedef struct {
     morphine_opcode_t opcode;
-    ml_argument argument1;
-    ml_argument argument2;
-    ml_argument argument3;
+
+    union {
+        ml_argument arguments[MORPHINE_INSTRUCTION_ARGS_COUNT];
+        struct {
+            ml_argument argument1;
+            ml_argument argument2;
+            ml_argument argument3;
+        };
+    };
+
     ml_line line;
 } morphine_instruction_t;

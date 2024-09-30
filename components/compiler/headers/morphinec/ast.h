@@ -341,7 +341,7 @@ struct mc_asm_argument {
 struct mc_asm_instruction {
     ml_line line;
     morphine_opcode_t opcode;
-    struct mc_asm_argument arguments[3];
+    struct mc_asm_argument arguments[MORPHINE_INSTRUCTION_ARGS_COUNT];
 };
 
 struct mc_asm_anchor {

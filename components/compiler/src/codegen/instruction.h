@@ -6,7 +6,8 @@
 
 #include "controller.h"
 
-#define slot           struct instruction_slot
+#define sslot          struct instruction_slot
+#define dslot          struct instruction_slot
 #define size           size_t
 #define position       anchor_t
 #define constant_index size_t
@@ -16,8 +17,8 @@
 #define closure_index  size_t
 #define params_count   size_t
 
-#define instruction_argument(n)              , n
-#define instruction_function(n, args...)     void codegen_instruction_##n(struct codegen_controller * args);
+#define instruction_argument(n)                 , n
+#define instruction_function(n, args...)        void codegen_instruction_##n(struct codegen_controller * args);
 #define mis_instruction_args0(n, s)             instruction_function(n)
 #define mis_instruction_args1(n, s, a1)         instruction_function(n, instruction_argument(a1))
 #define mis_instruction_args2(n, s, a1, a2)     instruction_function(n, instruction_argument(a1) instruction_argument(a2))
@@ -25,7 +26,8 @@
 
 #include "morphine/instruction/specification.h"
 
-#undef slot
+#undef sslot
+#undef dslot
 #undef size
 #undef position
 #undef constant_index

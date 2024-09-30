@@ -6,7 +6,8 @@
 
 #define dec_arg(t, n) , t n
 
-#define slot           struct instruction_slot
+#define sslot          struct instruction_slot
+#define dslot          struct instruction_slot
 #define size           size_t
 #define position       anchor_t
 #define constant_index size_t

@@ -123,7 +123,7 @@ MORPHINE_API ml_size mapi_instruction_size(morphine_coroutine_t U) {
     return function->instructions_count;
 }
 
-MORPHINE_API ml_size mapi_opcode_args(morphine_coroutine_t U, morphine_opcode_t opcode) {
+MORPHINE_API ml_size mapi_opcode(morphine_coroutine_t U, morphine_opcode_t opcode) {
     bool valid = false;
     ml_size result = instructionI_opcode_args(opcode, &valid);
 

@@ -1182,7 +1182,7 @@ static inline void update_slot_argument(
     size_t *variables,
     size_t *temporaries
 ) {
-    if (argument.type != IAT_slot) {
+    if (argument.type != IAT_sslot && argument.type != IAT_dslot) {
         return;
     }
 
@@ -1232,7 +1232,8 @@ static inline ml_argument argument_normalize(
     switch (argument.type) {
         case IAT_stub:
             return 0;
-        case IAT_slot: {
+        case IAT_sslot:
+        case IAT_dslot: {
             size_t slot;
             if (argument.value_slot.is_variable) {
                 slot = argument.value_slot.variable_slot;
