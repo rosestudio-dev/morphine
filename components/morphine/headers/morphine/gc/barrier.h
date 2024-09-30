@@ -15,6 +15,10 @@ static inline void gcI_object_barrier(
     struct object *container,
     struct object *object
 ) {
+    if (object == NULL) {
+        return;
+    }
+
     bool need_move = I->G.status == GC_STATUS_INCREMENT &&
                      (container->color == OBJ_COLOR_BLACK || container->color == OBJ_COLOR_RED) &&
                      object->color == OBJ_COLOR_WHITE;
