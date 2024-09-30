@@ -37,6 +37,7 @@
 #define valueI_is_function(x)  valueI_is(FUNCTION, x)
 #define valueI_is_native(x)    valueI_is(NATIVE, x)
 #define valueI_is_reference(x) valueI_is(REFERENCE, x)
+#define valueI_is_exception(x) valueI_is(EXCEPTION, x)
 #define valueI_is_iterator(x)  valueI_is(ITERATOR, x)
 #define valueI_is_sio(x)       valueI_is(SIO, x)
 #define valueI_is_object(x)    typeI_value_is_obj((x).type)
@@ -59,6 +60,7 @@
 #define valueI_as_function(x)  valueI_as(object.function, x)
 #define valueI_as_native(x)    valueI_as(object.native, x)
 #define valueI_as_reference(x) valueI_as(object.reference, x)
+#define valueI_as_exception(x) valueI_as(object.exception, x)
 #define valueI_as_iterator(x)  valueI_as(object.iterator, x)
 #define valueI_as_sio(x)       valueI_as(object.sio, x)
 #define valueI_as_object(x)    valueI_as(object.header, x)
@@ -81,6 +83,7 @@
 #define valueI_safe_as_function(x, o)  valueI_safe_as(function, x, o)
 #define valueI_safe_as_native(x, o)    valueI_safe_as(native, x, o)
 #define valueI_safe_as_reference(x, o) valueI_safe_as(reference, x, o)
+#define valueI_safe_as_exception(x, o) valueI_safe_as(exception, x, o)
 #define valueI_safe_as_iterator(x, o)  valueI_safe_as(iterator, x, o)
 #define valueI_safe_as_sio(x, o)       valueI_safe_as(sio, x, o)
 #define valueI_safe_as_object(x, o)    valueI_safe_as(object, x, o)
@@ -103,6 +106,7 @@
 #define valueI_as_function_or_error(I, x)  valueI_as_or_error(I, function, x)
 #define valueI_as_native_or_error(I, x)    valueI_as_or_error(I, native, x)
 #define valueI_as_reference_or_error(I, x) valueI_as_or_error(I, reference, x)
+#define valueI_as_exception_or_error(I, x) valueI_as_or_error(I, exception, x)
 #define valueI_as_iterator_or_error(I, x)  valueI_as_or_error(I, iterator, x)
 #define valueI_as_sio_or_error(I, x)       valueI_as_or_error(I, sio, x)
 #define valueI_as_object_or_error(I, x)    valueI_as_or_error(I, object, x)
@@ -139,6 +143,7 @@ struct value {
             struct native *native;
             struct function *function;
             struct reference *reference;
+            struct exception *exception;
             struct coroutine *coroutine;
             struct string *string;
             struct table *table;

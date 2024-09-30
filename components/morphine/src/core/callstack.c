@@ -2,15 +2,15 @@
 // Created by why-iskra on 04.04.2024.
 //
 
-#include "morphine/object/coroutine/callstack.h"
+#include "morphine/core/callstack.h"
+#include "morphine/core/value.h"
+#include "morphine/core/throw.h"
+#include "morphine/core/instance.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/closure.h"
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
-#include "morphine/core/value.h"
-#include "morphine/core/throw.h"
-#include "morphine/core/instance.h"
 #include "morphine/gc/cache.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"

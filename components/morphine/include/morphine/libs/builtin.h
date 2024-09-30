@@ -19,3 +19,4 @@ MORPHINE_LIB morphine_library_t *mlib_builtin_binary(void);
 MORPHINE_LIB morphine_library_t *mlib_builtin_bitwise(void);
 MORPHINE_LIB morphine_library_t *mlib_builtin_function(void);
 MORPHINE_LIB morphine_library_t *mlib_builtin_closure(void);
+MORPHINE_LIB morphine_library_t *mlib_builtin_exception(void);

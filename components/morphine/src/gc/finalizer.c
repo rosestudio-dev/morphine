@@ -24,46 +24,51 @@ static void finalizer(morphine_coroutine_t U) {
     morphine_instance_t I = U->I;
     throwI_catchable(U, 1);
 
-    if (callstackI_state(U) == 0) {
-        callstackI_continue(U, 0);
+    switch (callstackI_state(U)) {
+        case 0: {
+            callstackI_continue(U, 0);
 
-        struct object *candidate = I->G.pools.finalize;
-        if (candidate == NULL) {
-            I->G.finalizer.work = false;
+            struct object *candidate = I->G.pools.finalize;
+            if (candidate == NULL) {
+                I->G.finalizer.work = false;
+                return;
+            }
+
+            gcI_pools_remove(candidate, &I->G.pools.finalize);
+
+            if (candidate->flags.finalized) {
+                give_away(I, candidate);
+                return;
+            }
+
+            I->G.finalizer.candidate = candidate;
+
+            struct value candidate_value = valueI_object(candidate);
+            struct value callable = valueI_nil;
+            candidate->flags.finalized = true;
+
+            callstackI_continue(U, 1);
+            if (metatableI_test(U->I, candidate_value, MF_GC, &callable)) {
+                callstackI_call_unsafe(U, callable, candidate_value, NULL, 0, 0);
+                return;
+            }
+
+            goto give;
+        }
+        case 1: give: {
+            callstackI_continue(U, 0);
+
+            struct object *candidate = I->G.finalizer.candidate;
+            I->G.finalizer.candidate = NULL;
+
+            if (candidate != NULL) {
+                give_away(I, candidate);
+            }
+
             return;
         }
-
-        gcI_pools_remove(candidate, &I->G.pools.finalize);
-
-        if (candidate->flags.finalized) {
-            give_away(I, candidate);
-            return;
-        }
-
-        I->G.finalizer.candidate = candidate;
-
-        struct value candidate_value = valueI_object(candidate);
-        struct value callable = valueI_nil;
-        candidate->flags.finalized = true;
-
-        callstackI_continue(U, 1);
-        if (metatableI_test(U->I, candidate_value, MF_GC, &callable)) {
-            callstackI_call_unsafe(U, callable, candidate_value, NULL, 0, 0);
-            return;
-        }
-    }
-
-    if (callstackI_state(U) == 1) {
-        callstackI_continue(U, 0);
-
-        struct object *candidate = I->G.finalizer.candidate;
-        I->G.finalizer.candidate = NULL;
-
-        if (candidate != NULL) {
-            give_away(I, candidate);
-        }
-
-        return;
+        default:
+            break;
     }
 
     throwI_panic(I, "undefined gc finalizer's state");

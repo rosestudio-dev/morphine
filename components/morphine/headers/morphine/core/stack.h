@@ -5,7 +5,7 @@
 #pragma once
 
 #include "morphine/platform.h"
-#include "morphine/object/coroutine/callstack.h"
+#include "morphine/core/callstack.h"
 
 struct stack {
     struct value *allocated;

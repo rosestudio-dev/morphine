@@ -136,73 +136,10 @@ static void pcall(morphine_coroutine_t U) {
             mapi_catchable(U, 2);
             mapi_call(U, count - 1);
         maux_nb_state(1)
-            mapi_push_table(U);
-
-            mapi_push_string(U, "result");
             mapi_push_result(U);
-            mapi_table_set(U);
-
-            mapi_push_string(U, "error");
-            mapi_push_nil(U);
-            mapi_table_set(U);
-
             maux_nb_return();
         maux_nb_state(2)
-            mapi_push_table(U);
-
-            mapi_push_string(U, "result");
-            mapi_push_nil(U);
-            mapi_table_set(U);
-
-            mapi_push_string(U, "error");
             mapi_push_thrown(U);
-            mapi_table_set(U);
-
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void pscall(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            ml_size count = mapi_args(U);
-            if (count < 2) {
-                maux_expect_args(U, 2);
-            }
-
-            mapi_push_arg(U, 1);
-            mapi_push_arg(U, 0);
-            maux_expect(U, "callable");
-
-            for (ml_size i = 2; i < count; i++) {
-                mapi_push_arg(U, i);
-            }
-
-            mapi_catchable(U, 2);
-            mapi_callself(U, count - 2);
-        maux_nb_state(1)
-            mapi_push_table(U);
-
-            mapi_push_string(U, "result");
-            mapi_push_result(U);
-            mapi_table_set(U);
-
-            mapi_push_string(U, "error");
-            mapi_push_nil(U);
-            mapi_table_set(U);
-
-            maux_nb_return();
-        maux_nb_state(2)
-            mapi_push_table(U);
-
-            mapi_push_string(U, "result");
-            mapi_push_nil(U);
-            mapi_table_set(U);
-
-            mapi_push_string(U, "error");
-            mapi_push_thrown(U);
-            mapi_table_set(U);
-
             maux_nb_return();
     maux_nb_end
 }
@@ -261,7 +198,6 @@ static morphine_library_function_t functions[] = {
     { "setdefaultmetatable", setdefaultmetatable },
     { "getdefaultmetatable", getdefaultmetatable },
     { "pcall",               pcall },
-    { "pscall",              pscall },
     { "error",               error },
     { "changeenv",           changeenv },
     { "extractcallable",     extractcallable },

@@ -13,6 +13,7 @@
 struct throw {
     bool inited;
     jmp_buf handler;
+    morphine_coroutine_t context;
     size_t signal_entered;
 
     bool is_message;
@@ -20,19 +21,17 @@ struct throw {
         struct value value;
         const char *message;
     } error;
-
-    morphine_coroutine_t context_coroutine;
 };
 
 struct throw throwI_prototype(void);
 
 void throwI_handler(morphine_instance_t);
 
-morphine_noret void throwI_errorv(morphine_instance_t, struct value value);
-morphine_noret void throwI_panicv(morphine_instance_t, struct value value);
-
 morphine_noret void throwI_error(morphine_instance_t, const char *message);
+morphine_noret void throwI_errorv(morphine_instance_t, struct value value);
+
 morphine_noret void throwI_panic(morphine_instance_t, const char *message);
+morphine_noret void throwI_panicv(morphine_instance_t, struct value value);
 
 const char *throwI_message(morphine_instance_t);
 bool throwI_is_nested_signal(morphine_instance_t);

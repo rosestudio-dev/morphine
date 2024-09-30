@@ -5,7 +5,7 @@
 #include <string.h>
 #include "morphine/api.h"
 #include "morphine/core/operations.h"
-#include "morphine/object/coroutine/stack.h"
+#include "morphine/core/stack.h"
 #include "morphine/core/throw.h"
 
 struct op_func {

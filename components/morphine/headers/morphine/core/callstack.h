@@ -41,7 +41,6 @@ struct callinfo {
     struct {
         bool enable;
         size_t state;
-        size_t space_size;
     } catch;
 
     bool exit;

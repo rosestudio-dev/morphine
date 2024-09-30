@@ -3,81 +3,15 @@
 //
 
 #include <setjmp.h>
-#include <inttypes.h>
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/native.h"
 #include "morphine/object/string.h"
+#include "morphine/object/exception.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 #include "morphine/gc/safe.h"
 #include "morphine/object/sio.h"
-
-static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
-    morphine_instance_t I = U->I;
-    struct sio *error = I->sio.error;
-
-    if (stringI_is_cstr_compatible(I, U->name)) {
-        sioI_printf(I, error, "morphine error (in coroutine '%s'): %s\n", U->name->chars, message);
-    } else {
-        sioI_printf(I, error, "morphine error (in coroutine %p): %s\n", U, message);
-    }
-
-    sioI_print(I, error, "tracing callstack:\n");
-
-    size_t callstack_size = U->callstack.size;
-    size_t callstack_index = 0;
-    struct callinfo *callinfo = callstackI_info(U);
-    while (callinfo != NULL) {
-        if (callstack_size >= 30) {
-            if (callstack_index == 10) {
-                sioI_printf(I, error, "    ... (skipped %zu)\n", callstack_size - 20);
-            }
-
-            if (callstack_index >= 10 && callstack_index < callstack_size - 10) {
-                goto next;
-            }
-        }
-
-        sioI_print(I, error, "    ");
-
-        struct value callable = *callinfo->s.source;
-
-        if (valueI_is_function(callable)) {
-            struct function *function = valueI_as_function(callable);
-
-            ml_line line = 0;
-            size_t position = callinfo->pc.position;
-            if (position < function->instructions_count) {
-                line = function->instructions[position].line;
-            }
-
-            sioI_printf(
-                I,
-                error,
-                "[line: %"MLIMIT_LINE_PR"] function %s (declared in %"MLIMIT_LINE_PR" line)\n",
-                line,
-                function->name,
-                function->line
-            );
-        } else if (valueI_is_native(callable)) {
-            struct native *native = valueI_as_native(callable);
-
-            sioI_printf(
-                I,
-                error,
-                "[s: %zu] native %s (%p)\n",
-                callinfo->pc.state,
-                native->name,
-                native->function
-            );
-        }
-
-next:
-        callstack_index++;
-        callinfo = callinfo->prev;
-    }
-}
 
 struct throw throwI_prototype(void) {
     return (struct throw) {
@@ -85,7 +19,7 @@ struct throw throwI_prototype(void) {
         .signal_entered = 0,
         .is_message = false,
         .error.value = valueI_nil,
-        .context_coroutine = NULL
+        .context = NULL
     };
 }
 
@@ -93,12 +27,10 @@ void throwI_handler(morphine_instance_t I) {
     struct throw *throw = &I->E.throw;
     I->E.throw.inited = false;
 
-    morphine_coroutine_t coroutine = throw->context_coroutine;
+    morphine_coroutine_t coroutine = throw->context;
 
     if (coroutine == NULL) {
         I->platform.functions.signal(I);
-    } else {
-        throw->context_coroutine = NULL;
     }
 
     struct callinfo *callinfo = callstackI_info(coroutine);
@@ -115,7 +47,19 @@ void throwI_handler(morphine_instance_t I) {
 
     callstackI_fix_uninit(coroutine);
 
+    struct value value;
+    if (throw->is_message) {
+        value = valueI_object(stringI_create(I, throw->error.message));
+    } else {
+        value = throw->error.value;
+    }
+
+    struct exception *exception = exceptionI_create(I, value);
+    gcI_safe_obj(I, objectI_cast(exception));
+    exceptionI_stacktrace_record(I, exception, coroutine);
+
     if (callinfo != NULL) {
+
         // set state
         callinfo->pc.state = callinfo->catch.state;
         callinfo->catch.enable = false;
@@ -126,21 +70,13 @@ void throwI_handler(morphine_instance_t I) {
         }
 
         // set error value
-        if (throw->is_message) {
-            struct value value = valueI_object(stringI_create(I, throw->error.message));
-            *callinfo->s.thrown = value;
-        } else {
-            *callinfo->s.thrown = throw->error.value;
-            throw->error.value = valueI_nil;
-        }
+        *callinfo->s.thrown = valueI_object(exception);
 
         size_t stack_size = stackI_space(coroutine);
-        size_t expected_stack_size = callinfo->catch.space_size;
-        if (stack_size > expected_stack_size) {
-            stackI_pop(coroutine, stack_size - expected_stack_size);
-        }
+        stackI_pop(coroutine, stack_size);
     } else {
-        throwI_stacktrace(coroutine, throwI_message(I));
+        exceptionI_error_print(I, exception, I->sio.error);
+        exceptionI_stacktrace_print(I, exception, I->sio.error);
 
         while (callstackI_info(coroutine) != NULL) {
             callstackI_pop(coroutine);
@@ -149,6 +85,7 @@ void throwI_handler(morphine_instance_t I) {
         coroutineI_kill(coroutine);
     }
 
+    throw->context = NULL;
     gcI_reset_safe(I, 0);
 }
 
@@ -209,7 +146,7 @@ const char *throwI_message(morphine_instance_t I) {
     if (string != NULL && stringI_is_cstr_compatible(I, string)) {
         return string->chars;
     } else {
-        return "(unsupported error value)";
+        return "(unsupported value)";
     }
 }
 
@@ -222,5 +159,4 @@ void throwI_catchable(morphine_coroutine_t U, size_t callstate) {
 
     callinfo->catch.enable = true;
     callinfo->catch.state = callstate;
-    callinfo->catch.space_size = stackI_space(U);
 }

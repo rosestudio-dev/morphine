@@ -5,7 +5,7 @@
 #include "morphine/gc/structure.h"
 #include "morphine/gc/control.h"
 #include "morphine/core/instance.h"
-#include "morphine/object/coroutine/callstack.h"
+#include "morphine/core/callstack.h"
 
 static void free_objects(morphine_instance_t I, struct object *pool) {
     struct object *current = pool;

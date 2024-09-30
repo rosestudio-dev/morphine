@@ -114,6 +114,21 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             return size_iterator(iterator);
         }
+        case OBJ_TYPE_EXCEPTION: {
+            struct exception *exception = cast(struct exception *, obj);
+
+            mark_value(I, exception->value);
+
+            if (exception->stacktrace.name != NULL) {
+                mark_object(I, objectI_cast(exception->stacktrace.name));
+            }
+
+            for (size_t i = 0; i < exception->stacktrace.size; i++) {
+                mark_value(I, exception->stacktrace.elements[i].callable);
+            }
+
+            return size_exception(exception);
+        }
         case OBJ_TYPE_SIO: {
             struct sio *sio = cast(struct sio *, obj);
             mark_value(I, sio->hold_value);

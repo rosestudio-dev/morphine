@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/object/coroutine/stack.h"
+#include "morphine/core/stack.h"
 #include "morphine/core/value.h"
 
 #define COROUTINE_STATUS_START (COROUTINE_STATUS_CREATED)

@@ -46,9 +46,10 @@ static uint64_t hashcode(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_COROUTINE:
         case VALUE_TYPE_FUNCTION:
         case VALUE_TYPE_NATIVE:
+        case VALUE_TYPE_REFERENCE:
+        case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_ITERATOR:
         case VALUE_TYPE_SIO:
-        case VALUE_TYPE_REFERENCE:
             return (uint64_t) (size_t) valueI_as_object(value);
     }
 
@@ -81,8 +82,9 @@ static inline int compare(morphine_instance_t I, struct value a, struct value b)
         case VALUE_TYPE_FUNCTION:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
-        case VALUE_TYPE_SIO:
+        case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_ITERATOR:
+        case VALUE_TYPE_SIO:
             return COMPARE_NUM(a.object.header, b.object.header);
     }
 

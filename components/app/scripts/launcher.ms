@@ -8,6 +8,7 @@ val gc = env.library("gc")
 val fs = env.library("fs")
 val compiler = env.library("compiler")
 val binary = env.library("binary")
+val exception = env.library("exception")
 val app = env.library("__app")
 
 val originlibrary = env.library
@@ -31,8 +32,12 @@ end
 
 fun errln<auto>(error)
     sio.flush(sio.io())
-    sio.write(sio.error(), value.tostr(error) .. "\n")
-    sio.flush(sio.error())
+    if(typeof error == "exception")
+        exception.error.print(error, sio.error())
+    else
+        sio.write(sio.error(), value.tostr(error) .. "\n")
+        sio.flush(sio.error())
+    end
 end
 
 fun panic<auto>(error)
@@ -120,10 +125,10 @@ fun repl<auto>()
     while(not data.exit)
         val line = app.readline("> ")
 
-        val extract result, error = base.pcall(exec, line)
-        if (error != nil)
-            base.println("error was caused:")
-            errln(error)
+        val result = base.pcall(exec, line)
+        if (typeof result == "exception")
+            base.println("error was caused")
+            exception.print(result)
         else
             base.println(result)
         end
@@ -169,9 +174,8 @@ fun tobytes<auto>(program, param)
         end
     end
 
-    val extract result, error = base.pcall(convert)
-
-    if (result == nil)
+    val result = base.pcall(convert)
+    if (typeof result == "exception")
         help(program, "invalid bytes param")
     end
 
@@ -280,11 +284,7 @@ fun parse_arguments<auto>()
 end
 
 fun launch<auto>()
-    val extract config as "result" = base.pcall(parse_arguments)
-
-    if (config == nil)
-        leave
-    end
+    val config = parse_arguments()
 
     if (config.repl)
         repl()
@@ -298,28 +298,27 @@ fun launch<auto>()
     gc.changelimit(config.gc_limit)
 
     if (config.program_path != nil)
-        val content = if (config.binary)
-            val file = fs.open(config.program_path, "rb")
-            val result = binary.receive(file)
-            sio.close(file)
+        val content = base.pcall(fun<auto>()
+            return if (config.binary)
+                val file = fs.open(config.program_path, "rb")
+                val result = binary.receive(file)
+                sio.close(file)
 
-            result
-        else
-            val file = fs.open(config.program_path, "rb")
-            val text = sio.readall(file)
-            sio.close(file)
+                result
+            else
+                val file = fs.open(config.program_path, "rb")
+                val text = sio.readall(file)
+                sio.close(file)
 
-            fun compile<auto>() = compiler.compile {
-                text = text,
-                name = config.name
-            }
-
-            val extract result, error = base.pcall(compile)
-            if (error != nil)
-                panic(error)
+                compiler.compile {
+                    text = text,
+                    name = config.name
+                }
             end
+        end)
 
-            result
+        if (typeof content == "exception")
+            panic(content)
         end
 
         if (config.disassembly)

@@ -2,9 +2,9 @@
 // Created by why-iskra on 04.04.2024.
 //
 
-#include "morphine/object/coroutine/stack.h"
-#include "morphine/object/coroutine.h"
+#include "morphine/core/stack.h"
 #include "morphine/core/throw.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 #include "morphine/utils/overflow.h"

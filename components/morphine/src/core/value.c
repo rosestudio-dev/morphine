@@ -39,8 +39,9 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_FUNCTION:
         case VALUE_TYPE_NATIVE:
         case VALUE_TYPE_REFERENCE:
-        case VALUE_TYPE_SIO:
+        case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_ITERATOR:
+        case VALUE_TYPE_SIO:
             return a.object.header == b.object.header;
     }
 
@@ -73,6 +74,8 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
             return valueI_object(stringI_createf(I,"[object:coroutine:%p]",value.object.coroutine));
         case VALUE_TYPE_REFERENCE:
             return valueI_object(stringI_createf(I, "[object:reference:%p]", value.object.reference));
+        case VALUE_TYPE_EXCEPTION:
+            return valueI_object(stringI_createf(I, "[object:exception:%p]", value.object.exception));
         case VALUE_TYPE_FUNCTION:
             return valueI_object(stringI_createf(I, "[object:function:%p]", value.object.function));
         case VALUE_TYPE_NATIVE:
@@ -105,8 +108,6 @@ struct value valueI_value2integer(morphine_instance_t I, struct value value) {
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2integer(str->chars, &integer, 10)) {
             return valueI_integer(integer);
-        } else {
-            throwI_errorf(I, "cannot convert string '%s' to integer", str->chars);
         }
     }
 
@@ -136,8 +137,6 @@ struct value valueI_value2size(morphine_instance_t I, struct value value, const 
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2size(str->chars, &size, 10)) {
             return valueI_size(size);
-        } else {
-            throwI_errorf(I, "cannot convert string '%s' to %s", str->chars, name);
         }
     }
 
@@ -151,10 +150,6 @@ struct value valueI_value2basedinteger(morphine_instance_t I, struct value value
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2integer(str->chars, &integer, base)) {
             return valueI_integer(integer);
-        } else {
-            throwI_errorf(
-                I, "cannot convert string '%s' to integer with base %"MLIMIT_INTEGER_PR, str->chars, base
-            );
         }
     }
 
@@ -177,10 +172,6 @@ struct value valueI_value2basedsize(
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2size(str->chars, &size, base)) {
             return valueI_size(size);
-        } else {
-            throwI_errorf(
-                I, "cannot convert string '%s' to %s with base %"MLIMIT_INTEGER_PR, str->chars, name, base
-            );
         }
     }
 
@@ -206,8 +197,6 @@ struct value valueI_value2decimal(morphine_instance_t I, struct value value) {
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2decimal(str->chars, &decimal)) {
             return valueI_decimal(decimal);
-        } else {
-            throwI_errorf(I, "cannot convert string '%s' to decimal", str->chars);
         }
     }
 
@@ -230,8 +219,6 @@ struct value valueI_value2boolean(morphine_instance_t I, struct value value) {
             return valueI_boolean(true);
         } else if (compatible && strcmp(str->chars, "false") == 0) {
             return valueI_boolean(false);
-        } else {
-            throwI_errorf(I, "cannot convert string '%s' to boolean", str->chars);
         }
     }
 
@@ -266,6 +253,8 @@ static const char *type2string(morphine_instance_t I, enum value_type type) {
             return "function";
         case VALUE_TYPE_REFERENCE:
             return "reference";
+        case VALUE_TYPE_EXCEPTION:
+            return "exception";
         case VALUE_TYPE_ITERATOR:
             return "iterator";
         case VALUE_TYPE_SIO:

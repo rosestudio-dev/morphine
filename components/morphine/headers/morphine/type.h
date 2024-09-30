@@ -8,7 +8,7 @@
 #define VALUE_TYPES_COUNT (VALUE_TYPE_RAW + 1)
 
 #define OBJ_TYPES_START (OBJ_TYPE_USERDATA)
-#define OBJ_TYPES_COUNT (OBJ_TYPE_ITERATOR + 1)
+#define OBJ_TYPES_COUNT (OBJ_TYPE_SIO + 1)
 
 #define typeI_value_is_obj(x) ({ enum obj_type _vt = (enum obj_type) (x); (OBJ_TYPES_START <= _vt && _vt < OBJ_TYPES_COUNT); })
 
@@ -25,8 +25,9 @@ enum obj_type {
     OBJ_TYPE_FUNCTION = 6,
     OBJ_TYPE_NATIVE = 7,
     OBJ_TYPE_REFERENCE = 8,
-    OBJ_TYPE_SIO = 9,
+    OBJ_TYPE_EXCEPTION = 9,
     OBJ_TYPE_ITERATOR = 10,
+    OBJ_TYPE_SIO = 11,
 };
 
 enum value_type {
@@ -39,8 +40,9 @@ enum value_type {
     bridge(FUNCTION),
     bridge(NATIVE),
     bridge(REFERENCE),
-    bridge(SIO),
+    bridge(EXCEPTION),
     bridge(ITERATOR),
+    bridge(SIO),
 
     append(NIL, 0),
     append(INTEGER, 1),

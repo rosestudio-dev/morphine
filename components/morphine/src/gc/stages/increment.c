@@ -22,6 +22,10 @@ static inline void record(morphine_instance_t I) {
             mark_object(I, objectI_cast(I->E.next));
         }
 
+        if (I->E.throw.context != NULL) {
+            mark_object(I, objectI_cast(I->E.throw.context));
+        }
+
         if (I->G.finalizer.coroutine != NULL) {
             mark_object(I, objectI_cast(I->G.finalizer.coroutine));
         }

@@ -336,6 +336,20 @@ MORPHINE_API void mapi_sio_accessor_free(morphine_sio_accessor_t, void *);
 MORPHINE_API morphine_noret void mapi_sio_accessor_error(morphine_sio_accessor_t, const char *);
 MORPHINE_API morphine_noret void mapi_sio_accessor_errorf(morphine_sio_accessor_t, const char *, ...);
 
+// exception
+
+MORPHINE_API void mapi_push_exception(morphine_coroutine_t);
+MORPHINE_API void mapi_exception_value(morphine_coroutine_t);
+MORPHINE_API void mapi_exception_error_print(morphine_coroutine_t);
+MORPHINE_API void mapi_exception_stacktrace_print(morphine_coroutine_t);
+MORPHINE_API void mapi_exception_stacktrace_record(morphine_coroutine_t, morphine_coroutine_t);
+MORPHINE_API void mapi_exception_stacktrace_name(morphine_coroutine_t);
+MORPHINE_API ml_size mapi_exception_stacktrace_size(morphine_coroutine_t);
+MORPHINE_API const char *mapi_exception_stacktrace_type(morphine_coroutine_t, ml_size);
+MORPHINE_API void mapi_exception_stacktrace_callable(morphine_coroutine_t, ml_size);
+MORPHINE_API ml_line mapi_exception_stacktrace_line(morphine_coroutine_t, ml_size);
+MORPHINE_API size_t mapi_exception_stacktrace_state(morphine_coroutine_t, ml_size);
+
 // operations
 
 MORPHINE_API bool mapi_op(morphine_coroutine_t, const char *op);

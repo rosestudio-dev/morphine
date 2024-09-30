@@ -511,7 +511,7 @@ static inline void step(morphine_coroutine_t U) {
         return;
     }
 
-    U->I->E.throw.context_coroutine = U;
+    U->I->E.throw.context = U;
 
     struct value source = *callinfo->s.source;
 
@@ -538,7 +538,7 @@ static inline void step(morphine_coroutine_t U) {
         callstackI_pop(U);
     }
 
-    U->I->E.throw.context_coroutine = NULL;
+    U->I->E.throw.context = NULL;
 }
 
 static inline bool execute_step(morphine_instance_t I, struct interpreter *E) {

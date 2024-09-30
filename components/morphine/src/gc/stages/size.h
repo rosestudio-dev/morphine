@@ -13,6 +13,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/native.h"
 #include "morphine/object/iterator.h"
+#include "morphine/object/exception.h"
 #include "morphine/object/vector.h"
 #include "morphine/object/sio.h"
 #include "morphine/core/throw.h"
@@ -26,7 +27,7 @@ static inline size_t size_table(struct table *table) {
 
 static inline size_t size_closure(struct closure *closure) {
     return sizeof(struct closure) +
-           closure->size * sizeof(struct value);
+           ((size_t) closure->size) * sizeof(struct value);
 }
 
 static inline size_t size_vector(struct vector *vector) {
@@ -36,9 +37,9 @@ static inline size_t size_vector(struct vector *vector) {
 
 static inline size_t size_function(struct function *function) {
     return sizeof(struct function) +
-           function->instructions_count * sizeof(morphine_instruction_t) +
-           function->statics_count * sizeof(struct value) +
-           function->constants_count * sizeof(struct value);
+           ((size_t) function->instructions_count) * sizeof(morphine_instruction_t) +
+           ((size_t) function->statics_count) * sizeof(struct value) +
+           ((size_t) function->constants_count) * sizeof(struct value);
 }
 
 static inline size_t size_userdata(struct userdata *userdata) {
@@ -62,8 +63,15 @@ static inline size_t size_iterator(struct iterator *iterator) {
     return sizeof(struct iterator);
 }
 
+static inline size_t size_exception(struct exception *exception) {
+    unused(exception);
+    return sizeof(struct exception) +
+           ((size_t) exception->stacktrace.elements) * sizeof(struct stacktrace_element);
+}
+
 static inline size_t size_string(struct string *string) {
-    return sizeof(struct string) + (((size_t) string->size) + 1) * sizeof(char);
+    return sizeof(struct string) +
+           (((size_t) string->size) + 1) * sizeof(char);
 }
 
 static inline size_t size_reference(struct reference *reference) {
@@ -101,6 +109,9 @@ static inline size_t size_obj(morphine_instance_t I, struct object *obj) {
         }
         case OBJ_TYPE_ITERATOR: {
             return size_iterator(cast(struct iterator *, obj));
+        }
+        case OBJ_TYPE_EXCEPTION: {
+            return size_exception(cast(struct exception *, obj));
         }
         case OBJ_TYPE_STRING: {
             return size_string(cast(struct string *, obj));

@@ -34,7 +34,7 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
 
 static inline void ofm_check(morphine_instance_t I, size_t reserved) {
     if (overflow_condition_add(reserved, I->G.bytes.allocated, SIZE_MAX) ||
-        overflow_condition_add(reserved, I->G.bytes.allocated, I->G.settings.limit)) {
+        (reserved + I->G.bytes.allocated) > I->G.settings.limit) {
         throwI_error(I, "out of memory");
     }
 }
@@ -71,7 +71,7 @@ static inline size_t debt_calc(morphine_instance_t I) {
 
 static inline void step(morphine_instance_t I, size_t reserved) {
     if (overflow_condition_add(reserved, I->G.bytes.allocated, SIZE_MAX) ||
-        overflow_condition_add(reserved, I->G.bytes.allocated, I->G.settings.limit)) {
+        (reserved + I->G.bytes.allocated) > I->G.settings.limit) {
         gcI_full(I, reserved);
         return;
     }

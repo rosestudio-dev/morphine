@@ -25,6 +25,7 @@ static morphine_library_t *(*builtins[])(void) = {
     mlib_builtin_bitwise,
     mlib_builtin_function,
     mlib_builtin_closure,
+    mlib_builtin_exception,
 };
 
 static void library(morphine_coroutine_t U) {
