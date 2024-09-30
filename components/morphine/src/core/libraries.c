@@ -122,14 +122,12 @@ static struct table *construct(morphine_instance_t I, morphine_library_t *L) {
 
     for (morphine_library_function_t *entry = L->functions; entry != NULL && entry->name != NULL; entry++) {
         struct string *name = stringI_createf(I, "%s.%s", L->name, entry->name);
-        size_t rollback_name = gcI_safe_obj(I, objectI_cast(name));
-
-        struct native *value = nativeI_create(I, name->chars, entry->function);
-        gcI_safe_obj(I, objectI_cast(value));
+        struct native *value = nativeI_create(I, name, entry->function);
+        size_t rollback_value = gcI_safe_obj(I, objectI_cast(value));
 
         constructor_insert(I, result, entry->name, valueI_object(value));
 
-        gcI_reset_safe(I, rollback_name);
+        gcI_reset_safe(I, rollback_value);
     }
 
     for (morphine_library_string_t *entry = L->strings; entry != NULL && entry->name != NULL; entry++) {

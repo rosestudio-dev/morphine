@@ -47,7 +47,10 @@ static void get_variable(
 // set
 
 decl_set(variable) {
-    (void) state;
+    if (state != 0) {
+        return;
+    }
+
     struct variable_info info = codegen_get_variable(C, expression->index);
 
     if (!expression->ignore_mutable && !info.mutable) {
@@ -107,7 +110,10 @@ decl_set(access) {
 // expressions
 
 decl_expr(value) {
-    (void) state;
+    if (state != 0) {
+        return;
+    }
+
     switch (expression->type) {
         case MCEXPR_VALUE_TYPE_NIL:
             codegen_instruction_LOAD(
@@ -304,7 +310,10 @@ decl_expr(increment) {
 }
 
 decl_expr(global) {
-    (void) state;
+    if (state != 0) {
+        return;
+    }
+
     switch (expression->type) {
         case MCEXPR_GLOBAL_TYPE_ENV:
             codegen_instruction_ENV(C, codegen_result(C));
@@ -354,8 +363,10 @@ decl_expr(leave) {
 }
 
 decl_expr(break) {
-    (void) state;
     (void) expression;
+    if (state != 0) {
+        return;
+    }
 
     size_t constant = codegen_add_constant_nil(C);
     codegen_instruction_LOAD(C, constant, codegen_result(C));
@@ -364,8 +375,10 @@ decl_expr(break) {
 }
 
 decl_expr(continue) {
-    (void) state;
     (void) expression;
+    if (state != 0) {
+        return;
+    }
 
     size_t constant = codegen_add_constant_nil(C);
     codegen_instruction_LOAD(C, constant, codegen_result(C));
@@ -607,7 +620,10 @@ decl_expr(function) {
 }
 
 decl_expr(variable) {
-    (void) state;
+    if (state != 0) {
+        return;
+    }
+
     get_variable(C, expression->index, codegen_result(C));
     codegen_complete(C);
 }
@@ -887,15 +903,19 @@ decl_stmt(eval) {
 }
 
 decl_stmt(pass) {
-    (void) state;
     (void) statement;
+    if (state != 0) {
+        return;
+    }
 
     codegen_complete(C);
 }
 
 decl_stmt(yield) {
-    (void) state;
     (void) statement;
+    if (state != 0) {
+        return;
+    }
 
     codegen_instruction_YIELD(C);
     codegen_complete(C);

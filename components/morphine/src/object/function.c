@@ -14,7 +14,7 @@
 
 struct function *functionI_create(
     morphine_instance_t I,
-    const char *name,
+    struct string *name,
     ml_line line,
     ml_size constants_count,
     ml_size instructions_count,
@@ -25,11 +25,6 @@ struct function *functionI_create(
 ) {
     if (name == NULL) {
         throwI_error(I, "function name is null");
-    }
-
-    ml_size name_len = valueI_csize2size(I, strlen(name));
-    if (name_len > MLIMIT_FUNCTION_NAME) {
-        throwI_error(I, "function name too big");
     }
 
     if (arguments_count > MLIMIT_CALLABLE_ARGS) {
@@ -44,14 +39,13 @@ struct function *functionI_create(
         throwI_error(I, "too many slots");
     }
 
-    size_t size = sizeof(struct function) + ((((size_t) name_len) + 1) * sizeof(char));
-    struct function *result = allocI_uni(I, NULL, size);
+    size_t rollback = gcI_safe_obj(I, objectI_cast(name));
 
-    char *result_name = ((void *) result) + sizeof(struct function);
+    // create
+    struct function *result = allocI_uni(I, NULL, sizeof(struct function));
     (*result) = (struct function) {
         .complete = false,
-        .name = result_name,
-        .name_len = name_len,
+        .name = name,
         .line = line,
         .constants_count = 0,
         .instructions_count = 0,
@@ -64,12 +58,10 @@ struct function *functionI_create(
         .statics = NULL,
     };
 
-    memcpy(result_name, name, ((size_t) name_len) * sizeof(char));
-    result_name[name_len] = '\0';
-
     objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);
 
-    size_t rollback = gcI_safe_obj(I, objectI_cast(result));
+    // config
+    gcI_safe_obj(I, objectI_cast(result));
 
     result->instructions = allocI_vec(I, NULL, instructions_count, sizeof(morphine_instruction_t));
     result->instructions_count = instructions_count;

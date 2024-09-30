@@ -14,7 +14,6 @@
 
 struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
     struct vector *result = allocI_uni(I, NULL, sizeof(struct vector));
-
     (*result) = (struct vector) {
         .mode.fixed = true,
         .mode.mutable = true,
@@ -26,6 +25,7 @@ struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_VECTOR);
 
+    // config
     size_t rollback = gcI_safe_obj(I, objectI_cast(result));
 
     result->values = allocI_vec(I, NULL, size, sizeof(struct value));

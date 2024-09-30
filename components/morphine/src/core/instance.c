@@ -35,11 +35,7 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
     };
 
     gcI_prototype(I, sizeof(struct instance));
-
     initI_instance(I);
-
-    gcI_init_finalizer(I);
-    gcI_enable(I);
 
     return I;
 }

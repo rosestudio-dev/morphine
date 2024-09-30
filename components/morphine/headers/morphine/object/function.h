@@ -10,12 +10,9 @@
 
 struct function {
     struct object header;
+    struct string *name;
 
     bool complete;
-
-    const char *name;
-    ml_size name_len;
-
     ml_line line;
 
     ml_size instructions_count;
@@ -32,7 +29,7 @@ struct function {
 
 struct function *functionI_create(
     morphine_instance_t,
-    const char *name,
+    struct string *name,
     ml_line line,
     ml_size constants_count,
     ml_size instructions_count,

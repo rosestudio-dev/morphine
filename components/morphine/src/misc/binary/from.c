@@ -148,6 +148,23 @@ static void read_head(struct data *D) {
     gcI_safe_obj(D->I, objectI_cast(D->vector));
 }
 
+static struct string *read_object_string(struct data *D) {
+    ml_size size = get_ml_size(D);
+
+    struct userdata *userdata = userdataI_create_vec(D->I, size, sizeof(char));
+    size_t rollback = gcI_safe_obj(D->I, objectI_cast(userdata));
+
+    char *buffer = userdata->data;
+    for (ml_size i = 0; i < size; i++) {
+        buffer[i] = get_char(D);
+    }
+
+    struct string *string = stringI_createn(D->I, size, buffer);
+    gcI_reset_safe(D->I, rollback);
+
+    return string;
+}
+
 static void read_objects_info(struct data *D) {
     for (ml_size index = 0; index < D->size; index++) {
         ml_size vector_index = valueI_integer2index(D->I, get_ml_integer(D));
@@ -166,21 +183,9 @@ static void read_objects_info(struct data *D) {
                 vectorI_set(D->I, D->vector, vector_index, valueI_boolean(get_bool(D)));
                 continue;
             case VALUE_TYPE_STRING: {
-                ml_size size = get_ml_size(D);
-
-                struct userdata *userdata = userdataI_create_vec(D->I, size, sizeof(char));
-                size_t rollback = gcI_safe_obj(D->I, objectI_cast(userdata));
-
-                char *buffer = userdata->data;
-                for (ml_size i = 0; i < size; i++) {
-                    buffer[i] = get_char(D);
-                }
-
-                struct string *string = stringI_createn(D->I, size, buffer);
-                gcI_safe_obj(D->I, objectI_cast(string));
-
+                struct string *string = read_object_string(D);
+                size_t rollback = gcI_safe_obj(D->I, objectI_cast(string));
                 vectorI_set(D->I, D->vector, vector_index, valueI_object(string));
-
                 gcI_reset_safe(D->I, rollback);
                 continue;
             }
@@ -196,19 +201,8 @@ static void read_objects_info(struct data *D) {
                 continue;
             }
             case VALUE_TYPE_FUNCTION: {
-                ml_size name_len = get_ml_size(D);
-                if (name_len > MLIMIT_FUNCTION_NAME) {
-                    throwI_error(D->I, "corrupted binary");
-                }
-
-                struct userdata *userdata = userdataI_create_vec(D->I, name_len + 1, sizeof(char));
-                size_t rollback = gcI_safe_obj(D->I, objectI_cast(userdata));
-                char *buffer = userdata->data;
-                memset(buffer, 0, (((size_t) name_len) + 1) * sizeof(char));
-
-                for (ml_size i = 0; i < name_len; i++) {
-                    buffer[i] = get_char(D);
-                }
+                struct string *name = read_object_string(D);
+                size_t rollback = gcI_safe_obj(D->I, objectI_cast(name));
 
                 ml_line line = get_ml_line(D);
                 ml_size constants_count = get_ml_size(D);
@@ -220,7 +214,7 @@ static void read_objects_info(struct data *D) {
 
                 struct function *function = functionI_create(
                     D->I,
-                    buffer,
+                    name,
                     line,
                     constants_count,
                     instructions_count,

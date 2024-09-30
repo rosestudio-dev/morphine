@@ -1345,19 +1345,17 @@ static inline void fill_vector(
             update_param_argument(instruction.argument3, &params);
         }
 
-        const char *name;
         if (mcapi_ast_get_root_function(A) == context->function) {
-            name = main;
+            mapi_push_string(U, main);
         } else if (context->function->anonymous) {
-            name = "anonymous";
+            mapi_push_string(U, "anonymous");
         } else {
             struct mc_strtable_entry entry = mcapi_strtable_access(U, T, context->function->name);
-            name = entry.string;
+            mapi_push_stringn(U, entry.string, entry.size);
         }
 
         mapi_push_function(
-            U, name,
-            context->function->line,
+            U, context->function->line,
             mapi_csize2size(U, context->constants.size, NULL),
             mapi_csize2size(U, context->instructions.size, NULL),
             mapi_csize2size(U, context->function->statics_size, NULL),

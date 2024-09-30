@@ -68,6 +68,8 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_FUNCTION: {
             struct function *function = cast(struct function *, obj);
 
+            mark_object(I, objectI_cast(function->name));
+
             for (size_t i = 0; i < function->constants_count; i++) {
                 mark_value(I, function->constants[i]);
             }
@@ -90,6 +92,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_COROUTINE: {
             morphine_coroutine_t coroutine = cast(morphine_coroutine_t, obj);
 
+            mark_object(I, objectI_cast(coroutine->name));
             mark_value(I, coroutine->env);
             for (size_t i = 0; i < coroutine->stack.top; i++) {
                 mark_value(I, coroutine->stack.allocated[i]);
@@ -113,13 +116,13 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         }
         case OBJ_TYPE_SIO: {
             struct sio *sio = cast(struct sio *, obj);
-
             mark_value(I, sio->hold_value);
-
             return size_sio(sio);
         }
         case OBJ_TYPE_NATIVE: {
-            return size_native(cast(struct native *, obj));
+            struct native *native = cast(struct native *, obj);
+            mark_object(I, objectI_cast(native->name));
+            return size_native(native);
         }
         case OBJ_TYPE_STRING: {
             return size_string(cast(struct string *, obj));

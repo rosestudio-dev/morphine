@@ -299,7 +299,10 @@ MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
         printf("incomplete ");
     }
 
-    const char *name = mapi_function_name(U);
+    mapi_function_name(U);
+    const char *name = mapi_get_string(U);
+    mapi_pop(U, 1);
+
     ml_line line = mapi_function_line(U);
     ml_size args = mapi_function_arguments(U);
     ml_size slots = mapi_function_slots(U);

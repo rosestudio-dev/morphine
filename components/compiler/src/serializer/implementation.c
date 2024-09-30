@@ -11,7 +11,9 @@
 #define decl_stmt(n) void serialize_statement_##n(struct serializer_controller *C, struct mc_ast_statement_##n *statement, size_t state)
 
 decl_expr(value) {
-    (void) state;
+    if (state != 0) {
+        return;
+    }
 
     switch (expression->type) {
         case MCEXPR_VALUE_TYPE_NIL:
@@ -164,7 +166,9 @@ decl_expr(increment) {
 }
 
 decl_expr(variable) {
-    (void) state;
+    if (state != 0) {
+        return;
+    }
 
     serializer_push_string(C, expression->index);
     serializer_set(C, "name");
@@ -174,7 +178,9 @@ decl_expr(variable) {
 }
 
 decl_expr(global) {
-    (void) state;
+    if (state != 0) {
+        return;
+    }
 
     switch (expression->type) {
         case MCEXPR_GLOBAL_TYPE_ENV:
@@ -211,15 +217,19 @@ decl_expr(leave) {
 }
 
 decl_expr(break) {
-    (void) state;
     (void) expression;
+    if (state != 0) {
+        return;
+    }
 
     serializer_complete(C);
 }
 
 decl_expr(continue) {
-    (void) state;
     (void) expression;
+    if (state != 0) {
+        return;
+    }
 
     serializer_complete(C);
 }
@@ -478,15 +488,19 @@ decl_stmt(block) {
 }
 
 decl_stmt(pass) {
-    (void) state;
     (void) statement;
+    if (state != 0) {
+        return;
+    }
 
     serializer_complete(C);
 }
 
 decl_stmt(yield) {
-    (void) state;
     (void) statement;
+    if (state != 0) {
+        return;
+    }
 
     serializer_complete(C);
 }

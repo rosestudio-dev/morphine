@@ -29,13 +29,8 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
             return a.boolean == b.boolean;
         case VALUE_TYPE_RAW:
             return a.raw == b.raw;
-        case VALUE_TYPE_STRING: {
-            struct string *str_a = valueI_as_string(a);
-            struct string *str_b = valueI_as_string(b);
-            bool equal_size = str_a->size == str_b->size;
-
-            return equal_size && (memcmp(str_a->chars, str_b->chars, sizeof(char) * str_a->size) == 0);
-        }
+        case VALUE_TYPE_STRING:
+            return stringI_compare(I, valueI_as_string(a), valueI_as_string(b)) == 0;
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_VECTOR:
@@ -65,12 +60,7 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_STRING:
             return value;
         case VALUE_TYPE_USERDATA:
-            if (valueI_as_userdata(value)->is_typed) {
-                struct usertype_info info = usertypeI_info(I, valueI_as_userdata(value)->typed.usertype);
-                return valueI_object(stringI_createf(I, "[object:userdata:%p|%s]", value.object.userdata, info.name));
-            } else {
-                return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object.userdata));
-            }
+            return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object.userdata));
         case VALUE_TYPE_TABLE:
             return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
         case VALUE_TYPE_VECTOR:
@@ -80,28 +70,13 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_CLOSURE:
             return valueI_object(stringI_createf(I, "[object:closure:%p]", value.object.closure));
         case VALUE_TYPE_COROUTINE:
-            return valueI_object(stringI_createf(
-                I,
-                "[object:coroutine:%p|%s]",
-                value.object.coroutine,
-                valueI_as_coroutine(value)->name
-            ));
+            return valueI_object(stringI_createf(I,"[object:coroutine:%p]",value.object.coroutine));
         case VALUE_TYPE_REFERENCE:
             return valueI_object(stringI_createf(I, "[object:reference:%p]", value.object.reference));
         case VALUE_TYPE_FUNCTION:
-            return valueI_object(stringI_createf(
-                I,
-                "[object:function:%p|%s]",
-                value.object.function,
-                valueI_as_function(value)->name
-            ));
+            return valueI_object(stringI_createf(I, "[object:function:%p]", value.object.function));
         case VALUE_TYPE_NATIVE:
-            return valueI_object(stringI_createf(
-                I,
-                "[object:native:%p|%s]",
-                value.object.native,
-                valueI_as_native(value)->name
-            ));
+            return valueI_object(stringI_createf(I, "[object:native:%p]", value.object.native));
         case VALUE_TYPE_SIO:
             return valueI_object(stringI_createf(I, "[object:sio:%p]", value.object.native));
         case VALUE_TYPE_RAW:
@@ -127,7 +102,8 @@ struct value valueI_value2integer(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         ml_integer integer;
-        if (platformI_string2integer(str->chars, &integer, 10)) {
+        bool compatible = stringI_is_cstr_compatible(I, str);
+        if (compatible && platformI_string2integer(str->chars, &integer, 10)) {
             return valueI_integer(integer);
         } else {
             throwI_errorf(I, "cannot convert string '%s' to integer", str->chars);
@@ -157,7 +133,8 @@ struct value valueI_value2size(morphine_instance_t I, struct value value, const 
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         ml_size size;
-        if (platformI_string2size(str->chars, &size, 10)) {
+        bool compatible = stringI_is_cstr_compatible(I, str);
+        if (compatible && platformI_string2size(str->chars, &size, 10)) {
             return valueI_size(size);
         } else {
             throwI_errorf(I, "cannot convert string '%s' to %s", str->chars, name);
@@ -170,10 +147,9 @@ struct value valueI_value2size(morphine_instance_t I, struct value value, const 
 struct value valueI_value2basedinteger(morphine_instance_t I, struct value value, ml_size base) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
-        bool check_size = strlen(str->chars) == str->size;
-
         ml_integer integer;
-        if (check_size && platformI_string2integer(str->chars, &integer, base)) {
+        bool compatible = stringI_is_cstr_compatible(I, str);
+        if (compatible && platformI_string2integer(str->chars, &integer, base)) {
             return valueI_integer(integer);
         } else {
             throwI_errorf(
@@ -197,10 +173,9 @@ struct value valueI_value2basedsize(
 
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
-        bool check_size = strlen(str->chars) == str->size;
-
         ml_size size;
-        if (check_size && platformI_string2size(str->chars, &size, base)) {
+        bool compatible = stringI_is_cstr_compatible(I, str);
+        if (compatible && platformI_string2size(str->chars, &size, base)) {
             return valueI_size(size);
         } else {
             throwI_errorf(
@@ -228,7 +203,8 @@ struct value valueI_value2decimal(morphine_instance_t I, struct value value) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         ml_decimal decimal;
-        if (platformI_string2decimal(str->chars, &decimal)) {
+        bool compatible = stringI_is_cstr_compatible(I, str);
+        if (compatible && platformI_string2decimal(str->chars, &decimal)) {
             return valueI_decimal(decimal);
         } else {
             throwI_errorf(I, "cannot convert string '%s' to decimal", str->chars);
@@ -249,9 +225,10 @@ struct value valueI_value2boolean(morphine_instance_t I, struct value value) {
 
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
-        if (str->size == 4 && memcmp(str->chars, "true", sizeof(char) * 4) == 0) {
+        bool compatible = stringI_is_cstr_compatible(I, str);
+        if (compatible && strcmp(str->chars, "true") == 0) {
             return valueI_boolean(true);
-        } else if (str->size == 5 && memcmp(str->chars, "false", sizeof(char) * 5) == 0) {
+        } else if (compatible && strcmp(str->chars, "false") == 0) {
             return valueI_boolean(false);
         } else {
             throwI_errorf(I, "cannot convert string '%s' to boolean", str->chars);

@@ -17,6 +17,11 @@ struct string {
         bool calculated;
         uint64_t value;
     } hash;
+
+    struct {
+        bool calculated;
+        bool value;
+    } is_cstr_compatible;
 };
 
 struct string *stringI_createn(morphine_instance_t, size_t, const char *);
@@ -29,6 +34,9 @@ void stringI_free(morphine_instance_t, struct string *);
 struct string *stringI_get(morphine_instance_t, struct string *, ml_size);
 
 struct string *stringI_concat(morphine_instance_t, struct string *, struct string *);
+int stringI_compare(morphine_instance_t, struct string *, struct string *);
+int stringI_cstr_compare(morphine_instance_t, struct string *, const char *);
+bool stringI_is_cstr_compatible(morphine_instance_t, struct string *);
 uint64_t stringI_hash(morphine_instance_t, struct string *);
 uint64_t stringI_rawhash(size_t, const char *);
 

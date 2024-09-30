@@ -177,6 +177,13 @@ static void write_head(struct data *D) {
     write_ml_size(D, 0);
 }
 
+static void write_object_string(struct data *D, struct string *string) {
+    write_ml_size(D, string->size);
+    for (ml_size i = 0; i < string->size; i++) {
+        write_char(D, string->chars[i]);
+    }
+}
+
 static void write_objects_info(struct data *D) {
     ml_size size = tableI_size(D->I, D->table);
     for (ml_size index = 0; index < size; index++) {
@@ -202,11 +209,7 @@ static void write_objects_info(struct data *D) {
                 write_bool(D, valueI_as_boolean(pair.key));
                 continue;
             case VALUE_TYPE_STRING: {
-                struct string *string = valueI_as_string(pair.key);
-                write_ml_size(D, string->size);
-                for (ml_size i = 0; i < string->size; i++) {
-                    write_char(D, string->chars[i]);
-                }
+                write_object_string(D, valueI_as_string(pair.key));
                 continue;
             }
             case VALUE_TYPE_TABLE:
@@ -216,12 +219,7 @@ static void write_objects_info(struct data *D) {
                 continue;
             case VALUE_TYPE_FUNCTION: {
                 struct function *function = valueI_as_function(pair.key);
-
-                write_ml_size(D, function->name_len);
-                for (ml_size i = 0; i < function->name_len; i++) {
-                    write_char(D, function->name[i]);
-                }
-
+                write_object_string(D, function->name);
                 write_ml_line(D, function->line);
                 write_ml_size(D, function->constants_count);
                 write_ml_size(D, function->instructions_count);

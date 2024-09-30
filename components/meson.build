@@ -16,6 +16,8 @@ c_warning_flags = [
     '-Wconversion',
     '-Wredundant-decls',
     '-Wmissing-declarations',
+    '-Wmissing-noreturn',
+#    '-Wmissing-field-initializers',
     '-Wvla',
     '-Wmissing-prototypes',
     '-Wcast-qual',

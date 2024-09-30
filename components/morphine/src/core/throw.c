@@ -17,7 +17,12 @@ static void throwI_stacktrace(morphine_coroutine_t U, const char *message) {
     morphine_instance_t I = U->I;
     struct sio *error = I->sio.error;
 
-    sioI_printf(I, error, "morphine error (in coroutine '%s'): %s\n", U->name.str, message);
+    if (stringI_is_cstr_compatible(I, U->name)) {
+        sioI_printf(I, error, "morphine error (in coroutine '%s'): %s\n", U->name->chars, message);
+    } else {
+        sioI_printf(I, error, "morphine error (in coroutine %p): %s\n", U, message);
+    }
+
     sioI_print(I, error, "tracing callstack:\n");
 
     size_t callstack_size = U->callstack.size;
@@ -163,7 +168,7 @@ morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
 morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
     struct throw *throw = &I->E.throw;
 
-    throw->signal_entered ++;
+    throw->signal_entered++;
     throw->is_message = true;
     throw->error.message = message;
     I->platform.functions.signal(I);
@@ -185,7 +190,7 @@ morphine_noret void throwI_errorv(morphine_instance_t I, struct value value) {
 morphine_noret void throwI_panicv(morphine_instance_t I, struct value value) {
     struct throw *throw = &I->E.throw;
 
-    throw->signal_entered ++;
+    throw->signal_entered++;
     throw->is_message = false;
     throw->error.value = value;
     I->platform.functions.signal(I);
@@ -201,10 +206,10 @@ const char *throwI_message(morphine_instance_t I) {
     struct string *string = valueI_safe_as_string(throw->error.value, NULL);
     throw->error.value = valueI_nil;
 
-    if (string == NULL) {
-        return "(unsupported error value)";
-    } else {
+    if (string != NULL && stringI_is_cstr_compatible(I, string)) {
         return string->chars;
+    } else {
+        return "(unsupported error value)";
     }
 }
 

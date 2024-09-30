@@ -8,7 +8,7 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/gc/pools.h"
 
-#define COROUTINE_FINALIZER_NAME "__gc_finalizer"
+#define FINALIZER_NAME "gc_finalizer"
 
 static void give_away(morphine_instance_t I, struct object *candidate) {
     if (I->G.status == GC_STATUS_INCREMENT) {
@@ -70,16 +70,16 @@ static void finalizer(morphine_coroutine_t U) {
 }
 
 void gcI_init_finalizer(morphine_instance_t I) {
+    struct string *name = stringI_create(I, FINALIZER_NAME);
     morphine_coroutine_t coroutine = coroutineI_custom_create(
-        I, COROUTINE_FINALIZER_NAME,
-        valueI_nil,
+        I, name, valueI_nil,
         I->settings.finalizer.stack_limit,
         I->settings.finalizer.stack_grow
     );
 
     coroutineI_priority(coroutine, 1);
 
-    struct native *native = nativeI_create(I, "gc_finalizer", finalizer);
+    struct native *native = nativeI_create(I, name, finalizer);
     callstackI_call_unsafe(coroutine, valueI_object(native), valueI_nil, NULL, 0, 0);
 
     I->G.finalizer.coroutine = coroutine;

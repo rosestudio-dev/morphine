@@ -36,7 +36,6 @@ static inline size_t size_vector(struct vector *vector) {
 
 static inline size_t size_function(struct function *function) {
     return sizeof(struct function) +
-           (((size_t) function->name_len) + 1) * sizeof(char) +
            function->instructions_count * sizeof(morphine_instruction_t) +
            function->statics_count * sizeof(struct value) +
            function->constants_count * sizeof(struct value);
@@ -49,14 +48,13 @@ static inline size_t size_userdata(struct userdata *userdata) {
 
 static inline size_t size_coroutine(struct coroutine *coroutine) {
     return sizeof(struct coroutine) +
-           (coroutine->name.len + 1) * sizeof(char) +
            coroutine->stack.size * sizeof(struct value) +
            coroutine->callstack.size * sizeof(struct callstack);
 }
 
 static inline size_t size_native(struct native *native) {
-    return sizeof(struct native) +
-           (native->name_len + 1) * sizeof(char);
+    unused(native);
+    return sizeof(struct native);
 }
 
 static inline size_t size_iterator(struct iterator *iterator) {

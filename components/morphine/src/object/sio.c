@@ -19,8 +19,8 @@ struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interfac
         throwI_error(I, "sio interface hasn't read/write functions");
     }
 
+    // create
     struct sio *result = allocI_uni(I, NULL, sizeof(struct sio));
-
     (*result) = (struct sio) {
         .interface = interface,
         .opened = false,

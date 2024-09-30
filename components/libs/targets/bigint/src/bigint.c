@@ -66,7 +66,7 @@ static inline void binary(
             mapi_push_arg(U, 0);
         maux_nb_operation(1, "type")
             struct mlib_bigint *bigintB;
-            if (mapi_string_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
+            if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
                 mapi_push_arg(U, 0);
                 mapi_push_string(U, "instance");
                 mapi_table_get(U);
@@ -230,39 +230,39 @@ static void bigint_metatable_wrap(morphine_coroutine_t U) {
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_to_string");
-    mapi_push_native(U, "bigint.tostring", lib_bigint_tostring);
+    maux_push_native(U, "bigint.tostring", lib_bigint_tostring);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_add");
-    mapi_push_native(U, "bigint.add", lib_bigint_add);
+    maux_push_native(U, "bigint.add", lib_bigint_add);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_sub");
-    mapi_push_native(U, "bigint.sub", lib_bigint_sub);
+    maux_push_native(U, "bigint.sub", lib_bigint_sub);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_mul");
-    mapi_push_native(U, "bigint.mul", lib_bigint_mul);
+    maux_push_native(U, "bigint.mul", lib_bigint_mul);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_div");
-    mapi_push_native(U, "bigint.div", lib_bigint_div);
+    maux_push_native(U, "bigint.div", lib_bigint_div);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_mod");
-    mapi_push_native(U, "bigint.mod", lib_bigint_mod);
+    maux_push_native(U, "bigint.mod", lib_bigint_mod);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_less");
-    mapi_push_native(U, "bigint.less", lib_bigint_less);
+    maux_push_native(U, "bigint.less", lib_bigint_less);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_equal");
-    mapi_push_native(U, "bigint.equal", lib_bigint_equal);
+    maux_push_native(U, "bigint.equal", lib_bigint_equal);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_negate");
-    mapi_push_native(U, "bigint.negate", lib_bigint_negate);
+    maux_push_native(U, "bigint.negate", lib_bigint_negate);
     mapi_table_set(U);
 
     mapi_push_string(U, "_mf_mask");

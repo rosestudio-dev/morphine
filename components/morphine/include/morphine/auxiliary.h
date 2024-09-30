@@ -9,3 +9,4 @@
 #include "auxiliary/sio.h"
 #include "auxiliary/localstorage.h"
 #include "auxiliary/table.h"
+#include "auxiliary/native.h"

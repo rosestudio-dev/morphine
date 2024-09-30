@@ -48,7 +48,7 @@ static void name(morphine_coroutine_t U) {
             maux_expect(U, "coroutine");
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            mapi_push_string(U, mapi_coroutine_name(coroutine));
+            mapi_coroutine_name(coroutine);
             maux_nb_return();
     maux_nb_end
 }
@@ -139,13 +139,11 @@ static void create(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 2);
 
-            mapi_push_arg(U, 0);
-            const char *name = mapi_get_cstr(U);
-
             mapi_push_arg(U, 1);
             maux_expect(U, "callable");
 
-            morphine_coroutine_t coroutine = mapi_push_coroutine(U, name);
+            mapi_push_arg(U, 0);
+            morphine_coroutine_t coroutine = mapi_push_coroutine(U);
 
             mapi_push_self(U);
             mapi_copy(U, coroutine, 0);
@@ -168,7 +166,7 @@ static void guardlock(morphine_coroutine_t U) {
 
             mapi_peek(U, 0);
         maux_nb_operation(1, "type")
-            if (mapi_string_compare(U, "coroutine.guard") != 0) {
+            if (mapi_string_cstr_compare(U, "coroutine.guard") != 0) {
                 mapi_error(U, "expected coroutine.guard");
             } else {
                 mapi_pop(U, 1);
@@ -200,7 +198,7 @@ static void guardunlock(morphine_coroutine_t U) {
 
             mapi_peek(U, 0);
         maux_nb_operation(1, "type")
-            if (mapi_string_compare(U, "coroutine.guard") != 0) {
+            if (mapi_string_cstr_compare(U, "coroutine.guard") != 0) {
                 mapi_error(U, "expected coroutine.guard");
             } else {
                 mapi_pop(U, 1);
@@ -225,11 +223,11 @@ static void guard(morphine_coroutine_t U) {
             mapi_table_set(U);
 
             mapi_push_string(U, "lock");
-            mapi_push_native(U, "coroutine.guard.lock", guardlock);
+            maux_push_native(U, "coroutine.guard.lock", guardlock);
             mapi_table_set(U);
 
             mapi_push_string(U, "unlock");
-            mapi_push_native(U, "coroutine.guard.unlock", guardunlock);
+            maux_push_native(U, "coroutine.guard.unlock", guardunlock);
             mapi_table_set(U);
 
             mapi_push_table(U);

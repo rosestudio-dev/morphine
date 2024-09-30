@@ -19,11 +19,7 @@ enum coroutine_status {
 
 struct coroutine {
     struct object header;
-
-    struct {
-        const char *str;
-        size_t len;
-    } name;
+    struct string *name;
 
     enum coroutine_status status;
     ml_size priority;
@@ -38,13 +34,13 @@ struct coroutine {
 
 morphine_coroutine_t coroutineI_custom_create(
     morphine_instance_t,
-    const char *name,
+    struct string *name,
     struct value env,
     size_t stack_limit,
     size_t stack_grow
 );
 
-morphine_coroutine_t coroutineI_create(morphine_instance_t, const char *name, struct value env);
+morphine_coroutine_t coroutineI_create(morphine_instance_t, struct string *name, struct value env);
 void coroutineI_free(morphine_instance_t, morphine_coroutine_t coroutine);
 
 void coroutineI_priority(morphine_coroutine_t, ml_size priority);

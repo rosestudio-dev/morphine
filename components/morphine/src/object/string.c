@@ -28,7 +28,8 @@ static struct string *create(morphine_instance_t I, size_t size, char **buffer) 
         throwI_error(I, "string size too big");
     }
 
-    size_t alloc_size = sizeof(struct string) + ((size + 1) * sizeof(char));
+    size_t raw_size = ((size + 1) * sizeof(char));
+    size_t alloc_size = sizeof(struct string) + raw_size;
     struct string *result = allocI_uni(I, NULL, alloc_size);
 
     char *str_p = ((void *) result) + sizeof(struct string);
@@ -40,9 +41,9 @@ static struct string *create(morphine_instance_t I, size_t size, char **buffer) 
         .hash.value = 0
     };
 
-    memset(str_p, 0, (size + 1) * sizeof(char));
+    memset(str_p, 0, raw_size);
 
-    if (buffer != NULL) {
+    if (unlikely(buffer != NULL)) {
         (*buffer) = str_p;
     }
 
@@ -162,6 +163,58 @@ struct string *stringI_concat(morphine_instance_t I, struct string *a, struct st
     ssoI_rec(I, result);
 
     return result;
+}
+
+int stringI_compare(morphine_instance_t I, struct string *a, struct string *b) {
+    if (a == NULL || b == NULL) {
+        throwI_error(I, "string is null");
+    }
+
+    if (a->size > b->size) {
+        return -1;
+    } else if (a->size < b->size) {
+        return 1;
+    }
+
+    return memcmp(a->chars, b->chars, ((size_t) a->size) * sizeof(char));
+}
+
+int stringI_cstr_compare(morphine_instance_t I, struct string *a, const char *b) {
+    if (a == NULL || b == NULL) {
+        throwI_error(I, "string is null");
+    }
+
+    size_t b_size = strlen(b);
+    if (a->size > b_size) {
+        return -1;
+    } else if (a->size < b_size) {
+        return 1;
+    }
+
+    return memcmp(a->chars, b, ((size_t) a->size) * sizeof(char));
+}
+
+bool stringI_is_cstr_compatible(morphine_instance_t I, struct string *string) {
+    if (string == NULL) {
+        throwI_error(I, "string is null");
+    }
+
+    if (string->is_cstr_compatible.calculated) {
+        return string->is_cstr_compatible.value;
+    }
+
+    bool is_compatible = true;
+    for (ml_size i = 0; i < string->size; i++) {
+        if (string->chars[i] == '\0') {
+            is_compatible = false;
+            break;
+        }
+    }
+
+    string->is_cstr_compatible.calculated = true;
+    string->is_cstr_compatible.value = is_compatible;
+
+    return is_compatible;
 }
 
 uint64_t stringI_hash(morphine_instance_t I, struct string *string) {

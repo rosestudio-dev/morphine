@@ -71,18 +71,8 @@ static inline int compare(morphine_instance_t I, struct value a, struct value b)
             return COMPARE_NUM(a.boolean, b.boolean);
         case VALUE_TYPE_RAW:
             return COMPARE_NUM(a.raw, b.raw);
-        case VALUE_TYPE_STRING: {
-            struct string *str_a = valueI_as_string(a);
-            struct string *str_b = valueI_as_string(b);
-
-            if (str_a->size == str_b->size) {
-                return memcmp(str_a->chars, str_b->chars, sizeof(char) * str_a->size);
-            } else if (str_a->size > str_b->size) {
-                return 1;
-            } else {
-                return -1;
-            }
-        }
+        case VALUE_TYPE_STRING:
+            return stringI_compare(I, valueI_as_string(a), valueI_as_string(b));
         case VALUE_TYPE_USERDATA:
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_VECTOR:
@@ -549,7 +539,6 @@ static inline struct bucket *get(morphine_instance_t I, struct hashmap *hashmap,
 
 struct table *tableI_create(morphine_instance_t I) {
     struct table *result = allocI_uni(I, NULL, sizeof(struct table));
-
     (*result) = (struct table) {
         .metatable = NULL,
 

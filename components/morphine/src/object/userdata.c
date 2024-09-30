@@ -11,7 +11,6 @@
 
 static struct userdata *create(morphine_instance_t I) {
     struct userdata *result = allocI_uni(I, NULL, sizeof(struct userdata));
-
     (*result) = (struct userdata) {
         .is_typed = false,
         .untyped.size = 0,
@@ -37,17 +36,28 @@ struct userdata *userdataI_instance(morphine_instance_t I, const char *type, str
         throwI_error(I, "type unexpected metatable");
     }
 
+    size_t rollback;
+    if (metatable != NULL) {
+        rollback = gcI_safe_obj(I, objectI_cast(metatable));
+    }
     struct userdata *userdata = create(I);
 
-    size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
+    // config
+    if (metatable != NULL) {
+        gcI_safe_obj(I, objectI_cast(userdata));
+    } else {
+        rollback = gcI_safe_obj(I, objectI_cast(userdata));
+    }
 
+    userdata->data = allocI_uni(I, NULL, info.allocate);
     userdata->is_typed = true;
     userdata->typed.usertype = usertype;
     userdata->typed.inited = false;
-    userdata->data = allocI_uni(I, NULL, info.allocate);
     userdata->mode.metatable_locked = true;
     userdata->mode.size_locked = true;
+
     userdata->metatable = metatable;
+    gcI_objbarrier(I, userdata, metatable);
 
     usertypeI_ref(I, usertype);
 
@@ -64,7 +74,6 @@ struct userdata *userdataI_instance(morphine_instance_t I, const char *type, str
 
 struct userdata *userdataI_create(morphine_instance_t I, size_t size) {
     struct userdata *userdata = create(I);
-
     size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
 
     userdata->data = allocI_uni(I, NULL, size);

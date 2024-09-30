@@ -8,11 +8,10 @@
 
 struct native {
     struct object header;
+    struct string *name;
 
     morphine_native_t function;
-    const char *name;
-    size_t name_len;
 };
 
-struct native *nativeI_create(morphine_instance_t, const char *name, morphine_native_t function);
+struct native *nativeI_create(morphine_instance_t, struct string *name, morphine_native_t function);
 void nativeI_free(morphine_instance_t, struct native *);

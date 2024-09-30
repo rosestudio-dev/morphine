@@ -8,6 +8,7 @@
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
+#include "morphine/gc/safe.h"
 
 static void attach(morphine_coroutine_t U) {
     if (U == NULL) {
@@ -62,7 +63,7 @@ static void detach(morphine_coroutine_t U) {
 
 morphine_coroutine_t coroutineI_custom_create(
     morphine_instance_t I,
-    const char *name,
+    struct string *name,
     struct value env,
     size_t stack_limit,
     size_t stack_grow
@@ -71,20 +72,14 @@ morphine_coroutine_t coroutineI_custom_create(
         throwI_error(I, "coroutine name is null");
     }
 
-    size_t name_len = strlen(name);
-    if (name_len > MLIMIT_COROUTINE_NAME) {
-        throwI_error(I, "coroutine name too big");
-    }
+    size_t rollback = gcI_safe_obj(I, objectI_cast(name));
+    gcI_safe_value(I, env);
 
+    // create
     struct stack stack = stackI_prototype(I, stack_limit, stack_grow);
-
-    size_t alloc_size = sizeof(struct coroutine) + ((name_len + 1) * sizeof(char));
-    morphine_coroutine_t result = allocI_uni(I, NULL, alloc_size);
-
-    char *result_name = ((void *) result) + sizeof(struct coroutine);
+    morphine_coroutine_t result = allocI_uni(I, NULL, sizeof(struct coroutine));
     (*result) = (struct coroutine) {
-        .name.str = result_name,
-        .name.len = name_len,
+        .name = name,
         .status = COROUTINE_STATUS_CREATED,
         .priority = 1,
         .stack = stack,
@@ -94,15 +89,14 @@ morphine_coroutine_t coroutineI_custom_create(
         .I = I
     };
 
-    memcpy(result_name, name, name_len * sizeof(char));
-    result_name[name_len] = '\0';
-
     objectI_init(I, objectI_cast(result), OBJ_TYPE_COROUTINE);
+
+    gcI_reset_safe(I, rollback);
 
     return result;
 }
 
-morphine_coroutine_t coroutineI_create(morphine_instance_t I, const char *name, struct value env) {
+morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *name, struct value env) {
     morphine_coroutine_t result = coroutineI_custom_create(
         I, name, env,
         I->settings.states.stack_limit,

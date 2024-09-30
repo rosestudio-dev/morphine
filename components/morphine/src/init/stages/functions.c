@@ -47,10 +47,10 @@ static void library(morphine_coroutine_t U) {
 }
 
 static void init_library_function(morphine_instance_t I) {
-    struct value name = valueI_object(stringI_create(I, "library"));
-    struct value native = valueI_object(nativeI_create(I, "library", library));
+    struct string *name = stringI_create(I, "library");
+    struct value native = valueI_object(nativeI_create(I, name, library));
 
-    tableI_set(I, I->env, name, native);
+    tableI_set(I, I->env, valueI_object(name), native);
 }
 
 static void init_builtin_functions(morphine_instance_t I) {

@@ -71,7 +71,6 @@ static morphine_opcode_t str2opcode(morphine_coroutine_t U, const char *str) {
 static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            const char *name = "anonymous";
             ml_line line = 0;
             ml_size constants_count = 0;
             ml_size instructions_count = 0;
@@ -82,12 +81,6 @@ static void create(morphine_coroutine_t U) {
 
             if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
-
-                mapi_push_string(U, "name");
-                if (mapi_table_get(U)) {
-                    name = mapi_get_cstr(U);
-                }
-                mapi_pop(U, 1);
 
                 mapi_push_string(U, "line");
                 if (mapi_table_get(U)) {
@@ -130,11 +123,13 @@ static void create(morphine_coroutine_t U) {
                     params_count = mapi_get_size(U, NULL);
                 }
                 mapi_pop(U, 1);
+
+                mapi_push_string(U, "name");
+                if (!mapi_table_get(U)) {
+                    mapi_push_string(U, "anonymous");
+                }
             } else {
                 maux_expect_args(U, 8);
-
-                mapi_push_arg(U, 0);
-                name = mapi_get_cstr(U);
 
                 mapi_push_arg(U, 1);
                 line = mapi_get_size(U, "line");
@@ -156,10 +151,12 @@ static void create(morphine_coroutine_t U) {
 
                 mapi_push_arg(U, 7);
                 params_count = mapi_get_size(U, NULL);
+
+                mapi_push_arg(U, 0);
             }
 
             mapi_push_function(
-                U, name, line,
+                U, line,
                 constants_count,
                 instructions_count,
                 statics_count,
@@ -188,7 +185,6 @@ static void info(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
             mapi_extract_callable(U);
 
-            const char *name = mapi_function_name(U);
             ml_line line = mapi_function_line(U);
             ml_size constants_count = mapi_constant_size(U);
             ml_size instructions_count = mapi_instruction_size(U);
@@ -197,11 +193,14 @@ static void info(morphine_coroutine_t U) {
             ml_size slots_count = mapi_function_slots(U);
             ml_size params_count = mapi_function_params(U);
             bool is_complete = mapi_function_is_complete(U);
+            mapi_function_name(U);
 
             mapi_push_table(U);
 
             mapi_push_string(U, "name");
-            mapi_push_string(U, name);
+
+            mapi_rotate(U, 3);
+            mapi_rotate(U, 3);
             mapi_table_set(U);
 
             mapi_push_string(U, "line");

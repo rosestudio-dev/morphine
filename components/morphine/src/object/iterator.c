@@ -31,8 +31,10 @@ struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
         throwI_error(I, "iterator only supports table, vector or string");
     }
 
-    struct iterator *result = allocI_uni(I, NULL, sizeof(struct iterator));
+    size_t rollback = gcI_safe_obj(I, object);
 
+    // create
+    struct iterator *result = allocI_uni(I, NULL, sizeof(struct iterator));
     (*result) = (struct iterator) {
         .type = type,
         .iterable.object = object,
@@ -45,6 +47,8 @@ struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_ITERATOR);
+
+    gcI_reset_safe(I, rollback);
 
     return result;
 }

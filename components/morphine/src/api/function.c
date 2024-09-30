@@ -11,7 +11,6 @@
 
 MORPHINE_API void mapi_push_function(
     morphine_coroutine_t U,
-    const char *name,
     ml_line line,
     ml_size constants_count,
     ml_size instructions_count,
@@ -20,6 +19,8 @@ MORPHINE_API void mapi_push_function(
     ml_size slots_count,
     ml_size params_count
 ) {
+    struct string *name = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
+
     struct function *function = functionI_create(
         U->I,
         name,
@@ -32,7 +33,7 @@ MORPHINE_API void mapi_push_function(
         params_count
     );
 
-    stackI_push(U, valueI_object(function));
+    stackI_replace(U, 0, valueI_object(function));
 }
 
 MORPHINE_API void mapi_function_complete(morphine_coroutine_t U) {
@@ -45,9 +46,9 @@ MORPHINE_API bool mapi_function_is_complete(morphine_coroutine_t U) {
     return function->complete;
 }
 
-MORPHINE_API const char *mapi_function_name(morphine_coroutine_t U) {
+MORPHINE_API void mapi_function_name(morphine_coroutine_t U) {
     struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
-    return function->name;
+    stackI_push(U, valueI_object(function->name));
 }
 
 MORPHINE_API ml_line mapi_function_line(morphine_coroutine_t U) {
