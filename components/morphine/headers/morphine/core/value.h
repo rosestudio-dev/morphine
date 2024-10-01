@@ -126,7 +126,7 @@
 // other
 
 #define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
-#define valueI_istrue(x)  ({struct value _t = (x); !valueI_is_nil(_t) && valueI_safe_as_boolean(_t, true);})
+#define valueI_istrue(x)  ({struct value _t = (x); !valueI_is_nil(_t) && !valueI_is_exception(_t) && valueI_safe_as_boolean(_t, true);})
 
 struct value {
     enum value_type type;
