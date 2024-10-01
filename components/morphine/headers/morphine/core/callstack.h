@@ -11,27 +11,27 @@
 
 struct callinfo {
     struct {
-        union {
-            struct value *base;
-            struct value *callable;
-        };
+        struct {
+            union {
+                struct value *base;
+                struct value *source;
+            };
+            struct value *space;
+            struct value *top;
+        } stack;
 
-        struct value *source;
-        struct value *env;
-        struct value *self;
-        struct value *localstorage_key;
-        struct value *result;
-        struct value *thrown;
-        struct value *args;
-        struct value *slots;
-        struct value *params;
-        struct value *space;
-        struct value *top;
+        struct {
+            struct value *callable;
+            struct value *env;
+            struct value *args;
+            struct value *self;
+        } direct;
     } s;
 
-    size_t pop_size;
-
-    ml_size arguments_count;
+    struct {
+        ml_size arguments_count;
+        size_t pop_size;
+    } info;
 
     struct {
         size_t position;
@@ -42,8 +42,6 @@ struct callinfo {
         bool enable;
         size_t state;
     } catch;
-
-    bool exit;
 
     struct callinfo *prev;
 };
@@ -58,6 +56,17 @@ struct callstack callstackI_prototype(void);
 void callstackI_destruct(morphine_instance_t, struct callstack *);
 void callstackI_callinfo_free(morphine_instance_t, struct callinfo *);
 
+void callstackI_pop(morphine_coroutine_t);
+void callstackI_throw_fix(morphine_coroutine_t);
+
+struct value callstackI_extract_callable(morphine_instance_t, struct value callable);
+bool callstackI_is_callable(morphine_instance_t I, struct value callable);
+
+struct value callstackI_result(morphine_coroutine_t);
+void callstackI_return(morphine_coroutine_t, struct value);
+void callstackI_continue(morphine_coroutine_t, size_t state);
+size_t callstackI_state(morphine_coroutine_t);
+
 void callstackI_call_unsafe(
     morphine_coroutine_t U,
     struct value callable,
@@ -69,29 +78,14 @@ void callstackI_call_unsafe(
 
 void callstackI_call_from_api(
     morphine_coroutine_t U,
-    struct value callable,
-    struct value *self,
-    size_t offset,
-    ml_size argc,
-    size_t pop_size
+    bool has_env,
+    bool has_self,
+    ml_size argc
 );
 
 void callstackI_call_from_interpreter(
     morphine_coroutine_t U,
-    struct value callable,
+    struct value *callable,
     struct value *self,
-    ml_size argc,
-    size_t pop_size
+    ml_size argc
 );
-
-void callstackI_pop(morphine_coroutine_t);
-void callstackI_fix_uninit(morphine_coroutine_t);
-
-struct value callstackI_extract_callable(morphine_instance_t, struct value callable);
-bool callstackI_is_callable(morphine_instance_t I, struct value callable);
-
-struct value callstackI_result(morphine_coroutine_t);
-void callstackI_return(morphine_coroutine_t, struct value);
-void callstackI_leave(morphine_coroutine_t);
-void callstackI_continue(morphine_coroutine_t, size_t state);
-size_t callstackI_state(morphine_coroutine_t);

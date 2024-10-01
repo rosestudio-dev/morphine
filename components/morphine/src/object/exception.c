@@ -196,7 +196,7 @@ void exceptionI_stacktrace_record(
             break;
         } else {
             *element = (struct stacktrace_element) {
-                .callable = *callinfo->s.source,
+                .callable = *callinfo->s.stack.source,
                 .pc.position = callinfo->pc.position,
                 .pc.state = callinfo->pc.state
             };

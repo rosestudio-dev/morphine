@@ -45,7 +45,8 @@ void throwI_handler(morphine_instance_t I) {
         }
     }
 
-    callstackI_fix_uninit(coroutine);
+    stackI_throw_fix(coroutine);
+    callstackI_throw_fix(coroutine);
 
     struct value value;
     if (throw->is_message) {
@@ -70,7 +71,7 @@ void throwI_handler(morphine_instance_t I) {
         }
 
         // set error value
-        *callinfo->s.thrown = valueI_object(exception);
+        coroutine->thrown = valueI_object(exception);
 
         size_t stack_size = stackI_space(coroutine);
         stackI_pop(coroutine, stack_size);

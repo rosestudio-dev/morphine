@@ -127,7 +127,7 @@ static void launch(morphine_coroutine_t U) {
                 mapi_move(U, coroutine);
             }
 
-            mapi_callself(coroutine, mapi_args(U) - 1);
+            mapi_scall(coroutine, mapi_args(U) - 1);
 
             mapi_attach(coroutine);
             maux_nb_return();
@@ -145,13 +145,12 @@ static void create(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
             morphine_coroutine_t coroutine = mapi_push_coroutine(U);
 
-            mapi_push_self(U);
-            mapi_copy(U, coroutine, 0);
-            mapi_pop(U, 1);
-
             mapi_rotate(U, 2);
             mapi_copy(U, coroutine, 0);
             mapi_pop(U, 1);
+
+            mapi_push_self(U);
+            mapi_move(U, coroutine);
 
             maux_nb_return();
     maux_nb_end

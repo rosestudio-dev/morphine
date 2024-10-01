@@ -886,7 +886,8 @@ static void format(morphine_coroutine_t U) {
                         maux_localstorage_set(U, "table_index");
 
                         mapi_library(U, "value.tostr", false);
-                        maux_nb_calli(1, 1);
+                        mapi_rotate(U, 2);
+                        maux_nb_call(1, 1);
                     }
                     case CONCAT: {
                         mapi_push_result(U);

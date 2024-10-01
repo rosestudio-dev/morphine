@@ -8,9 +8,13 @@
 #include "morphine/core/instance.h"
 #include "morphine/gc/safe.h"
 
+static inline struct value localkey(morphine_coroutine_t U) {
+    return valueI_raw(callstackI_info(U));
+}
+
 void localstorageI_set(morphine_coroutine_t U, struct value key, struct value value) {
     morphine_instance_t I = U->I;
-    struct value local_key = *callstackI_info_or_error(U)->s.localstorage_key;
+    struct value local_key = localkey(U);
 
     size_t rollback = gcI_safe_value(I, key);
     gcI_safe_value(I, value);
@@ -31,7 +35,7 @@ void localstorageI_set(morphine_coroutine_t U, struct value key, struct value va
 }
 
 struct value localstorageI_get(morphine_coroutine_t U, struct value key, bool *has) {
-    struct value local_key = *callstackI_info_or_error(U)->s.localstorage_key;
+    struct value local_key = localkey(U);
 
     bool internal_has = false;
     struct value table = tableI_get(U->I, U->I->localstorage, local_key, &internal_has);
@@ -48,7 +52,7 @@ struct value localstorageI_get(morphine_coroutine_t U, struct value key, bool *h
 }
 
 struct value localstorageI_remove(morphine_coroutine_t U, struct value key, bool *has) {
-    struct value local_key = *callstackI_info_or_error(U)->s.localstorage_key;
+    struct value local_key = localkey(U);
 
     bool internal_has = false;
     struct value table = tableI_get(U->I, U->I->localstorage, local_key, &internal_has);
@@ -65,6 +69,6 @@ struct value localstorageI_remove(morphine_coroutine_t U, struct value key, bool
 }
 
 void localstorageI_clear(morphine_coroutine_t U) {
-    struct value local_key = *callstackI_info_or_error(U)->s.localstorage_key;
+    struct value local_key = localkey(U);
     tableI_remove(U->I, U->I->localstorage, local_key, NULL);
 }

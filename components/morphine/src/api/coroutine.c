@@ -37,7 +37,7 @@ MORPHINE_API morphine_coroutine_t mapi_push_coroutine(morphine_coroutine_t U) {
 
     struct value env;
     if (callstackI_info(U) != NULL) {
-        env = *callstackI_info(U)->s.env;
+        env = *callstackI_info(U)->s.direct.env;
     } else {
         env = U->env;
     }
@@ -194,7 +194,7 @@ MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t U, ml_size priori
  * {{end}}
  */
 MORPHINE_API const char *mapi_coroutine_status(morphine_coroutine_t U) {
-    return coroutineI_status2string(U, U->status);
+    return coroutineI_status2string(U, U->state.status);
 }
 
 /*

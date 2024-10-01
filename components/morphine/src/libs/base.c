@@ -19,9 +19,9 @@ static void print(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
 
-            mapi_push_arg(U, 0);
             mapi_library(U, "value.tostr", false);
-            mapi_calli(U, 1);
+            mapi_push_arg(U, 0);
+            mapi_call(U, 1);
         maux_nb_state(1)
             mapi_push_result(U);
 
@@ -49,7 +49,8 @@ static void println(morphine_coroutine_t U) {
             }
 
             mapi_library(U, "value.tostr", false);
-            mapi_calli(U, 1);
+            mapi_rotate(U, 2);
+            mapi_call(U, 1);
         maux_nb_state(1)
             mapi_push_result(U);
 
@@ -58,10 +59,7 @@ static void println(morphine_coroutine_t U) {
             mapi_push_sio_io(U);
             mapi_sio_write(U, string, size);
             mapi_sio_write(U, (const uint8_t *) "\n", 1);
-
-            mapi_pop(U, 1);
             maux_nb_leave();
-        maux_nb_state(3)
     maux_nb_end
 }
 
@@ -162,17 +160,16 @@ static void changeenv(morphine_coroutine_t U) {
                 maux_expect_args(U, 2);
             }
 
-            mapi_push_arg(U, 0);
-            mapi_change_env(U);
-
             mapi_push_arg(U, 1);
             maux_expect(U, "callable");
+
+            mapi_push_arg(U, 0);
 
             for (ml_size i = 2; i < count; i++) {
                 mapi_push_arg(U, i);
             }
 
-            mapi_call(U, count - 2);
+            mapi_ecall(U, count - 2);
         maux_nb_state(1)
             mapi_push_result(U);
             maux_nb_return();

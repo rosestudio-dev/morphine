@@ -44,10 +44,12 @@
         } \
     )
 
-#define set_slot(C, a, x)  semicolon_blk(struct value _temp = (x); (C)->s.slots[(a)] = _temp;)
-#define get_slot(C, a, n)  struct value n = ((C)->s.slots[(a)]); semicolon_blk()
-#define set_param(C, a, x) semicolon_blk(struct value _temp = (x); (C)->s.params[(a)] = _temp;)
-#define get_param(C, a, n) struct value n = ((C)->s.params[(a)]); semicolon_blk()
+#define get_raw_slot(C, a) ((C)->s.stack.space + (a))
+
+#define set_slot(C, a, x)  semicolon_blk(struct value _temp = (x); (C)->s.stack.space[(a)] = _temp;)
+#define get_slot(C, a, n)  struct value n = ((C)->s.stack.space[(a)]); semicolon_blk()
+#define set_param(C, a, x) semicolon_blk(struct value _temp = (x); (C)->s.stack.space[slots_count + (a)] = _temp;)
+#define get_param(C, a, n) struct value n = ((C)->s.stack.space[slots_count + (a)]); semicolon_blk()
 
 #define arg1 instruction.argument1
 #define arg2 instruction.argument2
@@ -55,7 +57,7 @@
 
 // other
 
-static inline void clear_params(struct callinfo *C, ml_size count) {
+static inline void clear_params(struct callinfo *C, ml_size count, size_t slots_count) {
     for (ml_size i = 0; i < count; i++) {
         set_param(C, i, valueI_nil);
     }
@@ -73,6 +75,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
     struct callinfo *C = callstackI_info(U);
     size_t *position = &C->pc.position;
     size_t instructions_count = F->instructions_count;
+    size_t slots_count = F->slots_count;
 
     for (;;) {
         morphine_instruction_t instruction;
@@ -105,22 +108,26 @@ sp_case(MORPHINE_OPCODE_PARAM)
             }
 sp_case(MORPHINE_OPCODE_ARG)
             {
-                set_slot(C, arg2, C->s.args[arg1]);
+                if (arg1 < C->info.arguments_count) {
+                    set_slot(C, arg2, C->s.direct.args[arg1]);
+                } else {
+                    set_slot(C, arg2, valueI_nil);
+                }
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_ENV)
             {
-                set_slot(C, arg1, *C->s.env);
+                set_slot(C, arg1, *C->s.direct.env);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_SELF)
             {
-                set_slot(C, arg1, *C->s.self);
+                set_slot(C, arg1, *C->s.direct.self);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_INVOKED)
             {
-                set_slot(C, arg1, *C->s.callable);
+                set_slot(C, arg1, *C->s.direct.callable);
                 sp_end();
             }
 sp_case(MORPHINE_OPCODE_VECTOR)
@@ -271,49 +278,44 @@ sp_case(MORPHINE_OPCODE_CLOSURE)
             }
 sp_case(MORPHINE_OPCODE_CALL)
             {
+                ml_size count = arg2;
+
                 if (callstackI_state(U) == 1) {
                     callstackI_continue(U, 0);
+                    clear_params(C, count, slots_count);
                     sp_end();
                 }
-
-                get_slot(C, arg1, callable);
-                ml_size count = arg2;
 
                 callstackI_continue(U, 1);
 
                 callstackI_call_from_interpreter(
                     U,
-                    callable,
+                    get_raw_slot(C, arg1),
                     NULL,
-                    count,
-                    0
+                    count
                 );
 
-                clear_params(C, count);
                 sp_yield();
             }
 sp_case(MORPHINE_OPCODE_SCALL)
             {
+                ml_size count = arg2;
+
                 if (callstackI_state(U) == 1) {
                     callstackI_continue(U, 0);
+                    clear_params(C, count, slots_count);
                     sp_end();
                 }
-
-                get_slot(C, arg1, callable);
-                get_slot(C, arg3, self);
-                ml_size count = arg2;
 
                 callstackI_continue(U, 1);
 
                 callstackI_call_from_interpreter(
                     U,
-                    callable,
-                    &self,
-                    count,
-                    0
+                    get_raw_slot(C, arg1),
+                    get_raw_slot(C, arg3),
+                    count
                 );
 
-                clear_params(C, count);
                 sp_yield();
             }
 sp_case(MORPHINE_OPCODE_LEAVE)
@@ -504,6 +506,7 @@ sp_case(MORPHINE_OPCODE_LENGTH)
 }
 
 static inline void step(morphine_coroutine_t U) {
+    struct interpreter *E = &U->I->E;
     struct callinfo *callinfo = callstackI_info(U);
 
     if (unlikely(callinfo == NULL)) {
@@ -511,24 +514,24 @@ static inline void step(morphine_coroutine_t U) {
         return;
     }
 
-    U->I->E.throw.context = U;
+    E->throw.context = U;
 
-    struct value source = *callinfo->s.source;
+    struct value source = *callinfo->s.stack.source;
 
     if (likely(valueI_is_function(source))) {
-        callinfo->exit = false;
+        U->state.exit = false;
         step_function(U, valueI_as_function(source));
     } else if (valueI_is_native(source)) {
-        callinfo->exit = true;
+        U->state.exit = true;
         struct native *native = valueI_as_native(source);
         native->function(U);
     } else {
         throwI_error(U->I, "attempt to execute unsupported callable");
     }
 
-    if (unlikely(callinfo->exit)) {
+    if (unlikely(U->state.exit)) {
         if (unlikely(callinfo != callstackI_info(U))) {
-            while (callstackI_info(U) != NULL && callstackI_info(U) != callinfo) {
+            while (callstackI_info(U) != NULL) {
                 callstackI_pop(U);
             }
 
@@ -538,7 +541,7 @@ static inline void step(morphine_coroutine_t U) {
         callstackI_pop(U);
     }
 
-    U->I->E.throw.context = NULL;
+    E->throw.context = NULL;
 }
 
 static inline bool execute_step(morphine_instance_t I, struct interpreter *E) {
@@ -564,9 +567,9 @@ static inline bool execute_step(morphine_instance_t I, struct interpreter *E) {
 
     morphine_coroutine_t coroutine = E->running;
 
-    bool is_current_circle = (E->circle % coroutine->priority) == 0;
+    bool is_current_circle = (E->circle % coroutine->state.priority) == 0;
 
-    if (likely(is_current_circle && (coroutine->status == COROUTINE_STATUS_RUNNING))) {
+    if (likely(is_current_circle && (coroutine->state.status == COROUTINE_STATUS_RUNNING))) {
         step(coroutine);
     }
 

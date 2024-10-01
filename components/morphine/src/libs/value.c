@@ -13,16 +13,19 @@ static void tostr(morphine_coroutine_t U) {
 
             if (mapi_metatable_test(U, "_mf_to_string")) {
                 if (mapi_is_callable(U)) {
-                    mapi_callself(U, 0);
+                    mapi_rotate(U, 2);
+                    mapi_scall(U, 0);
                 } else {
                     maux_nb_return();
                 }
             } else if (mapi_is_type(U, "vector")) {
                 mapi_library(U, "vector.tostr", false);
-                mapi_calli(U, 1);
+                mapi_rotate(U, 2);
+                mapi_call(U, 1);
             } else if (mapi_is_type(U, "table")) {
                 mapi_library(U, "table.tostr", false);
-                mapi_calli(U, 1);
+                mapi_rotate(U, 2);
+                mapi_call(U, 1);
             } else {
                 mapi_to_string(U);
                 maux_nb_return();

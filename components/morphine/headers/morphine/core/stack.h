@@ -8,9 +8,11 @@
 #include "morphine/core/callstack.h"
 
 struct stack {
-    struct value *allocated;
-    size_t top;
-    size_t size;
+    struct {
+        struct value *allocated;
+        size_t top;
+        size_t size;
+    } array;
 
     size_t space_top;
 
@@ -27,6 +29,8 @@ struct stack {
 struct stack stackI_prototype(morphine_instance_t, size_t limit, size_t grow);
 void stackI_destruct(morphine_instance_t, struct stack *);
 
+void stackI_throw_fix(morphine_coroutine_t);
+
 struct value *stackI_raise(morphine_coroutine_t, size_t size);
 struct value *stackI_reduce(morphine_coroutine_t, size_t size);
 
@@ -42,5 +46,4 @@ void stackI_pop(morphine_coroutine_t, size_t count);
 void stackI_rotate(morphine_coroutine_t, size_t count);
 void stackI_replace(morphine_coroutine_t, size_t offset, struct value value);
 
-struct value stackI_callinfo_peek(morphine_coroutine_t, struct callinfo *, size_t offset);
-size_t stackI_callinfo_space(morphine_coroutine_t, struct callinfo *);
+struct value *stackI_unsafe_peek(morphine_coroutine_t, size_t offset);

@@ -18,110 +18,20 @@
 #include "morphine/core/value.h"
 #include "morphine/core/throw.h"
 
-/*
- * {{docs body}}
- * path:architecture/api-callstack
- * ## mapi_call
- * ### Prototype
- * ```c
- * void mapi_call(morphine_coroutine_t U, ml_size argc)
- * ```
- * ### Parameters
- * * `U` - coroutine
- * * `argc` - count of arguments
- * ### Description
- * 1. Peeks the specified count of arguments from the stack
- * 2. Calls the callable value at the top of the stack with offset of argc (self value is nil)
- *
- * After the call completes, pops argc + 1 values from the stack
- *
- * > [!WARNING]
- * > After calling this api function, the coroutine switches to another call
- * {{end}}
- */
 MORPHINE_API void mapi_call(morphine_coroutine_t U, ml_size argc) {
-    struct value callable = stackI_peek(U, argc);
-    callstackI_call_from_api(U, callable, NULL, 0, argc, ((size_t) argc) + 1);
+    callstackI_call_from_api(U, false, false, argc);
 }
 
-/*
- * {{docs body}}
- * path:architecture/api-callstack
- * ## mapi_calli
- * ### Prototype
- * ```c
- * void mapi_calli(morphine_coroutine_t U, ml_size argc)
- * ```
- * ### Parameters
- * * `U` - coroutine
- * * `argc` - count of arguments
- * ### Description
- * 1. Peeks the specified count of arguments from the stack with offset of 1
- * 2. Calls the callable value at the top of the stack (self value is nil)
- *
- * After the call completes, pops argc + 1 values from the stack
- *
- * > [!WARNING]
- * > After calling this api function, the coroutine switches to another call
- * {{end}}
- */
-MORPHINE_API void mapi_calli(morphine_coroutine_t U, ml_size argc) {
-    struct value callable = stackI_peek(U, 0);
-    callstackI_call_from_api(U, callable, NULL, 1, argc, ((size_t) argc) + 1);
+MORPHINE_API void mapi_ecall(morphine_coroutine_t U, ml_size argc) {
+    callstackI_call_from_api(U, true, false, argc);
 }
 
-/*
- * {{docs body}}
- * path:architecture/api-callstack
- * ## mapi_callself
- * ### Prototype
- * ```c
- * void mapi_callself(morphine_coroutine_t U, ml_size argc)
- * ```
- * ### Parameters
- * * `U` - coroutine
- * * `argc` - count of arguments
- * ### Description
- * 1. Peeks the specified count of arguments from the stack
- * 2. Calls the callable value at the top of the stack with offset of argc (self value is peek from the stack with offset of argc + 1)
- *
- * After the call completes, pops argc + 2 values from the stack
- *
- * > [!WARNING]
- * > After calling this api function, the coroutine switches to another call
- * {{end}}
- */
-MORPHINE_API void mapi_callself(morphine_coroutine_t U, ml_size argc) {
-    struct value self = stackI_peek(U, argc + 1);
-    struct value callable = stackI_peek(U, argc);
-    callstackI_call_from_api(U, callable, &self, 0, argc, ((size_t) argc) + 2);
+MORPHINE_API void mapi_scall(morphine_coroutine_t U, ml_size argc) {
+    callstackI_call_from_api(U, false, true, argc);
 }
 
-/*
- * {{docs body}}
- * path:architecture/api-callstack
- * ## mapi_callselfi
- * ### Prototype
- * ```c
- * void mapi_callselfi(morphine_coroutine_t U, ml_size argc)
- * ```
- * ### Parameters
- * * `U` - coroutine
- * * `argc` - count of arguments
- * ### Description
- * 1. Peeks the specified count of arguments from the stack with offset of 2
- * 2. Calls the callable value at the top of the stack with offset of 1 (self value is peek from the stack with offset of 1)
- *
- * After the call completes, pops argc + 2 values from the stack
- *
- * > [!WARNING]
- * > After calling this api function, the coroutine switches to another call
- * {{end}}
- */
-MORPHINE_API void mapi_callselfi(morphine_coroutine_t U, ml_size argc) {
-    struct value callable = stackI_peek(U, 1);
-    struct value self = stackI_peek(U, 0);
-    callstackI_call_from_api(U, callable, &self, 2, argc, ((size_t) argc) + 2);
+MORPHINE_API void mapi_escall(morphine_coroutine_t U, ml_size argc) {
+    callstackI_call_from_api(U, true, true, argc);
 }
 
 /*
@@ -139,7 +49,7 @@ MORPHINE_API void mapi_callselfi(morphine_coroutine_t U, ml_size argc) {
  * {{end}}
  */
 MORPHINE_API void mapi_push_callable(morphine_coroutine_t U) {
-    stackI_push(U, *callstackI_info_or_error(U)->s.callable);
+    stackI_push(U, *callstackI_info_or_error(U)->s.direct.callable);
 }
 
 /*
@@ -212,7 +122,7 @@ MORPHINE_API void mapi_return(morphine_coroutine_t U) {
  * {{end}}
  */
 MORPHINE_API void mapi_leave(morphine_coroutine_t U) {
-    callstackI_leave(U);
+    callstackI_return(U, valueI_nil);
 }
 
 /*
@@ -271,7 +181,7 @@ MORPHINE_API size_t mapi_callstate(morphine_coroutine_t U) {
  * {{end}}
  */
 MORPHINE_API ml_size mapi_args(morphine_coroutine_t U) {
-    return callstackI_info_or_error(U)->arguments_count;
+    return callstackI_info_or_error(U)->info.arguments_count;
 }
 
 /*
@@ -291,11 +201,11 @@ MORPHINE_API ml_size mapi_args(morphine_coroutine_t U) {
  */
 MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, ml_size index) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
-    if (index >= callinfo->arguments_count) {
+    if (index >= callinfo->info.arguments_count) {
         throwI_error(U->I, "argument index out of bounce");
     }
 
-    stackI_push(U, callinfo->s.args[index]);
+    stackI_push(U, callinfo->s.direct.args[index]);
 }
 
 /*
@@ -315,7 +225,7 @@ MORPHINE_API void mapi_push_arg(morphine_coroutine_t U, ml_size index) {
 MORPHINE_API void mapi_push_env(morphine_coroutine_t U) {
     struct value env;
     if (callstackI_info(U) != NULL) {
-        env = *callstackI_info(U)->s.env;
+        env = *callstackI_info(U)->s.direct.env;
     } else {
         env = U->env;
     }
@@ -338,24 +248,5 @@ MORPHINE_API void mapi_push_env(morphine_coroutine_t U) {
  * {{end}}
  */
 MORPHINE_API void mapi_push_self(morphine_coroutine_t U) {
-    stackI_push(U, *callstackI_info_or_error(U)->s.self);
-}
-
-/*
- * {{docs body}}
- * path:architecture/api-callstack
- * ## mapi_change_env
- * ### Prototype
- * ```c
- * void mapi_change_env(morphine_coroutine_t U)
- * ```
- * ### Parameters
- * * `U` - coroutine
- * ### Description
- * Pops a value from the stack and sets it to env
- * {{end}}
- */
-MORPHINE_API void mapi_change_env(morphine_coroutine_t U) {
-    struct value env = stackI_peek(U, 0);
-    *callstackI_info_or_error(U)->s.env = env;
+    stackI_push(U, *callstackI_info_or_error(U)->s.direct.self);
 }

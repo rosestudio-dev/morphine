@@ -30,9 +30,9 @@ MORPHINE_API void mapi_library(morphine_coroutine_t, const char *name, bool relo
 // callstack
 
 MORPHINE_API void mapi_call(morphine_coroutine_t, ml_size argc);
-MORPHINE_API void mapi_calli(morphine_coroutine_t, ml_size argc);
-MORPHINE_API void mapi_callself(morphine_coroutine_t, ml_size argc);
-MORPHINE_API void mapi_callselfi(morphine_coroutine_t, ml_size argc);
+MORPHINE_API void mapi_ecall(morphine_coroutine_t, ml_size argc);
+MORPHINE_API void mapi_scall(morphine_coroutine_t, ml_size argc);
+MORPHINE_API void mapi_escall(morphine_coroutine_t, ml_size argc);
 MORPHINE_API void mapi_push_callable(morphine_coroutine_t);
 MORPHINE_API void mapi_extract_callable(morphine_coroutine_t);
 MORPHINE_API void mapi_push_result(morphine_coroutine_t);
@@ -44,7 +44,6 @@ MORPHINE_API ml_size mapi_args(morphine_coroutine_t);
 MORPHINE_API void mapi_push_arg(morphine_coroutine_t, ml_size index);
 MORPHINE_API void mapi_push_env(morphine_coroutine_t);
 MORPHINE_API void mapi_push_self(morphine_coroutine_t);
-MORPHINE_API void mapi_change_env(morphine_coroutine_t);
 
 // error
 

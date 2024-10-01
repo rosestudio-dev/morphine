@@ -21,12 +21,17 @@ struct coroutine {
     struct object header;
     struct string *name;
 
-    enum coroutine_status status;
-    ml_size priority;
+    struct {
+        enum coroutine_status status;
+        ml_size priority;
+        bool exit;
+    } state;
 
     struct stack stack;
     struct callstack callstack;
     struct value env;
+    struct value result;
+    struct value thrown;
 
     morphine_coroutine_t prev;
     morphine_instance_t I;

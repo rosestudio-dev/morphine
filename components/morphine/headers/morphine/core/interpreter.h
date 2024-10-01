@@ -14,6 +14,7 @@ struct interpreter {
 
     ml_size circle;
     struct throw throw;
+    bool exit;
 };
 
 struct interpreter interpreterI_prototype(void);
