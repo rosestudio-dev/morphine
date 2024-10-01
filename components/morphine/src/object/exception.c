@@ -63,11 +63,17 @@ void exceptionI_stacktrace_print(morphine_instance_t I, struct exception *except
     }
 
     if (exception->stacktrace.name != NULL) {
-        sioI_print(I, sio, "tracing callstack (for coroutine '");
+        sioI_printf(
+            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" elements, for coroutine '",
+            exception->stacktrace.size
+        );
         print_string(I, sio, exception->stacktrace.name);
         sioI_print(I, sio, "'):\n");
     } else {
-        sioI_print(I, sio, "tracing callstack (undefined coroutine):\n");
+        sioI_printf(
+            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" elements, undefined coroutine):\n",
+            exception->stacktrace.size
+        );
     }
 
     for (ml_size i = 0; i < exception->stacktrace.size; i++) {
