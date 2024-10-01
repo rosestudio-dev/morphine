@@ -194,6 +194,7 @@ void gcI_work(morphine_instance_t I, size_t reserved) {
         return;
     }
 
+#ifdef MORPHINE_ENABLE_DISTRIBUTED_GC
     if (I->G.status != GC_STATUS_IDLE) {
         step(I, reserved);
         return;
@@ -202,6 +203,9 @@ void gcI_work(morphine_instance_t I, size_t reserved) {
     if (gc_need(I, reserved)) {
         step(I, reserved);
     }
+#else
+    gcI_full(I, reserved);
+#endif
 }
 
 void gcI_full(morphine_instance_t I, size_t reserved) {

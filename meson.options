@@ -6,4 +6,5 @@ option('libs', type : 'array', value : ['system', 'fs', 'math', 'bigint'])
 
 option('morphine_module_jumptable', type : 'feature', value : 'enabled')
 option('morphine_module_sso', type : 'feature', value : 'enabled')
+option('morphine_module_distributed_gc', type : 'feature', value : 'enabled')
 option('morphine_module_debug', type : 'feature', value : 'disabled')
