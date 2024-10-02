@@ -92,7 +92,7 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
     return extract_metatable(I, metatable);
 }
 
-bool metatableI_test(
+bool metatableI_builtin_test(
     morphine_instance_t I,
     struct value source,
     enum metatable_field field,
@@ -102,6 +102,16 @@ bool metatableI_test(
         throwI_panic(I, "unsupported meta field");
     }
 
+    struct string *name = I->metatable.names[field];
+    return metatableI_test(I, source, name, result);
+}
+
+bool metatableI_test(
+    morphine_instance_t I,
+    struct value source,
+    struct string *field,
+    struct value *result
+) {
     struct table *metatable;
     if (valueI_is_table(source)) {
         metatable = valueI_as_table(source)->metatable;
@@ -111,7 +121,7 @@ bool metatableI_test(
         metatable = I->metatable.defaults[source.type];
     }
 
-    struct value field_name = valueI_object(I->metatable.names[field]);
+    struct value field_name = valueI_object(field);
 
     bool has = false;
     if (result != NULL) {

@@ -289,7 +289,7 @@ void callstackI_call_unsafe(
     }
 
     struct value mt_field;
-    if (unlikely(metatableI_test(U->I, callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_builtin_test(U->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(U->I);
         struct value args_table = valueI_object(table);
         size_t rollback = gcI_safe_value(U->I, args_table);
@@ -390,7 +390,7 @@ void callstackI_call_from_api(
     struct callinfo *callinfo = callstackI_info(U);
     struct value callable = stackI_peek(U, callable_offset);
     struct value mt_field;
-    if (unlikely(metatableI_test(U->I, callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_builtin_test(U->I, callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(U->I);
         struct value args_table = valueI_object(table);
         size_t rollback = gcI_safe_value(U->I, args_table);
@@ -479,7 +479,7 @@ void callstackI_call_from_interpreter(
     }
 
     struct value mt_field;
-    if (unlikely(metatableI_test(U->I, *callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_builtin_test(U->I, *callable, MF_CALL, &mt_field))) {
         struct table *table = tableI_create(U->I);
         struct value args_table = valueI_object(table);
         size_t rollback = gcI_safe_value(U->I, args_table);

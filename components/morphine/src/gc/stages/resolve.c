@@ -108,7 +108,7 @@ static inline bool finalize(morphine_instance_t I) {
     while (current != NULL) {
         struct object *prev = current->prev;
 
-        if (unlikely(!current->flags.finalized && metatableI_test(I, valueI_object(current), MF_GC, NULL))) {
+        if (unlikely(!current->flags.finalized && metatableI_builtin_test(I, valueI_object(current), MF_GC, NULL))) {
             current->color = OBJ_COLOR_RED;
             gcI_pools_remove(current, &I->G.pools.allocated);
             gcI_pools_insert(current, &I->G.pools.finalize);

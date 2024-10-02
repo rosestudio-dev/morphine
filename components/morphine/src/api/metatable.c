@@ -6,12 +6,34 @@
 #include "morphine/core/throw.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/misc/metatable.h"
+#include "morphine/object/string.h"
+#include "morphine/gc/safe.h"
 
 MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t U, const char *field) {
     struct value source = stackI_peek(U, 0);
 
+    struct string *string = stringI_create(U->I, field);
+    size_t rollback = gcI_safe_obj(U->I, objectI_cast(string));
+
     struct value mt;
-    bool result = metatableI_test(U->I, source, metatableI_string2field(U->I, field), &mt);
+    bool result = metatableI_test(U->I, source, string, &mt);
+
+    if (result) {
+        stackI_push(U, mt);
+    }
+
+    gcI_reset_safe(U->I, rollback);
+
+    return result;
+}
+
+MORPHINE_API bool mapi_metatable_builtin_test(morphine_coroutine_t U, const char *field) {
+    struct value source = stackI_peek(U, 0);
+
+    struct value mt;
+    bool result = metatableI_builtin_test(
+        U->I, source, metatableI_string2field(U->I, field), &mt
+    );
 
     if (result) {
         stackI_push(U, mt);

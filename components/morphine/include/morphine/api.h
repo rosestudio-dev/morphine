@@ -285,6 +285,7 @@ MORPHINE_API void mapi_gc_change_stack_grow(morphine_coroutine_t, size_t value);
 // metatable
 
 MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t, const char *field);
+MORPHINE_API bool mapi_metatable_builtin_test(morphine_coroutine_t, const char *field);
 MORPHINE_API void mapi_set_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_get_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_set_default_metatable(morphine_coroutine_t, const char *type);
