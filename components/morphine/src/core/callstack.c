@@ -3,18 +3,14 @@
 //
 
 #include "morphine/core/callstack.h"
-#include "morphine/core/value.h"
-#include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/closure.h"
-#include "morphine/object/table.h"
-#include "morphine/object/string.h"
+#include "morphine/object/vector.h"
 #include "morphine/gc/cache.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
-#include "morphine/misc/metatable.h"
 #include "morphine/misc/localstorage.h"
 #include "morphine/utils/overflow.h"
 
@@ -290,21 +286,17 @@ void callstackI_call_unsafe(
 
     struct value mt_field;
     if (unlikely(metatableI_builtin_test(U->I, callable, MF_CALL, &mt_field))) {
-        struct table *table = tableI_create(U->I);
-        struct value args_table = valueI_object(table);
-        size_t rollback = gcI_safe_value(U->I, args_table);
+        struct vector *vector = vectorI_create(U->I, argc);
+        size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
 
         for (ml_size i = 0; i < argc; i++) {
-            struct value key = valueI_size(i);
-            struct value arg = args[i];
-
-            tableI_set(U->I, table, key, arg);
+            vectorI_set(U->I, vector, i, args[i]);
         }
 
         stackI_push(U, mt_field);
         stackI_push(U, callable);
         stackI_push(U, self);
-        stackI_push(U, args_table);
+        stackI_push(U, valueI_object(vector));
 
         overflow_add(pop_size, 4, SIZE_MAX) {
             throwI_error(U->I, "pop overflow");
@@ -391,15 +383,11 @@ void callstackI_call_from_api(
     struct value callable = stackI_peek(U, callable_offset);
     struct value mt_field;
     if (unlikely(metatableI_builtin_test(U->I, callable, MF_CALL, &mt_field))) {
-        struct table *table = tableI_create(U->I);
-        struct value args_table = valueI_object(table);
-        size_t rollback = gcI_safe_value(U->I, args_table);
+        struct vector *vector = vectorI_create(U->I, argc);
+        size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
 
         for (ml_size i = 0; i < argc; i++) {
-            struct value key = valueI_size(i);
-            struct value arg = stackI_peek(U, argc - i - 1);
-
-            tableI_set(U->I, table, key, arg);
+            vectorI_set(U->I, vector, i, stackI_peek(U, argc - i - 1));
         }
 
         stackI_push(U, mt_field);
@@ -412,7 +400,7 @@ void callstackI_call_from_api(
             stackI_push(U, valueI_nil);
         }
 
-        stackI_push(U, args_table);
+        stackI_push(U, valueI_object(vector));
 
         struct stack_value call_arg_callable = peek_stack_value(U, 2);
         struct stack_value call_arg_env = has_env ? peek_stack_value(U, env_offset + 3) : save_value(U, NULL);
@@ -480,21 +468,18 @@ void callstackI_call_from_interpreter(
 
     struct value mt_field;
     if (unlikely(metatableI_builtin_test(U->I, *callable, MF_CALL, &mt_field))) {
-        struct table *table = tableI_create(U->I);
-        struct value args_table = valueI_object(table);
-        size_t rollback = gcI_safe_value(U->I, args_table);
+        struct vector *vector = vectorI_create(U->I, argc);
+        size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
 
         for (ml_size i = 0; i < argc; i++) {
-            struct value key = valueI_size(i);
             struct value arg = callinfo->s.stack.space[function->slots_count + i];
-
-            tableI_set(U->I, table, key, arg);
+            vectorI_set(U->I, vector, i, arg);
         }
 
         stackI_push(U, mt_field);
         stackI_push(U, *extract_value(U, saved_callable));
         stackI_push(U, *extract_value(U, saved_self));
-        stackI_push(U, args_table);
+        stackI_push(U, valueI_object(vector));
 
         struct stack_value call_arg_callable = peek_stack_value(U, 3);
         struct stack_value call_arg_env = save_value(U, NULL);

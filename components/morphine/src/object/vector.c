@@ -251,8 +251,44 @@ struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
     struct vector *result = vectorI_create(I, size);
     result->mode.fixed = vector->mode.fixed;
     result->mode.mutable = vector->mode.mutable;
+    result->mode.locked = vector->mode.locked;
 
     memcpy(result->values, vector->values, ((size_t) size) * sizeof(struct value));
+
+    for (ml_size i = 0; i < size; i++) {
+        gcI_barrier(I, result, result->values[i]);
+    }
+
+    return result;
+}
+
+struct vector *vectorI_concat(morphine_instance_t I, struct vector *a, struct vector *b) {
+    if (a == NULL || b == NULL) {
+        throwI_error(I, "vector is null");
+    }
+
+    overflow_add(a->size.accessible, b->size.accessible, MLIMIT_SIZE_MAX) {
+        throwI_error(I, "too big concat vector length");
+    }
+
+    ml_size size = a->size.accessible + b->size.accessible;
+
+    struct vector *result = vectorI_create(I, size);
+    result->mode.mutable = a->mode.mutable;
+    result->mode.fixed = a->mode.fixed;
+    result->mode.locked = a->mode.locked;
+
+    memcpy(
+        result->values,
+        a->values,
+        ((size_t) a->size.accessible) * sizeof(struct value)
+    );
+
+    memcpy(
+        result->values + a->size.accessible,
+        b->values,
+        ((size_t) b->size.accessible) * sizeof(struct value)
+    );
 
     for (ml_size i = 0; i < size; i++) {
         gcI_barrier(I, result, result->values[i]);

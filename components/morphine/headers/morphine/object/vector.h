@@ -32,13 +32,14 @@ void vectorI_mode_lock(morphine_instance_t, struct vector *);
 
 ml_size vectorI_size(morphine_instance_t, struct vector *);
 
-void vectorI_set(morphine_instance_t, struct vector *, ml_size index, struct value);
-struct value vectorI_get(morphine_instance_t, struct vector *, ml_size index);
-void vectorI_add(morphine_instance_t, struct vector *, ml_size index, struct value);
-struct value vectorI_remove(morphine_instance_t, struct vector *, ml_size index);
+void vectorI_set(morphine_instance_t, struct vector *, ml_size, struct value);
+struct value vectorI_get(morphine_instance_t, struct vector *, ml_size);
+void vectorI_add(morphine_instance_t, struct vector *, ml_size, struct value);
+struct value vectorI_remove(morphine_instance_t, struct vector *, ml_size);
 
-void vectorI_resize(morphine_instance_t, struct vector *, ml_size size);
+void vectorI_resize(morphine_instance_t, struct vector *, ml_size);
 struct vector *vectorI_copy(morphine_instance_t, struct vector *);
+struct vector *vectorI_concat(morphine_instance_t, struct vector *, struct vector *);
 
 struct value vectorI_iterator_first(morphine_instance_t, struct vector *, bool *has);
 struct pair vectorI_iterator_next(morphine_instance_t, struct vector *, struct value *key, bool *next);

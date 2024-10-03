@@ -152,7 +152,7 @@ static void error(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void changeenv(morphine_coroutine_t U) {
+static void ecall(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             ml_size count = mapi_args(U);
@@ -170,6 +170,31 @@ static void changeenv(morphine_coroutine_t U) {
             }
 
             mapi_ecall(U, count - 2);
+        maux_nb_state(1)
+            mapi_push_result(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void vcall(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 2);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "callable");
+
+            mapi_push_arg(U, 1);
+            ml_size size = mapi_vector_len(U);
+            mapi_pop(U, 1);
+            for (ml_size i = 0; i < size; i++) {
+                mapi_push_arg(U, 1);
+                mapi_vector_get(U, i);
+                mapi_rotate(U, 2);
+                mapi_pop(U, 1);
+            }
+
+            mapi_call(U, size);
         maux_nb_state(1)
             mapi_push_result(U);
             maux_nb_return();
@@ -194,9 +219,10 @@ static morphine_library_function_t functions[] = {
     { "getmetatable",        getmetatable },
     { "setdefaultmetatable", setdefaultmetatable },
     { "getdefaultmetatable", getdefaultmetatable },
-    { "pcall",               pcall },
     { "error",               error },
-    { "changeenv",           changeenv },
+    { "pcall",               pcall },
+    { "ecall",               ecall },
+    { "vcall",               vcall },
     { "extractcallable",     extractcallable },
     { NULL, NULL }
 };

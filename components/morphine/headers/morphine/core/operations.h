@@ -586,6 +586,14 @@ static inline op_result_t interpreter_fun_concat(
         return NORMAL;
     }
 
+    if (likely(valueI_is_vector(a) && valueI_is_vector(b))) {
+        struct vector *a_vec = valueI_as_vector(a);
+        struct vector *b_vec = valueI_as_vector(b);
+        (*result) = valueI_object(vectorI_concat(U->I, a_vec, b_vec));
+
+        return NORMAL;
+    }
+
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MF_CONCAT, &mt_field)) {
         if (callstackI_is_callable(U->I, mt_field)) {
@@ -599,7 +607,7 @@ static inline op_result_t interpreter_fun_concat(
         return NORMAL;
     }
 
-    throwI_error(U->I, "concat supports only string");
+    throwI_error(U->I, "concat supports only string or vector");
 }
 
 static inline op_result_t interpreter_fun_type(

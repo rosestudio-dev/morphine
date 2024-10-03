@@ -81,7 +81,7 @@ fun repl<auto>()
             expression = true
         }
 
-        return base.changeenv(data.environment, compiled)
+        return base.ecall(data.environment, compiled)
     end
 
     fun exit<auto>()
@@ -342,7 +342,7 @@ fun launch<auto>()
                 vector.push(environment.args, env.args[i])
             end
 
-            base.changeenv(environment, content)
+            base.ecall(environment, content)
         end
     end
 end
