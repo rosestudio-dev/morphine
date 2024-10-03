@@ -164,6 +164,8 @@ static void library_init(morphine_instance_t I, morphine_library_t *L) {
             entry->params.allocate,
             entry->params.init,
             entry->params.free,
+            entry->params.compare,
+            entry->params.hash,
             entry->params.require_metatable
         );
     }

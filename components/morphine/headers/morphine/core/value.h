@@ -164,7 +164,9 @@ const char *valueI_type(morphine_instance_t, struct value, bool raw);
 bool valueI_is_type(morphine_instance_t, const char *name, bool raw);
 enum value_type valueI_string2type(morphine_instance_t, const char *name);
 
-bool valueI_equal(morphine_instance_t, struct value a, struct value b);
+int valueI_compare(morphine_instance_t, struct value, struct value);
+ml_hash valueI_hash(morphine_instance_t, struct value);
+bool valueI_equal(morphine_instance_t, struct value, struct value);
 struct value valueI_value2string(morphine_instance_t, struct value);
 struct value valueI_value2integer(morphine_instance_t, struct value);
 struct value valueI_value2size(morphine_instance_t, struct value, const char *);

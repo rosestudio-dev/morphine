@@ -13,25 +13,28 @@
 #include "morphine/object/userdata.h"
 #include "morphine/platform/conversions.h"
 
-bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
+#define COMPARE(a, b) ((a) == (b) ? 0 : ((a) > (b) ? -1 : 1))
+
+int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
     if (likely(a.type != b.type)) {
-        return false;
+        return COMPARE(a.type, b.type);
     }
 
     switch (a.type) {
         case VALUE_TYPE_NIL:
-            return true;
+            return 0;
         case VALUE_TYPE_INTEGER:
-            return a.integer == b.integer;
+            return COMPARE(a.integer, b.integer);
         case VALUE_TYPE_DECIMAL:
-            return a.decimal == b.decimal;
+            return COMPARE(a.decimal, b.decimal);
         case VALUE_TYPE_BOOLEAN:
-            return a.boolean == b.boolean;
+            return COMPARE(a.boolean, b.boolean);
         case VALUE_TYPE_RAW:
-            return a.raw == b.raw;
+            return COMPARE(a.raw, b.raw);
         case VALUE_TYPE_STRING:
-            return stringI_compare(I, valueI_as_string(a), valueI_as_string(b)) == 0;
+            return stringI_compare(I, valueI_as_string(a), valueI_as_string(b));
         case VALUE_TYPE_USERDATA:
+            return userdataI_compare(I, valueI_as_userdata(a), valueI_as_userdata(b));
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_VECTOR:
         case VALUE_TYPE_CLOSURE:
@@ -42,10 +45,46 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_ITERATOR:
         case VALUE_TYPE_SIO:
-            return a.object.header == b.object.header;
+            return COMPARE(a.object.header, b.object.header);
     }
 
     throwI_panic(I, "unsupported type");
+}
+
+ml_hash valueI_hash(morphine_instance_t I, struct value value) {
+    switch (value.type) {
+        case VALUE_TYPE_NIL:
+            return (ml_hash) (uintptr_t) valueI_as_nil(value);
+        case VALUE_TYPE_INTEGER:
+            return (ml_hash) valueI_as_integer(value);
+        case VALUE_TYPE_DECIMAL:
+            return (ml_hash) valueI_as_decimal(value);
+        case VALUE_TYPE_BOOLEAN:
+            return (ml_hash) valueI_as_boolean(value);
+        case VALUE_TYPE_RAW:
+            return (ml_hash) valueI_as_raw(value);
+        case VALUE_TYPE_STRING:
+            return stringI_hash(I, valueI_as_string(value));
+        case VALUE_TYPE_USERDATA:
+            return userdataI_hash(I, valueI_as_userdata(value));
+        case VALUE_TYPE_TABLE:
+        case VALUE_TYPE_VECTOR:
+        case VALUE_TYPE_CLOSURE:
+        case VALUE_TYPE_COROUTINE:
+        case VALUE_TYPE_FUNCTION:
+        case VALUE_TYPE_NATIVE:
+        case VALUE_TYPE_REFERENCE:
+        case VALUE_TYPE_EXCEPTION:
+        case VALUE_TYPE_ITERATOR:
+        case VALUE_TYPE_SIO:
+            return (ml_hash) (uintptr_t) valueI_as_object(value);
+    }
+
+    throwI_panic(I, "unsupported type");
+}
+
+bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
+    return valueI_compare(I, a, b) == 0;
 }
 
 struct value valueI_value2string(morphine_instance_t I, struct value value) {

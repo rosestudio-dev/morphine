@@ -16,6 +16,8 @@ typedef struct instance *morphine_instance_t;
 typedef void (*morphine_native_t)(morphine_coroutine_t);
 typedef void (*morphine_userdata_init_t)(morphine_instance_t, void *);
 typedef void (*morphine_userdata_free_t)(morphine_instance_t, void *);
+typedef int (*morphine_userdata_compare_t)(morphine_instance_t, void *, void *);
+typedef ml_hash (*morphine_userdata_hash_t)(morphine_instance_t, void *);
 
 // sio types
 
@@ -92,6 +94,8 @@ typedef struct {
         size_t allocate;
         morphine_userdata_init_t init;
         morphine_userdata_free_t free;
+        morphine_userdata_compare_t compare;
+        morphine_userdata_hash_t hash;
         bool require_metatable;
     } params;
 } morphine_library_type_t;

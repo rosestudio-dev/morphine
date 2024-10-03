@@ -39,6 +39,29 @@ static inline digit_t char2digit(morphine_coroutine_t U, int c) {
     return digit;
 }
 
+// compare
+
+static inline int bigint_raw_compare(struct mlib_bigint *bigintA, struct mlib_bigint *bigintB) {
+    if (bigintA->size > bigintB->size) {
+        return 1;
+    } else if (bigintA->size < bigintB->size) {
+        return -1;
+    }
+
+    for (size_t i = 0; i < bigintA->size; i++) {
+        digit_t digitA = bigintA->digits[bigintA->size - i - 1];
+        digit_t digitB = bigintB->digits[bigintA->size - i - 1];
+
+        if (digitA > digitB) {
+            return 1;
+        } else if (digitA < digitB) {
+            return -1;
+        }
+    }
+
+    return 0;
+}
+
 // userdata
 
 static void bigint_userdata_init(morphine_instance_t I, void *data) {
@@ -58,6 +81,14 @@ static void bigint_userdata_free(morphine_instance_t I, void *data) {
     mapi_allocator_free(I, bigint->digits);
 }
 
+static int bigint_userdata_compare(morphine_instance_t I, void *a, void *b) {
+    (void) I;
+    struct mlib_bigint *bigint_a = a;
+    struct mlib_bigint *bigint_b = b;
+
+    return bigint_raw_compare(bigint_a, bigint_b);
+}
+
 static struct mlib_bigint *bigint_userdata(morphine_coroutine_t U) {
     mapi_type_declare(
         mapi_instance(U),
@@ -65,6 +96,8 @@ static struct mlib_bigint *bigint_userdata(morphine_coroutine_t U) {
         sizeof(struct mlib_bigint),
         bigint_userdata_init,
         bigint_userdata_free,
+        bigint_userdata_compare,
+        NULL,
         false
     );
 
@@ -131,27 +164,6 @@ static inline digit_t bigint_raw_getorzero(struct mlib_bigint *bigint, size_t si
     } else {
         return bigint->digits[index];
     }
-}
-
-static inline int bigint_raw_compare(struct mlib_bigint *bigintA, struct mlib_bigint *bigintB) {
-    if (bigintA->size > bigintB->size) {
-        return 1;
-    } else if (bigintA->size < bigintB->size) {
-        return -1;
-    }
-
-    for (size_t i = 0; i < bigintA->size; i++) {
-        digit_t digitA = bigintA->digits[bigintA->size - i - 1];
-        digit_t digitB = bigintB->digits[bigintA->size - i - 1];
-
-        if (digitA > digitB) {
-            return 1;
-        } else if (digitA < digitB) {
-            return -1;
-        }
-    }
-
-    return 0;
 }
 
 static inline void bigint_raw_add(

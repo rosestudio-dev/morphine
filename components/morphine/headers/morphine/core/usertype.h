@@ -14,6 +14,8 @@ struct usertype_info {
     size_t allocate;
     morphine_userdata_init_t init;
     morphine_userdata_free_t free;
+    morphine_userdata_compare_t compare;
+    morphine_userdata_hash_t hash;
     bool require_metatable;
 };
 
@@ -30,6 +32,8 @@ void usertypeI_declare(
     size_t allocate,
     morphine_userdata_init_t init,
     morphine_userdata_free_t free,
+    morphine_userdata_compare_t compare,
+    morphine_userdata_hash_t hash,
     bool require_metatable
 );
 
@@ -38,3 +42,4 @@ struct usertype *usertypeI_get(morphine_instance_t, const char *);
 struct usertype_info usertypeI_info(morphine_instance_t, struct usertype *);
 void usertypeI_ref(morphine_instance_t, struct usertype *);
 void usertypeI_unref(morphine_instance_t, struct usertype *);
+bool usertypeI_eq(struct usertype *, struct usertype *);

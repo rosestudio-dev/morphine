@@ -47,6 +47,8 @@ MORPHINE_API struct mc_strtable *mcapi_push_strtable(morphine_coroutine_t U) {
         sizeof(struct mc_strtable),
         strtable_userdata_init,
         strtable_userdata_free,
+        NULL,
+        NULL,
         false
     );
 

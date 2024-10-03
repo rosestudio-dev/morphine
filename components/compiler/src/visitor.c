@@ -269,6 +269,8 @@ MORPHINE_API struct mc_visitor *mcapi_push_visitor(morphine_coroutine_t U) {
         sizeof(struct mc_visitor),
         visitor_userdata_init,
         visitor_userdata_free,
+        NULL,
+        NULL,
         false
     );
 

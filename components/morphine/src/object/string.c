@@ -8,17 +8,9 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/utils/overflow.h"
 #include "morphine/params.h"
+#include "morphine/algorithm/hash.h"
 #include <string.h>
 #include <stdio.h>
-
-static inline uint64_t hash(size_t size, const char *str) {
-    uint64_t h = 0;
-    for (ml_size i = 0; i < size; i++) {
-        h = 31 * h + (uint64_t) str[i];
-    }
-
-    return h;
-}
 
 static struct string *create(morphine_instance_t I, size_t size, char **buffer) {
     bool check1 = overflow_condition_add(size, 1, MLIMIT_SIZE_MAX);
@@ -217,7 +209,7 @@ bool stringI_is_cstr_compatible(morphine_instance_t I, struct string *string) {
     return is_compatible;
 }
 
-uint64_t stringI_hash(morphine_instance_t I, struct string *string) {
+ml_hash stringI_hash(morphine_instance_t I, struct string *string) {
     if (string == NULL) {
         throwI_error(I, "string is null");
     }
@@ -226,16 +218,12 @@ uint64_t stringI_hash(morphine_instance_t I, struct string *string) {
         return string->hash.value;
     }
 
-    uint64_t result = hash(string->size, string->chars);
+    ml_hash result = calchash(string->size, (const uint8_t *) string->chars);
 
     string->hash.calculated = true;
     string->hash.value = result;
 
     return result;
-}
-
-uint64_t stringI_rawhash(size_t size, const char *str) {
-    return hash(size, str);
 }
 
 struct value stringI_iterator_first(morphine_instance_t I, struct string *string, bool *has) {

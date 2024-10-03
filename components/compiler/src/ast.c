@@ -53,6 +53,8 @@ MORPHINE_API struct mc_ast *mcapi_push_ast(morphine_coroutine_t U) {
         sizeof(struct mc_ast),
         ast_userdata_init,
         ast_userdata_free,
+        NULL,
+        NULL,
         false
     );
 

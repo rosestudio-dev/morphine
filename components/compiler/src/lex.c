@@ -134,6 +134,8 @@ MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U, const char *t
         sizeof(struct mc_lex),
         lex_userdata_init,
         lex_userdata_free,
+        NULL,
+        NULL,
         false
     );
 

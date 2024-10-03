@@ -147,6 +147,10 @@ const char *metatableI_field2string(morphine_instance_t I, enum metatable_field 
             return "_mf_set";
         case MF_TO_STRING:
             return "_mf_to_string";
+        case MF_HASH:
+            return "_mf_hash";
+        case MF_COMPARE:
+            return "_mf_compare";
         case MF_EQUAL:
             return "_mf_equal";
         case MF_MASK:

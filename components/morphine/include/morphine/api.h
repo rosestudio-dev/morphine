@@ -77,6 +77,10 @@ MORPHINE_API void mapi_to_decimal(morphine_coroutine_t);
 MORPHINE_API void mapi_to_boolean(morphine_coroutine_t);
 MORPHINE_API void mapi_to_string(morphine_coroutine_t);
 
+MORPHINE_API ml_hash mapi_hash(morphine_coroutine_t);
+MORPHINE_API int mapi_compare(morphine_coroutine_t);
+MORPHINE_API bool mapi_equal(morphine_coroutine_t);
+
 MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t, size_t value, const char *name);
 
 // type
@@ -85,8 +89,10 @@ MORPHINE_API void mapi_type_declare(
     morphine_instance_t,
     const char *name,
     size_t allocate,
-    morphine_userdata_init_t init,
-    morphine_userdata_free_t free,
+    morphine_userdata_init_t,
+    morphine_userdata_free_t,
+    morphine_userdata_compare_t,
+    morphine_userdata_hash_t,
     bool require_metatable
 );
 MORPHINE_API bool mapi_type_is_declared(morphine_instance_t, const char *name);
@@ -364,3 +370,7 @@ MORPHINE_API void mapi_binary_from(morphine_coroutine_t);
 MORPHINE_API bool mapi_platform_str2int(const char *, ml_integer *, ml_size base);
 MORPHINE_API bool mapi_platform_str2size(const char *, ml_size *, ml_size base);
 MORPHINE_API bool mapi_platform_str2dec(const char *, ml_decimal *);
+
+// misc
+
+MORPHINE_API ml_hash mapi_misc_hash(size_t, const uint8_t *);

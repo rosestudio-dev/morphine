@@ -5,6 +5,7 @@
 #include <string.h>
 #include "morphine/core/sso.h"
 #include "morphine/core/instance.h"
+#include "morphine/algorithm/hash.h"
 
 struct sso ssoI_prototype(void) {
     struct sso result;
@@ -23,7 +24,7 @@ struct string *ssoI_get(morphine_instance_t I, const char *str, size_t size) {
     }
 
 #ifdef MORPHINE_ENABLE_SSO
-    uint64_t hash = stringI_rawhash(size, str);
+    ml_hash hash = calchash(size, (const uint8_t *) str);
 
     struct string **bucket = I->sso.table[hash % MPARAM_SSO_HASHTABLE_ROWS];
     for (size_t i = 0; i < MPARAM_SSO_HASHTABLE_COLS; i++) {
@@ -56,7 +57,7 @@ void ssoI_rec(morphine_instance_t I, struct string *string) {
     }
 
 #ifdef MORPHINE_ENABLE_SSO
-    uint64_t hash = stringI_hash(I, string);
+    ml_hash hash = stringI_hash(I, string);
 
     struct string **bucket = I->sso.table[hash % MPARAM_SSO_HASHTABLE_ROWS];
     for (size_t i = 1; i < MPARAM_SSO_HASHTABLE_COLS; i++) {

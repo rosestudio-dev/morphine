@@ -109,12 +109,57 @@ static void tobool(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void compare(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 2);
+            mapi_push_arg(U, 0);
+
+            if (mapi_metatable_builtin_test(U, "_mf_compare")) {
+                if (mapi_is_callable(U)) {
+                    mapi_rotate(U, 2);
+                    mapi_scall(U, 0);
+                } else {
+                    maux_nb_return();
+                }
+            }
+
+            mapi_push_arg(U, 1);
+            int result = mapi_compare(U);
+            mapi_push_integer(U, result);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void hash(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+
+            if (mapi_metatable_builtin_test(U, "_mf_hash")) {
+                if (mapi_is_callable(U)) {
+                    mapi_rotate(U, 2);
+                    mapi_scall(U, 0);
+                } else {
+                    maux_nb_return();
+                }
+            }
+
+            ml_hash hash = mapi_hash(U);
+            mapi_push_stringf(U, "%0*"MLIMIT_HASH_PR, sizeof(ml_hash) * 2, hash);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static morphine_library_function_t functions[] = {
-    { "tostr",  tostr },
-    { "toint",  toint },
-    { "tosize", tosize },
-    { "todec",  todec },
-    { "tobool", tobool },
+    { "tostr",   tostr },
+    { "toint",   toint },
+    { "tosize",  tosize },
+    { "todec",   todec },
+    { "tobool",  tobool },
+    { "compare", compare },
+    { "hash",    hash },
     { NULL, NULL }
 };
 

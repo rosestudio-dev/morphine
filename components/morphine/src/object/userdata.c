@@ -8,6 +8,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
+#include "morphine/algorithm/hash.h"
 
 static struct userdata *create(morphine_instance_t I) {
     struct userdata *result = allocI_uni(I, NULL, sizeof(struct userdata));
@@ -188,4 +189,46 @@ void userdataI_resize_vec(morphine_instance_t I, struct userdata *userdata, size
 
     userdata->data = allocI_vec(I, userdata->data, count, size);
     userdata->untyped.size = size;
+}
+
+int userdataI_compare(morphine_instance_t I, struct userdata *a, struct userdata *b) {
+    if (a == NULL || b == NULL) {
+        throwI_error(I, "userdata is null");
+    }
+
+    int raw_compared = (a) == (b) ? 0 : ((a) > (b) ? -1 : 1);
+
+    if (!a->is_typed || !b->is_typed) {
+        return raw_compared;
+    }
+
+    if (!usertypeI_eq(a->typed.usertype, b->typed.usertype)) {
+        return raw_compared;
+    }
+
+    morphine_userdata_compare_t compare = usertypeI_info(I, a->typed.usertype).compare;
+
+    if (compare == NULL) {
+        return raw_compared;
+    }
+
+    return compare(I, a->data, b->data);
+}
+
+ml_hash userdataI_hash(morphine_instance_t I, struct userdata *userdata) {
+    if (userdata == NULL) {
+        throwI_error(I, "userdata is null");
+    }
+
+    if (userdata->is_typed) {
+        struct usertype_info info = usertypeI_info(I, userdata->typed.usertype);
+
+        if (info.hash == NULL) {
+            return calchash(info.allocate, userdata->data);
+        } else {
+            return info.hash(I, userdata->data);
+        }
+    }
+
+    return calchash(userdata->untyped.size, userdata->data);
 }

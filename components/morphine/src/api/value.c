@@ -19,7 +19,7 @@ MORPHINE_API void mapi_push_integer(morphine_coroutine_t U, ml_integer value) {
 
 MORPHINE_API void mapi_push_size(morphine_coroutine_t U, size_t value, const char *name) {
     ml_size size;
-    if(name == NULL) {
+    if (name == NULL) {
         size = valueI_csize2size(U->I, value);
     } else {
         size = valueI_csize2namedsize(U->I, value, name);
@@ -46,7 +46,7 @@ MORPHINE_API ml_integer mapi_get_integer(morphine_coroutine_t U) {
 
 MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t U, const char *name) {
     ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
-    if(name == NULL) {
+    if (name == NULL) {
         return valueI_integer2size(U->I, integer);
     } else {
         return valueI_integer2namedsize(U->I, integer, name);
@@ -107,8 +107,24 @@ MORPHINE_API void mapi_to_string(morphine_coroutine_t U) {
     stackI_replace(U, 0, result);
 }
 
+MORPHINE_API ml_hash mapi_hash(morphine_coroutine_t U) {
+    return valueI_hash(U->I, stackI_peek(U, 0));
+}
+
+MORPHINE_API int mapi_compare(morphine_coroutine_t U) {
+    struct value a = stackI_peek(U, 1);
+    struct value b = stackI_peek(U, 0);
+    return valueI_compare(U->I, a, b);
+}
+
+MORPHINE_API bool mapi_equal(morphine_coroutine_t U) {
+    struct value a = stackI_peek(U, 1);
+    struct value b = stackI_peek(U, 0);
+    return valueI_equal(U->I, a, b);
+}
+
 MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t U, size_t value, const char *name) {
-    if(name == NULL) {
+    if (name == NULL) {
         return valueI_csize2size(U->I, value);
     } else {
         return valueI_csize2namedsize(U->I, value, name);

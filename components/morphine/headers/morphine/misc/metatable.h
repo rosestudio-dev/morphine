@@ -16,6 +16,8 @@ enum metatable_field {
     MF_GET,           // (callable | value)
     MF_SET,           // (callable)
     MF_TO_STRING,     // (callable | value) library
+    MF_HASH,          // (callable | value) library
+    MF_COMPARE,       // (callable | value) library
     MF_ADD,           // (callable | value)
     MF_SUB,           // (callable | value)
     MF_MUL,           // (callable | value)

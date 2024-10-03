@@ -40,6 +40,8 @@ void usertypeI_declare(
     size_t allocate,
     morphine_userdata_init_t init,
     morphine_userdata_free_t free,
+    morphine_userdata_compare_t compare,
+    morphine_userdata_hash_t hash,
     bool require_metatable
 ) {
     if (valueI_is_type(I, name, true)) {
@@ -53,6 +55,8 @@ void usertypeI_declare(
                 bool check = usertype->info.allocate == allocate &&
                              usertype->info.init == init &&
                              usertype->info.free == free &&
+                             usertype->info.compare == compare &&
+                             usertype->info.hash == hash &&
                              usertype->info.require_metatable == require_metatable;
 
                 if (check) {
@@ -80,6 +84,8 @@ void usertypeI_declare(
         .info.name = name_str,
         .info.init = init,
         .info.free = free,
+        .info.compare = compare,
+        .info.hash = hash,
         .info.allocate = allocate,
         .info.require_metatable = require_metatable,
 
@@ -146,4 +152,12 @@ void usertypeI_unref(morphine_instance_t I, struct usertype *usertype) {
     }
 
     usertype->references--;
+}
+
+bool usertypeI_eq(struct usertype *a, struct usertype *b) {
+    if (a == NULL || b == NULL) {
+        return false;
+    }
+
+    return a == b;
 }

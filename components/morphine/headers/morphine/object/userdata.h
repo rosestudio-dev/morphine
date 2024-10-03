@@ -44,3 +44,6 @@ void userdataI_mode_lock_size(morphine_instance_t, struct userdata *);
 
 void userdataI_resize(morphine_instance_t, struct userdata *, size_t);
 void userdataI_resize_vec(morphine_instance_t, struct userdata *, size_t count, size_t);
+
+int userdataI_compare(morphine_instance_t, struct userdata *, struct userdata *);
+ml_hash userdataI_hash(morphine_instance_t, struct userdata *);

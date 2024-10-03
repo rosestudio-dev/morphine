@@ -24,6 +24,10 @@ typedef uint32_t ml_size;
 #define MLIMIT_SIZE_PR  PRIu32
 #define MLIMIT_SIZE_MAX UINT32_MAX
 
+typedef uintptr_t ml_hash;
+#define MLIMIT_HASH_PR  PRIxPTR
+#define MLIMIT_HASH_MAX UINTPTR_MAX
+
 // instruction
 
 typedef uint16_t ml_argument;

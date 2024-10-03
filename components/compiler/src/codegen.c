@@ -1117,6 +1117,8 @@ MORPHINE_API struct mc_codegen *mcapi_push_codegen(morphine_coroutine_t U) {
         sizeof(struct mc_codegen),
         codegen_userdata_init,
         codegen_userdata_free,
+        NULL,
+        NULL,
         false
     );
 

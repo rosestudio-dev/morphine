@@ -4,10 +4,7 @@
 
 #include <string.h>
 #include "morphine/object/table.h"
-#include "morphine/object/string.h"
-#include "morphine/object/coroutine.h"
 #include "morphine/utils/overflow.h"
-#include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
@@ -17,81 +14,7 @@
 #define NIL_LEAF(tree) (&(tree)->nil_leaf)
 #define FIRST(tree) ((tree)->root.left)
 
-#define COMPARE_NUM(a, b) ((a) == (b) ? 0 : ((a) > (b) ? 1 : -1))
-
-// compare & hash
-
-static uint64_t hashcode(morphine_instance_t I, struct value value) {
-    struct string *str = valueI_safe_as_string(value, NULL);
-    if (str != NULL) {
-        return stringI_hash(I, str);
-    }
-
-    switch (value.type) {
-        case VALUE_TYPE_NIL:
-            return (uint64_t) (size_t) valueI_as_nil(value);
-        case VALUE_TYPE_INTEGER:
-            return (uint64_t) valueI_as_integer(value);
-        case VALUE_TYPE_DECIMAL:
-            return (uint64_t) valueI_as_decimal(value);
-        case VALUE_TYPE_BOOLEAN:
-            return (uint64_t) valueI_as_boolean(value);
-        case VALUE_TYPE_RAW:
-            return (uint64_t) valueI_as_raw(value);
-        case VALUE_TYPE_USERDATA:
-        case VALUE_TYPE_STRING:
-        case VALUE_TYPE_TABLE:
-        case VALUE_TYPE_VECTOR:
-        case VALUE_TYPE_CLOSURE:
-        case VALUE_TYPE_COROUTINE:
-        case VALUE_TYPE_FUNCTION:
-        case VALUE_TYPE_NATIVE:
-        case VALUE_TYPE_REFERENCE:
-        case VALUE_TYPE_EXCEPTION:
-        case VALUE_TYPE_ITERATOR:
-        case VALUE_TYPE_SIO:
-            return (uint64_t) (size_t) valueI_as_object(value);
-    }
-
-    throwI_panic(I, "unknown value type");
-}
-
-static inline int compare(morphine_instance_t I, struct value a, struct value b) {
-    if (likely(a.type != b.type)) {
-        return COMPARE_NUM(a.type, b.type);
-    }
-
-    switch (a.type) {
-        case VALUE_TYPE_NIL:
-            return 0;
-        case VALUE_TYPE_INTEGER:
-            return COMPARE_NUM(a.integer, b.integer);
-        case VALUE_TYPE_DECIMAL:
-            return COMPARE_NUM(a.decimal, b.decimal);
-        case VALUE_TYPE_BOOLEAN:
-            return COMPARE_NUM(a.boolean, b.boolean);
-        case VALUE_TYPE_RAW:
-            return COMPARE_NUM(a.raw, b.raw);
-        case VALUE_TYPE_STRING:
-            return stringI_compare(I, valueI_as_string(a), valueI_as_string(b));
-        case VALUE_TYPE_USERDATA:
-        case VALUE_TYPE_TABLE:
-        case VALUE_TYPE_VECTOR:
-        case VALUE_TYPE_CLOSURE:
-        case VALUE_TYPE_COROUTINE:
-        case VALUE_TYPE_FUNCTION:
-        case VALUE_TYPE_NATIVE:
-        case VALUE_TYPE_REFERENCE:
-        case VALUE_TYPE_EXCEPTION:
-        case VALUE_TYPE_ITERATOR:
-        case VALUE_TYPE_SIO:
-            return COMPARE_NUM(a.object.header, b.object.header);
-    }
-
-    throwI_panic(I, "unsupported type");
-}
-
-static inline size_t hash2index(uint64_t hash, size_t size) {
+static inline size_t hash2index(ml_hash hash, size_t size) {
     return (size_t) (hash % size);
 }
 
@@ -135,7 +58,7 @@ static inline void remove_bucket(struct table *table, struct bucket *bucket) {
 static inline struct bucket *redblacktree_find(morphine_instance_t I, struct tree *tree, struct value key) {
     struct bucket *current = FIRST(tree);
     while (current != NIL_LEAF(tree)) {
-        int cmp = compare(I, key, current->pair.key);
+        int cmp = valueI_compare(I, key, current->pair.key);
 
         if (cmp == 0) {
             return current;
@@ -267,7 +190,7 @@ static inline bool redblacktree_insert_first(
     *parent = ROOT(tree);
 
     while (*current != NIL_LEAF(tree)) {
-        int cmp = compare(I, key, (*current)->pair.key);
+        int cmp = valueI_compare(I, key, (*current)->pair.key);
 
         if (cmp == 0) {
             return true;
@@ -298,7 +221,7 @@ static inline bool redblacktree_insert_second(
     current->color = BUCKET_COLOR_RED;
     current->pair = pair;
 
-    int cmp = compare(I, pair.key, parent->pair.key);
+    int cmp = valueI_compare(I, pair.key, parent->pair.key);
     if (parent == ROOT(tree) || cmp < 0) {
         parent->left = current;
     } else {
@@ -503,7 +426,7 @@ static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
 
     struct bucket *current = hashmap->buckets.head;
     while (current != NULL) {
-        uint64_t hash = hashcode(I, current->pair.key);
+        ml_hash hash = valueI_hash(I, current->pair.key);
         size_t index = hash2index(hash, new_size);
 
         struct tree *tree = hashmap->hashing.trees + index;
@@ -532,7 +455,7 @@ static inline struct bucket *get(morphine_instance_t I, struct hashmap *hashmap,
         return NULL;
     }
 
-    uint64_t hash = hashcode(I, key);
+    ml_hash hash = valueI_hash(I, key);
     size_t index = hash2index(hash, hashmap->hashing.size);
 
     struct tree *tree = hashmap->hashing.trees + index;
@@ -650,7 +573,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     gcI_barrier(I, table, key);
     gcI_barrier(I, table, value);
 
-    uint64_t hash = hashcode(I, key);
+    ml_hash hash = valueI_hash(I, key);
     size_t index = hash2index(hash, hashmap->hashing.size);
 
     struct tree *tree = hashmap->hashing.trees + index;
@@ -786,7 +709,7 @@ struct value tableI_remove(morphine_instance_t I, struct table *table, struct va
         goto notfound;
     }
 
-    uint64_t hash = hashcode(I, key);
+    ml_hash hash = valueI_hash(I, key);
     size_t index = hash2index(hash, hashmap->hashing.size);
 
     struct tree *tree = hashmap->hashing.trees + index;
