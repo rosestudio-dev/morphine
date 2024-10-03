@@ -200,7 +200,9 @@ static void unfixed(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             bool value = false;
-            if (mapi_args(U) == 1) {
+            if (mapi_args(U) == 0) {
+                mapi_push_vector(U, 0);
+            } else if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
                 maux_expect(U, "vector");
             } else {
