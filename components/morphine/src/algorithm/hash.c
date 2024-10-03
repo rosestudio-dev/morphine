@@ -5,10 +5,10 @@
 #include "morphine/algorithm/hash.h"
 
 ml_hash calchash(size_t size, const uint8_t *data) {
-    ml_hash h = 0;
+    ml_hash result = 0;
     for (size_t i = 0; i < size; i++) {
-        h = 31 * h + (ml_hash) data[i];
+        result = ((sizeof(result) * 8) - 1) * result + (ml_hash) data[i];
     }
 
-    return h;
+    return result;
 }

@@ -89,6 +89,17 @@ static int bigint_userdata_compare(morphine_instance_t I, void *a, void *b) {
     return bigint_raw_compare(bigint_a, bigint_b);
 }
 
+static ml_hash bigint_userdata_hash(morphine_instance_t I, void *data) {
+    (void) I;
+    struct mlib_bigint *bigint = data;
+
+    ml_hash result = mapi_misc_hash(bigint->size, bigint->digits);
+    result ^= mapi_misc_hash(sizeof(bigint->size), (const uint8_t *) &bigint->size);
+    result ^= mapi_misc_hash(sizeof(bigint->is_negative), (const uint8_t *) &bigint->is_negative);
+
+    return result;
+}
+
 static struct mlib_bigint *bigint_userdata(morphine_coroutine_t U) {
     mapi_type_declare(
         mapi_instance(U),
@@ -97,7 +108,7 @@ static struct mlib_bigint *bigint_userdata(morphine_coroutine_t U) {
         bigint_userdata_init,
         bigint_userdata_free,
         bigint_userdata_compare,
-        NULL,
+        bigint_userdata_hash,
         false
     );
 
