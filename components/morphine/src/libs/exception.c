@@ -4,6 +4,7 @@
 
 #include <morphine.h>
 #include "morphine/libs/builtin.h"
+#include "morphine/params.h"
 
 static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -39,7 +40,7 @@ static void print(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 0);
             mapi_exception_error_print(U);
-            mapi_exception_stacktrace_print(U);
+            mapi_exception_stacktrace_print(U, MPARAM_TRACESTACK_COUNT);
             maux_nb_leave();
     maux_nb_end
 }
@@ -58,10 +59,20 @@ static void error_print(morphine_coroutine_t U) {
 static void stacktrace_print(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
+            ml_size count;
+            if(mapi_args(U) == 3) {
+                mapi_push_arg(U, 2);
+                count = mapi_get_size(U, "count");
+            } else {
+                maux_expect_args(U, 2);
+                mapi_push_arg(U, 0);
+                count = mapi_exception_stacktrace_size(U);
+            }
+            mapi_pop(U, 1);
+
             mapi_push_arg(U, 1);
             mapi_push_arg(U, 0);
-            mapi_exception_stacktrace_print(U);
+            mapi_exception_stacktrace_print(U, count);
             maux_nb_leave();
     maux_nb_end
 }

@@ -77,7 +77,7 @@ void throwI_handler(morphine_instance_t I) {
         stackI_pop(coroutine, stack_size);
     } else {
         exceptionI_error_print(I, exception, I->sio.error);
-        exceptionI_stacktrace_print(I, exception, I->sio.error);
+        exceptionI_stacktrace_print(I, exception, I->sio.error, MPARAM_TRACESTACK_COUNT);
 
         while (callstackI_info(coroutine) != NULL) {
             callstackI_pop(coroutine);

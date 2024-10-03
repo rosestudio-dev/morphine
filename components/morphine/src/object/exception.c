@@ -14,6 +14,8 @@
 #include "morphine/core/throw.h"
 #include "morphine/gc/barrier.h"
 
+#define plural_suffix(n) ((n) == 1 ? "" : "s")
+
 struct exception *exceptionI_create(morphine_instance_t I, struct value value) {
     size_t rollback = gcI_safe_value(I, value);
 
@@ -56,28 +58,53 @@ static void print_string(morphine_instance_t I, struct sio *sio, struct string *
     }
 }
 
-void exceptionI_stacktrace_print(morphine_instance_t I, struct exception *exception, struct sio *sio) {
+void exceptionI_stacktrace_print(
+    morphine_instance_t I,
+    struct exception *exception,
+    struct sio *sio,
+    ml_size count
+) {
     if (!exception->stacktrace.recorded) {
         sioI_print(I, sio, "stacktrace wasn't recorded");
         return;
     }
 
+    ml_size size = exception->stacktrace.size;
+
     if (exception->stacktrace.name != NULL) {
         sioI_printf(
-            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" elements, for coroutine '",
-            exception->stacktrace.size
+            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, for coroutine '",
+            size, plural_suffix(size)
         );
         print_string(I, sio, exception->stacktrace.name);
         sioI_print(I, sio, "'):\n");
     } else {
         sioI_printf(
-            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" elements, undefined coroutine):\n",
-            exception->stacktrace.size
+            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, undefined coroutine):\n",
+            size, plural_suffix(size)
         );
     }
 
-    for (ml_size i = 0; i < exception->stacktrace.size; i++) {
+    for (ml_size i = 0; i < size; i++) {
         struct stacktrace_element element = exception->stacktrace.elements[i];
+
+        if (size > count) {
+            ml_size count_before = count / 2;
+            ml_size count_after = count - count_before;
+            ml_size reversed = size - i - 1;
+
+            if (reversed == count_before) {
+                ml_size skipped = size - count;
+                sioI_printf(
+                    I, sio, "    ... (skipped %"MLIMIT_SIZE_PR" element%s)\n",
+                    skipped, plural_suffix(skipped)
+                );
+            }
+
+            if (reversed >= count_before && reversed < size - count_after) {
+                continue;
+            }
+        }
 
         sioI_print(I, sio, "    ");
         if (valueI_is_function(element.callable)) {
