@@ -147,11 +147,6 @@ static struct table *construct(morphine_instance_t I, morphine_library_t *L) {
         constructor_insert(I, result, entry->name, valueI_decimal(entry->decimal));
     }
 
-    tableI_mode_fixed(I, result, true);
-    tableI_mode_mutable(I, result, false);
-    tableI_mode_lock_metatable(I, result);
-    tableI_mode_lock(I, result);
-
     gcI_reset_safe(I, rollback);
     return result;
 }
