@@ -6,53 +6,21 @@
 #include <string.h>
 #include "morphine/libs/builtin.h"
 
-#define opcode_case(n) case MORPHINE_OPCODE_##n: return #n;
-
 static const char *opcode2str(morphine_coroutine_t U, morphine_opcode_t opcode) {
     switch (opcode) {
-        opcode_case(YIELD)
-        opcode_case(LOAD)
-        opcode_case(MOVE)
-        opcode_case(PARAM)
-        opcode_case(ARG)
-        opcode_case(ENV)
-        opcode_case(SELF)
-        opcode_case(INVOKED)
-        opcode_case(VECTOR)
-        opcode_case(TABLE)
-        opcode_case(GET)
-        opcode_case(SET)
-        opcode_case(ITERATOR)
-        opcode_case(ITERATOR_INIT)
-        opcode_case(ITERATOR_HAS)
-        opcode_case(ITERATOR_NEXT)
-        opcode_case(JUMP)
-        opcode_case(JUMP_IF)
-        opcode_case(GET_STATIC)
-        opcode_case(SET_STATIC)
-        opcode_case(GET_CLOSURE)
-        opcode_case(SET_CLOSURE)
-        opcode_case(CLOSURE)
-        opcode_case(CALL)
-        opcode_case(SCALL)
-        opcode_case(LEAVE)
-        opcode_case(RESULT)
-        opcode_case(ADD)
-        opcode_case(SUB)
-        opcode_case(MUL)
-        opcode_case(DIV)
-        opcode_case(MOD)
-        opcode_case(EQUAL)
-        opcode_case(LESS)
-        opcode_case(AND)
-        opcode_case(OR)
-        opcode_case(CONCAT)
-        opcode_case(TYPE)
-        opcode_case(NEGATIVE)
-        opcode_case(NOT)
-        opcode_case(REF)
-        opcode_case(DEREF)
-        opcode_case(LENGTH)
+#define mis_instruction_opcode(n)               case MORPHINE_OPCODE_##n: return #n;
+#define mis_instruction_args0(n, s)             mis_instruction_opcode(n)
+#define mis_instruction_args1(n, s, a1)         mis_instruction_opcode(n)
+#define mis_instruction_args2(n, s, a1, a2)     mis_instruction_opcode(n)
+#define mis_instruction_args3(n, s, a1, a2, a3) mis_instruction_opcode(n)
+
+#include "morphine/instruction/specification.h"
+
+#undef mis_instruction_opcode
+#undef mis_instruction_args0
+#undef mis_instruction_args1
+#undef mis_instruction_args2
+#undef mis_instruction_args3
     }
 
     mapi_error(U, "undefined opcode");

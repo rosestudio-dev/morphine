@@ -47,7 +47,8 @@ mis_instruction_args3(SET_CLOSURE,   setcls,  sslot, closure_index, sslot) // [c
 mis_instruction_args3(CLOSURE,       closure, sslot, size, dslot)          // [function, size, dest]   create closure for (function) with (size) in (dest)
 mis_instruction_args2(CALL,          call,    sslot, params_count)         // [function, params]       call (function) with count (params)
 mis_instruction_args3(SCALL,         scall,   sslot, params_count, sslot)  // [function, params, self] call (function) with count (params) change (self)
-mis_instruction_args1(LEAVE,         leave,   sslot)                       // [return]                 leave with (return)
+mis_instruction_args0(LEAVE,         leave)                                //                          leave
+mis_instruction_args1(RETURN,        ret,     sslot)                       // [return]                 leave with (return)
 mis_instruction_args1(RESULT,        result,  dslot)                       // [dest]                   set result value to (dest)
 
 mis_instruction_args3(ADD,           add,     sslot, sslot, dslot)         // [lvalue, rvalue, dest]   (lvalue) operator (rvalue) to (dest)

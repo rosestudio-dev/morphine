@@ -343,7 +343,7 @@ decl_expr(leave) {
                 data->slot = codegen_declare_temporary(C);
                 codegen_expression(C, expression->expression, data->slot, 1);
             case 1:
-                codegen_instruction_LEAVE(C, data->slot);
+                codegen_instruction_RETURN(C, data->slot);
 
                 size_t constant = codegen_add_constant_nil(C);
                 codegen_instruction_LOAD(C, constant, codegen_result(C));
@@ -352,11 +352,8 @@ decl_expr(leave) {
                 break;
         }
     } else {
-        struct instruction_slot slot = codegen_declare_temporary(C);
         size_t constant = codegen_add_constant_nil(C);
-
-        codegen_instruction_LOAD(C, constant, slot);
-        codegen_instruction_LEAVE(C, slot);
+        codegen_instruction_LEAVE(C);
         codegen_instruction_LOAD(C, constant, codegen_result(C));
         codegen_complete(C);
     }

@@ -115,6 +115,9 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
         case MORPHINE_OPCODE_LEAVE:
             printf("leave");
             return;
+        case MORPHINE_OPCODE_RETURN:
+            printf("return "SLOT, arg(1));
+            return;
         case MORPHINE_OPCODE_RESULT:
             printf(SLOT" = call result", arg(1));
             return;

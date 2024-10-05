@@ -320,6 +320,12 @@ sp_case(MORPHINE_OPCODE_SCALL)
             }
 sp_case(MORPHINE_OPCODE_LEAVE)
             {
+                callstackI_return(U, valueI_nil);
+                (*position)++;
+                sp_yield();
+            }
+sp_case(MORPHINE_OPCODE_RETURN)
+            {
                 get_slot(C, arg1, value);
                 callstackI_return(U, value);
                 (*position)++;

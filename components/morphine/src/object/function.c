@@ -27,16 +27,28 @@ struct function *functionI_create(
         throwI_error(I, "function name is null");
     }
 
-    if (arguments_count > MLIMIT_CALLABLE_ARGS) {
-        throwI_error(I, "too many args");
+    if (instructions_count > MLIMIT_ARGUMENT_MAX) {
+        throwI_error(I, "too many instructions");
     }
 
-    if (params_count > MLIMIT_CALLABLE_PARAMS) {
+    if (constants_count > MLIMIT_ARGUMENT_MAX) {
+        throwI_error(I, "too many constants");
+    }
+
+    if (statics_count > MLIMIT_ARGUMENT_MAX) {
+        throwI_error(I, "too many statics");
+    }
+
+    if (slots_count > MLIMIT_ARGUMENT_MAX) {
+        throwI_error(I, "too many slots");
+    }
+
+    if (params_count > MLIMIT_ARGUMENT_MAX) {
         throwI_error(I, "too many params");
     }
 
-    if (slots_count > MLIMIT_CALLABLE_SLOTS) {
-        throwI_error(I, "too many slots");
+    if (arguments_count > MLIMIT_CALLABLE_ARGS) {
+        throwI_error(I, "too many args");
     }
 
     size_t rollback = gcI_safe_obj(I, objectI_cast(name));
