@@ -149,6 +149,7 @@ MORPHINE_API void mapi_push_vector(morphine_coroutine_t, ml_size);
 MORPHINE_API void mapi_vector_resize(morphine_coroutine_t, ml_size);
 MORPHINE_API void mapi_vector_clear(morphine_coroutine_t);
 MORPHINE_API void mapi_vector_copy(morphine_coroutine_t);
+MORPHINE_API void mapi_vector_sort(morphine_coroutine_t);
 MORPHINE_API void mapi_vector_mode_mutable(morphine_coroutine_t, bool is_mutable);
 MORPHINE_API void mapi_vector_mode_fixed(morphine_coroutine_t, bool is_fixed);
 MORPHINE_API void mapi_vector_mode_lock(morphine_coroutine_t);

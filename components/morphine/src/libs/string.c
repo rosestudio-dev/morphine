@@ -228,7 +228,7 @@ static void startswith(morphine_coroutine_t U) {
 
             mapi_pop(U, 2);
 
-            bool result = strlen >= plen && memcmp(string, prefix, plen) == 0;
+            bool result = strlen >= plen && memcmp(string, prefix, plen * sizeof(char)) == 0;
 
             mapi_push_boolean(U, result);
             maux_nb_return();
@@ -252,7 +252,7 @@ static void endswith(morphine_coroutine_t U) {
 
             mapi_pop(U, 2);
 
-            bool result = strlen >= slen && memcmp(string + (strlen - slen), suffix, slen) == 0;
+            bool result = strlen >= slen && memcmp(string + (strlen - slen), suffix, slen * sizeof(char)) == 0;
 
             mapi_push_boolean(U, result);
             maux_nb_return();
@@ -354,7 +354,7 @@ static void split(morphine_coroutine_t U) {
                     mapi_push_stringn(U, string + start, 1);
                     mapi_vector_push(U);
                     start++;
-                } else if (memcmp(string + i, separator, seplen) == 0) {
+                } else if (memcmp(string + i, separator, seplen * sizeof(char)) == 0) {
                     mapi_push_stringn(U, string + start, i - start);
                     mapi_vector_push(U);
 
@@ -394,7 +394,7 @@ static void contains(morphine_coroutine_t U) {
             bool found = false;
             if (strlen >= findlen) {
                 for (size_t i = 0; i < strlen - findlen + 1; i++) {
-                    if (memcmp(string + i, find, findlen) == 0) {
+                    if (memcmp(string + i, find, findlen * sizeof(char)) == 0) {
                         found = true;
                         break;
                     }
@@ -427,7 +427,7 @@ static void indexof(morphine_coroutine_t U) {
             size_t index;
             if (strlen >= findlen) {
                 for (size_t i = 0; i < strlen - findlen + 1; i++) {
-                    if (memcmp(string + i, find, findlen) == 0) {
+                    if (memcmp(string + i, find, findlen * sizeof(char)) == 0) {
                         found = true;
                         index = i;
                         break;
@@ -465,7 +465,7 @@ static void lastindexof(morphine_coroutine_t U) {
             size_t index;
             if (strlen >= findlen) {
                 for (size_t i = 0; i < strlen - findlen + 1; i++) {
-                    if (memcmp(string + (strlen - findlen) - i, find, findlen) == 0) {
+                    if (memcmp(string + (strlen - findlen) - i, find, findlen * sizeof(char)) == 0) {
                         found = true;
                         index = (strlen - findlen) - i;
                         break;

@@ -45,6 +45,18 @@ static void copy(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void sort(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_expect(U, "vector");
+
+            mapi_vector_sort(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void resize(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -325,6 +337,7 @@ static morphine_library_function_t functions[] = {
     { "create",    create },
     { "clear",     clear },
     { "copy",      copy },
+    { "sort",      sort },
     { "resize",    resize },
     { "add",       add },
     { "remove",    remove_ },

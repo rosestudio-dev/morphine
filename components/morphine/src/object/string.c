@@ -9,6 +9,7 @@
 #include "morphine/utils/overflow.h"
 #include "morphine/params.h"
 #include "morphine/algorithm/hash.h"
+#include "morphine/utils/compare.h"
 #include <string.h>
 #include <stdio.h>
 
@@ -162,13 +163,7 @@ int stringI_compare(morphine_instance_t I, struct string *a, struct string *b) {
         throwI_error(I, "string is null");
     }
 
-    if (a->size > b->size) {
-        return -1;
-    } else if (a->size < b->size) {
-        return 1;
-    }
-
-    return memcmp(a->chars, b->chars, ((size_t) a->size) * sizeof(char));
+    return arrcmp(I, a->chars, b->chars, a->size, b->size, sizeof(char));
 }
 
 int stringI_cstr_compare(morphine_instance_t I, struct string *a, const char *b) {
@@ -177,13 +172,7 @@ int stringI_cstr_compare(morphine_instance_t I, struct string *a, const char *b)
     }
 
     size_t b_size = strlen(b);
-    if (a->size > b_size) {
-        return -1;
-    } else if (a->size < b_size) {
-        return 1;
-    }
-
-    return memcmp(a->chars, b, ((size_t) a->size) * sizeof(char));
+    return arrcmp(I, a->chars, b, a->size, b_size, sizeof(char));
 }
 
 bool stringI_is_cstr_compatible(morphine_instance_t I, struct string *string) {

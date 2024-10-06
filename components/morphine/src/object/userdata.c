@@ -9,6 +9,7 @@
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
 #include "morphine/algorithm/hash.h"
+#include "morphine/utils/compare.h"
 
 static struct userdata *create(morphine_instance_t I) {
     struct userdata *result = allocI_uni(I, NULL, sizeof(struct userdata));
@@ -196,7 +197,7 @@ int userdataI_compare(morphine_instance_t I, struct userdata *a, struct userdata
         throwI_error(I, "userdata is null");
     }
 
-    int raw_compared = (a) == (b) ? 0 : ((a) > (b) ? -1 : 1);
+    int raw_compared = smpcmp(a, b);
 
     if (!a->is_typed || !b->is_typed) {
         return raw_compared;

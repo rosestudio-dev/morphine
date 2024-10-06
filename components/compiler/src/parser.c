@@ -282,7 +282,7 @@ static bool is_predefined(
             continue;
         }
 
-        if (memcmp(table[i].name, entry.string, entry.size) == 0) {
+        if (memcmp(table[i].name, entry.string, entry.size * sizeof(char)) == 0) {
             switch (C->predefined_word_mode) {
                 case PWM_NORMAL:
                     return table[i].normal_type == predefined_word.normal_type;
@@ -322,7 +322,7 @@ static bool is_not_predefined(
             continue;
         }
 
-        if (memcmp(table[i].name, entry.string, entry.size) == 0) {
+        if (memcmp(table[i].name, entry.string, entry.size * sizeof(char)) == 0) {
             return false;
         }
     }

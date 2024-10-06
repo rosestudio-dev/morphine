@@ -40,6 +40,7 @@ struct value vectorI_remove(morphine_instance_t, struct vector *, ml_size);
 void vectorI_resize(morphine_instance_t, struct vector *, ml_size);
 struct vector *vectorI_copy(morphine_instance_t, struct vector *);
 struct vector *vectorI_concat(morphine_instance_t, struct vector *, struct vector *);
+void vectorI_sort(morphine_instance_t, struct vector *);
 
 struct value vectorI_iterator_first(morphine_instance_t, struct vector *, bool *has);
 struct pair vectorI_iterator_next(morphine_instance_t, struct vector *, struct value *key, bool *next);

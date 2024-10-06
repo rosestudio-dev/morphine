@@ -685,7 +685,7 @@ static bool handle_operator(
             continue;
         }
 
-        if (memcmp(operator_table[i].str, str, size) == 0) {
+        if (memcmp(operator_table[i].str, str, size * sizeof(char)) == 0) {
             if (token != NULL) {
                 *token = (struct mc_lex_token) {
                     .type = MCLTT_OPERATOR,

@@ -12,25 +12,25 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/userdata.h"
 #include "morphine/platform/conversions.h"
+#include "morphine/utils/compare.h"
 
-#define COMPARE(a, b) ((a) == (b) ? 0 : ((a) > (b) ? -1 : 1))
 
 int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
     if (likely(a.type != b.type)) {
-        return COMPARE(a.type, b.type);
+        return smpcmp(a.type, b.type);
     }
 
     switch (a.type) {
         case VALUE_TYPE_NIL:
             return 0;
         case VALUE_TYPE_INTEGER:
-            return COMPARE(a.integer, b.integer);
+            return smpcmp(a.integer, b.integer);
         case VALUE_TYPE_DECIMAL:
-            return COMPARE(a.decimal, b.decimal);
+            return smpcmp(a.decimal, b.decimal);
         case VALUE_TYPE_BOOLEAN:
-            return COMPARE(a.boolean, b.boolean);
+            return smpcmp(a.boolean, b.boolean);
         case VALUE_TYPE_RAW:
-            return COMPARE(a.raw, b.raw);
+            return smpcmp(a.raw, b.raw);
         case VALUE_TYPE_STRING:
             return stringI_compare(I, valueI_as_string(a), valueI_as_string(b));
         case VALUE_TYPE_USERDATA:
@@ -45,7 +45,7 @@ int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_ITERATOR:
         case VALUE_TYPE_SIO:
-            return COMPARE(a.object.header, b.object.header);
+            return smpcmp(a.object.header, b.object.header);
     }
 
     throwI_panic(I, "unsupported type");
