@@ -322,7 +322,7 @@ fun launch<auto>()
         end
 
         if (config.disassembly)
-            compiler.disassembly(content)
+            compiler.dis(content)
             base.println()
         end
 

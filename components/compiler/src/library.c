@@ -11,6 +11,7 @@
 #include "morphinec/visitor.h"
 #include "morphinec/codegen.h"
 #include "morphinec/serializer.h"
+#include "morphinec/optimizer.h"
 
 #define DEFAULT_MAIN_NAME "compiled"
 
@@ -136,7 +137,7 @@ static void compile(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void disassembly(morphine_coroutine_t U) {
+static void dis(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             bool sio_io = false;
@@ -471,11 +472,22 @@ static void ast(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void optimize(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mcapi_optimize(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static morphine_library_function_t functions[] = {
-    { "compile",     compile },
-    { "disassembly", disassembly },
-    { "lex",         lex },
-    { "ast",         ast },
+    { "compile",  compile },
+    { "dis",      dis },
+    { "lex",      lex },
+    { "ast",      ast },
+    { "optimize", optimize },
 
     { NULL, NULL }
 };
