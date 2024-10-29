@@ -2,10 +2,10 @@
  * PI number generator
  */
 
-val base = env.library("base")
+val extract print, println = env.library("base")
 val bigint = env.library("bigint.wrap")
 
-fun calcPi<bigint>(print)
+fun calcPi<bigint>(printnum)
     val ZERO = bigint(0)
     val ONE = bigint(1)
     val TWO = bigint(2)
@@ -23,7 +23,7 @@ fun calcPi<bigint>(print)
 
     while(true)
         if(FOUR * q + r - t < n * t)
-            print(n)
+            printnum(n)
             val nr = TEN * (r - n * t)
             n = ((TEN * (THREE * q + r)) / t) - TEN * n
             q *= TEN
@@ -41,19 +41,19 @@ fun calcPi<bigint>(print)
     end
 end
 
-fun print<base>(text)
+fun printnum<auto>(text)
     static(index)
     if (index == nil)
         index = 0
     end
 
-    base.print(text)
+    print(text)
 
     index ++
     if (index == 40)
-        base.println()
+        println()
         index = 0
     end
 end
 
-calcPi(print)
+calcPi(printnum)

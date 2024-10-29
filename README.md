@@ -35,15 +35,14 @@ Morphine has the following main features that build the language's ideology:
 
 ## Code looks
 ```
-val println = env.library("base.println")
-val setmetatable = env.library("base.setmetatable")
-val error = env.library("base.error")
-val pcall = env.library("base.pcall")
+val extract println, setmetatable, error, pcall = env.library("base")
 val tostr = env.library("value.tostr")
 val getallocated = env.library("gc.getallocated")
 val format = env.library("string.format")
 val coroutine = env.library("coroutine")
 val vector = env.library("vector")
+val exception = env.library("exception")
+val sio = env.library("sio")
 
 fun dump<println>() println(self) end
 
@@ -102,7 +101,7 @@ end
 
 // Reference test
 do
-    val value = ref { "reference test" }
+    val value = ref { text = "reference test" }
     env.library("gc").full()
     println(*value or "cleared")
 end
@@ -114,15 +113,14 @@ end
 fun pcalltest<error>(throw) = throw or error("hello world!")
 
 do
-    var extract result, error = pcall(pcalltest, nil)
-    println(result)
-    println(error)
+    var pcallres = pcall(pcalltest, nil)
+    println(exception.value(pcallres))
+    exception.print(pcallres, sio.io())
 end
 
 do
-    val extract result, error = pcall(pcalltest, "no errors")
-    println(result)
-    println(error)
+    val pcallres = pcall(pcalltest, "no errors")
+    println(pcallres)
 end
 ```
 

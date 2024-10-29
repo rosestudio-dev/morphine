@@ -20,5 +20,5 @@ fun cachable<auto>(function) = base.setmetatable({ function, cache = {} }) {
 val cachefib = cachable(fun<bigint>(n, f) = if(n < 2) bigint(1) else f(n - 2) + f(n - 1) end)
 
 for(var i = 1; i <= 1000; i++)
-    base.println(format("${i}. ${}") { i, (cachefib(i)) })
+    base.println(format("${i}. ${num}") { i, num = cachefib(i) })
 end

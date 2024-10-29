@@ -6,4 +6,4 @@ fun code()
     // Code...
 end
 
-env.library("compiler").disassembly(code)
+env.library("compiler").dis(code)
