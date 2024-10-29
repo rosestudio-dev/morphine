@@ -91,6 +91,25 @@ MORPHINE_API void mapi_push_result(morphine_coroutine_t U) {
 /*
  * {{docs body}}
  * path:architecture/api-callstack
+ * ## mapi_result
+ * ### Prototype
+ * ```c
+ * void mapi_result(morphine_coroutine_t U)
+ * ```
+ * ### Parameters
+ * * `U` - coroutine
+ * ### Description
+ * Pops the result value from the stack and sets it as result
+ * {{end}}
+ */
+MORPHINE_API void mapi_result(morphine_coroutine_t U) {
+    callstackI_set_result(U, stackI_peek(U, 0));
+    stackI_pop(U, 1);
+}
+
+/*
+ * {{docs body}}
+ * path:architecture/api-callstack
  * ## mapi_return
  * ### Prototype
  * ```c

@@ -63,6 +63,7 @@ struct value callstackI_extract_callable(morphine_instance_t, struct value calla
 bool callstackI_is_callable(morphine_instance_t I, struct value callable);
 
 struct value callstackI_result(morphine_coroutine_t);
+void callstackI_set_result(morphine_coroutine_t, struct value);
 void callstackI_return(morphine_coroutine_t, struct value);
 void callstackI_continue(morphine_coroutine_t, size_t state);
 size_t callstackI_state(morphine_coroutine_t);

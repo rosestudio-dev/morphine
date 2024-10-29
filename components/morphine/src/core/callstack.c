@@ -257,6 +257,10 @@ struct value callstackI_result(morphine_coroutine_t U) {
     return result;
 }
 
+void callstackI_set_result(morphine_coroutine_t U, struct value result) {
+    U->result = result;
+}
+
 void callstackI_return(morphine_coroutine_t U, struct value value) {
     U->result = value;
     U->state.exit = true;

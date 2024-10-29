@@ -64,7 +64,9 @@ static inline void binary(
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-        maux_nb_operation(1, "type")
+            maux_nb_operation("type", 1);
+        maux_nb_state(1)
+            mapi_push_result(U);
             struct mlib_bigint *bigintB;
             if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
                 mapi_push_arg(U, 0);

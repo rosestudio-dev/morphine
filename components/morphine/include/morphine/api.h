@@ -36,6 +36,7 @@ MORPHINE_API void mapi_escall(morphine_coroutine_t, ml_size argc);
 MORPHINE_API void mapi_push_callable(morphine_coroutine_t);
 MORPHINE_API void mapi_extract_callable(morphine_coroutine_t);
 MORPHINE_API void mapi_push_result(morphine_coroutine_t);
+MORPHINE_API void mapi_result(morphine_coroutine_t);
 MORPHINE_API void mapi_return(morphine_coroutine_t);
 MORPHINE_API void mapi_leave(morphine_coroutine_t);
 MORPHINE_API void mapi_continue(morphine_coroutine_t, size_t callstate);

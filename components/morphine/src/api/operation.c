@@ -90,7 +90,7 @@ static bool opget(morphine_coroutine_t U) {
     bool result = interpreter_fun_get(
         U, callstackI_state(U),
         container, key, &result_value,
-        0, false
+        1, false
     ) == CALLED;
 
     if (!result) {
@@ -305,7 +305,7 @@ static bool optype(morphine_coroutine_t U) {
     bool result = interpreter_fun_type(
         U, callstackI_state(U),
         a, &result_value,
-        0, false
+        1, false
     ) == CALLED;
 
     if (!result) {
@@ -322,7 +322,7 @@ static bool opneg(morphine_coroutine_t U) {
     bool result = interpreter_fun_negative(
         U, callstackI_state(U),
         a, &result_value,
-        0, false
+        1, false
     ) == CALLED;
 
     if (!result) {
@@ -339,7 +339,7 @@ static bool opnot(morphine_coroutine_t U) {
     bool result = interpreter_fun_not(
         U, callstackI_state(U),
         a, &result_value,
-        0, false
+        1, false
     ) == CALLED;
 
     if (!result) {
@@ -356,7 +356,7 @@ static bool oplen(morphine_coroutine_t U) {
     bool result = interpreter_fun_length(
         U, callstackI_state(U),
         a, &result_value,
-        0, false
+        1, false
     ) == CALLED;
 
     if (!result) {
@@ -373,7 +373,7 @@ static bool opref(morphine_coroutine_t U) {
     bool result = interpreter_fun_ref(
         U, callstackI_state(U),
         a, &result_value,
-        0, false
+        1, false
     ) == CALLED;
 
     if (!result) {
@@ -390,7 +390,7 @@ static bool opderef(morphine_coroutine_t U) {
     bool result = interpreter_fun_deref(
         U, callstackI_state(U),
         a, &result_value,
-        0, false
+        1, false
     ) == CALLED;
 
     if (!result) {

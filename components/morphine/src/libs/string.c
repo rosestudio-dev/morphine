@@ -252,7 +252,8 @@ static void endswith(morphine_coroutine_t U) {
 
             mapi_pop(U, 2);
 
-            bool result = strlen >= slen && memcmp(string + (strlen - slen), suffix, slen * sizeof(char)) == 0;
+            bool result =
+                strlen >= slen && memcmp(string + (strlen - slen), suffix, slen * sizeof(char)) == 0;
 
             mapi_push_boolean(U, result);
             maux_nb_return();
@@ -771,29 +772,73 @@ static void replace(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+struct format_vars {
+    enum format_state {
+        TEXT = 0,
+        FOUND = 1,
+        RECOGNIZE = 2,
+        GET = 3,
+        CONCAT = 4,
+    } state;
+
+    size_t index;
+    size_t last_index;
+    size_t access_index;
+};
+
+static struct format_vars load_format_vars(morphine_coroutine_t U) {
+    struct format_vars vars;
+
+    maux_localstorage_get(U, "state");
+    vars.state = mapi_get_size(U, "state");
+    mapi_pop(U, 1);
+
+    maux_localstorage_get(U, "index");
+    vars.index = mapi_get_size(U, "index");
+    mapi_pop(U, 1);
+
+    maux_localstorage_get(U, "last_index");
+    vars.last_index = mapi_get_size(U, "index");
+    mapi_pop(U, 1);
+
+    maux_localstorage_get(U, "access_index");
+    vars.access_index = mapi_get_size(U, "index");
+    mapi_pop(U, 1);
+
+    return vars;
+}
+
+static void save_format_vars(morphine_coroutine_t U, struct format_vars vars) {
+    mapi_push_size(U, vars.state, "state");
+    maux_localstorage_set(U, "state");
+
+    mapi_push_size(U, vars.index, "index");
+    maux_localstorage_set(U, "index");
+
+    mapi_push_size(U, vars.last_index, "index");
+    maux_localstorage_set(U, "last_index");
+
+    mapi_push_size(U, vars.access_index, "index");
+    maux_localstorage_set(U, "access_index");
+}
+
 static void format(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 2);
 
-            mapi_push_size(U, 0, "state");
-            maux_localstorage_set(U, "state");
+            struct format_vars vars = {
+                .state = TEXT,
+                .index = 0,
+                .last_index = 0,
+                .access_index = 0
+            };
 
-            mapi_push_size(U, 0, "index");
-            maux_localstorage_set(U, "index");
-
-            mapi_push_size(U, 0, "index");
-            maux_localstorage_set(U, "last_index");
-
-            mapi_push_size(U, 0, "index");
-            maux_localstorage_set(U, "table_index");
+            save_format_vars(U, vars);
 
             mapi_push_arg(U, 0);
             maux_expect(U, "string");
             mapi_pop(U, 1);
-
-            mapi_push_arg(U, 1);
-            maux_expect(U, "table");
 
             mapi_push_string(U, "");
             maux_nb_im_continue(1);
@@ -803,87 +848,64 @@ static void format(morphine_coroutine_t U) {
             size_t strlen = mapi_string_len(U);
             mapi_pop(U, 1);
 
-            maux_localstorage_get(U, "state");
-            enum format_state {
-                TEXT = 0,
-                FOUND = 1,
-                RECOGNIZE = 2,
-                CONCAT = 3,
-            } state = mapi_get_size(U, "state");
-            mapi_pop(U, 1);
-
-            maux_localstorage_get(U, "index");
-            size_t index = mapi_get_size(U, "index");
-            mapi_pop(U, 1);
-
-            maux_localstorage_get(U, "last_index");
-            size_t last_index = mapi_get_size(U, "index");
-            mapi_pop(U, 1);
-
-            maux_localstorage_get(U, "table_index");
-            size_t table_index = mapi_get_size(U, "index");
-            mapi_pop(U, 1);
+            struct format_vars vars = load_format_vars(U);
 
             size_t parse_index = 0;
-            for (; index < strlen; index++) {
-                switch (state) {
+            for (; vars.index < strlen; vars.index++) {
+                switch (vars.state) {
                     case TEXT: {
-                        if (string[index] == '$') {
-                            mapi_push_stringn(U, string + last_index, index - last_index);
+                        if (string[vars.index] == '$') {
+                            mapi_push_stringn(U, string + vars.last_index, vars.index - vars.last_index);
                             mapi_string_concat(U);
-                            state = FOUND;
+                            vars.state = FOUND;
                         }
                         break;
                     }
                     case FOUND: {
-                        if (string[index] == '{') {
-                            parse_index = index + 1;
-                            state = RECOGNIZE;
-                        } else if (string[index] == '$') {
+                        if (string[vars.index] == '{') {
+                            parse_index = vars.index + 1;
+                            vars.state = RECOGNIZE;
+                        } else if (string[vars.index] == '$') {
                             mapi_push_string(U, "$");
                             mapi_string_concat(U);
 
-                            last_index = index + 1;
-                            state = TEXT;
+                            vars.last_index = vars.index + 1;
+                            vars.state = TEXT;
                         } else {
-                            last_index = index - 1;
-                            state = TEXT;
+                            vars.last_index = vars.index - 1;
+                            vars.state = TEXT;
                         }
                         break;
                     }
                     case RECOGNIZE: {
-                        if (string[index] != '}') {
+                        if (string[vars.index] != '}') {
                             break;
                         }
 
-                        mapi_rotate(U, 2);
-
-                        if (index - parse_index == 0) {
-                            mapi_push_size(U, table_index, "index");
-                            table_index++;
+                        if (vars.index - parse_index == 0) {
+                            mapi_push_size(U, vars.access_index, "index");
+                            vars.access_index++;
                         } else {
-                            mapi_push_stringn(U, string + parse_index, index - parse_index);
-                            table_index++;
+                            mapi_push_stringn(U, string + parse_index, vars.index - parse_index);
+                            vars.access_index++;
                         }
 
-                        mapi_table_get(U);
+                        mapi_push_arg(U, 1);
                         mapi_rotate(U, 2);
-                        mapi_rotate(U, 3);
 
-                        last_index = index + 1;
-                        state = CONCAT;
+                        vars.state = GET;
 
-                        mapi_push_size(U, state, "state");
-                        maux_localstorage_set(U, "state");
+                        save_format_vars(U, vars);
+                        maux_nb_operation("get", 1);
+                    }
+                    case GET: {
+                        mapi_pop(U, 1);
+                        mapi_push_result(U);
 
-                        mapi_push_size(U, index, "index");
-                        maux_localstorage_set(U, "index");
+                        vars.last_index = vars.index + 1;
+                        vars.state = CONCAT;
 
-                        mapi_push_size(U, last_index, "index");
-                        maux_localstorage_set(U, "last_index");
-
-                        mapi_push_size(U, table_index, "index");
-                        maux_localstorage_set(U, "table_index");
+                        save_format_vars(U, vars);
 
                         mapi_library(U, "value.tostr", false);
                         mapi_rotate(U, 2);
@@ -892,7 +914,7 @@ static void format(morphine_coroutine_t U) {
                     case CONCAT: {
                         mapi_push_result(U);
                         mapi_string_concat(U);
-                        state = TEXT;
+                        vars.state = TEXT;
                         break;
                     }
                     default:
@@ -900,7 +922,7 @@ static void format(morphine_coroutine_t U) {
                 }
             }
 
-            mapi_push_stringn(U, string + last_index, strlen - last_index);
+            mapi_push_stringn(U, string + vars.last_index, strlen - vars.last_index);
             mapi_string_concat(U);
             maux_nb_return();
     maux_nb_end
