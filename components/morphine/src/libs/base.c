@@ -66,11 +66,17 @@ static void println(morphine_coroutine_t U) {
 static void setmetatable(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
+            if (mapi_args(U) == 1) {
+                mapi_push_table(U);
+                mapi_push_arg(U, 0);
+            } else {
+                maux_expect_args(U, 2);
 
-            mapi_push_arg(U, 0);
-            maux_expect(U, "meta");
-            mapi_push_arg(U, 1);
+                mapi_push_arg(U, 0);
+                maux_expect(U, "meta");
+
+                mapi_push_arg(U, 1);
+            }
 
             mapi_set_metatable(U);
             maux_nb_return();
