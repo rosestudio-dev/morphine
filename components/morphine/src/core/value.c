@@ -100,29 +100,29 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_STRING:
             return value;
         case VALUE_TYPE_USERDATA:
-            return valueI_object(stringI_createf(I, "[object:userdata:%p]", value.object.userdata));
+            return valueI_object(stringI_createf(I, "[object:userdata:%"PRIxPTR"]", value.object.userdata));
         case VALUE_TYPE_TABLE:
-            return valueI_object(stringI_createf(I, "[object:table:%p]", value.object.table));
+            return valueI_object(stringI_createf(I, "[object:table:%"PRIxPTR"]", value.object.table));
         case VALUE_TYPE_VECTOR:
-            return valueI_object(stringI_createf(I, "[object:vector:%p]", value.object.vector));
+            return valueI_object(stringI_createf(I, "[object:vector:%"PRIxPTR"]", value.object.vector));
         case VALUE_TYPE_ITERATOR:
-            return valueI_object(stringI_createf(I, "[object:iterator:%p]", value.object.iterator));
+            return valueI_object(stringI_createf(I, "[object:iterator:%"PRIxPTR"]", value.object.iterator));
         case VALUE_TYPE_CLOSURE:
-            return valueI_object(stringI_createf(I, "[object:closure:%p]", value.object.closure));
+            return valueI_object(stringI_createf(I, "[object:closure:%"PRIxPTR"]", value.object.closure));
         case VALUE_TYPE_COROUTINE:
-            return valueI_object(stringI_createf(I,"[object:coroutine:%p]",value.object.coroutine));
+            return valueI_object(stringI_createf(I,"[object:coroutine:%"PRIxPTR"]",value.object.coroutine));
         case VALUE_TYPE_REFERENCE:
-            return valueI_object(stringI_createf(I, "[object:reference:%p]", value.object.reference));
+            return valueI_object(stringI_createf(I, "[object:reference:%"PRIxPTR"]", value.object.reference));
         case VALUE_TYPE_EXCEPTION:
-            return valueI_object(stringI_createf(I, "[object:exception:%p]", value.object.exception));
+            return valueI_object(stringI_createf(I, "[object:exception:%"PRIxPTR"]", value.object.exception));
         case VALUE_TYPE_FUNCTION:
-            return valueI_object(stringI_createf(I, "[object:function:%p]", value.object.function));
+            return valueI_object(stringI_createf(I, "[object:function:%"PRIxPTR"]", value.object.function));
         case VALUE_TYPE_NATIVE:
-            return valueI_object(stringI_createf(I, "[object:native:%p]", value.object.native));
+            return valueI_object(stringI_createf(I, "[object:native:%"PRIxPTR"]", value.object.native));
         case VALUE_TYPE_SIO:
-            return valueI_object(stringI_createf(I, "[object:sio:%p]", value.object.native));
+            return valueI_object(stringI_createf(I, "[object:sio:%"PRIxPTR"]", value.object.native));
         case VALUE_TYPE_RAW:
-            return valueI_object(stringI_createf(I, "[raw:%p]", value.raw));
+            return valueI_object(stringI_createf(I, "[raw:%"PRIxPTR"]", value.raw));
     }
 
     throwI_panic(I, "unsupported type");

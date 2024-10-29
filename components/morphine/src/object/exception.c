@@ -80,7 +80,7 @@ void exceptionI_stacktrace_print(
         sioI_print(I, sio, "'):\n");
     } else {
         sioI_printf(
-            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, undefined coroutine):\n",
+            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, unnamed coroutine):\n",
             size, plural_suffix(size)
         );
     }
@@ -131,7 +131,7 @@ void exceptionI_stacktrace_print(
 
             sioI_printf(I, sio, "[state: %zu] native '", element.pc.state);
             print_string(I, sio, native->name);
-            sioI_printf(I, sio, "' (%p)\n", native->function);
+            sioI_printf(I, sio, "'\n");
         } else {
             sioI_printf(I, sio, "(unsupported callstack element)\n");
         }
