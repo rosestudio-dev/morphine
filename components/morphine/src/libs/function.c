@@ -8,19 +8,19 @@
 
 static const char *opcode2str(morphine_coroutine_t U, morphine_opcode_t opcode) {
     switch (opcode) {
-#define mis_instruction_opcode(n)               case MORPHINE_OPCODE_##n: return #n;
-#define mis_instruction_args0(n, s)             mis_instruction_opcode(n)
-#define mis_instruction_args1(n, s, a1)         mis_instruction_opcode(n)
-#define mis_instruction_args2(n, s, a1, a2)     mis_instruction_opcode(n)
-#define mis_instruction_args3(n, s, a1, a2, a3) mis_instruction_opcode(n)
+#define mspec_instruction_opcode(n)               case MORPHINE_OPCODE_##n: return #n;
+#define mspec_instruction_args0(n, s)             mspec_instruction_opcode(n)
+#define mspec_instruction_args1(n, s, a1)         mspec_instruction_opcode(n)
+#define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_opcode(n)
+#define mspec_instruction_args3(n, s, a1, a2, a3) mspec_instruction_opcode(n)
 
-#include "morphine/instruction/specification.h"
+#include "morphine/misc/instruction/specification.h"
 
-#undef mis_instruction_opcode
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_opcode
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
     }
 
     mapi_error(U, "undefined opcode");

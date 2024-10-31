@@ -1208,18 +1208,18 @@ static void add_asm_instruction(
 
     struct mc_asm_instruction instruction = asm_expr->code[index];
     switch (instruction.opcode) {
-#define arg(n, i)                               arg_get_##n(C, asm_expr, data, instruction.line, instruction.arguments[i])
-#define mis_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: codegen_instruction_##n(C); break;
-#define mis_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0)); break;
-#define mis_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0), arg(a2, 1)); break;
-#define mis_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0), arg(a2, 1), arg(a3, 2)); break;
+#define arg(n, i)                                 arg_get_##n(C, asm_expr, data, instruction.line, instruction.arguments[i])
+#define mspec_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: codegen_instruction_##n(C); break;
+#define mspec_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0)); break;
+#define mspec_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0), arg(a2, 1)); break;
+#define mspec_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: codegen_instruction_##n(C, arg(a1, 0), arg(a2, 1), arg(a3, 2)); break;
 
-#include "morphine/instruction/specification.h"
+#include "morphine/misc/instruction/specification.h"
 
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
     }
 }
 

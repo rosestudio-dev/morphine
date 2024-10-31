@@ -13,7 +13,7 @@
 #include "morphine/object/string.h"
 #include "morphine/object/sio.h"
 #include "morphine/algorithm/crc32.h"
-#include "morphine/instruction/info.h"
+#include "morphine/misc/instruction.h"
 #include "morphine/object/userdata.h"
 #include <string.h>
 

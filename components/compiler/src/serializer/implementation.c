@@ -761,17 +761,17 @@ decl_stmt(if) {
 
 static const char *opcode2str(morphine_opcode_t opcode) {
     switch (opcode) {
-#define mis_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: return #s;
-#define mis_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: return #s;
-#define mis_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: return #s;
-#define mis_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: return #s;
+#define mspec_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: return #s;
+#define mspec_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: return #s;
+#define mspec_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: return #s;
+#define mspec_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: return #s;
 
-#include "morphine/instruction/specification.h"
+#include "morphine/misc/instruction/specification.h"
 
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
     }
 
     return "?";
@@ -779,17 +779,17 @@ static const char *opcode2str(morphine_opcode_t opcode) {
 
 static size_t opcode2args(morphine_opcode_t opcode) {
     switch (opcode) {
-#define mis_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: return 0;
-#define mis_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: return 1;
-#define mis_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: return 2;
-#define mis_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: return 3;
+#define mspec_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: return 0;
+#define mspec_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: return 1;
+#define mspec_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: return 2;
+#define mspec_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: return 3;
 
-#include "morphine/instruction/specification.h"
+#include "morphine/misc/instruction/specification.h"
 
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
     }
 
     return 0;

@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/instruction.h"
+#include "morphine/misc/instruction/type.h"
 #include "morphine/object/function.h"
 
 ml_size instructionI_opcode_args(morphine_opcode_t, bool *valid);

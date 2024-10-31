@@ -108,7 +108,8 @@ static inline bool finalize(morphine_instance_t I) {
     while (current != NULL) {
         struct object *prev = current->prev;
 
-        if (unlikely(!current->flags.finalized && metatableI_builtin_test(I, valueI_object(current), MF_GC, NULL))) {
+        if (unlikely(!current->flags.finalized &&
+                     metatableI_builtin_test(I, valueI_object(current), MORPHINE_METAFIELD_GC, NULL))) {
             current->color = OBJ_COLOR_RED;
             gcI_pools_remove(current, &I->G.pools.allocated);
             gcI_pools_insert(current, &I->G.pools.finalize);
@@ -162,7 +163,8 @@ static inline bool mark_sio(morphine_instance_t I) {
 static inline bool mark_metatable(morphine_instance_t I) {
     bool marked = false;
 
-    for (enum metatable_field mf = MFS_START; mf < MFS_COUNT; mf++) {
+    for (morphine_metatable_field_t mf = MORPHINE_METATABLE_FIELDS_START;
+         mf < MORPHINE_METATABLE_FIELDS_COUNT; mf++) {
         if (mark_object(I, objectI_cast(I->metatable.names[mf]))) {
             marked = true;
         }

@@ -34,8 +34,8 @@ static inline op_result_t interpreter_fun_iterator(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, container, MF_ITERATOR, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, container, MORPHINE_METAFIELD_ITERATOR, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, container, NULL, 0, pop_size);
             return CALLED;
@@ -66,7 +66,7 @@ static inline op_result_t interpreter_fun_iterator_init(
     if (likely(valueI_is_iterator(iterator))) {
         iteratorI_init(U->I, valueI_as_iterator(iterator), key_name, value_name);
         return NORMAL;
-    } else if (metatableI_builtin_test(U->I, iterator, MF_ITERATOR_INIT, &mt_field)) {
+    } else if (metatableI_builtin_test(U->I, iterator, MORPHINE_METAFIELD_ITERATOR_INIT, &mt_field)) {
         struct value new_args[] = { key_name, value_name };
         callstackI_continue(U, callstate);
         callstackI_call_unsafe(U, mt_field, iterator, new_args, 2, pop_size);
@@ -94,8 +94,8 @@ static inline op_result_t interpreter_fun_iterator_has(
         bool has = iteratorI_has(U->I, valueI_as_iterator(iterator));
         (*result) = valueI_boolean(has);
         return NORMAL;
-    } else if (metatableI_builtin_test(U->I, iterator, MF_ITERATOR_HAS, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    } else if (metatableI_builtin_test(U->I, iterator, MORPHINE_METAFIELD_ITERATOR_HAS, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
             return CALLED;
@@ -125,8 +125,8 @@ static inline op_result_t interpreter_fun_iterator_next(
     if (likely(valueI_is_iterator(iterator))) {
         (*result) = valueI_object(iteratorI_next_table(U->I, valueI_as_iterator(iterator)));
         return NORMAL;
-    } else if (metatableI_builtin_test(U->I, iterator, MF_ITERATOR_NEXT, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    } else if (metatableI_builtin_test(U->I, iterator, MORPHINE_METAFIELD_ITERATOR_NEXT, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
             return CALLED;
@@ -162,8 +162,8 @@ static inline op_result_t interpreter_fun_get(
         ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
         (*result) = valueI_object(stringI_get(U->I, valueI_as_string(container), index));
         return NORMAL;
-    } else if (metatableI_builtin_test(U->I, container, MF_GET, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    } else if (metatableI_builtin_test(U->I, container, MORPHINE_METAFIELD_GET, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { key };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, container, new_args, 1, pop_size);
@@ -172,7 +172,7 @@ static inline op_result_t interpreter_fun_get(
 
         (*result) = mt_field;
         return NORMAL;
-    } else if(valueI_is_table(container)) {
+    } else if (valueI_is_table(container)) {
         (*result) = tableI_get(U->I, valueI_as_table(container), key, NULL);
         return NORMAL;
     }
@@ -198,12 +198,12 @@ static inline op_result_t interpreter_fun_set(
         ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
         vectorI_set(U->I, valueI_as_vector(container), index, value);
         return NORMAL;
-    } else if (metatableI_builtin_test(U->I, container, MF_SET, &mt_field)) {
+    } else if (metatableI_builtin_test(U->I, container, MORPHINE_METAFIELD_SET, &mt_field)) {
         struct value new_args[] = { key, value };
         callstackI_continue(U, callstate);
         callstackI_call_unsafe(U, mt_field, container, new_args, 2, pop_size);
         return CALLED;
-    } else if(valueI_is_table(container)) {
+    } else if (valueI_is_table(container)) {
         tableI_set(U->I, valueI_as_table_or_error(U->I, container), key, value);
         return NORMAL;
     }
@@ -236,8 +236,8 @@ static inline op_result_t interpreter_fun_add(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_ADD, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_ADD, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -276,8 +276,8 @@ static inline op_result_t interpreter_fun_sub(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_SUB, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_SUB, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -316,8 +316,8 @@ static inline op_result_t interpreter_fun_mul(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_MUL, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_MUL, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -366,8 +366,8 @@ static inline op_result_t interpreter_fun_div(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_DIV, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_DIV, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -406,8 +406,8 @@ static inline op_result_t interpreter_fun_mod(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_MOD, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_MOD, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -436,8 +436,8 @@ static inline op_result_t interpreter_fun_equal(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_EQUAL, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_EQUAL, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -477,8 +477,8 @@ static inline op_result_t interpreter_fun_less(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_LESS, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_LESS, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -507,8 +507,8 @@ static inline op_result_t interpreter_fun_and(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_AND, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_AND, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -543,8 +543,8 @@ static inline op_result_t interpreter_fun_or(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_OR, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_OR, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -595,8 +595,8 @@ static inline op_result_t interpreter_fun_concat(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_CONCAT, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_CONCAT, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             struct value new_args[] = { b };
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
@@ -624,8 +624,8 @@ static inline op_result_t interpreter_fun_type(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_TYPE, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_TYPE, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
             return CALLED;
@@ -663,8 +663,8 @@ static inline op_result_t interpreter_fun_negative(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_NEGATE, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_NEGATE, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
             return CALLED;
@@ -690,14 +690,9 @@ static inline op_result_t interpreter_fun_not(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_boolean(a))) {
-        (*result) = valueI_boolean(!valueI_as_boolean(a));
-        return NORMAL;
-    }
-
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_NOT, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_NOT, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
             return CALLED;
@@ -707,7 +702,9 @@ static inline op_result_t interpreter_fun_not(
         return NORMAL;
     }
 
-    throwI_error(U->I, "not supports only boolean");
+    bool istrue = valueI_istrue(a);
+    (*result) = valueI_boolean(!istrue);
+    return NORMAL;
 }
 
 static inline op_result_t interpreter_fun_ref(
@@ -724,8 +721,8 @@ static inline op_result_t interpreter_fun_ref(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_REF, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_REF, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
             return CALLED;
@@ -758,8 +755,8 @@ static inline op_result_t interpreter_fun_deref(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_DEREF, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_DEREF, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
             return CALLED;
@@ -801,8 +798,8 @@ static inline op_result_t interpreter_fun_length(
     }
 
     struct value mt_field;
-    if (metatableI_builtin_test(U->I, a, MF_LENGTH, &mt_field)) {
-        if (callstackI_is_callable(U->I, mt_field)) {
+    if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_LENGTH, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
             callstackI_continue(U, callstate);
             callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
             return CALLED;

@@ -7,7 +7,8 @@
 #include <stdarg.h>
 #include "config.h"
 #include "platform.h"
-#include "instruction.h"
+#include "misc/instruction/type.h"
+#include "misc/metatable/type.h"
 
 MORPHINE_API const char *mapi_version_name(void);
 MORPHINE_API ml_version mapi_version(void);
@@ -292,8 +293,8 @@ MORPHINE_API void mapi_gc_change_stack_grow(morphine_coroutine_t, size_t value);
 
 // metatable
 
-MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t, const char *field);
-MORPHINE_API bool mapi_metatable_builtin_test(morphine_coroutine_t, const char *field);
+MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t, const char *);
+MORPHINE_API bool mapi_metatable_builtin_test(morphine_coroutine_t, morphine_metatable_field_t);
 MORPHINE_API void mapi_set_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_get_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_set_default_metatable(morphine_coroutine_t, const char *type);

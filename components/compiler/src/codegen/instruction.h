@@ -19,12 +19,12 @@
 
 #define instruction_argument(n)                 , n
 #define instruction_function(n, args...)        void codegen_instruction_##n(struct codegen_controller * args);
-#define mis_instruction_args0(n, s)             instruction_function(n)
-#define mis_instruction_args1(n, s, a1)         instruction_function(n, instruction_argument(a1))
-#define mis_instruction_args2(n, s, a1, a2)     instruction_function(n, instruction_argument(a1) instruction_argument(a2))
-#define mis_instruction_args3(n, s, a1, a2, a3) instruction_function(n, instruction_argument(a1) instruction_argument(a2) instruction_argument(a3))
+#define mspec_instruction_args0(n, s)             instruction_function(n)
+#define mspec_instruction_args1(n, s, a1)         instruction_function(n, instruction_argument(a1))
+#define mspec_instruction_args2(n, s, a1, a2)     instruction_function(n, instruction_argument(a1) instruction_argument(a2))
+#define mspec_instruction_args3(n, s, a1, a2, a3) instruction_function(n, instruction_argument(a1) instruction_argument(a2) instruction_argument(a3))
 
-#include "morphine/instruction/specification.h"
+#include "morphine/misc/instruction/specification.h"
 
 #undef sslot
 #undef dslot
@@ -39,7 +39,7 @@
 
 #undef instruction_argument
 #undef instruction_function
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3

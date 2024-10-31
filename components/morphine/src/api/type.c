@@ -56,17 +56,17 @@ MORPHINE_API bool mapi_is_type(morphine_coroutine_t U, const char *type) {
 
 MORPHINE_API bool mapi_is_callable(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    return callstackI_is_callable(U->I, value);
+    return valueI_is_callable(value);
 }
 
 MORPHINE_API bool mapi_is_metatype(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    return valueI_is_table(value) || valueI_is_userdata(value);
+    return valueI_is_metatype(value);
 }
 
 MORPHINE_API bool mapi_is_iterable(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    return valueI_is_table(value) || valueI_is_vector(value);
+    return valueI_is_iterable(value);
 }
 
 MORPHINE_API bool mapi_is_size(morphine_coroutine_t U) {

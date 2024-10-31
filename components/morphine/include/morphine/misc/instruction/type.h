@@ -7,7 +7,7 @@
 #include <stddef.h>
 #include <stdint.h>
 #include <stdbool.h>
-#include "limits.h"
+#include "morphine/limits.h"
 
 #define MORPHINE_INSTRUCTION_ARGS_COUNT 3
 
@@ -15,19 +15,19 @@
 #define MORPHINE_OPCODES_COUNT (MORPHINE_OPCODE_LENGTH + 1)
 
 typedef enum {
-#define mis_instruction_opcode(n)            MORPHINE_OPCODE_##n,
-#define mis_instruction_args0(n, s)             mis_instruction_opcode(n)
-#define mis_instruction_args1(n, s, a1)         mis_instruction_opcode(n)
-#define mis_instruction_args2(n, s, a1, a2)     mis_instruction_opcode(n)
-#define mis_instruction_args3(n, s, a1, a2, a3) mis_instruction_opcode(n)
+#define mspec_instruction_opcode(n)               MORPHINE_OPCODE_##n,
+#define mspec_instruction_args0(n, s)             mspec_instruction_opcode(n)
+#define mspec_instruction_args1(n, s, a1)         mspec_instruction_opcode(n)
+#define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_opcode(n)
+#define mspec_instruction_args3(n, s, a1, a2, a3) mspec_instruction_opcode(n)
 
-#include "instruction/specification.h"
+#include "specification.h"
 
-#undef mis_instruction_opcode
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_opcode
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
 } morphine_opcode_t;
 
 typedef struct {

@@ -19,19 +19,17 @@ enum a_type {
 };
 
 static const enum a_type map[MORPHINE_OPCODES_COUNT][MORPHINE_INSTRUCTION_ARGS_COUNT] = {
-#define mis_instruction_args0(n, s)             { AT_stub, AT_stub, AT_stub },
-#define mis_instruction_args1(n, s, a1)         { AT_##a1, AT_stub, AT_stub },
-#define mis_instruction_args2(n, s, a1, a2)     { AT_##a1, AT_##a2, AT_stub },
-#define mis_instruction_args3(n, s, a1, a2, a3) { AT_##a1, AT_##a2, AT_##a3 },
+#define mspec_instruction_args0(n, s)             { AT_stub, AT_stub, AT_stub },
+#define mspec_instruction_args1(n, s, a1)         { AT_##a1, AT_stub, AT_stub },
+#define mspec_instruction_args2(n, s, a1, a2)     { AT_##a1, AT_##a2, AT_stub },
+#define mspec_instruction_args3(n, s, a1, a2, a3) { AT_##a1, AT_##a2, AT_##a3 },
 
-#include "morphine/instruction/specification.h"
+#include "morphine/misc/instruction/specification.h"
 
-#undef instruction_argument
-#undef instruction_function
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
 };
 
 struct instruction instruction_convert(morphine_coroutine_t U, morphine_instruction_t instruction) {

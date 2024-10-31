@@ -48,7 +48,7 @@ static void finalizer(morphine_coroutine_t U) {
             candidate->flags.finalized = true;
 
             callstackI_continue(U, 1);
-            if (metatableI_builtin_test(U->I, candidate_value, MF_GC, &callable)) {
+            if (metatableI_builtin_test(U->I, candidate_value, MORPHINE_METAFIELD_GC, &callable)) {
                 callstackI_call_unsafe(U, callable, candidate_value, NULL, 0, 0);
                 return;
             }

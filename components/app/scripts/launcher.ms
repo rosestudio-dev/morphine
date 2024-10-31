@@ -175,7 +175,7 @@ fun tobytes<auto>(program, param)
     end
 
     val result = base.pcall(convert)
-    if (typeof result == "exception")
+    if (not result)
         help(program, "invalid bytes param")
     end
 

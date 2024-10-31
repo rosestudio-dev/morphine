@@ -6,7 +6,7 @@
 
 #include <stddef.h>
 #include "morphine/core/value.h"
-#include "morphine/instruction.h"
+#include "morphine/misc/instruction.h"
 
 struct function {
     struct object header;

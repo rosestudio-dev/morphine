@@ -11,19 +11,19 @@
 
 static const char *opcode2str(morphine_opcode_t opcode) {
     switch (opcode) {
-#define opcode_case(n, m)                       case MORPHINE_OPCODE_##n: return #m;
-#define mis_instruction_args0(n, s)             opcode_case(n, s)
-#define mis_instruction_args1(n, s, a1)         opcode_case(n, s)
-#define mis_instruction_args2(n, s, a1, a2)     opcode_case(n, s)
-#define mis_instruction_args3(n, s, a1, a2, a3) opcode_case(n, s)
+#define opcode_case(n, m)                         case MORPHINE_OPCODE_##n: return #m;
+#define mspec_instruction_args0(n, s)             opcode_case(n, s)
+#define mspec_instruction_args1(n, s, a1)         opcode_case(n, s)
+#define mspec_instruction_args2(n, s, a1, a2)     opcode_case(n, s)
+#define mspec_instruction_args3(n, s, a1, a2, a3) opcode_case(n, s)
 
-#include "morphine/instruction/specification.h"
+#include "morphine/misc/instruction/specification.h"
 
 #undef opcode_case
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
     }
 
     return "?";

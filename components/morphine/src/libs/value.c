@@ -11,7 +11,7 @@ static void tostr(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
-            if (mapi_metatable_builtin_test(U, "_mf_to_string")) {
+            if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_TO_STRING)) {
                 if (mapi_is_callable(U)) {
                     mapi_rotate(U, 2);
                     mapi_scall(U, 0);
@@ -115,7 +115,7 @@ static void compare(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
 
-            if (mapi_metatable_builtin_test(U, "_mf_compare")) {
+            if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_COMPARE)) {
                 if (mapi_is_callable(U)) {
                     mapi_rotate(U, 2);
                     mapi_scall(U, 0);
@@ -137,7 +137,7 @@ static void hash(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
-            if (mapi_metatable_builtin_test(U, "_mf_hash")) {
+            if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_HASH)) {
                 if (mapi_is_callable(U)) {
                     mapi_rotate(U, 2);
                     mapi_scall(U, 0);

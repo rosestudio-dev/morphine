@@ -7,7 +7,8 @@
 #include "morphine/object/string.h"
 
 static void init_metatable_names(morphine_instance_t I) {
-    for (enum metatable_field field = MFS_START; field < MFS_COUNT; field++) {
+    for (morphine_metatable_field_t field = MORPHINE_METATABLE_FIELDS_START;
+         field < MORPHINE_METATABLE_FIELDS_COUNT; field++) {
         const char *name = metatableI_field2string(I, field);
         I->metatable.names[field] = stringI_create(I, name);
     }

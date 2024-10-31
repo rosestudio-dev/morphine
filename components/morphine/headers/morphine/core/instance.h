@@ -31,7 +31,7 @@ struct instance {
     struct table *localstorage;
 
     struct {
-        struct string *names[MFS_COUNT];
+        struct string *names[MORPHINE_METATABLE_FIELDS_COUNT];
         struct table *defaults[VALUE_TYPES_COUNT];
     } metatable;
 

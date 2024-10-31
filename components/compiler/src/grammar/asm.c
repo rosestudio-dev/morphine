@@ -19,19 +19,19 @@ struct instruction_info {
 };
 
 static struct instruction_info instructions[] = {
-#define instruction(n, o, a)                    { #n, o, a },
-#define mis_instruction_args0(n, s)             instruction(s, MORPHINE_OPCODE_##n, 0)
-#define mis_instruction_args1(n, s, a1)         instruction(s, MORPHINE_OPCODE_##n, 1)
-#define mis_instruction_args2(n, s, a1, a2)     instruction(s, MORPHINE_OPCODE_##n, 2)
-#define mis_instruction_args3(n, s, a1, a2, a3) instruction(s, MORPHINE_OPCODE_##n, 3)
+#define instruction(n, o, a)                      { #n, o, a },
+#define mspec_instruction_args0(n, s)             instruction(s, MORPHINE_OPCODE_##n, 0)
+#define mspec_instruction_args1(n, s, a1)         instruction(s, MORPHINE_OPCODE_##n, 1)
+#define mspec_instruction_args2(n, s, a1, a2)     instruction(s, MORPHINE_OPCODE_##n, 2)
+#define mspec_instruction_args3(n, s, a1, a2, a3) instruction(s, MORPHINE_OPCODE_##n, 3)
 
-#include "morphine/instruction/specification.h"
+#include "morphine/misc/instruction/specification.h"
 
 #undef instruction
-#undef mis_instruction_args0
-#undef mis_instruction_args1
-#undef mis_instruction_args2
-#undef mis_instruction_args3
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
 };
 
 static struct instruction_info word2opcode(struct parse_controller *C, mc_strtable_index_t word) {

@@ -10,6 +10,7 @@
 #include "morphine/object/userdata.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/misc/metatable/type.h"
 #include <string.h>
 
 static inline struct value extract_metatable(morphine_instance_t I, struct table *metatable) {
@@ -17,7 +18,7 @@ static inline struct value extract_metatable(morphine_instance_t I, struct table
         return valueI_nil;
     }
 
-    struct value field_name = valueI_object(I->metatable.names[MF_MASK]);
+    struct value field_name = valueI_object(I->metatable.names[MORPHINE_METAFIELD_MASK]);
 
     bool has = false;
     struct value mask_value = tableI_get(I, metatable, field_name, &has);
@@ -95,10 +96,10 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
 bool metatableI_builtin_test(
     morphine_instance_t I,
     struct value source,
-    enum metatable_field field,
+    morphine_metatable_field_t field,
     struct value *result
 ) {
-    if (MFS_START > field || field >= MFS_COUNT) {
+    if (MORPHINE_METATABLE_FIELDS_START > field || field >= MORPHINE_METATABLE_FIELDS_COUNT) {
         throwI_panic(I, "unsupported meta field");
     }
 
@@ -137,71 +138,21 @@ bool metatableI_test(
     return has;
 }
 
-const char *metatableI_field2string(morphine_instance_t I, enum metatable_field field) {
+const char *metatableI_field2string(morphine_instance_t I, morphine_metatable_field_t field) {
     switch (field) {
-        case MF_CALL:
-            return "_mf_call";
-        case MF_GET:
-            return "_mf_get";
-        case MF_SET:
-            return "_mf_set";
-        case MF_TO_STRING:
-            return "_mf_to_string";
-        case MF_HASH:
-            return "_mf_hash";
-        case MF_COMPARE:
-            return "_mf_compare";
-        case MF_EQUAL:
-            return "_mf_equal";
-        case MF_MASK:
-            return "_mf_mask";
-        case MF_TYPE:
-            return "_mf_type";
-        case MF_ADD:
-            return "_mf_add";
-        case MF_SUB:
-            return "_mf_sub";
-        case MF_MUL:
-            return "_mf_mul";
-        case MF_DIV:
-            return "_mf_div";
-        case MF_MOD:
-            return "_mf_mod";
-        case MF_LESS:
-            return "_mf_less";
-        case MF_OR:
-            return "_mf_or";
-        case MF_AND:
-            return "_mf_and";
-        case MF_CONCAT:
-            return "_mf_concat";
-        case MF_NEGATE:
-            return "_mf_negate";
-        case MF_NOT:
-            return "_mf_not";
-        case MF_LENGTH:
-            return "_mf_length";
-        case MF_REF:
-            return "_mf_ref";
-        case MF_DEREF:
-            return "_mf_deref";
-        case MF_GC:
-            return "_mf_gc";
-        case MF_ITERATOR:
-            return "_mf_iterator";
-        case MF_ITERATOR_INIT:
-            return "_mf_iterator_init";
-        case MF_ITERATOR_HAS:
-            return "_mf_iterator_has";
-        case MF_ITERATOR_NEXT:
-            return "_mf_iterator_next";
+#define mspec_metatable_field(n, s) case MORPHINE_METAFIELD_##n: return #s;
+
+#include "morphine/misc/metatable/specification.h"
+
+#undef mspec_metatable_field
     }
 
     throwI_panic(I, "unsupported meta field");
 }
 
-enum metatable_field metatableI_string2field(morphine_instance_t I, const char *name) {
-    for (enum metatable_field field = MFS_START; field < MFS_COUNT; field++) {
+morphine_metatable_field_t metatableI_string2field(morphine_instance_t I, const char *name) {
+    for (morphine_metatable_field_t field = MORPHINE_METATABLE_FIELDS_START;
+         field < MORPHINE_METATABLE_FIELDS_COUNT; field++) {
         if (strcmp(metatableI_field2string(I, field), name) == 0) {
             return field;
         }

@@ -9,7 +9,7 @@
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
-#include "morphine/instruction/info.h"
+#include "morphine/misc/instruction.h"
 #include <string.h>
 
 struct function *functionI_create(

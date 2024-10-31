@@ -58,7 +58,10 @@ static inline bool stack_value_is_null(struct stack_value value) {
 // callable
 
 static inline struct value extract_callable(
-    morphine_instance_t I, struct value callable, bool *has, const char *error, bool error_before
+    morphine_instance_t I,
+    struct value callable,
+    const char *error,
+    bool error_before
 ) {
     size_t counter = 0;
 repeat:;
@@ -74,27 +77,15 @@ repeat:;
     }
 
     if (valueI_is_native(callable) || valueI_is_function(callable)) {
-        if (has != NULL) {
-            *has = true;
-        }
-
         return callable;
     }
 
-    if (has != NULL) {
-        *has = false;
+    const char *type = valueI_type(I, callable, false);
+    if (error_before) {
+        throwI_errorf(I, "%s %s", error, type);
+    } else {
+        throwI_errorf(I, "%s %s", type, error);
     }
-
-    if (error != NULL) {
-        const char *type = valueI_type(I, callable, false);
-        if (error_before) {
-            throwI_errorf(I, "%s %s", error, type);
-        } else {
-            throwI_errorf(I, "%s %s", type, error);
-        }
-    }
-
-    return valueI_nil;
 }
 
 static inline void internal_call(
@@ -114,9 +105,7 @@ static inline void internal_call(
 
     // get source and calc values size
 
-    struct value source = extract_callable(
-        I, *extract_value(U, callable), NULL, "unable to call", true
-    );
+    struct value source = extract_callable(I, *extract_value(U, callable), "unable to call", true);
 
     size_t slots_count = 0;
     size_t params_count = 0;
@@ -242,13 +231,7 @@ void callstackI_throw_fix(morphine_coroutine_t U) {
 }
 
 struct value callstackI_extract_callable(morphine_instance_t I, struct value callable) {
-    return extract_callable(I, callable, NULL, "isn't callable type", false);
-}
-
-bool callstackI_is_callable(morphine_instance_t I, struct value callable) {
-    bool result = false;
-    extract_callable(I, callable, &result, NULL, false);
-    return result;
+    return extract_callable(I, callable, "isn't callable type", false);
 }
 
 struct value callstackI_result(morphine_coroutine_t U) {
@@ -289,7 +272,7 @@ void callstackI_call_unsafe(
     }
 
     struct value mt_field;
-    if (unlikely(metatableI_builtin_test(U->I, callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_builtin_test(U->I, callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
         struct vector *vector = vectorI_create(U->I, argc);
         size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
 
@@ -386,7 +369,7 @@ void callstackI_call_from_api(
     struct callinfo *callinfo = callstackI_info(U);
     struct value callable = stackI_peek(U, callable_offset);
     struct value mt_field;
-    if (unlikely(metatableI_builtin_test(U->I, callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_builtin_test(U->I, callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
         struct vector *vector = vectorI_create(U->I, argc);
         size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
 
@@ -435,7 +418,7 @@ void callstackI_call_from_api(
 
         struct stack_value call_arg_callable = peek_stack_value(U, callable_offset + offset);
         struct stack_value call_arg_env =
-            has_env ? peek_stack_value(U, env_offset + offset) : save_value(U,NULL);
+            has_env ? peek_stack_value(U, env_offset + offset) : save_value(U, NULL);
         struct stack_value call_arg_args =
             argc == 0 ? save_value(U, NULL) : peek_stack_value(U, argc - 1 + offset);
 
@@ -471,7 +454,7 @@ void callstackI_call_from_interpreter(
     }
 
     struct value mt_field;
-    if (unlikely(metatableI_builtin_test(U->I, *callable, MF_CALL, &mt_field))) {
+    if (unlikely(metatableI_builtin_test(U->I, *callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
         struct vector *vector = vectorI_create(U->I, argc);
         size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
 
