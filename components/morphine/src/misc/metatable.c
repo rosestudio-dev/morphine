@@ -125,14 +125,14 @@ bool metatableI_test(
     struct value field_name = valueI_object(field);
 
     bool has = false;
+
+    struct value extracted = valueI_nil;
+    if (metatable != NULL) {
+        extracted = tableI_get(I, metatable, field_name, &has);
+    }
+
     if (result != NULL) {
-        if (metatable == NULL) {
-            *result = valueI_nil;
-        } else {
-            *result = tableI_get(I, metatable, field_name, &has);
-        }
-    } else if (metatable != NULL) {
-        tableI_get(I, metatable, field_name, &has);
+        *result = extracted;
     }
 
     return has;

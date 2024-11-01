@@ -109,7 +109,7 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_CLOSURE:
             return valueI_object(stringI_createf(I, "[object:closure:%"PRIxPTR"]", value.object.closure));
         case VALUE_TYPE_COROUTINE:
-            return valueI_object(stringI_createf(I,"[object:coroutine:%"PRIxPTR"]",value.object.coroutine));
+            return valueI_object(stringI_createf(I, "[object:coroutine:%"PRIxPTR"]",value.object.coroutine));
         case VALUE_TYPE_REFERENCE:
             return valueI_object(stringI_createf(I, "[object:reference:%"PRIxPTR"]", value.object.reference));
         case VALUE_TYPE_EXCEPTION:

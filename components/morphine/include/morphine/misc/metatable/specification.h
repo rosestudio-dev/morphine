@@ -2,7 +2,7 @@
 // Created by why-iskra on 31.10.2024.
 //
 
-// value
+// operations
 mspec_metatable_field(TYPE, _mf_type)              // (callable | value)
 mspec_metatable_field(CALL, _mf_call)              // (callable)
 mspec_metatable_field(GET, _mf_get)                // (callable | value)
@@ -27,9 +27,13 @@ mspec_metatable_field(ITERATOR_INIT, _mf_iterinit) // (callable)
 mspec_metatable_field(ITERATOR_HAS, _mf_iterhas)   // (callable | value)
 mspec_metatable_field(ITERATOR_NEXT, _mf_iternext) // (callable | value)
 
-mspec_metatable_field(TO_STRING, _mf_tostr)        // (callable | value) library
-mspec_metatable_field(HASH, _mf_hash)              // (callable | value) library
-mspec_metatable_field(COMPARE, _mf_compare)        // (callable | value) library
+// library
+mspec_metatable_field(TO_STRING, _mf_tostr)        // (callable | value)
+mspec_metatable_field(HASH, _mf_hash)              // (callable | value)
+mspec_metatable_field(COMPARE, _mf_compare)        // (callable | value)
+
+// objects
+mspec_metatable_field(MESSAGE, _mf_message)        // (value)
 
 // control
 mspec_metatable_field(MASK, _mf_mask)              // (value)

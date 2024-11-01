@@ -60,7 +60,6 @@ void throwI_handler(morphine_instance_t I) {
     exceptionI_stacktrace_record(I, exception, coroutine);
 
     if (callinfo != NULL) {
-
         // set state
         callinfo->pc.state = callinfo->catch.state;
         callinfo->catch.enable = false;

@@ -207,7 +207,7 @@ static void vcall(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void extractcallable(morphine_coroutine_t U) {
+static void callable(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
@@ -229,7 +229,7 @@ static morphine_library_function_t functions[] = {
     { "pcall",               pcall },
     { "ecall",               ecall },
     { "vcall",               vcall },
-    { "extractcallable",     extractcallable },
+    { "callable",            callable },
     { NULL, NULL }
 };
 

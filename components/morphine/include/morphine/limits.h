@@ -42,7 +42,7 @@ typedef uint32_t ml_line;
 
 #define MLIMIT_CALLABLE_ARGS         256
 #define MLIMIT_USERTYPE_NAME         1024
-#define MLIMIT_STACKTRACE_NAME       256
+#define MLIMIT_STACKTRACE_STRING     256
 #define MLIMIT_TABLE_TREES           131070
 #define MLIMIT_EXTRACT_CALLABLE_DEEP 1000000
 

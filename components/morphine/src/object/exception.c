@@ -40,21 +40,28 @@ void exceptionI_free(morphine_instance_t I, struct exception *exception) {
     allocI_free(I, exception);
 }
 
-void exceptionI_error_print(morphine_instance_t I, struct exception *exception, struct sio *sio) {
-    struct string *string = valueI_safe_as_string(exception->value, NULL);
-    if (string != NULL && stringI_is_cstr_compatible(I, string)) {
-        sioI_printf(I, sio, "morphine error: %s\n", string->chars);
-    } else {
-        sioI_print(I, sio, "morphine error: (unsupported value)\n");
-    }
-}
-
 static void print_string(morphine_instance_t I, struct sio *sio, struct string *string) {
-    if (string->size > MLIMIT_STACKTRACE_NAME) {
-        sioI_write(I, sio, (const uint8_t *) (string->chars), MLIMIT_STACKTRACE_NAME * sizeof(char));
+    if (string->size > MLIMIT_STACKTRACE_STRING) {
+        sioI_write(I, sio, (const uint8_t *) (string->chars), MLIMIT_STACKTRACE_STRING * sizeof(char));
         sioI_print(I, sio, "...");
     } else {
         sioI_write(I, sio, (const uint8_t *) (string->chars), string->size * sizeof(char));
+    }
+}
+
+void exceptionI_error_print(morphine_instance_t I, struct exception *exception, struct sio *sio) {
+    struct value value = exception->value;
+    if (!metatableI_builtin_test(I, value, MORPHINE_METAFIELD_MESSAGE, &value)) {
+        value = exception->value;
+    }
+
+    struct string *string = valueI_safe_as_string(valueI_value2string(I, value), NULL);
+    if (string != NULL) {
+        sioI_print(I, sio, "morphine error: ");
+        print_string(I, sio, string);
+        sioI_print(I, sio, "\n");
+    } else {
+        sioI_print(I, sio, "morphine error: (unsupported value)\n");
     }
 }
 
