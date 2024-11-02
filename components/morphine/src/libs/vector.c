@@ -311,7 +311,7 @@ static void tostr(morphine_coroutine_t U) {
             mapi_rotate(U, 2);
             mapi_pop(U, 1);
 
-            mapi_library(U, "value.tostr", false);
+            maux_library_access(U, "value.tostr");
             mapi_rotate(U, 2);
             mapi_call(U, 1);
         maux_nb_state(2)
@@ -333,39 +333,38 @@ static void tostr(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "create",    create },
-    { "clear",     clear },
-    { "copy",      copy },
-    { "sort",      sort },
-    { "resize",    resize },
-    { "add",       add },
-    { "remove",    remove_ },
-    { "push",      push },
-    { "peek",      peek },
-    { "pop",       pop },
-    { "frontpush", frontpush },
-    { "frontpeek", frontpeek },
-    { "frontpop",  frontpop },
-    { "mutable",   mutable },
-    { "unfixed",   unfixed },
-    { "lock",      lock },
-    { "isfixed",   isfixed },
-    { "ismutable", ismutable },
-    { "islocked",  islocked },
-    { "tostr",     tostr },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("create", create),
+    MAUX_CONSTRUCT_FUNCTION("clear", clear),
+    MAUX_CONSTRUCT_FUNCTION("copy", copy),
+    MAUX_CONSTRUCT_FUNCTION("sort", sort),
+    MAUX_CONSTRUCT_FUNCTION("resize", resize),
+    MAUX_CONSTRUCT_FUNCTION("add", add),
+    MAUX_CONSTRUCT_FUNCTION("remove", remove_),
+    MAUX_CONSTRUCT_FUNCTION("push", push),
+    MAUX_CONSTRUCT_FUNCTION("peek", peek),
+    MAUX_CONSTRUCT_FUNCTION("pop", pop),
+    MAUX_CONSTRUCT_FUNCTION("frontpush", frontpush),
+    MAUX_CONSTRUCT_FUNCTION("frontpeek", frontpeek),
+    MAUX_CONSTRUCT_FUNCTION("frontpop", frontpop),
+    MAUX_CONSTRUCT_FUNCTION("mutable", mutable),
+    MAUX_CONSTRUCT_FUNCTION("unfixed", unfixed),
+    MAUX_CONSTRUCT_FUNCTION("lock", lock),
+    MAUX_CONSTRUCT_FUNCTION("isfixed", isfixed),
+    MAUX_CONSTRUCT_FUNCTION("ismutable", ismutable),
+    MAUX_CONSTRUCT_FUNCTION("islocked", islocked),
+    MAUX_CONSTRUCT_FUNCTION("tostr", tostr),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "vector",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_vector(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_vector(void) {
+    return (morphine_library_t) {
+        .name = "vector",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

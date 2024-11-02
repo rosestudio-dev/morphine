@@ -65,7 +65,7 @@ static inline struct value extract_callable(
 ) {
     size_t counter = 0;
 repeat:;
-    if (counter > MLIMIT_EXTRACT_CALLABLE_DEEP) {
+    if (counter > MPARAM_FAKE_RECURSION_DEEP) {
         throwI_error(I, "possible recursion while extracting callable");
     }
 

@@ -6,4 +6,4 @@
 
 #include <morphine.h>
 
-MORPHINE_LIB morphine_library_t *mllib_launcher(morphine_instance_t);
+MORPHINE_LIB morphine_library_t mllib_launcher(void);

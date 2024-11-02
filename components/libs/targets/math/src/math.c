@@ -341,79 +341,75 @@ static void math_inf(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "cos",    math_cos },
-    { "sin",    math_sin },
-    { "tan",    math_tan },
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("cos", math_cos),
+    MAUX_CONSTRUCT_FUNCTION("sin", math_sin),
+    MAUX_CONSTRUCT_FUNCTION("tan", math_tan),
 
-    { "acos",   math_acos },
-    { "asin",   math_asin },
-    { "atan",   math_atan },
-    { "atan2",  math_atan2 },
+    MAUX_CONSTRUCT_FUNCTION("acos", math_acos),
+    MAUX_CONSTRUCT_FUNCTION("asin", math_asin),
+    MAUX_CONSTRUCT_FUNCTION("atan", math_atan),
+    MAUX_CONSTRUCT_FUNCTION("atan2", math_atan2),
 
-    { "cosh",   math_cosh },
-    { "sinh",   math_sinh },
-    { "tanh",   math_tanh },
+    MAUX_CONSTRUCT_FUNCTION("cosh", math_cosh),
+    MAUX_CONSTRUCT_FUNCTION("sinh", math_sinh),
+    MAUX_CONSTRUCT_FUNCTION("tanh", math_tanh),
 
-    { "acosh",  math_acosh },
-    { "asinh",  math_asinh },
-    { "atanh",  math_atanh },
+    MAUX_CONSTRUCT_FUNCTION("acosh", math_acosh),
+    MAUX_CONSTRUCT_FUNCTION("asinh", math_asinh),
+    MAUX_CONSTRUCT_FUNCTION("atanh", math_atanh),
 
-    { "exp",    math_exp },
-    { "exp2",   math_exp2 },
-    { "log",    math_log },
-    { "log10",  math_log10 },
-    { "log2",   math_log2 },
+    MAUX_CONSTRUCT_FUNCTION("exp", math_exp),
+    MAUX_CONSTRUCT_FUNCTION("exp2", math_exp2),
+    MAUX_CONSTRUCT_FUNCTION("log", math_log),
+    MAUX_CONSTRUCT_FUNCTION("log10", math_log10),
+    MAUX_CONSTRUCT_FUNCTION("log2", math_log2),
 
-    { "pow",    math_pow },
-    { "sqrt",   math_sqrt },
-    { "cbrt",   math_cbrt },
-    { "hypot",  math_hypot },
-    { "erf",    math_erf },
-    { "erfc",   math_erfc },
-    { "tgamma", math_tgamma },
-    { "lgamma", math_lgamma },
+    MAUX_CONSTRUCT_FUNCTION("pow", math_pow),
+    MAUX_CONSTRUCT_FUNCTION("sqrt", math_sqrt),
+    MAUX_CONSTRUCT_FUNCTION("cbrt", math_cbrt),
+    MAUX_CONSTRUCT_FUNCTION("hypot", math_hypot),
+    MAUX_CONSTRUCT_FUNCTION("erf", math_erf),
+    MAUX_CONSTRUCT_FUNCTION("erfc", math_erfc),
+    MAUX_CONSTRUCT_FUNCTION("tgamma", math_tgamma),
+    MAUX_CONSTRUCT_FUNCTION("lgamma", math_lgamma),
 
-    { "ceil",   math_ceil },
-    { "floor",  math_floor },
-    { "trunc",  math_trunc },
-    { "round",  math_round },
-    { "rint",   math_rint },
+    MAUX_CONSTRUCT_FUNCTION("ceil", math_ceil),
+    MAUX_CONSTRUCT_FUNCTION("floor", math_floor),
+    MAUX_CONSTRUCT_FUNCTION("trunc", math_trunc),
+    MAUX_CONSTRUCT_FUNCTION("round", math_round),
+    MAUX_CONSTRUCT_FUNCTION("rint", math_rint),
 
-    { "rad",    math_rad },
-    { "deg",    math_deg },
+    MAUX_CONSTRUCT_FUNCTION("rad", math_rad),
+    MAUX_CONSTRUCT_FUNCTION("deg", math_deg),
 
-    { "abs",    math_fabs },
-    { "dcomp",  math_modf },
+    MAUX_CONSTRUCT_FUNCTION("abs", math_fabs),
+    MAUX_CONSTRUCT_FUNCTION("dcomp", math_modf),
 
-    { "max",    math_imax },
-    { "min",    math_imin },
-    { "dmax",   math_dmax },
-    { "dmin",   math_dmin },
+    MAUX_CONSTRUCT_FUNCTION("max", math_imax),
+    MAUX_CONSTRUCT_FUNCTION("min", math_imin),
+    MAUX_CONSTRUCT_FUNCTION("dmax", math_dmax),
+    MAUX_CONSTRUCT_FUNCTION("dmin", math_dmin),
 
-    { "isnan",  math_isnan },
-    { "isinf",  math_isinf },
+    MAUX_CONSTRUCT_FUNCTION("isnan", math_isnan),
+    MAUX_CONSTRUCT_FUNCTION("isinf", math_isinf),
 
-    { "nan",    math_nan },
-    { "inf",    math_inf },
+    MAUX_CONSTRUCT_FUNCTION("nan", math_nan),
+    MAUX_CONSTRUCT_FUNCTION("inf", math_inf),
 
-    { NULL, NULL }
+    MAUX_CONSTRUCT_DECIMAL("constants.pi", PI_CONST),
+    MAUX_CONSTRUCT_DECIMAL("constants.e", E_CONST),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_decimal_t decimals[] = {
-    { "pi", PI_CONST },
-    { "e", E_CONST },
-    { NULL, 0 }
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-static morphine_library_t library = {
-    .name = "math",
-    .functions = functions,
-    .integers = NULL,
-    .decimals = decimals,
-    .strings = NULL
-};
-
-MORPHINE_LIB morphine_library_t *mllib_math(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mllib_math(void) {
+    return (morphine_library_t) {
+        .name = "math",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

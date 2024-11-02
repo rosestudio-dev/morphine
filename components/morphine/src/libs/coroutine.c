@@ -5,6 +5,8 @@
 #include <morphine.h>
 #include "morphine/libs/builtin.h"
 
+#define GUARD_TYPE "coroutine.guard"
+
 static void current(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -167,8 +169,8 @@ static void guardlock(morphine_coroutine_t U) {
             maux_nb_operation("type", 1);
         maux_nb_state(1)
             mapi_push_result(U);
-            if (mapi_string_cstr_compare(U, "coroutine.guard") != 0) {
-                mapi_error(U, "expected coroutine.guard");
+            if (mapi_string_cstr_compare(U, GUARD_TYPE) != 0) {
+                mapi_error(U, "expected "GUARD_TYPE);
             } else {
                 mapi_pop(U, 1);
             }
@@ -201,8 +203,8 @@ static void guardunlock(morphine_coroutine_t U) {
             maux_nb_operation("type", 1);
         maux_nb_state(1)
             mapi_push_result(U);
-            if (mapi_string_cstr_compare(U, "coroutine.guard") != 0) {
-                mapi_error(U, "expected coroutine.guard");
+            if (mapi_string_cstr_compare(U, GUARD_TYPE) != 0) {
+                mapi_error(U, "expected "GUARD_TYPE);
             } else {
                 mapi_pop(U, 1);
             }
@@ -219,33 +221,22 @@ static void guard(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 0);
 
-            mapi_push_table(U);
+            maux_construct_element_t body[] = {
+                MAUX_CONSTRUCT_BOOLEAN("islocked", false),
+                MAUX_CONSTRUCT_FUNCTION("lock", guardlock),
+                MAUX_CONSTRUCT_FUNCTION("unlock", guardunlock),
+                MAUX_CONSTRUCT_END
+            };
 
-            mapi_push_string(U, "islocked");
-            mapi_push_boolean(U, false);
-            mapi_table_set(U);
+            maux_construct_element_t meta[] = {
+                MAUX_CONSTRUCT_STRING(maux_metafield_name(MORPHINE_METAFIELD_TYPE), GUARD_TYPE),
+                MAUX_CONSTRUCT_NIL(maux_metafield_name(MORPHINE_METAFIELD_MASK)),
+                MAUX_CONSTRUCT_NIL(maux_metafield_name(MORPHINE_METAFIELD_SET)),
+                MAUX_CONSTRUCT_END
+            };
 
-            mapi_push_string(U, "lock");
-            maux_push_native(U, "coroutine.guard.lock", guardlock);
-            mapi_table_set(U);
-
-            mapi_push_string(U, "unlock");
-            maux_push_native(U, "coroutine.guard.unlock", guardunlock);
-            mapi_table_set(U);
-
-            mapi_push_table(U);
-
-            mapi_push_string(U, "_mf_type");
-            mapi_push_string(U, "coroutine.guard");
-            mapi_table_set(U);
-
-            mapi_push_string(U, "_mf_mask");
-            mapi_push_nil(U);
-            mapi_table_set(U);
-
-            mapi_push_string(U, "_mf_set");
-            mapi_push_nil(U);
-            mapi_table_set(U);
+            maux_construct(U, body);
+            maux_construct(U, meta);
 
             mapi_set_metatable(U);
             mapi_table_mode_fixed(U, true);
@@ -256,30 +247,29 @@ static void guard(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "current",  current },
-    { "create",   create },
-    { "launch",   launch },
-    { "resume",   resume },
-    { "suspend",  suspend },
-    { "kill",     kill },
-    { "status",   status },
-    { "priority", priority },
-    { "name",     name },
-    { "wait",     wait },
-    { "guard",    guard },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("current", current),
+    MAUX_CONSTRUCT_FUNCTION("create", create),
+    MAUX_CONSTRUCT_FUNCTION("launch", launch),
+    MAUX_CONSTRUCT_FUNCTION("resume", resume),
+    MAUX_CONSTRUCT_FUNCTION("suspend", suspend),
+    MAUX_CONSTRUCT_FUNCTION("kill", kill),
+    MAUX_CONSTRUCT_FUNCTION("status", status),
+    MAUX_CONSTRUCT_FUNCTION("priority", priority),
+    MAUX_CONSTRUCT_FUNCTION("name", name),
+    MAUX_CONSTRUCT_FUNCTION("wait", wait),
+    MAUX_CONSTRUCT_FUNCTION("guard", guard),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "coroutine",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_coroutine(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_coroutine(void) {
+    return (morphine_library_t) {
+        .name = "coroutine",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

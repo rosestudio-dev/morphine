@@ -8,6 +8,7 @@
 
 void init_env(morphine_instance_t);
 void init_localstorage(morphine_instance_t);
+void init_sharedstorage(morphine_instance_t);
 void init_metatables(morphine_instance_t);
 void init_sio(morphine_instance_t);
 void init_libraries(morphine_instance_t);

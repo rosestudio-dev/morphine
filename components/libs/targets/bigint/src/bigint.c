@@ -24,33 +24,45 @@ static struct mlib_bigint *bigint_from(morphine_coroutine_t U) {
 
 static inline void raw_binary(
     morphine_coroutine_t U,
-    struct mlib_bigint *(*function_type1)(morphine_coroutine_t, struct mlib_bigint *, struct mlib_bigint *, struct mlib_bigint *)
+    struct mlib_bigint *(*function_type1)(morphine_coroutine_t, struct mlib_bigint *, struct mlib_bigint *, struct mlib_bigint *),
+    void (*function_type2)(morphine_coroutine_t, struct mlib_bigint *, struct mlib_bigint *)
 ) {
     maux_nb_function(U)
         maux_nb_init
-            struct mlib_bigint *bigintA;
-            struct mlib_bigint *bigintB;
-            struct mlib_bigint *result = NULL;
-            if (mapi_args(U) == 3) {
-                mapi_push_arg(U, 0);
-                bigintA = mlapi_get_bigint(U);
+            maux_expect_args(U, 2);
 
-                mapi_push_arg(U, 1);
-                bigintB = bigint_from(U);
+            mapi_push_arg(U, 0);
+            struct mlib_bigint *bigintA = mlapi_get_bigint(U);
 
-                mapi_push_arg(U, 2);
-                result = mlapi_get_bigint(U);
+            mapi_push_arg(U, 1);
+            struct mlib_bigint *bigintB = bigint_from(U);
+
+            if (function_type1 != NULL) {
+                function_type1(U, bigintA, bigintB, NULL);
             } else {
-                maux_expect_args(U, 2);
-
-                mapi_push_arg(U, 0);
-                bigintA = mlapi_get_bigint(U);
-
-                mapi_push_arg(U, 1);
-                bigintB = bigint_from(U);
+                function_type2(U, bigintA, bigintB);
             }
+            maux_nb_return();
+    maux_nb_end
+}
 
-            function_type1(U, bigintA, bigintB, result);
+static inline void raw_unary(
+    morphine_coroutine_t U,
+    struct mlib_bigint *(*function_type1)(morphine_coroutine_t, struct mlib_bigint *, struct mlib_bigint *),
+    void (*function_type2)(morphine_coroutine_t, struct mlib_bigint *)
+) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+
+            mapi_push_arg(U, 0);
+            struct mlib_bigint *bigint = mlapi_get_bigint(U);
+
+            if (function_type1 != NULL) {
+                function_type1(U, bigint, NULL);
+            } else {
+                function_type2(U, bigint);
+            }
             maux_nb_return();
     maux_nb_end
 }
@@ -93,6 +105,67 @@ static inline void binary(
     maux_nb_end
 }
 
+static inline void unary(
+    morphine_coroutine_t U,
+    struct mlib_bigint *(*function_type1)(morphine_coroutine_t, struct mlib_bigint *, struct mlib_bigint *),
+    void (*function_type2)(morphine_coroutine_t, struct mlib_bigint *)
+) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 0);
+            mapi_push_self(U);
+            maux_nb_operation("type", 1);
+        maux_nb_state(1)
+            mapi_push_result(U);
+            struct mlib_bigint *bigintA;
+            if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
+                mapi_push_self(U);
+                mapi_push_string(U, "instance");
+                mapi_table_get(U);
+                bigintA = mlapi_get_bigint(U);
+            } else {
+                mapi_push_self(U);
+                bigintA = bigint_from(U);
+            }
+
+            if (function_type1 != NULL) {
+                function_type1(U, bigintA, NULL);
+                bigint_metatable_wrap(U);
+            } else {
+                function_type2(U, bigintA);
+            }
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void op_bigint_less(morphine_coroutine_t U, struct mlib_bigint *bigintA, struct mlib_bigint *bigintB) {
+    mapi_push_boolean(U, mlapi_bigint_compare(bigintA, bigintB) < 0);
+}
+
+static void op_bigint_equal(
+    morphine_coroutine_t U,
+    struct mlib_bigint *bigintA,
+    struct mlib_bigint *bigintB
+) {
+    mapi_push_boolean(U, mlapi_bigint_compare(bigintA, bigintB) == 0);
+}
+
+static void op_bigint_tostring(morphine_coroutine_t U, struct mlib_bigint *bigint) {
+    mlapi_bigint_tostring(U, bigint);
+}
+
+static void op_bigint_compare(
+    morphine_coroutine_t U,
+    struct mlib_bigint *bigintA,
+    struct mlib_bigint *bigintB
+) {
+    mapi_push_integer(U, mlapi_bigint_compare(bigintA, bigintB));
+}
+
+static void op_bigint_hash(morphine_coroutine_t U, struct mlib_bigint *bigint) {
+    mapi_push_hash(U, mlapi_bigint_hash(U, bigint));
+}
+
 static void lib_bigint_add(morphine_coroutine_t U) {
     binary(U, mlapi_bigint_add, NULL);
 }
@@ -113,16 +186,8 @@ static void lib_bigint_mod(morphine_coroutine_t U) {
     binary(U, mlapi_bigint_mod, NULL);
 }
 
-static void op_bigint_less(morphine_coroutine_t U, struct mlib_bigint *bigintA, struct mlib_bigint *bigintB) {
-    mapi_push_boolean(U, mlapi_bigint_compare(bigintA, bigintB) < 0);
-}
-
 static void lib_bigint_less(morphine_coroutine_t U) {
     binary(U, NULL, op_bigint_less);
-}
-
-static void op_bigint_equal(morphine_coroutine_t U, struct mlib_bigint *bigintA, struct mlib_bigint *bigintB) {
-    mapi_push_boolean(U, mlapi_bigint_compare(bigintA, bigintB) == 0);
 }
 
 static void lib_bigint_equal(morphine_coroutine_t U) {
@@ -130,146 +195,89 @@ static void lib_bigint_equal(morphine_coroutine_t U) {
 }
 
 static void lib_bigint_negate(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 0);
-
-            mapi_push_self(U);
-            mapi_push_string(U, "instance");
-            mapi_table_get(U);
-            struct mlib_bigint *bigint = mlapi_get_bigint(U);
-
-            mlapi_bigint_negate(U, bigint, false);
-            maux_nb_return();
-    maux_nb_end
+    unary(U, mlapi_bigint_negate, NULL);
 }
 
 static void lib_bigint_tostring(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 0);
+    unary(U, NULL, op_bigint_tostring);
+}
 
-            mapi_push_self(U);
-            mapi_push_string(U, "instance");
-            mapi_table_get(U);
-            struct mlib_bigint *bigint = mlapi_get_bigint(U);
+static void lib_bigint_compare(morphine_coroutine_t U) {
+    binary(U, NULL, op_bigint_compare);
+}
 
-            mlapi_bigint_tostring(U, bigint);
-            maux_nb_return();
-    maux_nb_end
+static void lib_bigint_hash(morphine_coroutine_t U) {
+    unary(U, NULL, op_bigint_hash);
 }
 
 static void lib_raw_bigint_add(morphine_coroutine_t U) {
-    raw_binary(U, mlapi_bigint_add);
+    raw_binary(U, mlapi_bigint_add, NULL);
 }
 
 static void lib_raw_bigint_sub(morphine_coroutine_t U) {
-    raw_binary(U, mlapi_bigint_sub);
+    raw_binary(U, mlapi_bigint_sub, NULL);
 }
 
 static void lib_raw_bigint_mul(morphine_coroutine_t U) {
-    raw_binary(U, mlapi_bigint_mul);
+    raw_binary(U, mlapi_bigint_mul, NULL);
 }
 
 static void lib_raw_bigint_div(morphine_coroutine_t U) {
-    raw_binary(U, mlapi_bigint_div);
+    raw_binary(U, mlapi_bigint_div, NULL);
 }
 
 static void lib_raw_bigint_mod(morphine_coroutine_t U) {
-    raw_binary(U, mlapi_bigint_mod);
+    raw_binary(U, mlapi_bigint_mod, NULL);
 }
 
-static void lib_raw_bigint_compare(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 2);
+static void lib_raw_bigint_less(morphine_coroutine_t U) {
+    raw_binary(U, NULL, op_bigint_less);
+}
 
-            mapi_push_arg(U, 0);
-            struct mlib_bigint *bigintA = mlapi_get_bigint(U);
-
-            mapi_push_arg(U, 1);
-            struct mlib_bigint *bigintB = bigint_from(U);
-
-            mapi_push_integer(U, mlapi_bigint_compare(bigintA, bigintB));
-            maux_nb_return();
-    maux_nb_end
+static void lib_raw_bigint_equal(morphine_coroutine_t U) {
+    raw_binary(U, NULL, op_bigint_equal);
 }
 
 static void lib_raw_bigint_negate(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-
-            mapi_push_arg(U, 0);
-            struct mlib_bigint *bigint = mlapi_get_bigint(U);
-            mlapi_bigint_negate(U, bigint, true);
-            maux_nb_return();
-    maux_nb_end
+    raw_unary(U, mlapi_bigint_negate, NULL);
 }
 
 static void lib_raw_bigint_tostring(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
+    raw_unary(U, NULL, op_bigint_tostring);
+}
 
-            mapi_push_arg(U, 0);
-            struct mlib_bigint *bigint = mlapi_get_bigint(U);
-            mlapi_bigint_tostring(U, bigint);
-            maux_nb_return();
-    maux_nb_end
+static void lib_raw_bigint_compare(morphine_coroutine_t U) {
+    raw_binary(U, NULL, op_bigint_compare);
+}
+
+static void lib_raw_bigint_hash(morphine_coroutine_t U) {
+    raw_unary(U, NULL, op_bigint_hash);
 }
 
 static void bigint_metatable_wrap(morphine_coroutine_t U) {
+    maux_construct_element_t metatable_elements[] = {
+        MAUX_CONSTRUCT_STRING(maux_metafield_name(MORPHINE_METAFIELD_TYPE), BIGINT_WRAPPED_TYPE),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_ADD), lib_bigint_add),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_SUB), lib_bigint_sub),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_MUL), lib_bigint_mul),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_DIV), lib_bigint_div),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_MOD), lib_bigint_mod),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_LESS), lib_bigint_less),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_EQUAL), lib_bigint_equal),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_NEGATE), lib_bigint_negate),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_TO_STRING), lib_bigint_tostring),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_COMPARE), lib_bigint_compare),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(MORPHINE_METAFIELD_HASH), lib_bigint_hash),
+        MAUX_CONSTRUCT_NIL(maux_metafield_name(MORPHINE_METAFIELD_MASK)),
+        MAUX_CONSTRUCT_END
+    };
+
     mapi_push_table(U);
     mapi_push_string(U, "instance");
     mapi_peek(U, 2);
     mapi_table_set(U);
 
-    mapi_push_table(U);
-
-    mapi_push_string(U, "_mf_type");
-    mapi_push_string(U, BIGINT_WRAPPED_TYPE);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_to_string");
-    maux_push_native(U, "bigint.tostring", lib_bigint_tostring);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_add");
-    maux_push_native(U, "bigint.add", lib_bigint_add);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_sub");
-    maux_push_native(U, "bigint.sub", lib_bigint_sub);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_mul");
-    maux_push_native(U, "bigint.mul", lib_bigint_mul);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_div");
-    maux_push_native(U, "bigint.div", lib_bigint_div);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_mod");
-    maux_push_native(U, "bigint.mod", lib_bigint_mod);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_less");
-    maux_push_native(U, "bigint.less", lib_bigint_less);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_equal");
-    maux_push_native(U, "bigint.equal", lib_bigint_equal);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_negate");
-    maux_push_native(U, "bigint.negate", lib_bigint_negate);
-    mapi_table_set(U);
-
-    mapi_push_string(U, "_mf_mask");
-    mapi_push_nil(U);
-    mapi_table_set(U);
+    maux_construct(U, metatable_elements);
 
     mapi_set_metatable(U);
     mapi_table_mode_mutable(U, false);
@@ -301,28 +309,31 @@ static void lib_bigint_wrap(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "create",   lib_bigint_create },
-    { "wrap",     lib_bigint_wrap },
-    { "tostring", lib_raw_bigint_tostring },
-    { "add",      lib_raw_bigint_add },
-    { "sub",      lib_raw_bigint_sub },
-    { "mul",      lib_raw_bigint_mul },
-    { "div",      lib_raw_bigint_div },
-    { "mod",      lib_raw_bigint_mod },
-    { "negate",   lib_raw_bigint_negate },
-    { "compare",  lib_raw_bigint_compare },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("create", lib_bigint_create),
+    MAUX_CONSTRUCT_FUNCTION("wrap", lib_bigint_wrap),
+    MAUX_CONSTRUCT_FUNCTION("add", lib_raw_bigint_add),
+    MAUX_CONSTRUCT_FUNCTION("sub", lib_raw_bigint_sub),
+    MAUX_CONSTRUCT_FUNCTION("mul", lib_raw_bigint_mul),
+    MAUX_CONSTRUCT_FUNCTION("div", lib_raw_bigint_div),
+    MAUX_CONSTRUCT_FUNCTION("mod", lib_raw_bigint_mod),
+    MAUX_CONSTRUCT_FUNCTION("less", lib_raw_bigint_less),
+    MAUX_CONSTRUCT_FUNCTION("equal", lib_raw_bigint_equal),
+    MAUX_CONSTRUCT_FUNCTION("negate", lib_raw_bigint_negate),
+    MAUX_CONSTRUCT_FUNCTION("tostring", lib_raw_bigint_tostring),
+    MAUX_CONSTRUCT_FUNCTION("compare", lib_raw_bigint_compare),
+    MAUX_CONSTRUCT_FUNCTION("hash", lib_raw_bigint_hash),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "bigint",
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mllib_bigint(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mllib_bigint(void) {
+    return (morphine_library_t) {
+        .name = "bigint",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

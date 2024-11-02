@@ -43,20 +43,20 @@ static void millis(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "millis", millis },
-    { "delay",  delay },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("millis", millis),
+    MAUX_CONSTRUCT_FUNCTION("delay", delay),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "system",
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mllib_system(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mllib_system(void) {
+    return (morphine_library_t) {
+        .name = "system",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

@@ -28,6 +28,7 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
         .data = data,
         .env = NULL,
         .localstorage = NULL,
+        .sharedstorage = NULL,
 
 #ifdef MORPHINE_ENABLE_SSO
         .sso = ssoI_prototype(),

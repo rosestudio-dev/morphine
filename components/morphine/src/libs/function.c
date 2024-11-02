@@ -343,28 +343,27 @@ static void setinstruction(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "create",         create },
-    { "complete",       complete },
-    { "info",           info },
-    { "getinstruction", getinstruction },
-    { "setinstruction", setinstruction },
-    { "getconstant",    getconstant },
-    { "setconstant",    setconstant },
-    { "getstatic",      getstatic },
-    { "setstatic",      setstatic },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("create", create),
+    MAUX_CONSTRUCT_FUNCTION("complete", complete),
+    MAUX_CONSTRUCT_FUNCTION("info", info),
+    MAUX_CONSTRUCT_FUNCTION("getinstruction", getinstruction),
+    MAUX_CONSTRUCT_FUNCTION("setinstruction", setinstruction),
+    MAUX_CONSTRUCT_FUNCTION("getconstant", getconstant),
+    MAUX_CONSTRUCT_FUNCTION("setconstant", setconstant),
+    MAUX_CONSTRUCT_FUNCTION("getstatic", getstatic),
+    MAUX_CONSTRUCT_FUNCTION("setstatic", setstatic),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "function",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_function(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_function(void) {
+    return (morphine_library_t) {
+        .name = "function",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

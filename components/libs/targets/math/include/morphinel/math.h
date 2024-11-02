@@ -10,7 +10,7 @@
 extern "C" {
 #endif
 
-MORPHINE_LIB morphine_library_t *mllib_math(void);
+MORPHINE_LIB morphine_library_t mllib_math(void);
 
 #ifdef __cplusplus
 }

@@ -14,6 +14,7 @@ MORPHINE_API struct mlib_bigint *mlapi_get_bigint(morphine_coroutine_t);
 MORPHINE_API struct mlib_bigint *mlapi_bigint_from_integer(morphine_coroutine_t, ml_integer);
 MORPHINE_API struct mlib_bigint *mlapi_bigint_from_string(morphine_coroutine_t, const char *);
 MORPHINE_API int mlapi_bigint_compare(struct mlib_bigint *, struct mlib_bigint *);
+MORPHINE_API ml_hash mlapi_bigint_hash(morphine_coroutine_t, struct mlib_bigint *);
 MORPHINE_API void mlapi_bigint_tostring(morphine_coroutine_t, struct mlib_bigint *);
 
 MORPHINE_API struct mlib_bigint *mlapi_bigint_add(
@@ -51,4 +52,8 @@ MORPHINE_API struct mlib_bigint *mlapi_bigint_mod(
     struct mlib_bigint *
 );
 
-MORPHINE_API struct mlib_bigint *mlapi_bigint_negate(morphine_coroutine_t, struct mlib_bigint *, bool);
+MORPHINE_API struct mlib_bigint *mlapi_bigint_negate(
+    morphine_coroutine_t,
+    struct mlib_bigint *,
+    struct mlib_bigint *
+);

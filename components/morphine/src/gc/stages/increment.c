@@ -59,6 +59,10 @@ static inline void record(morphine_instance_t I) {
         mark_object(I, objectI_cast(I->localstorage));
     }
 
+    if (I->sharedstorage != NULL) {
+        mark_object(I, objectI_cast(I->sharedstorage));
+    }
+
     {
         size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
 

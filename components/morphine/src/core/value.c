@@ -13,6 +13,7 @@
 #include "morphine/object/userdata.h"
 #include "morphine/platform/conversions.h"
 #include "morphine/utils/compare.h"
+#include "morphine/algorithm/hash.h"
 
 int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
     if (likely(a.type != b.type)) {
@@ -50,18 +51,26 @@ int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
     throwI_panic(I, "unsupported type");
 }
 
+#define declare_hash(t, n) static inline ml_hash n##2hash(t value) { return calchash(sizeof(value), (const uint8_t *) &value); }
+
+declare_hash(void *, ptr)
+declare_hash(ml_integer, integer)
+declare_hash(ml_decimal, decimal)
+declare_hash(bool, bool)
+declare_hash(uintptr_t, uintptr)
+
 ml_hash valueI_hash(morphine_instance_t I, struct value value) {
     switch (value.type) {
         case VALUE_TYPE_NIL:
-            return (ml_hash) (uintptr_t) valueI_as_nil(value);
+            return ptr2hash(valueI_as_nil(value));
         case VALUE_TYPE_INTEGER:
-            return (ml_hash) valueI_as_integer(value);
+            return integer2hash(valueI_as_integer(value));
         case VALUE_TYPE_DECIMAL:
-            return (ml_hash) valueI_as_decimal(value);
+            return decimal2hash(valueI_as_decimal(value));
         case VALUE_TYPE_BOOLEAN:
-            return (ml_hash) valueI_as_boolean(value);
+            return bool2hash(valueI_as_boolean(value));
         case VALUE_TYPE_RAW:
-            return (ml_hash) valueI_as_raw(value);
+            return uintptr2hash(valueI_as_raw(value));
         case VALUE_TYPE_STRING:
             return stringI_hash(I, valueI_as_string(value));
         case VALUE_TYPE_USERDATA:
@@ -76,7 +85,7 @@ ml_hash valueI_hash(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_ITERATOR:
         case VALUE_TYPE_SIO:
-            return (ml_hash) (uintptr_t) valueI_as_object(value);
+            return ptr2hash(valueI_as_object(value));
     }
 
     throwI_panic(I, "unsupported type");
@@ -109,7 +118,7 @@ struct value valueI_value2string(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_CLOSURE:
             return valueI_object(stringI_createf(I, "[object:closure:%"PRIxPTR"]", value.object.closure));
         case VALUE_TYPE_COROUTINE:
-            return valueI_object(stringI_createf(I, "[object:coroutine:%"PRIxPTR"]",value.object.coroutine));
+            return valueI_object(stringI_createf(I, "[object:coroutine:%"PRIxPTR"]", value.object.coroutine));
         case VALUE_TYPE_REFERENCE:
             return valueI_object(stringI_createf(I, "[object:reference:%"PRIxPTR"]", value.object.reference));
         case VALUE_TYPE_EXCEPTION:

@@ -29,6 +29,7 @@ struct instance {
 
     struct table *env;
     struct table *localstorage;
+    struct table *sharedstorage;
 
     struct {
         struct string *names[MORPHINE_METATABLE_FIELDS_COUNT];

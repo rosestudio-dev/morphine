@@ -482,25 +482,23 @@ static void optimize(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "compile",  compile },
-    { "dis",      dis },
-    { "lex",      lex },
-    { "ast",      ast },
-    { "optimize", optimize },
-
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("compile", compile),
+    MAUX_CONSTRUCT_FUNCTION("dis", dis),
+    MAUX_CONSTRUCT_FUNCTION("lex", lex),
+    MAUX_CONSTRUCT_FUNCTION("ast", ast),
+    MAUX_CONSTRUCT_FUNCTION("optimize", optimize),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "compiler",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mclib_compiler(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mclib_compiler(void) {
+    return (morphine_library_t) {
+        .name = "compiler",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

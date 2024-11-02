@@ -40,6 +40,10 @@ MORPHINE_API void mapi_push_raw(morphine_coroutine_t U, void *value) {
     stackI_push(U, valueI_raw(value));
 }
 
+MORPHINE_API void mapi_push_hash(morphine_coroutine_t U, ml_hash hash) {
+    stackI_push(U, valueI_hash2value(hash));
+}
+
 MORPHINE_API ml_integer mapi_get_integer(morphine_coroutine_t U) {
     return valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
 }
@@ -63,6 +67,11 @@ MORPHINE_API bool mapi_get_boolean(morphine_coroutine_t U) {
 
 MORPHINE_API uintptr_t mapi_get_raw(morphine_coroutine_t U) {
     return valueI_as_raw_or_error(U->I, stackI_peek(U, 0));
+}
+
+MORPHINE_API ml_hash mapi_get_hash(morphine_coroutine_t U) {
+    ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
+    return valueI_integer2hash(U->I, integer);
 }
 
 MORPHINE_API void mapi_to_integer(morphine_coroutine_t U) {

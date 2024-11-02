@@ -6,4 +6,4 @@
 
 #include <morphine.h>
 
-MORPHINE_LIB morphine_library_t *mclib_compiler(void);
+MORPHINE_LIB morphine_library_t mclib_compiler(void);

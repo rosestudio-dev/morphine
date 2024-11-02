@@ -183,7 +183,11 @@ static inline bool mark_metatable(morphine_instance_t I) {
 static inline bool mark_libraries(morphine_instance_t I) {
     bool marked = false;
     for (size_t i = 0; i < I->libraries.size; i++) {
-        struct library *library = I->libraries.array + i;
+        struct library_instance *library = I->libraries.array + i;
+        if (library->name != NULL && mark_object(I, objectI_cast(library->name))) {
+            marked = true;
+        }
+
         if (library->table != NULL && mark_object(I, objectI_cast(library->table))) {
             marked = true;
         }

@@ -54,23 +54,21 @@ static void lreadline(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "exit",     lexit },
-    { "readline", lreadline },
-
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("exit", lexit),
+    MAUX_CONSTRUCT_FUNCTION("readline", lreadline),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "__app",
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    api_initreadline(mapi_instance(U));
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mllib_launcher(morphine_instance_t I) {
-    api_initreadline(I);
-
-    return &library;
+MORPHINE_LIB morphine_library_t mllib_launcher(void) {
+    return (morphine_library_t) {
+        .name = "__app",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

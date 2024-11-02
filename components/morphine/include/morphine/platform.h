@@ -9,17 +9,25 @@
 #include "config.h"
 #include "limits.h"
 
+// common
+
 typedef uint32_t ml_version;
 
 typedef struct coroutine *morphine_coroutine_t;
 typedef struct instance *morphine_instance_t;
+
+// native
+
 typedef void (*morphine_native_t)(morphine_coroutine_t);
+
+// userdata
+
 typedef void (*morphine_userdata_init_t)(morphine_instance_t, void *);
 typedef void (*morphine_userdata_free_t)(morphine_instance_t, void *);
 typedef int (*morphine_userdata_compare_t)(morphine_instance_t, void *, void *);
 typedef ml_hash (*morphine_userdata_hash_t)(morphine_instance_t, void *);
 
-// sio types
+// sio
 
 typedef enum {
     MORPHINE_SIO_SEEK_MODE_SET,
@@ -87,45 +95,10 @@ typedef struct {
 
 // library
 
-typedef struct {
-    const char *name;
-
-    struct {
-        size_t allocate;
-        morphine_userdata_init_t init;
-        morphine_userdata_free_t free;
-        morphine_userdata_compare_t compare;
-        morphine_userdata_hash_t hash;
-        bool require_metatable;
-    } params;
-} morphine_library_type_t;
+typedef void (*morphine_library_init_t)(morphine_coroutine_t);
 
 typedef struct {
     const char *name;
-    morphine_native_t function;
-} morphine_library_function_t;
-
-typedef struct {
-    const char *name;
-    ml_integer integer;
-} morphine_library_integer_t;
-
-typedef struct {
-    const char *name;
-    ml_decimal decimal;
-} morphine_library_decimal_t;
-
-typedef struct {
-    const char *name;
-    const char *string;
-} morphine_library_string_t;
-
-typedef struct {
-    const char *name;
-
-    morphine_library_type_t *types;
-    morphine_library_function_t *functions;
-    morphine_library_integer_t *integers;
-    morphine_library_decimal_t *decimals;
-    morphine_library_string_t *strings;
+    const char *sharedkey;
+    morphine_library_init_t init;
 } morphine_library_t;

@@ -53,23 +53,22 @@ static void set(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "create", create },
-    { "size",   size },
-    { "get",    get },
-    { "set",    set },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("create", create),
+    MAUX_CONSTRUCT_FUNCTION("size", size),
+    MAUX_CONSTRUCT_FUNCTION("get", get),
+    MAUX_CONSTRUCT_FUNCTION("set", set),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "closure",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_closure(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_closure(void) {
+    return (morphine_library_t) {
+        .name = "closure",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

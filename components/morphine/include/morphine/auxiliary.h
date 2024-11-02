@@ -10,3 +10,6 @@
 #include "auxiliary/localstorage.h"
 #include "auxiliary/table.h"
 #include "auxiliary/native.h"
+#include "auxiliary/construct.h"
+#include "auxiliary/library.h"
+#include "auxiliary/metatable.h"

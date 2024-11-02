@@ -907,7 +907,7 @@ static void format(morphine_coroutine_t U) {
 
                         save_format_vars(U, vars);
 
-                        mapi_library(U, "value.tostr", false);
+                        maux_library_access(U, "value.tostr");
                         mapi_rotate(U, 2);
                         maux_nb_call(1, 1);
                     }
@@ -928,47 +928,45 @@ static void format(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "format",       format },
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("format", format),
 
-    { "substring",    substring },
-    { "trim",         trim },
-    { "trimstart",    trimstart },
-    { "trimend",      trimend },
-    { "split",        split },
-    { "replacefirst", replacefirst },
-    { "replacelast",  replacelast },
-    { "replace",      replace },
-    { "tolower",      tolowercase },
-    { "toupper",      touppercase },
-    { "repeat",       repeat },
+    MAUX_CONSTRUCT_FUNCTION("substring", substring),
+    MAUX_CONSTRUCT_FUNCTION("trim", trim),
+    MAUX_CONSTRUCT_FUNCTION("trimstart", trimstart),
+    MAUX_CONSTRUCT_FUNCTION("trimend", trimend),
+    MAUX_CONSTRUCT_FUNCTION("split", split),
+    MAUX_CONSTRUCT_FUNCTION("replacefirst", replacefirst),
+    MAUX_CONSTRUCT_FUNCTION("replacelast", replacelast),
+    MAUX_CONSTRUCT_FUNCTION("replace", replace),
+    MAUX_CONSTRUCT_FUNCTION("tolower", tolowercase),
+    MAUX_CONSTRUCT_FUNCTION("toupper", touppercase),
+    MAUX_CONSTRUCT_FUNCTION("repeat", repeat),
 
-    { "chars",        chars },
-    { "codes",        codes },
+    MAUX_CONSTRUCT_FUNCTION("chars", chars),
+    MAUX_CONSTRUCT_FUNCTION("codes", codes),
 
-    { "contains",     contains },
-    { "indexof",      indexof },
-    { "lastindexof",  lastindexof },
-    { "startswith",   startswith },
-    { "endswith",     endswith },
+    MAUX_CONSTRUCT_FUNCTION("contains", contains),
+    MAUX_CONSTRUCT_FUNCTION("indexof", indexof),
+    MAUX_CONSTRUCT_FUNCTION("lastindexof", lastindexof),
+    MAUX_CONSTRUCT_FUNCTION("startswith", startswith),
+    MAUX_CONSTRUCT_FUNCTION("endswith", endswith),
 
-    { "isempty",      isempty },
-    { "isblank",      isblankstr },
-    { "isdigit",      isdigitstr },
-    { "isalpha",      isalphastr },
-
-    { NULL, NULL },
+    MAUX_CONSTRUCT_FUNCTION("isempty", isempty),
+    MAUX_CONSTRUCT_FUNCTION("isblank", isblankstr),
+    MAUX_CONSTRUCT_FUNCTION("isdigit", isdigitstr),
+    MAUX_CONSTRUCT_FUNCTION("isalpha", isalphastr),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "string",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_string(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_string(void) {
+    return (morphine_library_t) {
+        .name = "string",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

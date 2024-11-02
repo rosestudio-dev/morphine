@@ -249,36 +249,35 @@ static void readline(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "isopened", isopened },
-    { "close",    close },
-    { "flush",    flush },
-    { "read",     read },
-    { "write",    write },
-    { "seekset",  seekset },
-    { "seekcur",  seekcur },
-    { "seekprv",  seekprv },
-    { "seekend",  seekend },
-    { "tell",     tell },
-    { "eos",      eos },
-    { "io",       io },
-    { "error",    error },
-    { "buffer",   buffer },
-    { "readall",  readall },
-    { "readto",   readto },
-    { "readline", readline },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("isopened", isopened),
+    MAUX_CONSTRUCT_FUNCTION("close", close),
+    MAUX_CONSTRUCT_FUNCTION("flush", flush),
+    MAUX_CONSTRUCT_FUNCTION("read", read),
+    MAUX_CONSTRUCT_FUNCTION("write", write),
+    MAUX_CONSTRUCT_FUNCTION("seekset", seekset),
+    MAUX_CONSTRUCT_FUNCTION("seekcur", seekcur),
+    MAUX_CONSTRUCT_FUNCTION("seekprv", seekprv),
+    MAUX_CONSTRUCT_FUNCTION("seekend", seekend),
+    MAUX_CONSTRUCT_FUNCTION("tell", tell),
+    MAUX_CONSTRUCT_FUNCTION("eos", eos),
+    MAUX_CONSTRUCT_FUNCTION("io", io),
+    MAUX_CONSTRUCT_FUNCTION("error", error),
+    MAUX_CONSTRUCT_FUNCTION("buffer", buffer),
+    MAUX_CONSTRUCT_FUNCTION("readall", readall),
+    MAUX_CONSTRUCT_FUNCTION("readto", readto),
+    MAUX_CONSTRUCT_FUNCTION("readline", readline),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "sio",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_sio(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_sio(void) {
+    return (morphine_library_t) {
+        .name = "sio",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

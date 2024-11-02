@@ -11,7 +11,7 @@
 #include "morphine/auxiliary.h"
 #include "morphine/api.h"
 
-static morphine_library_t *(*builtins[])(void) = {
+static morphine_library_t (*builtins[])(void) = {
     mlib_builtin_base,
     mlib_builtin_value,
     mlib_builtin_gc,
@@ -26,23 +26,17 @@ static morphine_library_t *(*builtins[])(void) = {
     mlib_builtin_function,
     mlib_builtin_closure,
     mlib_builtin_exception,
+    mlib_builtin_sharedstorage,
 };
 
 static void library(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            bool reload = false;
-            if (mapi_args(U) == 2) {
-                mapi_push_arg(U, 1);
-                reload = mapi_get_boolean(U);
-            } else {
-                maux_expect_args(U, 1);
-            }
-
+            maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            const char *name = mapi_get_cstr(U);
 
-            mapi_library(U, name, reload);
+            const char *name = mapi_get_cstr(U);
+            maux_library_access(U, name);
             maux_nb_return();
     maux_nb_end
 }

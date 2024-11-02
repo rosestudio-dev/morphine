@@ -19,11 +19,11 @@ static void tostr(morphine_coroutine_t U) {
                     maux_nb_return();
                 }
             } else if (mapi_is_type(U, "vector")) {
-                mapi_library(U, "vector.tostr", false);
+                maux_library_access(U, "vector.tostr");
                 mapi_rotate(U, 2);
                 mapi_call(U, 1);
             } else if (mapi_is_type(U, "table")) {
-                mapi_library(U, "table.tostr", false);
+                maux_library_access(U, "table.tostr");
                 mapi_rotate(U, 2);
                 mapi_call(U, 1);
             } else {
@@ -118,15 +118,19 @@ static void compare(morphine_coroutine_t U) {
             if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_COMPARE)) {
                 if (mapi_is_callable(U)) {
                     mapi_rotate(U, 2);
-                    mapi_scall(U, 0);
+                    mapi_push_arg(U, 1);
+                    mapi_scall(U, 1);
                 } else {
                     maux_nb_return();
                 }
+            } else {
+                mapi_push_arg(U, 1);
+                int result = mapi_compare(U);
+                mapi_push_integer(U, result);
+                maux_nb_return();
             }
-
-            mapi_push_arg(U, 1);
-            int result = mapi_compare(U);
-            mapi_push_integer(U, result);
+        maux_nb_state(1)
+            mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
 }
@@ -144,34 +148,36 @@ static void hash(morphine_coroutine_t U) {
                 } else {
                     maux_nb_return();
                 }
+            } else {
+                ml_hash hash = mapi_hash(U);
+                mapi_push_stringf(U, "%0*"MLIMIT_HASH_PR, sizeof(ml_hash) * 2, hash);
+                maux_nb_return();
             }
-
-            ml_hash hash = mapi_hash(U);
-            mapi_push_stringf(U, "%0*"MLIMIT_HASH_PR, sizeof(ml_hash) * 2, hash);
+        maux_nb_state(1)
+            mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "tostr",   tostr },
-    { "toint",   toint },
-    { "tosize",  tosize },
-    { "todec",   todec },
-    { "tobool",  tobool },
-    { "compare", compare },
-    { "hash",    hash },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("tostr", tostr),
+    MAUX_CONSTRUCT_FUNCTION("toint", toint),
+    MAUX_CONSTRUCT_FUNCTION("tosize", tosize),
+    MAUX_CONSTRUCT_FUNCTION("todec", todec),
+    MAUX_CONSTRUCT_FUNCTION("tobool", tobool),
+    MAUX_CONSTRUCT_FUNCTION("compare", compare),
+    MAUX_CONSTRUCT_FUNCTION("hash", hash),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "value",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_value(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_value(void) {
+    return (morphine_library_t) {
+        .name = "value",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

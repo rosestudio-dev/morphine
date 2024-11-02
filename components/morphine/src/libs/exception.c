@@ -60,7 +60,7 @@ static void stacktrace_print(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             ml_size count;
-            if(mapi_args(U) == 3) {
+            if (mapi_args(U) == 3) {
                 mapi_push_arg(U, 2);
                 count = mapi_get_size(U, "count");
             } else {
@@ -153,28 +153,27 @@ static void stacktrace_get(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "create",            create },
-    { "value",             value },
-    { "print",             print },
-    { "error.print",       error_print },
-    { "stacktrace.print",  stacktrace_print },
-    { "stacktrace.record", stacktrace_record },
-    { "stacktrace.name",   stacktrace_name },
-    { "stacktrace.size",   stacktrace_size },
-    { "stacktrace.get",    stacktrace_get },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("create", create),
+    MAUX_CONSTRUCT_FUNCTION("value", value),
+    MAUX_CONSTRUCT_FUNCTION("print", print),
+    MAUX_CONSTRUCT_FUNCTION("error.print", error_print),
+    MAUX_CONSTRUCT_FUNCTION("stacktrace.print", stacktrace_print),
+    MAUX_CONSTRUCT_FUNCTION("stacktrace.record", stacktrace_record),
+    MAUX_CONSTRUCT_FUNCTION("stacktrace.name", stacktrace_name),
+    MAUX_CONSTRUCT_FUNCTION("stacktrace.size", stacktrace_size),
+    MAUX_CONSTRUCT_FUNCTION("stacktrace.get", stacktrace_get),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "exception",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_exception(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_exception(void) {
+    return (morphine_library_t) {
+        .name = "exception",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

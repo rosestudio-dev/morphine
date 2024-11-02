@@ -12,7 +12,7 @@ extern "C" {
 
 #include "fs/file.h"
 
-MORPHINE_LIB morphine_library_t *mllib_fs(void);
+MORPHINE_LIB morphine_library_t mllib_fs(void);
 
 #ifdef __cplusplus
 }

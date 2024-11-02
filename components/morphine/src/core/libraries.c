@@ -12,159 +12,8 @@
 #include "morphine/params.h"
 #include "morphine/gc/safe.h"
 #include "morphine/object/native.h"
-
-static void grow(morphine_instance_t I) {
-    if (unlikely(I->libraries.allocated == I->libraries.size)) {
-        overflow_add(I->libraries.allocated, MPARAM_LIBRARIES_GROW, SIZE_MAX) {
-            throwI_error(I, "library limit exceeded");
-        }
-
-        I->libraries.array = allocI_vec(
-            I, I->libraries.array, I->libraries.allocated + MPARAM_LIBRARIES_GROW, sizeof(struct library)
-        );
-
-        for (size_t i = 0; i < MPARAM_LIBRARIES_GROW; i++) {
-            I->libraries.array[i + I->libraries.allocated] = (struct library) {
-                .L = NULL,
-                .table = NULL
-            };
-        }
-
-        I->libraries.allocated += MPARAM_LIBRARIES_GROW;
-    }
-}
-
-static struct string *access(
-    morphine_instance_t I,
-    struct table **dest_table,
-    const char *name
-) {
-    size_t name_len = strlen(name);
-    size_t last = 0;
-    for (size_t i = 0; i < name_len; i++) {
-        if (name[i] != '.') {
-            continue;
-        }
-
-        size_t part_size = i - last;
-
-        if (part_size == 0) {
-            throwI_error(I, "empty sub-library name");
-        }
-
-        struct string *key = stringI_createn(I, part_size, name + last);
-        size_t rollback = gcI_safe_obj(I, objectI_cast(key));
-
-        bool has = false;
-        struct value dest_table_value = tableI_get(I, *dest_table, valueI_object(key), &has);
-
-        if (!has) {
-            struct table *nested_table = tableI_create(I);
-            gcI_safe_obj(I, objectI_cast(nested_table));
-            dest_table_value = valueI_object(nested_table);
-
-            tableI_set(I, *dest_table, valueI_object(key), dest_table_value);
-        }
-
-        *dest_table = valueI_as_table_or_error(I, dest_table_value);
-        last = i + 1;
-        gcI_reset_safe(I, rollback);
-    }
-
-    size_t part_size = name_len - last;
-
-    if (part_size == 0) {
-        throwI_error(I, "empty library entry name");
-    }
-
-    return stringI_createn(I, part_size, name + last);
-}
-
-static void constructor_insert(
-    morphine_instance_t I,
-    struct table *root_table,
-    const char *name,
-    struct value value
-) {
-    struct table *dest_table = root_table;
-    struct string *key = access(I, &dest_table, name);
-    size_t rollback_key = gcI_safe_obj(I, objectI_cast(key));
-
-    tableI_set(I, dest_table, valueI_object(key), value);
-
-    gcI_reset_safe(I, rollback_key);
-}
-
-static struct value constructor_get(
-    morphine_instance_t I,
-    struct table *root_table,
-    const char *name
-) {
-    struct table *dest_table = root_table;
-    struct string *key = access(I, &dest_table, name);
-    size_t rollback_key = gcI_safe_obj(I, objectI_cast(key));
-
-    bool has = false;
-    struct value value = tableI_get(I, dest_table, valueI_object(key), &has);
-
-    gcI_reset_safe(I, rollback_key);
-
-    if (!has) {
-        throwI_errorf(I, "library entry not found");
-    }
-
-    return value;
-}
-
-static struct table *construct(morphine_instance_t I, morphine_library_t *L) {
-    struct table *result = tableI_create(I);
-    size_t rollback = gcI_safe_obj(I, objectI_cast(result));
-
-    for (morphine_library_function_t *entry = L->functions; entry != NULL && entry->name != NULL; entry++) {
-        struct string *name = stringI_createf(I, "%s.%s", L->name, entry->name);
-        struct native *value = nativeI_create(I, name, entry->function);
-        size_t rollback_value = gcI_safe_obj(I, objectI_cast(value));
-
-        constructor_insert(I, result, entry->name, valueI_object(value));
-
-        gcI_reset_safe(I, rollback_value);
-    }
-
-    for (morphine_library_string_t *entry = L->strings; entry != NULL && entry->name != NULL; entry++) {
-        struct string *value = stringI_create(I, entry->string);
-        size_t rollback_value = gcI_safe_obj(I, objectI_cast(value));
-
-        constructor_insert(I, result, entry->name, valueI_object(value));
-
-        gcI_reset_safe(I, rollback_value);
-    }
-
-    for (morphine_library_integer_t *entry = L->integers; entry != NULL && entry->name != NULL; entry++) {
-        constructor_insert(I, result, entry->name, valueI_integer(entry->integer));
-    }
-
-    for (morphine_library_decimal_t *entry = L->decimals; entry != NULL && entry->name != NULL; entry++) {
-        constructor_insert(I, result, entry->name, valueI_decimal(entry->decimal));
-    }
-
-    gcI_reset_safe(I, rollback);
-    return result;
-}
-
-static void library_init(morphine_instance_t I, morphine_library_t *L) {
-    for (morphine_library_type_t *entry = L->types; entry != NULL && entry->name != NULL; entry++) {
-        usertypeI_declare(
-            I,
-            entry->name,
-            entry->params.allocate,
-            entry->params.init,
-            entry->params.free,
-            entry->params.compare,
-            entry->params.hash,
-            entry->params.require_metatable
-        );
-    }
-}
+#include "morphine/object/coroutine.h"
+#include "morphine/misc/sharedstorage.h"
 
 struct libraries librariesI_prototype(void) {
     return (struct libraries) {
@@ -179,75 +28,89 @@ void librariesI_free(morphine_instance_t I, struct libraries *libraries) {
     *libraries = librariesI_prototype();
 }
 
-void librariesI_load(morphine_instance_t I, morphine_library_t *L) {
-    if (L == NULL) {
-        throwI_error(I, "library is null");
-    }
-
+void librariesI_load(morphine_instance_t I, morphine_library_t library) {
     for (size_t i = 0; i < I->libraries.size; i++) {
-        if (I->libraries.array[i].L == L) {
-            return;
+        if (stringI_cstr_compare(I, I->libraries.array[i].name, library.name) == 0) {
+            throwI_error(I, "library already loaded");
         }
     }
 
-    for (size_t i = 0; i < I->libraries.size; i++) {
-        if (I->libraries.array[i].L == NULL) {
-            I->libraries.array[i] = (struct library) {
-                .L = L,
+    if (unlikely(I->libraries.allocated == I->libraries.size)) {
+        overflow_add(I->libraries.allocated, MPARAM_LIBRARIES_GROW, SIZE_MAX) {
+            throwI_error(I, "library limit exceeded");
+        }
+
+        I->libraries.array = allocI_vec(
+            I,
+            I->libraries.array,
+            I->libraries.allocated + MPARAM_LIBRARIES_GROW,
+            sizeof(struct library_instance)
+        );
+
+        for (size_t i = 0; i < MPARAM_LIBRARIES_GROW; i++) {
+            I->libraries.array[i + I->libraries.allocated] = (struct library_instance) {
+                .name = NULL,
+                .init = NULL,
                 .table = NULL
             };
-
-            return;
         }
+
+        I->libraries.allocated += MPARAM_LIBRARIES_GROW;
     }
 
-    grow(I);
+    struct string *name = stringI_create(I, library.name);
+    size_t rollback = gcI_safe_obj(I, objectI_cast(name));
 
-    I->libraries.array[I->libraries.size] = (struct library) {
-        .L = L,
+    if (library.sharedkey != NULL && !sharedstorageI_define(I, library.sharedkey)) {
+        throwI_error(I, "library sharedkey conflict");
+    }
+
+    I->libraries.array[I->libraries.size] = (struct library_instance) {
+        .name = name,
+        .init = library.init,
         .table = NULL
     };
 
     I->libraries.size++;
 
-    library_init(I, L);
+    gcI_reset_safe(I, rollback);
 }
 
-struct value librariesI_get(morphine_instance_t I, const char *name, bool reload) {
-    size_t name_len = strlen(name);
-    size_t size = 0;
-    for (; size < name_len; size++) {
-        if (name[size] == '.') {
-            break;
-        }
+static struct table *init_library(morphine_coroutine_t U, morphine_library_init_t init) {
+    size_t space_size = stackI_space(U);
+
+    init(U);
+
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    size_t rollback = gcI_safe_obj(U->I, objectI_cast(table));
+
+    stackI_pop(U, 1);
+    if (stackI_space(U) != space_size) {
+        throwI_error(U->I, "library initialization corrupted");
     }
 
-    struct library *library = NULL;
-    for (size_t i = 0; i < I->libraries.size; i++) {
-        struct library *lib = I->libraries.array + i;
+    gcI_reset_safe(U->I, rollback);
 
-        if (lib->L == NULL) {
-            continue;
-        }
+    return table;
+}
 
-        if (strlen(lib->L->name) == size &&
-            memcmp(lib->L->name, name, size * sizeof(char)) == 0) {
+struct value librariesI_get(morphine_coroutine_t U, const char *name) {
+    struct library_instance *library = NULL;
+    for (size_t i = 0; i < U->I->libraries.size; i++) {
+        struct library_instance *lib = U->I->libraries.array + i;
+        if (stringI_cstr_compare(U->I, lib->name, name) == 0) {
             library = lib;
             break;
         }
     }
 
     if (library == NULL) {
-        throwI_error(I, "library not found");
+        throwI_error(U->I, "library not found");
     }
 
-    if (reload || library->table == NULL) {
-        library->table = construct(I, library->L);
+    if (library->table == NULL) {
+        library->table = init_library(U, library->init);
     }
 
-    if (size == name_len) {
-        return valueI_object(library->table);
-    }
-
-    return constructor_get(I, library->table, name + size + 1);
+    return valueI_object(library->table);
 }

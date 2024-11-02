@@ -230,39 +230,38 @@ static void status(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "full",                       full },
-    { "force",                      force },
-    { "step",                       step },
-    { "status",                     status },
-    { "isrunning",                  isrunning },
-    { "enable",                     enable },
-    { "isenabled",                  isenabled },
-    { "changelimit",                changelimit },
-    { "changethreshold",            changethreshold },
-    { "changedeal",                 changedeal },
-    { "changegrow",                 changegrow },
-    { "changepause",                changepause },
-    { "changecachecallinfoholding", changecachecallinfoholding },
-    { "changefinalizerstacklimit",  changefinalizerstacklimit },
-    { "changefinalizerstackgrow",   changefinalizerstackgrow },
-    { "changestacklimit",           changestacklimit },
-    { "changestackgrow",            changestackgrow },
-    { "getallocated",               getallocated },
-    { "getmaxallocated",            getmaxallocated },
-    { "resetmaxallocated",          resetmaxallocated },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("full", full),
+    MAUX_CONSTRUCT_FUNCTION("force", force),
+    MAUX_CONSTRUCT_FUNCTION("step", step),
+    MAUX_CONSTRUCT_FUNCTION("status", status),
+    MAUX_CONSTRUCT_FUNCTION("isrunning", isrunning),
+    MAUX_CONSTRUCT_FUNCTION("enable", enable),
+    MAUX_CONSTRUCT_FUNCTION("isenabled", isenabled),
+    MAUX_CONSTRUCT_FUNCTION("changelimit", changelimit),
+    MAUX_CONSTRUCT_FUNCTION("changethreshold", changethreshold),
+    MAUX_CONSTRUCT_FUNCTION("changedeal", changedeal),
+    MAUX_CONSTRUCT_FUNCTION("changegrow", changegrow),
+    MAUX_CONSTRUCT_FUNCTION("changepause", changepause),
+    MAUX_CONSTRUCT_FUNCTION("changecachecallinfoholding", changecachecallinfoholding),
+    MAUX_CONSTRUCT_FUNCTION("changefinalizerstacklimit", changefinalizerstacklimit),
+    MAUX_CONSTRUCT_FUNCTION("changefinalizerstackgrow", changefinalizerstackgrow),
+    MAUX_CONSTRUCT_FUNCTION("changestacklimit", changestacklimit),
+    MAUX_CONSTRUCT_FUNCTION("changestackgrow", changestackgrow),
+    MAUX_CONSTRUCT_FUNCTION("getallocated", getallocated),
+    MAUX_CONSTRUCT_FUNCTION("getmaxallocated", getmaxallocated),
+    MAUX_CONSTRUCT_FUNCTION("resetmaxallocated", resetmaxallocated),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "gc",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_gc(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_gc(void) {
+    return (morphine_library_t) {
+        .name = "gc",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

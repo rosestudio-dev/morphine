@@ -25,8 +25,8 @@ MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t, const char
 
 // library
 
-MORPHINE_API void mapi_library_load(morphine_instance_t, morphine_library_t *);
-MORPHINE_API void mapi_library(morphine_coroutine_t, const char *name, bool reload);
+MORPHINE_API void mapi_library_load(morphine_instance_t, morphine_library_t);
+MORPHINE_API void mapi_library(morphine_coroutine_t, const char *);
 
 // callstack
 
@@ -64,12 +64,14 @@ MORPHINE_API void mapi_push_size(morphine_coroutine_t, size_t value, const char 
 MORPHINE_API void mapi_push_decimal(morphine_coroutine_t, ml_decimal value);
 MORPHINE_API void mapi_push_boolean(morphine_coroutine_t, bool value);
 MORPHINE_API void mapi_push_raw(morphine_coroutine_t, void *value);
+MORPHINE_API void mapi_push_hash(morphine_coroutine_t, ml_hash);
 
 MORPHINE_API ml_integer mapi_get_integer(morphine_coroutine_t);
 MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t, const char *name);
 MORPHINE_API ml_decimal mapi_get_decimal(morphine_coroutine_t);
 MORPHINE_API bool mapi_get_boolean(morphine_coroutine_t);
 MORPHINE_API uintptr_t mapi_get_raw(morphine_coroutine_t);
+MORPHINE_API ml_hash mapi_get_hash(morphine_coroutine_t);
 
 MORPHINE_API void mapi_to_integer(morphine_coroutine_t);
 MORPHINE_API void mapi_to_size(morphine_coroutine_t, const char *name);
@@ -318,6 +320,15 @@ MORPHINE_API bool mapi_localstorage_remove(morphine_coroutine_t);
 MORPHINE_API void mapi_localstorage_getoe(morphine_coroutine_t);
 MORPHINE_API void mapi_localstorage_removeoe(morphine_coroutine_t);
 MORPHINE_API void mapi_localstorage_clear(morphine_coroutine_t);
+
+// sharedstorage
+
+MORPHINE_API bool mapi_sharedstorage_get(morphine_coroutine_t, const char *sharedkey);
+MORPHINE_API void mapi_sharedstorage_getoe(morphine_coroutine_t, const char *sharedkey);
+MORPHINE_API void mapi_sharedstorage_set(morphine_coroutine_t, const char *sharedkey);
+MORPHINE_API bool mapi_sharedstorage_remove(morphine_coroutine_t, const char *sharedkey);
+MORPHINE_API void mapi_sharedstorage_removeoe(morphine_coroutine_t, const char *sharedkey);
+MORPHINE_API void mapi_sharedstorage_clear(morphine_coroutine_t, const char *sharedkey);
 
 // sio
 

@@ -143,27 +143,26 @@ static void rtr(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "not", not },
-    { "and", and },
-    { "or",  or },
-    { "xor", xor },
-    { "shl", shl },
-    { "shr", shr },
-    { "rtl", rtl },
-    { "rtr", rtr },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("not", not),
+    MAUX_CONSTRUCT_FUNCTION("and", and),
+    MAUX_CONSTRUCT_FUNCTION("or",  or),
+    MAUX_CONSTRUCT_FUNCTION("xor", xor),
+    MAUX_CONSTRUCT_FUNCTION("shl", shl),
+    MAUX_CONSTRUCT_FUNCTION("shr", shr),
+    MAUX_CONSTRUCT_FUNCTION("rtl", rtl),
+    MAUX_CONSTRUCT_FUNCTION("rtr", rtr),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "bitwise",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_bitwise(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_bitwise(void) {
+    return (morphine_library_t) {
+        .name = "bitwise",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

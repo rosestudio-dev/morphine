@@ -410,6 +410,20 @@ static inline void bigint_raw_div(
     mapi_pop(U, 12);
 }
 
+static inline void bigint_raw_negate(
+    morphine_coroutine_t U,
+    struct mlib_bigint *bigint,
+    struct mlib_bigint *result
+) {
+    result->size = 0;
+
+    for (size_t i = 0; i < bigint->size; i++) {
+        bigint_append(U, result, bigint->digits[i]);
+    }
+
+    result->is_negative = !bigint->is_negative;
+}
+
 // api
 
 MORPHINE_API struct mlib_bigint *mlapi_get_bigint(morphine_coroutine_t U) {
@@ -431,6 +445,10 @@ MORPHINE_API int mlapi_bigint_compare(struct mlib_bigint *bigintA, struct mlib_b
     } else {
         return bigint_raw_compare(bigintA, bigintB);
     }
+}
+
+MORPHINE_API ml_hash mlapi_bigint_hash(morphine_coroutine_t U, struct mlib_bigint *bigint) {
+    return bigint_userdata_hash(mapi_instance(U), bigint);
 }
 
 MORPHINE_API struct mlib_bigint *mlapi_bigint_add(
@@ -549,14 +567,24 @@ MORPHINE_API struct mlib_bigint *mlapi_bigint_mod(
     return remainder;
 }
 
-MORPHINE_API struct mlib_bigint *
-mlapi_bigint_negate(morphine_coroutine_t U, struct mlib_bigint *bigint, bool self) {
-    struct mlib_bigint *result = bigint;
-    if (!self) {
-        result = bigint_clone(U, bigint);
+MORPHINE_API struct mlib_bigint *mlapi_bigint_negate(
+    morphine_coroutine_t U,
+    struct mlib_bigint *bigintA,
+    struct mlib_bigint *result
+) {
+    struct mlib_bigint *bigint = bigintA;
+    if (result == NULL) {
+        result = bigint_userdata(U);
+    } else if (bigintA == result) {
+        bigint = bigint_clone(U, bigintA);
     }
 
-    result->is_negative = !bigint->is_negative;
+    bigint_raw_negate(U, bigint, result);
+
+    if (bigintA == result) {
+        mapi_pop(U, 1);
+    }
+
     return result;
 }
 

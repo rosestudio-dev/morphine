@@ -12,7 +12,7 @@ extern "C" {
 
 #include "bigint/object.h"
 
-MORPHINE_LIB morphine_library_t *mllib_bigint(void);
+MORPHINE_LIB morphine_library_t mllib_bigint(void);
 
 #ifdef __cplusplus
 }

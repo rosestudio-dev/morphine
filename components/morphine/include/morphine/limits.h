@@ -24,9 +24,9 @@ typedef uint32_t ml_size;
 #define MLIMIT_SIZE_PR  PRIu32
 #define MLIMIT_SIZE_MAX UINT32_MAX
 
-typedef uintptr_t ml_hash;
-#define MLIMIT_HASH_PR  PRIxPTR
-#define MLIMIT_HASH_MAX UINTPTR_MAX
+typedef ml_size ml_hash;
+#define MLIMIT_HASH_PR  MLIMIT_SIZE_PR
+#define MLIMIT_HASH_MAX MLIMIT_SIZE_MAX
 
 // instruction
 
@@ -40,11 +40,10 @@ typedef uint32_t ml_line;
 
 // behaviour
 
-#define MLIMIT_CALLABLE_ARGS         256
-#define MLIMIT_USERTYPE_NAME         1024
-#define MLIMIT_STACKTRACE_STRING     256
-#define MLIMIT_TABLE_TREES           131070
-#define MLIMIT_EXTRACT_CALLABLE_DEEP 1000000
+#define MLIMIT_CALLABLE_ARGS     256
+#define MLIMIT_USERTYPE_NAME     1024
+#define MLIMIT_STACKTRACE_STRING 256
+#define MLIMIT_TABLE_TREES       131070
 
 // checks
 

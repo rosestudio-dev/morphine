@@ -28,21 +28,20 @@ static void receive(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "send",    send },
-    { "receive", receive },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("send", send),
+    MAUX_CONSTRUCT_FUNCTION("receive", receive),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "binary",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_binary(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_binary(void) {
+    return (morphine_library_t) {
+        .name = "binary",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

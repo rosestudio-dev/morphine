@@ -19,7 +19,7 @@ static void print(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
 
-            mapi_library(U, "value.tostr", false);
+            maux_library_access(U, "value.tostr");
             mapi_push_arg(U, 0);
             mapi_call(U, 1);
         maux_nb_state(1)
@@ -48,7 +48,7 @@ static void println(morphine_coroutine_t U) {
                 mapi_push_arg(U, 0);
             }
 
-            mapi_library(U, "value.tostr", false);
+            maux_library_access(U, "value.tostr");
             mapi_rotate(U, 2);
             mapi_call(U, 1);
         maux_nb_state(1)
@@ -217,31 +217,37 @@ static void callable(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "version",             version },
-    { "print",               print },
-    { "println",             println },
-    { "setmetatable",        setmetatable },
-    { "getmetatable",        getmetatable },
-    { "setdefaultmetatable", setdefaultmetatable },
-    { "getdefaultmetatable", getdefaultmetatable },
-    { "error",               error },
-    { "pcall",               pcall },
-    { "ecall",               ecall },
-    { "vcall",               vcall },
-    { "callable",            callable },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("version", version),
+    MAUX_CONSTRUCT_FUNCTION("print", print),
+    MAUX_CONSTRUCT_FUNCTION("println", println),
+    MAUX_CONSTRUCT_FUNCTION("setmetatable", setmetatable),
+    MAUX_CONSTRUCT_FUNCTION("getmetatable", getmetatable),
+    MAUX_CONSTRUCT_FUNCTION("setdefaultmetatable", setdefaultmetatable),
+    MAUX_CONSTRUCT_FUNCTION("getdefaultmetatable", getdefaultmetatable),
+    MAUX_CONSTRUCT_FUNCTION("error", error),
+    MAUX_CONSTRUCT_FUNCTION("pcall", pcall),
+    MAUX_CONSTRUCT_FUNCTION("ecall", ecall),
+    MAUX_CONSTRUCT_FUNCTION("vcall", vcall),
+    MAUX_CONSTRUCT_FUNCTION("callable", callable),
+
+#define mspec_metatable_field(n, s) MAUX_CONSTRUCT_STRING("metafield."#s, MORPHINE_METATABLE_FIELD_PREFIX#s),
+
+#include "morphine/misc/metatable/specification.h"
+
+#undef mspec_metatable_field
+
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "base",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_base(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_base(void) {
+    return (morphine_library_t) {
+        .name = "base",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

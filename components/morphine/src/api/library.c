@@ -13,20 +13,20 @@
  * ## mapi_library_load
  * ### Prototype
  * ```c
- * void mapi_library_load(morphine_instance_t I, morphine_library_t *L)
+ * void mapi_library_load(morphine_instance_t I, morphine_library_t library)
  * ```
  * ### Parameters
  * * `I` - instance
- * * `L` - library
+ * * `library` - library
  * ### Description
  * Load library
  * {{end}}
  */
-MORPHINE_API void mapi_library_load(morphine_instance_t I, morphine_library_t *L) {
-    librariesI_load(I, L);
+MORPHINE_API void mapi_library_load(morphine_instance_t I, morphine_library_t library) {
+    librariesI_load(I, library);
 }
 
-MORPHINE_API void mapi_library(morphine_coroutine_t U, const char *name, bool reload) {
-    struct value value = librariesI_get(U->I, name, reload);
+MORPHINE_API void mapi_library(morphine_coroutine_t U, const char *name) {
+    struct value value = librariesI_get(U, name);
     stackI_push(U, value);
 }

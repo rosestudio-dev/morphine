@@ -44,7 +44,7 @@
 #define valueI_is_object(x)   typeI_value_is_obj((x).type)
 #define valueI_is_metatype(x) ({struct value _a = (x); (valueI_is_table(_a) || valueI_is_userdata(_a));})
 #define valueI_is_iterable(x) ({struct value _a = (x); (valueI_is_table(_a) || valueI_is_vector(_a));})
-#define valueI_is_callable(x) ({struct value _a = (x); (valueI_is_closure(_a) || valueI_is_function(_a) || valueI_is_closure(_a));})
+#define valueI_is_callable(x) ({struct value _a = (x); (valueI_is_closure(_a) || valueI_is_function(_a) || valueI_is_native(_a));})
 
 // as
 
@@ -117,15 +117,20 @@
 
 // size
 
-#define valueI_integer2namedsize(I, x, name)  ({ml_integer _i = (x); if(unlikely(_i < 0 || (_i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %"MLIMIT_INTEGER_PR" to %s", _i, (name)); ((ml_size) _i);})
-#define valueI_csize2namedsize(I, x, name)    ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %zu to %s", _s, (name)); ((ml_size) _s);})
+#define valueI_integer2namedsize(I, x, name) ({ml_integer _i = (x); if(unlikely(_i < 0 || (_i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %"MLIMIT_INTEGER_PR" to %s", _i, (name)); ((ml_size) _i);})
+#define valueI_csize2namedsize(I, x, name)   ({size_t _s = (x); if(unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %zu to %s", _s, (name)); ((ml_size) _s);})
 
-#define valueI_size(x)                  valueI_integer((ml_integer) (x))
-#define valueI_csize2size(I, x)         valueI_csize2namedsize(I, x, "size")
-#define valueI_csize2index(I, x)        valueI_csize2namedsize(I, x, "index")
-#define valueI_integer2size(I, x)       valueI_integer2namedsize(I, x, "size")
-#define valueI_integer2index(I, x)      valueI_integer2namedsize(I, x, "index")
-#define valueI_is_size(x)               ({struct value _temp = (x); (valueI_is_integer(_temp) && ((valueI_as_integer(_temp) >= 0) && (valueI_as_integer(_temp) <= MLIMIT_SIZE_MAX)));})
+#define valueI_size(x)             valueI_integer((ml_integer) (x))
+#define valueI_csize2size(I, x)    valueI_csize2namedsize(I, x, "size")
+#define valueI_csize2index(I, x)   valueI_csize2namedsize(I, x, "index")
+#define valueI_integer2size(I, x)  valueI_integer2namedsize(I, x, "size")
+#define valueI_integer2index(I, x) valueI_integer2namedsize(I, x, "index")
+#define valueI_is_size(x)          ({struct value _temp = (x); (valueI_is_integer(_temp) && ((valueI_as_integer(_temp) >= 0) && (valueI_as_integer(_temp) <= MLIMIT_SIZE_MAX)));})
+
+// hash
+
+#define valueI_hash2value(x)       valueI_size(x)
+#define valueI_integer2hash(I, x) ((ml_hash) valueI_integer2namedsize(I, x, "hash"))
 
 // other
 

@@ -68,24 +68,23 @@ static void istyped(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static morphine_library_function_t functions[] = {
-    { "istyped",           istyped },
-    { "lockmetatable",     lockmetatable },
-    { "locksize",          locksize },
-    { "metatableislocked", metatableislocked },
-    { "sizeislocked",      sizeislocked },
-    { NULL, NULL }
+static maux_construct_element_t elements[] = {
+    MAUX_CONSTRUCT_FUNCTION("istyped", istyped),
+    MAUX_CONSTRUCT_FUNCTION("lockmetatable", lockmetatable),
+    MAUX_CONSTRUCT_FUNCTION("locksize", locksize),
+    MAUX_CONSTRUCT_FUNCTION("metatableislocked", metatableislocked),
+    MAUX_CONSTRUCT_FUNCTION("sizeislocked", sizeislocked),
+    MAUX_CONSTRUCT_END
 };
 
-static morphine_library_t library = {
-    .name = "userdata",
-    .types = NULL,
-    .functions = functions,
-    .integers = NULL,
-    .decimals = NULL,
-    .strings = NULL
-};
+static void library_init(morphine_coroutine_t U) {
+    maux_construct(U, elements);
+}
 
-MORPHINE_LIB morphine_library_t *mlib_builtin_userdata(void) {
-    return &library;
+MORPHINE_LIB morphine_library_t mlib_builtin_userdata(void) {
+    return (morphine_library_t) {
+        .name = "userdata",
+        .sharedkey = NULL,
+        .init = library_init
+    };
 }

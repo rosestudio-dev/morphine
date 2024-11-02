@@ -140,7 +140,7 @@ bool metatableI_test(
 
 const char *metatableI_field2string(morphine_instance_t I, morphine_metatable_field_t field) {
     switch (field) {
-#define mspec_metatable_field(n, s) case MORPHINE_METAFIELD_##n: return #s;
+#define mspec_metatable_field(n, s) case MORPHINE_METAFIELD_##n: return MORPHINE_METATABLE_FIELD_PREFIX#s;
 
 #include "morphine/misc/metatable/specification.h"
 
