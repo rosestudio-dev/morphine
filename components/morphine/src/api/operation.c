@@ -43,6 +43,7 @@ static bool opiteratorinit(morphine_coroutine_t U) {
 
     if (result == NORMAL) {
         stackI_pop(U, 2);
+        stackI_push(U, iterator);
     }
 
     return result == CALLED;
@@ -113,6 +114,7 @@ static bool opset(morphine_coroutine_t U) {
 
     if (result == NORMAL) {
         stackI_pop(U, 2);
+        stackI_push(U, container);
     }
 
     return result == CALLED;

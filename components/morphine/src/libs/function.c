@@ -6,36 +6,6 @@
 #include <string.h>
 #include "morphine/libs/builtin.h"
 
-static const char *opcode2str(morphine_coroutine_t U, morphine_opcode_t opcode) {
-    switch (opcode) {
-#define mspec_instruction_opcode(n)               case MORPHINE_OPCODE_##n: return #n;
-#define mspec_instruction_args0(n, s)             mspec_instruction_opcode(n)
-#define mspec_instruction_args1(n, s, a1)         mspec_instruction_opcode(n)
-#define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_opcode(n)
-#define mspec_instruction_args3(n, s, a1, a2, a3) mspec_instruction_opcode(n)
-
-#include "morphine/misc/instruction/specification.h"
-
-#undef mspec_instruction_opcode
-#undef mspec_instruction_args0
-#undef mspec_instruction_args1
-#undef mspec_instruction_args2
-#undef mspec_instruction_args3
-    }
-
-    mapi_error(U, "undefined opcode");
-}
-
-static morphine_opcode_t str2opcode(morphine_coroutine_t U, const char *str) {
-    for (morphine_opcode_t opcode = MORPHINE_OPCODES_START; opcode < MORPHINE_OPCODES_COUNT; opcode++) {
-        if (strcmp(opcode2str(U, opcode), str) == 0) {
-            return opcode;
-        }
-    }
-
-    mapi_error(U, "undefined opcode");
-}
-
 static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -272,7 +242,7 @@ static void getinstruction(morphine_coroutine_t U) {
             mapi_push_table(U);
 
             mapi_push_string(U, "opcode");
-            mapi_push_string(U, opcode2str(U, instruction.opcode));
+            mapi_push_string(U, maux_opcode_name(U, instruction.opcode));
             mapi_table_set(U);
 
             mapi_push_string(U, "line");
@@ -306,7 +276,7 @@ static void setinstruction(morphine_coroutine_t U) {
             if (mapi_is_type(U, "table")) {
                 mapi_push_string(U, "opcode");
                 mapi_table_getoe(U);
-                instruction.opcode = str2opcode(U, mapi_get_cstr(U));
+                instruction.opcode = maux_opcode_from_name(U, mapi_get_cstr(U));
                 mapi_pop(U, 1);
 
                 mapi_push_string(U, "line");
@@ -324,7 +294,7 @@ static void setinstruction(morphine_coroutine_t U) {
             } else {
                 maux_expect_args(U, 4);
 
-                instruction.opcode = str2opcode(U, mapi_get_cstr(U));
+                instruction.opcode = maux_opcode_from_name(U, mapi_get_cstr(U));
 
                 mapi_push_arg(U, 3);
                 instruction.line = mapi_get_size(U, "line");
@@ -353,6 +323,21 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("setconstant", setconstant),
     MAUX_CONSTRUCT_FUNCTION("getstatic", getstatic),
     MAUX_CONSTRUCT_FUNCTION("setstatic", setstatic),
+
+#define mspec_instruction_opcode(n, s)            MAUX_CONSTRUCT_STRING("opcode."#s, #n),
+#define mspec_instruction_args0(n, s)             mspec_instruction_opcode(n, s)
+#define mspec_instruction_args1(n, s, a1)         mspec_instruction_opcode(n, s)
+#define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_opcode(n, s)
+#define mspec_instruction_args3(n, s, a1, a2, a3) mspec_instruction_opcode(n, s)
+
+#include "morphine/misc/instruction/specification.h"
+
+#undef mspec_instruction_opcode
+#undef mspec_instruction_args0
+#undef mspec_instruction_args1
+#undef mspec_instruction_args2
+#undef mspec_instruction_args3
+
     MAUX_CONSTRUCT_END
 };
 

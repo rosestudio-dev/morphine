@@ -229,9 +229,9 @@ static void guard(morphine_coroutine_t U) {
             };
 
             maux_construct_element_t meta[] = {
-                MAUX_CONSTRUCT_STRING(maux_metafield_name(MORPHINE_METAFIELD_TYPE), GUARD_TYPE),
-                MAUX_CONSTRUCT_NIL(maux_metafield_name(MORPHINE_METAFIELD_MASK)),
-                MAUX_CONSTRUCT_NIL(maux_metafield_name(MORPHINE_METAFIELD_SET)),
+                MAUX_CONSTRUCT_STRING(maux_metafield_name(U, MORPHINE_METAFIELD_TYPE), GUARD_TYPE),
+                MAUX_CONSTRUCT_NIL(maux_metafield_name(U, MORPHINE_METAFIELD_MASK)),
+                MAUX_CONSTRUCT_NIL(maux_metafield_name(U, MORPHINE_METAFIELD_SET)),
                 MAUX_CONSTRUCT_END
             };
 

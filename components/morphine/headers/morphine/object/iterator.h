@@ -29,6 +29,7 @@ struct iterator {
     } iterable;
 
     struct {
+        bool inited;
         bool has;
         struct value key;
     } next;

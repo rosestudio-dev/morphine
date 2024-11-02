@@ -472,7 +472,11 @@ struct pair vectorI_iterator_next(
         return valueI_pair(valueI_nil, valueI_nil);
     }
 
-    ml_size index = valueI_integer2index(I, valueI_as_integer_or_error(I, *key));
+    if (!valueI_is_integer(*key)) {
+        return valueI_pair(valueI_nil, valueI_nil);
+    }
+
+    ml_size index = valueI_integer2index(I, valueI_as_integer(*key));
 
     if (index >= vector->size.accessible) {
         if (next != NULL) {

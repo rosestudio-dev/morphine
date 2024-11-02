@@ -12,4 +12,5 @@
 #include "auxiliary/native.h"
 #include "auxiliary/construct.h"
 #include "auxiliary/library.h"
-#include "auxiliary/metatable.h"
+#include "auxiliary/metafield.h"
+#include "auxiliary/opcode.h"

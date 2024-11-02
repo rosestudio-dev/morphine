@@ -40,6 +40,7 @@ struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
         .iterable.object = object,
         .name.key = valueI_nil,
         .name.value = valueI_nil,
+        .next.inited = false,
         .next.has = false,
         .next.key = valueI_nil,
         .result.key = valueI_nil,
@@ -66,6 +67,8 @@ void iteratorI_init(
     if (iterator == NULL) {
         throwI_error(I, "iterator is null");
     }
+
+    iterator->next.inited = false;
 
     switch (iterator->type) {
         case ITERATOR_TYPE_TABLE:
@@ -96,6 +99,8 @@ void iteratorI_init(
     gcI_barrier(I, iterator, iterator->next.key);
     gcI_barrier(I, iterator, key_name);
     gcI_barrier(I, iterator, value_name);
+
+    iterator->next.inited = true;
 }
 
 bool iteratorI_has(morphine_instance_t I, struct iterator *iterator) {
@@ -109,6 +114,14 @@ bool iteratorI_has(morphine_instance_t I, struct iterator *iterator) {
 struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
     if (iterator == NULL) {
         throwI_error(I, "iterator is null");
+    }
+
+    if (!iterator->next.inited) {
+        throwI_error(I, "iterator isn't initialized");
+    }
+
+    if (!iterator->next.has) {
+        return valueI_pair(valueI_nil, valueI_nil);
     }
 
     switch (iterator->type) {
