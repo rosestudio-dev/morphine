@@ -13,6 +13,7 @@
 #define PROB_INTEGER (-201427)
 #define PROB_SIZE    (201427)
 #define PROB_DECIMAL (1548.5629)
+#define ACC_INIT     (156)
 
 void binaryI_to(morphine_instance_t I, struct sio *sio, struct value value);
 struct value binaryI_from(morphine_instance_t I, struct sio *sio);

@@ -25,11 +25,11 @@ struct data {
 
     ml_size size;
     ml_size value;
+    uint8_t acc;
 };
 
 static inline uint8_t get_byte(struct data *D) {
     uint8_t byte = 0;
-
     size_t read_count = sioI_read(D->I, D->sio, &byte, 1);
 
     if (read_count != 1) {
@@ -37,7 +37,11 @@ static inline uint8_t get_byte(struct data *D) {
     }
 
     crc32_char(&D->crc, byte);
-    return byte;
+
+    uint8_t acc = D->acc;
+    D->acc = byte;
+
+    return acc ^ byte;
 }
 
 #define get_type(t, n) static inline t get_##n(struct data *D) { \
@@ -335,6 +339,7 @@ struct value binaryI_from(morphine_instance_t I, struct sio *sio) {
         .crc = crc32_init(),
         .size = 0,
         .value = 0,
+        .acc = ACC_INIT
     };
 
     read_head(&data);

@@ -22,6 +22,8 @@ struct data {
     struct table *table;
     struct value value;
     struct crc32_buf crc;
+
+    uint8_t acc;
 };
 
 static void vectorize_append(struct data *D, struct value value) {
@@ -94,14 +96,16 @@ static void vectorize(struct data *D) {
 }
 
 static inline void write_data(struct data *D, const uint8_t *data, size_t size) {
-    size_t write_count = sioI_write(D->I, D->sio, data, size);
+    for(size_t i = 0; i < size; i ++) {
+        uint8_t byte = D->acc ^ data[i];
+        size_t write_count = sioI_write(D->I, D->sio, &byte, sizeof(uint8_t));
 
-    if (write_count != size) {
-        throwI_error(D->I, "write error");
-    }
+        if (write_count != sizeof(uint8_t)) {
+            throwI_error(D->I, "write error");
+        }
 
-    for (size_t i = 0; i < size; i++) {
-        crc32_char(&D->crc, data[i]);
+        D->acc = byte;
+        crc32_char(&D->crc, byte);
     }
 }
 
@@ -334,7 +338,8 @@ void binaryI_to(morphine_instance_t I, struct sio *sio, struct value value) {
         .sio = sio,
         .table = NULL,
         .value = value,
-        .crc = crc32_init()
+        .crc = crc32_init(),
+        .acc = ACC_INIT
     };
 
     data.table = tableI_create(I);
