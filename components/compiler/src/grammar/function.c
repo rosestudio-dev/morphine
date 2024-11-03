@@ -16,7 +16,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
 
         if (parser_look(C, et_operator(LT))) {
             struct arguments A = extra_arguments_init_full(
-                C, true, et_operator(LT), et_operator(GT), et_operator(COMMA)
+                C, true, true, et_operator(LT), et_operator(GT), et_operator(COMMA)
             );
 
             if (!parser_match(C, et_predef_word(auto))) {
@@ -30,7 +30,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
 
         {
             struct arguments A = extra_arguments_init_full(
-                C, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
+                C, true, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
             );
 
             while (extra_arguments_next(C, &A)) {
@@ -42,7 +42,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
 
         if (parser_match(C, et_predef_word(static))) {
             struct arguments A = extra_arguments_init_full(
-                C, false, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
+                C, false, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
             );
 
             while (extra_arguments_next(C, &A)) {
@@ -78,7 +78,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
 
     if (parser_look(C, et_operator(LT))) {
         struct arguments A = extra_arguments_init_full(
-            C, true, et_operator(LT), et_operator(GT), et_operator(COMMA)
+            C, true, true, et_operator(LT), et_operator(GT), et_operator(COMMA)
         );
 
         if (parser_match(C, et_predef_word(auto))) {
@@ -95,7 +95,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
 
     {
         struct arguments A = extra_arguments_init_full(
-            C, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
+            C, true, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
         );
 
         for (size_t i = 0; extra_arguments_next(C, &A); i++) {
@@ -107,7 +107,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
 
     if (parser_match(C, et_predef_word(static))) {
         struct arguments A = extra_arguments_init_full(
-            C, false, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
+            C, false, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
         );
 
         for (size_t i = 0; extra_arguments_next(C, &A); i++) {

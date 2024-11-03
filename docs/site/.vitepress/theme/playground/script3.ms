@@ -3,10 +3,10 @@
  */
 
 val base = env.library("base")
-val value = env.library("value")
+val tostr = env.library("value.tostr")
 
-fun bottles<value>(count) =
-    value.tostr(count) .. " bottle" .. if (count == 1) "" else "s" end
+fun bottles<tostr>(count) =
+    tostr(count) .. " bottle" .. if (count == 1) "" else "s" end
 
 var count = 99
 while(count > 0)

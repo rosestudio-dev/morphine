@@ -9,7 +9,7 @@ struct mc_ast_node *rule_table(struct parse_controller *C) {
     size_t count;
     {
         struct arguments A = extra_arguments_init_full(
-            C, true, et_operator(LBRACE), et_operator(RBRACE), et_operator(COMMA)
+            C, true, true, et_operator(LBRACE), et_operator(RBRACE), et_operator(COMMA)
         );
 
         while (extra_arguments_next(C, &A)) {
@@ -34,7 +34,7 @@ struct mc_ast_node *rule_table(struct parse_controller *C) {
         mcapi_ast_create_expression_table(parser_U(C), parser_A(C), line, count);
 
     struct arguments A = extra_arguments_init_full(
-        C, true, et_operator(LBRACE), et_operator(RBRACE), et_operator(COMMA)
+        C, true, true, et_operator(LBRACE), et_operator(RBRACE), et_operator(COMMA)
     );
 
     for (size_t i = 0; extra_arguments_next(C, &A); i++) {

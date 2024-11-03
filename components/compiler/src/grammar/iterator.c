@@ -10,7 +10,7 @@ struct mc_ast_node *rule_iterator(struct parse_controller *C) {
     {
         parser_consume(C, et_predef_word(iterator));
         parser_consume(C, et_operator(LPAREN));
-        extract_size = extra_consume_extract(C, true);
+        extract_size = extra_consume_extract(C, true, true);
         parser_consume(C, et_predef_word(in));
         parser_reduce(C, rule_expression);
         parser_consume(C, et_operator(RPAREN));
@@ -30,12 +30,11 @@ struct mc_ast_node *rule_iterator(struct parse_controller *C) {
     declaration->mutable = false;
     if (extract_size > 0) {
         extra_get_extract(
-            C, true, declaration->extract.values, NULL,
-            declaration->extract.keys
+            C, true, true, declaration->extract.values, NULL, declaration->extract.keys
         );
     } else {
         extra_get_extract(
-            C, true, &declaration->value, NULL, NULL
+            C, true, true, &declaration->value, NULL, NULL
         );
     }
 

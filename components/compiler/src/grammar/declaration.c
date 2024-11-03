@@ -16,7 +16,7 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
                 parser_errorf(C, "expect val, var or fun");
             }
 
-            extract_size = extra_consume_extract(C, true);
+            extract_size = extra_consume_extract(C, true, true);
 
             parser_consume(C, et_operator(EQ));
             parser_reduce(C, rule_expression);
@@ -62,6 +62,7 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
             extra_get_extract(
                 C,
                 true,
+                true,
                 declaration->extract.values,
                 NULL,
                 declaration->extract.keys
@@ -69,6 +70,7 @@ struct mc_ast_node *rule_declaration(struct parse_controller *C) {
         } else {
             extra_get_extract(
                 C,
+                true,
                 true,
                 &declaration->value,
                 NULL,

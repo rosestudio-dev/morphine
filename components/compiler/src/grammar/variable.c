@@ -18,7 +18,7 @@ static size_t function_arguments(struct parse_controller *C, struct mc_ast_expre
     }
 
     struct arguments A = extra_arguments_init_full(
-        C, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
+        C, true, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
     );
 
     size_t index = 0;

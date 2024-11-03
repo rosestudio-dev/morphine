@@ -2,7 +2,7 @@
  * PI number generator
  */
 
-val extract print, println = env.library("base")
+val { print, println } = env.library("base")
 val bigint = env.library("bigint.wrap")
 
 fun calcPi<bigint>(printnum)

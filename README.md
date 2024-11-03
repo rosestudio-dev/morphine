@@ -35,7 +35,13 @@ Morphine has the following main features that build the language's ideology:
 
 ## Code looks
 ```
-val extract println, setmetatable, error, pcall = env.library("base")
+val {
+    println,
+    setmetatable,
+    error,
+    pcall
+} = env.library("base")
+
 val tostr = env.library("value.tostr")
 val getallocated = env.library("gc.getallocated")
 val format = env.library("string.format")
@@ -93,7 +99,7 @@ do
         vector.push(coroutines, created)
     end
 
-    iterator(extract key, value in coroutines)
+    iterator({ key, value } in coroutines)
         coroutine.launch(value)
         coroutines[key] = nil
     end

@@ -17,7 +17,7 @@ fun fakelibrary<auto>(name, reload)
         "__app"
     ]
 
-    iterator(extract value in disabled)
+    iterator({ value } in disabled)
         if (value == name)
             base.error("library not found")
         end
@@ -143,7 +143,7 @@ fun tobytes<auto>(program, param)
     end
 
     fun convert<auto>()
-        val extract modifier, param = do
+        val { modifier, param } = do
             val last = param[lenof param - 1]
 
             val int = if (string.isalpha(last))

@@ -11,6 +11,6 @@ val compiler = env.library("compiler")
 
 val tokens = compiler.lex(code)
 
-iterator(extract key, value in tokens)
+iterator({ key, value } in tokens)
     base.println(value)
 end

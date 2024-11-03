@@ -7,6 +7,7 @@
 struct arguments extra_arguments_init_full(
     struct parse_controller *C,
     bool consume_open,
+    bool allow_empty,
     struct expected_token open,
     struct expected_token close,
     struct expected_token separator
@@ -18,7 +19,7 @@ struct arguments extra_arguments_init_full(
         opened = parser_match(C, open);
     }
 
-    if (parser_look(C, close)) {
+    if (allow_empty && parser_look(C, close)) {
         opened = false;
     }
 
