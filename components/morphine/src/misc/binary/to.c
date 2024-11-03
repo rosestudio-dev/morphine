@@ -93,6 +93,18 @@ static void vectorize(struct data *D) {
     }
 }
 
+static inline void write_data(struct data *D, const uint8_t *data, size_t size) {
+    size_t write_count = sioI_write(D->I, D->sio, data, size);
+
+    if (write_count != size) {
+        throwI_error(D->I, "write error");
+    }
+
+    for (size_t i = 0; i < size; i++) {
+        crc32_char(&D->crc, data[i]);
+    }
+}
+
 #define write_type(t, n) static inline void write_##n(struct data *D, t value) { \
     union { \
         uint8_t raw[sizeof(t)]; \
@@ -114,18 +126,6 @@ static void vectorize(struct data *D) {
     } \
     write_data(D, &zeros, sizeof(uint8_t)); \
     write_data(D, buffer.raw, sizeof(t) - zeros); \
-}
-
-static inline void write_data(struct data *D, const uint8_t *data, size_t size) {
-    size_t write_count = sioI_write(D->I, D->sio, data, size);
-
-    if (write_count != size) {
-        throwI_error(D->I, "write error");
-    }
-
-    for (size_t i = 0; i < size; i++) {
-        crc32_char(&D->crc, data[i]);
-    }
 }
 
 write_compress_type(ml_size, ml_size)

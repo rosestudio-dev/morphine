@@ -27,6 +27,19 @@ struct data {
     ml_size value;
 };
 
+static inline uint8_t get_byte(struct data *D) {
+    uint8_t byte = 0;
+
+    size_t read_count = sioI_read(D->I, D->sio, &byte, 1);
+
+    if (read_count != 1) {
+        throwI_error(D->I, "corrupted binary");
+    }
+
+    crc32_char(&D->crc, byte);
+    return byte;
+}
+
 #define get_type(t, n) static inline t get_##n(struct data *D) { \
     union { \
         uint8_t raw[sizeof(t)]; \
@@ -50,30 +63,10 @@ struct data {
     return buffer.result; \
 }
 
-static inline uint8_t get_byte(struct data *D) {
-    uint8_t byte = 0;
-
-    size_t read_count = sioI_read(D->I, D->sio, &byte, 1);
-
-    if (read_count != 1) {
-        throwI_error(D->I, "corrupted binary");
-    }
-
-    crc32_char(&D->crc, byte);
-    return byte;
-}
-
-static inline ml_size get_ml_size(struct data *D) {
-    union { uint8_t raw[sizeof(ml_size)]; ml_size result; } buffer;
-    uint8_t zeros = get_byte(D);
-    if (zeros > sizeof(ml_size)) { throwI_error(D->I, "corrupted binary"); }
-    for (size_t i = 0; i < sizeof(ml_size) - zeros; i++) { buffer.raw[i] = get_byte(D); }
-    for (size_t i = sizeof(ml_size) - zeros; i < sizeof(ml_size); i++) { buffer.raw[i] = 0; }
-    return buffer.result;
-}
 get_compressed_type(ml_line, ml_line)
 get_compressed_type(ml_argument, ml_argument)
 get_compressed_type(ml_integer, ml_integer)
+get_compressed_type(ml_size, ml_size)
 get_compressed_type(ml_decimal, ml_decimal)
 get_compressed_type(ml_version, ml_version)
 get_compressed_type(enum value_type, value_type)
@@ -113,7 +106,7 @@ static void check_prob(struct data *D) {
     }
 
     if (get_ml_version(D) != MORPHINE_VERSION_CODE) {
-        throwI_error(D->I, "unsupported morphine version");
+        throwI_error(D->I, "unsupported morphine version code");
     }
 
     if (get_ml_version(D) != MORPHINE_BYTECODE_VERSION) {
