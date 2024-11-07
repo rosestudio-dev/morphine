@@ -22,14 +22,6 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
         .status = GC_STATUS_IDLE,
         .enabled = false,
 
-        .settings.limit = 0,     // bytes
-        .settings.threshold = 0, // bytes
-        .settings.grow = 0,      // percentage / 10
-        .settings.deal = 0,      // percentage / 10
-        .settings.pause = 0,     // 2^n bytes
-
-        .settings.cache_callinfo_holding = 0,
-
         .stats.debt = 0,
         .stats.prev_allocated = 0,
 
@@ -45,7 +37,8 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
 
         .finalizer.candidate = NULL,
         .finalizer.coroutine = NULL,
-        .finalizer.work = false,
+        .finalizer.resolver = NULL,
+        .finalizer.name = NULL,
 
         .safe.index = 0,
 
@@ -54,17 +47,16 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
     };
 
     size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
-
     for (size_t i = 0; i < size; i++) {
         I->G.safe.stack[i] = valueI_nil;
     }
 
-    gcI_change_limit(I, I->settings.gc.limit_bytes);
+    gcI_change_limit(I, I->settings.gc.limit);
     gcI_change_threshold(I, I->settings.gc.threshold);
     gcI_change_grow(I, I->settings.gc.grow);
     gcI_change_deal(I, I->settings.gc.deal);
     gcI_change_pause(I, I->settings.gc.pause);
-    gcI_change_cache_callinfo_holding(I, I->settings.gc.cache_callinfo_holding);
+    gcI_change_cache_callinfo(I, I->settings.gc.cache.callinfo);
 }
 
 void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {

@@ -37,14 +37,6 @@ struct coroutine {
     morphine_instance_t I;
 };
 
-morphine_coroutine_t coroutineI_custom_create(
-    morphine_instance_t,
-    struct string *name,
-    struct value env,
-    size_t stack_limit,
-    size_t stack_grow
-);
-
 morphine_coroutine_t coroutineI_create(morphine_instance_t, struct string *name, struct value env);
 void coroutineI_free(morphine_instance_t, morphine_coroutine_t coroutine);
 

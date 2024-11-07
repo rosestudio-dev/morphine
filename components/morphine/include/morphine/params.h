@@ -12,3 +12,5 @@
 #define MPARAM_SSO_MAX_LEN           48
 #define MPARAM_TRACESTACK_COUNT      16
 #define MPARAM_FAKE_RECURSION_DEEP   1000000
+#define MPARAM_STACK_LIMIT           65536
+#define MPARAM_STACK_GROW            32

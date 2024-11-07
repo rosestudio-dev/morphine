@@ -74,23 +74,19 @@ typedef struct {
 // settings
 
 typedef struct {
-    size_t limit_bytes;
-    size_t threshold;
-    uint16_t grow;
-    uint16_t deal;
-    uint8_t pause;
-    size_t cache_callinfo_holding;
+    size_t limit;     // bytes
+    size_t threshold; // bytes
+    uint16_t grow;    // percentage / 10
+    uint16_t deal;    // percentage / 10
+    uint8_t pause;    // 2^n bytes
+
+    struct {
+        size_t callinfo;
+    } cache;
 } morphine_gc_settings_t;
 
 typedef struct {
-    size_t stack_limit;
-    size_t stack_grow;
-} morphine_coroutine_settings_t;
-
-typedef struct {
     morphine_gc_settings_t gc;
-    morphine_coroutine_settings_t states;
-    morphine_coroutine_settings_t finalizer;
 } morphine_settings_t;
 
 // library

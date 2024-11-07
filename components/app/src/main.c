@@ -92,16 +92,12 @@ static int launcher(struct env *env, int argc, char **argv) {
     }
 
     morphine_settings_t settings = {
-        .gc.limit_bytes = 8 * 1024 * 1024,
+        .gc.limit = 8 * 1024 * 1024,
         .gc.threshold = 16384,
         .gc.grow = 150,
         .gc.deal = 200,
         .gc.pause = 13,
-        .gc.cache_callinfo_holding = 16,
-        .finalizer.stack_limit = 256,
-        .finalizer.stack_grow = 32,
-        .states.stack_limit = 4096,
-        .states.stack_grow = 64,
+        .gc.cache.callinfo = 16,
     };
 
     morphine_platform_t instance_platform = {

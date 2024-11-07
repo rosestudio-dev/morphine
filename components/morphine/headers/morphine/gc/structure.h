@@ -20,15 +20,6 @@ struct garbage_collector {
     bool enabled;
 
     struct {
-        size_t limit;
-        size_t threshold;
-        uint16_t grow;
-        uint16_t deal;
-        size_t pause;
-        size_t cache_callinfo_holding;
-    } settings;
-
-    struct {
         size_t debt;
         size_t prev_allocated;
     } stats;
@@ -49,8 +40,9 @@ struct garbage_collector {
     } pools;
 
     struct {
-        bool work;
         struct object *candidate;
+        struct native *resolver;
+        struct string *name;
         morphine_coroutine_t coroutine;
     } finalizer;
 

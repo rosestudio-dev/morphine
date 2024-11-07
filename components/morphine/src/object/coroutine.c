@@ -61,13 +61,7 @@ static void detach(morphine_coroutine_t U) {
     current->prev = NULL;
 }
 
-morphine_coroutine_t coroutineI_custom_create(
-    morphine_instance_t I,
-    struct string *name,
-    struct value env,
-    size_t stack_limit,
-    size_t stack_grow
-) {
+morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *name, struct value env) {
     if (name == NULL) {
         throwI_error(I, "coroutine name is null");
     }
@@ -76,14 +70,13 @@ morphine_coroutine_t coroutineI_custom_create(
     gcI_safe_value(I, env);
 
     // create
-    struct stack stack = stackI_prototype(I, stack_limit, stack_grow);
     morphine_coroutine_t result = allocI_uni(I, NULL, sizeof(struct coroutine));
     (*result) = (struct coroutine) {
         .name = name,
         .state.status = COROUTINE_STATUS_CREATED,
         .state.priority = 1,
         .state.exit = false,
-        .stack = stack,
+        .stack = stackI_prototype(),
         .callstack = callstackI_prototype(),
         .env = env,
         .result = valueI_nil,
@@ -95,16 +88,6 @@ morphine_coroutine_t coroutineI_custom_create(
     objectI_init(I, objectI_cast(result), OBJ_TYPE_COROUTINE);
 
     gcI_reset_safe(I, rollback);
-
-    return result;
-}
-
-morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *name, struct value env) {
-    morphine_coroutine_t result = coroutineI_custom_create(
-        I, name, env,
-        I->settings.states.stack_limit,
-        I->settings.states.stack_grow
-    );
 
     return result;
 }

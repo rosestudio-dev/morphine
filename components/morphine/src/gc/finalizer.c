@@ -7,8 +7,10 @@
 #include "morphine/object/native.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/gc/pools.h"
+#include "morphine/gc/safe.h"
 
-#define FINALIZER_NAME "gc_finalizer"
+#define FINALIZER_COROUTINE_NAME "gcfinalizer"
+#define FINALIZER_NATIVE_NAME    "gcfinalizerresolver"
 
 static void give_away(morphine_instance_t I, struct object *candidate) {
     if (I->G.status == GC_STATUS_INCREMENT) {
@@ -20,34 +22,33 @@ static void give_away(morphine_instance_t I, struct object *candidate) {
     }
 }
 
-static void finalizer(morphine_coroutine_t U) {
+static void resolver(morphine_coroutine_t U) {
     morphine_instance_t I = U->I;
-    throwI_catchable(U, 1);
 
+    throwI_catchable(U, 1);
     switch (callstackI_state(U)) {
         case 0: {
             callstackI_continue(U, 0);
 
             struct object *candidate = I->G.pools.finalize;
             if (candidate == NULL) {
-                I->G.finalizer.work = false;
-                return;
+                goto leave;
             }
 
             gcI_pools_remove(candidate, &I->G.pools.finalize);
 
             if (candidate->flags.finalized) {
                 give_away(I, candidate);
-                return;
+                goto leave;
             }
 
             I->G.finalizer.candidate = candidate;
-
-            struct value candidate_value = valueI_object(candidate);
-            struct value callable = valueI_nil;
             candidate->flags.finalized = true;
 
             callstackI_continue(U, 1);
+
+            struct value candidate_value = valueI_object(candidate);
+            struct value callable = valueI_nil;
             if (metatableI_builtin_test(U->I, candidate_value, MORPHINE_METAFIELD_GC, &callable)) {
                 callstackI_call_unsafe(U, callable, candidate_value, NULL, 0, 0);
                 return;
@@ -55,9 +56,9 @@ static void finalizer(morphine_coroutine_t U) {
 
             goto give;
         }
-        case 1: give: {
-            callstackI_continue(U, 0);
-
+        case 1:
+        give:
+        {
             struct object *candidate = I->G.finalizer.candidate;
             I->G.finalizer.candidate = NULL;
 
@@ -65,27 +66,44 @@ static void finalizer(morphine_coroutine_t U) {
                 give_away(I, candidate);
             }
 
-            return;
+            goto leave;
         }
         default:
             break;
     }
 
     throwI_panic(I, "undefined gc finalizer's state");
+
+leave:
+    callstackI_return(U, valueI_nil);
 }
 
 void gcI_init_finalizer(morphine_instance_t I) {
-    struct string *name = stringI_create(I, FINALIZER_NAME);
-    morphine_coroutine_t coroutine = coroutineI_custom_create(
-        I, name, valueI_nil,
-        I->settings.finalizer.stack_limit,
-        I->settings.finalizer.stack_grow
-    );
+    struct string *name = stringI_create(I, FINALIZER_NATIVE_NAME);
+    I->G.finalizer.resolver = nativeI_create(I, name, resolver);
+    I->G.finalizer.name = stringI_create(I, FINALIZER_COROUTINE_NAME);
+}
 
-    coroutineI_priority(coroutine, 1);
+void gcI_finalize(morphine_instance_t I) {
+    if (I->G.finalizer.coroutine != NULL) {
+        if (I->G.finalizer.coroutine->state.status == COROUTINE_STATUS_DEAD) {
+            I->G.finalizer.coroutine = NULL;
+        }
 
-    struct native *native = nativeI_create(I, name, finalizer);
-    callstackI_call_unsafe(coroutine, valueI_object(native), valueI_nil, NULL, 0, 0);
+        return;
+    }
 
-    I->G.finalizer.coroutine = coroutine;
+    if (I->G.pools.finalize != NULL && I->G.finalizer.candidate == NULL) {
+        morphine_coroutine_t coroutine = coroutineI_create(I, I->G.finalizer.name, valueI_nil);
+        size_t rollback = gcI_safe_obj(I, objectI_cast(coroutine));
+
+        coroutineI_priority(coroutine, 1);
+
+        callstackI_call_unsafe(coroutine, valueI_object(I->G.finalizer.resolver), valueI_nil, NULL, 0, 0);
+        coroutineI_attach(coroutine);
+
+        I->G.finalizer.coroutine = coroutine;
+
+        gcI_reset_safe(I, rollback);
+    }
 }

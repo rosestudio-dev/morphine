@@ -4,10 +4,12 @@
 
 #include "morphine/core/stack.h"
 #include "morphine/core/throw.h"
+#include "morphine/core/instance.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 #include "morphine/utils/overflow.h"
+#include "morphine/params.h"
 
 static inline void callstack_recover(struct coroutine *U, struct value *old_stack, size_t old_top) {
     struct callinfo *current = U->callstack.callinfo;
@@ -79,22 +81,12 @@ static struct value *stack_vector(
     return (p - offset - size);
 }
 
-struct stack stackI_prototype(morphine_instance_t I, size_t limit, size_t grow) {
-    if (grow == 0) {
-        throwI_error(I, "stack grow size is zero");
-    }
-
-    if (limit == 0) {
-        throwI_error(I, "stack limit is zero");
-    }
-
+struct stack stackI_prototype(void) {
     return (struct stack) {
         .array.allocated = NULL,
         .array.size = 0,
         .array.top = 0,
         .space_top = 0,
-        .settings.grow = grow,
-        .settings.limit = limit,
         .control.allow_shrinking = true,
     };
 }
@@ -120,16 +112,14 @@ struct value *stackI_raise(morphine_coroutine_t U, size_t size) {
     }
 
     if (stack->array.top + size >= stack->array.size) {
-        size_t grow = U->stack.settings.grow;
+        size_t grow = MPARAM_STACK_GROW;
         if (grow < size) {
             grow = size;
         }
 
         size_t new_size = stack->array.size + grow;
 
-        if (unlikely(
-            overflow_condition_add(grow, stack->array.size, SIZE_MAX) ||
-            new_size >= U->stack.settings.limit)) {
+        if (overflow_condition_add(grow, stack->array.size, SIZE_MAX) || new_size >= MPARAM_STACK_LIMIT) {
             throwI_error(I, "stack overflow");
         }
 
@@ -167,7 +157,7 @@ struct value *stackI_reduce(morphine_coroutine_t U, size_t size) {
 }
 
 void stackI_shrink(morphine_coroutine_t U) {
-    size_t size = U->stack.array.top + U->stack.settings.grow;
+    size_t size = U->stack.array.top + MPARAM_STACK_GROW;
 
     if (!U->stack.control.allow_shrinking ||
         U->stack.array.size <= size) {
@@ -190,23 +180,6 @@ void stackI_shrink(morphine_coroutine_t U) {
     U->stack.array.size = size;
 
     U->stack.control.allow_shrinking = true;
-}
-
-
-void stackI_set_grow(morphine_coroutine_t U, size_t grow) {
-    if (grow == 0) {
-        throwI_error(U->I, "stack grow size is zero");
-    }
-
-    U->stack.settings.grow = grow;
-}
-
-void stackI_set_limit(morphine_coroutine_t U, size_t limit) {
-    if (limit == 0) {
-        throwI_error(U->I, "stack limit is zero");
-    }
-
-    U->stack.settings.limit = limit;
 }
 
 size_t stackI_space(morphine_coroutine_t U) {

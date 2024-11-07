@@ -295,7 +295,7 @@ fun launch<auto>()
         help(config.app_path)
     end
 
-    gc.changelimit(config.gc_limit)
+    gc.settings.setlimit(config.gc_limit)
 
     if (config.program_path != nil)
         val content = base.pcall(fun<auto>()

@@ -281,17 +281,12 @@ MORPHINE_API bool mapi_gc_is_enabled(morphine_instance_t);
 MORPHINE_API const char *mapi_gc_status(morphine_instance_t);
 MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t);
 MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t);
-MORPHINE_API void mapi_gc_reset_max_allocated(morphine_instance_t I);
-MORPHINE_API void mapi_gc_change_limit(morphine_instance_t, size_t value);
-MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t, size_t value);
-MORPHINE_API void mapi_gc_change_grow(morphine_instance_t, uint16_t value);
-MORPHINE_API void mapi_gc_change_deal(morphine_instance_t, uint16_t value);
-MORPHINE_API void mapi_gc_change_pause(morphine_instance_t, uint8_t value);
-MORPHINE_API void mapi_gc_change_cache_callinfo_holding(morphine_instance_t, size_t value);
-MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t, size_t value);
-MORPHINE_API void mapi_gc_change_finalizer_stack_grow(morphine_instance_t, size_t value);
-MORPHINE_API void mapi_gc_change_stack_limit(morphine_coroutine_t, size_t value);
-MORPHINE_API void mapi_gc_change_stack_grow(morphine_coroutine_t, size_t value);
+MORPHINE_API void mapi_gc_change_limit(morphine_instance_t, size_t);
+MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t, size_t);
+MORPHINE_API void mapi_gc_change_grow(morphine_instance_t, uint16_t);
+MORPHINE_API void mapi_gc_change_deal(morphine_instance_t, uint16_t);
+MORPHINE_API void mapi_gc_change_pause(morphine_instance_t, uint8_t);
+MORPHINE_API void mapi_gc_change_cache_callinfo(morphine_instance_t, size_t);
 
 // metatable
 
@@ -310,7 +305,7 @@ MORPHINE_API void mapi_peek(morphine_coroutine_t, size_t offset);
 MORPHINE_API void mapi_move(morphine_coroutine_t, morphine_coroutine_t to);
 MORPHINE_API void mapi_copy(morphine_coroutine_t, morphine_coroutine_t to, size_t offset);
 MORPHINE_API void mapi_stack_reset(morphine_coroutine_t);
-MORPHINE_API size_t mapi_stack(morphine_coroutine_t);
+MORPHINE_API size_t mapi_stack_used(morphine_coroutine_t);
 
 // localstorage
 

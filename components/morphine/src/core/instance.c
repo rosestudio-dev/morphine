@@ -4,12 +4,10 @@
 
 #include "morphine/core/instance.h"
 #include "morphine/init/instance.h"
-#include "morphine/gc/finalizer.h"
-#include "morphine/gc/control.h"
 #include "morphine/object/sio.h"
 
 morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settings_t settings, void *data) {
-    if (sizeof(struct instance) >= settings.gc.limit_bytes) {
+    if (sizeof(struct instance) >= settings.gc.limit) {
         platform.functions.signal(NULL);
     }
 

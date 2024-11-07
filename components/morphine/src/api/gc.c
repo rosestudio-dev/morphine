@@ -191,24 +191,6 @@ MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t I) {
 /*
  * {{docs body}}
  * path:architecture/api-garbage-collector
- * ## mapi_gc_reset_max_allocated
- * ### Prototype
- * ```c
- * void mapi_gc_reset_max_allocated(morphine_instance_t I)
- * ```
- * ### Parameters
- * * `I` - instance
- * ### Description
- * Sets zero into max allocated bytes
- * {{end}}
- */
-MORPHINE_API void mapi_gc_reset_max_allocated(morphine_instance_t I) {
-    gcI_reset_max_allocated(I);
-}
-
-/*
- * {{docs body}}
- * path:architecture/api-garbage-collector
  * ## mapi_gc_allocated
  * ### Prototype
  * ```c
@@ -324,98 +306,18 @@ MORPHINE_API void mapi_gc_change_pause(morphine_instance_t I, uint8_t value) {
 /*
  * {{docs body}}
  * path:architecture/api-garbage-collector
- * ## mapi_gc_change_cache_callinfo_holding
+ * ## mapi_gc_change_cache_callinfo
  * ### Prototype
  * ```c
- * void mapi_gc_change_cache_callinfo_holding(morphine_instance_t I, uint8_t value)
+ * void mapi_gc_change_cache_callinfo(morphine_instance_t I, size_t value)
  * ```
  * ### Parameters
  * * `I` - instance
- * * `value` - count of holded callinfo
+ * * `value` - count of callinfo
  * ### Description
- * Sets count of holded callinfo into gc
+ * Sets count of callinfo for cache into gc
  * {{end}}
  */
-MORPHINE_API void mapi_gc_change_cache_callinfo_holding(morphine_instance_t I, size_t value) {
-    gcI_change_cache_callinfo_holding(I, value);
-}
-
-/*
- * {{docs body}}
- * path:architecture/api-garbage-collector
- * ## mapi_gc_change_finalizer_stack_limit
- * ### Prototype
- * ```c
- * void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value)
- * ```
- * ### Parameters
- * * `I` - instance
- * * `value` - count of values
- * ### Description
- * Sets count of values into stack limit of finalizer coroutine
- * {{end}}
- */
-MORPHINE_API void mapi_gc_change_finalizer_stack_limit(morphine_instance_t I, size_t value) {
-    if (I->G.finalizer.coroutine != NULL) {
-        stackI_set_limit(I->G.finalizer.coroutine, value);
-    }
-}
-
-/*
- * {{docs body}}
- * path:architecture/api-garbage-collector
- * ## mapi_gc_change_finalizer_stack_grow
- * ### Prototype
- * ```c
- * void mapi_gc_change_finalizer_stack_grow(morphine_instance_t I, size_t value)
- * ```
- * ### Parameters
- * * `I` - instance
- * * `value` - count of values
- * ### Description
- * Sets count of values into stack grow of finalizer coroutine
- * {{end}}
- */
-MORPHINE_API void mapi_gc_change_finalizer_stack_grow(morphine_instance_t I, size_t value) {
-    if (I->G.finalizer.coroutine != NULL) {
-        stackI_set_grow(I->G.finalizer.coroutine, value);
-    }
-}
-
-/*
- * {{docs body}}
- * path:architecture/api-garbage-collector
- * ## mapi_gc_change_stack_limit
- * ### Prototype
- * ```c
- * void mapi_gc_change_stack_limit(morphine_coroutine_t U, size_t value)
- * ```
- * ### Parameters
- * * `U` - coroutine
- * * `value` - count of values
- * ### Description
- * Sets count of values into initial stack limit of coroutines
- * {{end}}
- */
-MORPHINE_API void mapi_gc_change_stack_limit(morphine_coroutine_t U, size_t value) {
-    stackI_set_limit(U, value);
-}
-
-/*
- * {{docs body}}
- * path:architecture/api-garbage-collector
- * ## mapi_gc_change_stack_grow
- * ### Prototype
- * ```c
- * void mapi_gc_change_stack_grow(morphine_coroutine_t U, size_t value)
- * ```
- * ### Parameters
- * * `U` - coroutine
- * * `value` - count of values
- * ### Description
- * Sets count of values into initial stack grow of coroutines
- * {{end}}
- */
-MORPHINE_API void mapi_gc_change_stack_grow(morphine_coroutine_t U, size_t value) {
-    stackI_set_grow(U, value);
+MORPHINE_API void mapi_gc_change_cache_callinfo(morphine_instance_t I, size_t value) {
+    gcI_change_cache_callinfo(I, value);
 }

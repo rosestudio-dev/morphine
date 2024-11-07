@@ -51,7 +51,7 @@ static inline void resolve_pools(morphine_instance_t I) {
 static inline void resolve_cache(morphine_instance_t I, bool emergency) {
     struct callinfo *current = I->G.cache.callinfo.pool;
     while (current != NULL) {
-        if (!emergency && I->G.cache.callinfo.size < I->G.settings.cache_callinfo_holding) {
+        if (!emergency && I->G.cache.callinfo.size < I->settings.gc.cache.callinfo) {
             break;
         }
 
@@ -118,10 +118,6 @@ static inline bool finalize(morphine_instance_t I) {
         }
 
         current = prev;
-    }
-
-    if (has_to_be_finalize) {
-        I->G.finalizer.work = true;
     }
 
     return has_to_be_finalize || has_simple_finalized;
@@ -204,18 +200,33 @@ static inline bool mark_throw(morphine_instance_t I) {
     return false;
 }
 
+static inline bool mark_gc(morphine_instance_t I) {
+    bool marked = false;
+    if (I->G.finalizer.resolver != NULL && mark_object(I, objectI_cast(I->G.finalizer.resolver))) {
+        marked = true;
+    }
+
+    if (I->G.finalizer.name != NULL && mark_object(I, objectI_cast(I->G.finalizer.name))) {
+        marked = true;
+    }
+
+    return marked;
+}
+
 static inline bool mark(morphine_instance_t I) {
     bool sso_marked = mark_sso(I);
     bool sio_marked = mark_sio(I);
     bool metatable_marked = mark_metatable(I);
     bool libraries_marked = mark_libraries(I);
     bool throw_marked = mark_throw(I);
+    bool gc_marked = mark_gc(I);
 
     return sso_marked ||
            sio_marked ||
            metatable_marked ||
            libraries_marked ||
-           throw_marked;
+           throw_marked ||
+           gc_marked;
 }
 
 void gcstageI_resolve(morphine_instance_t I, bool emergency) {

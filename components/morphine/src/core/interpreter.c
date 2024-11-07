@@ -10,6 +10,7 @@
 #include "morphine/object/table.h"
 #include "morphine/object/closure.h"
 #include "morphine/gc/control.h"
+#include "morphine/gc/finalizer.h"
 
 // loop
 
@@ -551,8 +552,8 @@ static inline void step(morphine_coroutine_t U) {
 }
 
 static inline bool execute_step(morphine_instance_t I, struct interpreter *E) {
-    if (unlikely(I->G.finalizer.work)) {
-        step(I->G.finalizer.coroutine);
+    if (unlikely(gcI_finalize_need(I))) {
+        gcI_finalize(I);
     }
 
     if (unlikely(E->coroutines == NULL)) {
@@ -560,7 +561,7 @@ static inline bool execute_step(morphine_instance_t I, struct interpreter *E) {
         E->next = NULL;
         gcI_full(I, 0);
 
-        return I->G.finalizer.work;
+        return gcI_finalize_need(I);
     }
 
     if (likely(E->running == NULL)) {

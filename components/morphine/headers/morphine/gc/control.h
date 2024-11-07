@@ -11,9 +11,7 @@ void gcI_change_limit(morphine_instance_t, size_t);
 void gcI_change_grow(morphine_instance_t, uint16_t);
 void gcI_change_deal(morphine_instance_t, uint16_t);
 void gcI_change_pause(morphine_instance_t, uint8_t);
-void gcI_change_cache_callinfo_holding(morphine_instance_t, size_t);
-
-void gcI_reset_max_allocated(morphine_instance_t);
+void gcI_change_cache_callinfo(morphine_instance_t, size_t);
 
 void gcI_enable(morphine_instance_t);
 void gcI_disable(morphine_instance_t);
