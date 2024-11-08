@@ -176,10 +176,10 @@ static void write(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 1);
             const char *buffer = mapi_get_string(U);
-            ml_size size = mapi_string_len(U);
+            size_t size = mapi_string_len(U);
 
             mapi_push_arg(U, 0);
-            size_t written = mapi_sio_write(U, (const uint8_t *) buffer, size);
+            size_t written = mapi_sio_write(U, (const uint8_t *) buffer, size * sizeof(char));
 
             mapi_push_size(U, written, NULL);
             maux_nb_return();

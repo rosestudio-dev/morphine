@@ -5,37 +5,6 @@
 #include <morphine.h>
 #include "morphine/libs/builtin.h"
 
-static void tostr(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
-
-            if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_TO_STRING)) {
-                if (mapi_is_callable(U)) {
-                    mapi_rotate(U, 2);
-                    mapi_scall(U, 0);
-                } else {
-                    maux_nb_return();
-                }
-            } else if (mapi_is_type(U, "vector")) {
-                maux_library_access(U, "vector.tostr");
-                mapi_rotate(U, 2);
-                mapi_call(U, 1);
-            } else if (mapi_is_type(U, "table")) {
-                maux_library_access(U, "table.tostr");
-                mapi_rotate(U, 2);
-                mapi_call(U, 1);
-            } else {
-                mapi_to_string(U);
-                maux_nb_return();
-            }
-        maux_nb_state(1)
-            mapi_push_result(U);
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void toint(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -109,6 +78,37 @@ static void tobool(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void tostr(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+
+            if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_TO_STRING)) {
+                if (mapi_is_callable(U)) {
+                    mapi_rotate(U, 2);
+                    mapi_scall(U, 0);
+                } else {
+                    maux_nb_return();
+                }
+            } else if (mapi_is_type(U, "vector")) {
+                maux_library_access(U, "vector.tostr");
+                mapi_rotate(U, 2);
+                mapi_call(U, 1);
+            } else if (mapi_is_type(U, "table")) {
+                maux_library_access(U, "table.tostr");
+                mapi_rotate(U, 2);
+                mapi_call(U, 1);
+            } else {
+                mapi_to_string(U);
+                maux_nb_return();
+            }
+        maux_nb_state(1)
+            mapi_push_result(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void compare(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -160,13 +160,16 @@ static void hash(morphine_coroutine_t U) {
 }
 
 static maux_construct_element_t elements[] = {
-    MAUX_CONSTRUCT_FUNCTION("tostr", tostr),
     MAUX_CONSTRUCT_FUNCTION("toint", toint),
     MAUX_CONSTRUCT_FUNCTION("tosize", tosize),
     MAUX_CONSTRUCT_FUNCTION("todec", todec),
     MAUX_CONSTRUCT_FUNCTION("tobool", tobool),
+    MAUX_CONSTRUCT_FUNCTION("tostr", tostr),
     MAUX_CONSTRUCT_FUNCTION("compare", compare),
     MAUX_CONSTRUCT_FUNCTION("hash", hash),
+    MAUX_CONSTRUCT_INTEGER("constants.intmin", MLIMIT_INTEGER_MIN),
+    MAUX_CONSTRUCT_INTEGER("constants.intmax", MLIMIT_INTEGER_MAX),
+    MAUX_CONSTRUCT_INTEGER("constants.sizemax", MLIMIT_SIZE_MAX),
     MAUX_CONSTRUCT_END
 };
 
