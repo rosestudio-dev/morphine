@@ -43,7 +43,7 @@ val {
 } = env.library("base")
 
 val tostr = env.library("value.tostr")
-val getallocated = env.library("gc.getallocated")
+val allocated = env.library("gc.stat.memory.current")
 val format = env.library("string.format")
 val coroutine = env.library("coroutine")
 val vector = env.library("vector")
@@ -76,8 +76,8 @@ fun worker<auto>()
 
     val text = format("Recursion allocated: ${value}KB") {
         value = do
-            val allocated = getallocated()
-            getting!allocated(100) / 1024
+            val bytes = allocated()
+            getting!bytes(100) / 1024
         end
     }
 
@@ -108,7 +108,7 @@ end
 // Reference test
 do
     val value = ref { text = "reference test" }
-    env.library("gc").full()
+    env.library("gc.control").full()
     println(*value or "cleared")
 end
 

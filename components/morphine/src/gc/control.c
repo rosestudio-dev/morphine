@@ -138,15 +138,15 @@ static void recover_pools(morphine_instance_t I) {
     recover_pool(I, &I->G.pools.grey);
 }
 
-void gcI_change_limit(morphine_instance_t I, size_t value) {
+void gcI_set_limit(morphine_instance_t I, size_t value) {
     I->settings.gc.limit = value;
 }
 
-void gcI_change_threshold(morphine_instance_t I, size_t value) {
+void gcI_set_threshold(morphine_instance_t I, size_t value) {
     I->settings.gc.threshold = value;
 }
 
-void gcI_change_grow(morphine_instance_t I, uint16_t value) {
+void gcI_set_grow(morphine_instance_t I, uint16_t value) {
     if (value <= 100) {
         throwI_error(I, "gc grow must be greater than 100");
     }
@@ -154,7 +154,7 @@ void gcI_change_grow(morphine_instance_t I, uint16_t value) {
     I->settings.gc.grow = value / 10;
 }
 
-void gcI_change_deal(morphine_instance_t I, uint16_t value) {
+void gcI_set_deal(morphine_instance_t I, uint16_t value) {
     if (value <= 100) {
         throwI_error(I, "gc deal must be greater than 100");
     }
@@ -162,7 +162,7 @@ void gcI_change_deal(morphine_instance_t I, uint16_t value) {
     I->settings.gc.deal = value / 10;
 }
 
-void gcI_change_pause(morphine_instance_t I, uint8_t value) {
+void gcI_set_pause(morphine_instance_t I, uint8_t value) {
     if (value > 31) {
         throwI_error(I, "gc pause must be less than 32");
     }
@@ -170,7 +170,7 @@ void gcI_change_pause(morphine_instance_t I, uint8_t value) {
     I->settings.gc.pause = value;
 }
 
-void gcI_change_cache_callinfo(morphine_instance_t I, size_t value) {
+void gcI_set_cache_callinfo(morphine_instance_t I, size_t value) {
     I->settings.gc.cache.callinfo = value;
 }
 

@@ -70,6 +70,22 @@ static void priority(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void stack_setlimit(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 2);
+            mapi_push_arg(U, 0);
+            maux_expect(U, "coroutine");
+            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
+
+            mapi_push_arg(U, 1);
+            size_t value = mapi_get_size(U, NULL);
+
+            mapi_stack_set_limit(coroutine, value);
+            maux_nb_leave();
+    maux_nb_end
+}
+
 static void wait(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -257,6 +273,7 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("status", status),
     MAUX_CONSTRUCT_FUNCTION("priority", priority),
     MAUX_CONSTRUCT_FUNCTION("name", name),
+    MAUX_CONSTRUCT_FUNCTION("stack.setlimit", stack_setlimit),
     MAUX_CONSTRUCT_FUNCTION("wait", wait),
     MAUX_CONSTRUCT_FUNCTION("guard", guard),
     MAUX_CONSTRUCT_END

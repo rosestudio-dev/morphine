@@ -17,11 +17,12 @@ struct stack {
     size_t space_top;
 
     struct {
+        size_t limit;
         bool allow_shrinking;
-    } control;
+    } settings;
 };
 
-struct stack stackI_prototype(void);
+struct stack stackI_prototype(morphine_instance_t);
 void stackI_destruct(morphine_instance_t, struct stack *);
 
 void stackI_throw_fix(morphine_coroutine_t);
@@ -39,3 +40,5 @@ void stackI_rotate(morphine_coroutine_t, size_t count);
 void stackI_replace(morphine_coroutine_t, size_t offset, struct value value);
 
 struct value *stackI_unsafe_peek(morphine_coroutine_t, size_t offset);
+
+void stackI_set_limit(morphine_coroutine_t, size_t);

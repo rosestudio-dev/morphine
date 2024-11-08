@@ -99,7 +99,7 @@ static void settings_setlimit(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
             size_t limit = mapi_get_size(U, NULL);
             mapi_gc_full(mapi_instance(U));
-            mapi_gc_change_limit(mapi_instance(U), limit);
+            mapi_gc_set_limit(mapi_instance(U), limit);
             maux_nb_leave();
     maux_nb_end
 }
@@ -110,7 +110,7 @@ static void settings_setthreshold(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_size(U, NULL);
-            mapi_gc_change_threshold(mapi_instance(U), value);
+            mapi_gc_set_threshold(mapi_instance(U), value);
             maux_nb_leave();
     maux_nb_end
 }
@@ -121,7 +121,7 @@ static void settings_setdeal(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_size(U, NULL);
-            mapi_gc_change_deal(mapi_instance(U), value > UINT16_MAX ? UINT16_MAX : (uint16_t) value);
+            mapi_gc_set_deal(mapi_instance(U), value > UINT16_MAX ? UINT16_MAX : (uint16_t) value);
             maux_nb_leave();
     maux_nb_end
 }
@@ -132,7 +132,7 @@ static void settings_setgrow(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_size(U, NULL);
-            mapi_gc_change_grow(mapi_instance(U), value > UINT16_MAX ? UINT16_MAX : (uint16_t) value);
+            mapi_gc_set_grow(mapi_instance(U), value > UINT16_MAX ? UINT16_MAX : (uint16_t) value);
             maux_nb_leave();
     maux_nb_end
 }
@@ -143,7 +143,7 @@ static void settings_setpause(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_size(U, NULL);
-            mapi_gc_change_pause(mapi_instance(U), value > UINT8_MAX ? UINT8_MAX : (uint8_t) value);
+            mapi_gc_set_pause(mapi_instance(U), value > UINT8_MAX ? UINT8_MAX : (uint8_t) value);
             maux_nb_leave();
     maux_nb_end
 }
@@ -154,7 +154,7 @@ static void settings_cache_setcallinfo(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_size(U, NULL);
-            mapi_gc_change_cache_callinfo(mapi_instance(U), value);
+            mapi_gc_set_cache_callinfo(mapi_instance(U), value);
             maux_nb_leave();
     maux_nb_end
 }

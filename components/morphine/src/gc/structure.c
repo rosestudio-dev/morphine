@@ -50,12 +50,12 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
         I->G.safe.stack[i] = valueI_nil;
     }
 
-    gcI_change_limit(I, I->settings.gc.limit);
-    gcI_change_threshold(I, I->settings.gc.threshold);
-    gcI_change_grow(I, I->settings.gc.grow);
-    gcI_change_deal(I, I->settings.gc.deal);
-    gcI_change_pause(I, I->settings.gc.pause);
-    gcI_change_cache_callinfo(I, I->settings.gc.cache.callinfo);
+    gcI_set_limit(I, I->settings.gc.limit);
+    gcI_set_threshold(I, I->settings.gc.threshold);
+    gcI_set_grow(I, I->settings.gc.grow);
+    gcI_set_deal(I, I->settings.gc.deal);
+    gcI_set_pause(I, I->settings.gc.pause);
+    gcI_set_cache_callinfo(I, I->settings.gc.cache.callinfo);
 }
 
 void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {

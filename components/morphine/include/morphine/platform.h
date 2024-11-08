@@ -83,10 +83,17 @@ typedef struct {
     struct {
         size_t callinfo;
     } cache;
-} morphine_gc_settings_t;
+} morphine_settings_gc_t;
 
 typedef struct {
-    morphine_gc_settings_t gc;
+    struct {
+        size_t limit;
+    } stack;
+} morphine_settings_coroutines_t;
+
+typedef struct {
+    morphine_settings_gc_t gc;
+    morphine_settings_coroutines_t coroutines;
 } morphine_settings_t;
 
 // library

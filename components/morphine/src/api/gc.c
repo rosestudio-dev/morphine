@@ -211,10 +211,10 @@ MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
 /*
  * {{docs body}}
  * path:architecture/api-garbage-collector
- * ## mapi_gc_change_limit
+ * ## mapi_gc_set_limit
  * ### Prototype
  * ```c
- * void mapi_gc_change_limit(morphine_instance_t I, size_t value)
+ * void mapi_gc_set_limit(morphine_instance_t I, size_t value)
  * ```
  * ### Parameters
  * * `I` - instance
@@ -223,17 +223,17 @@ MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
  * Sets bytes into gc limit
  * {{end}}
  */
-MORPHINE_API void mapi_gc_change_limit(morphine_instance_t I, size_t value) {
-    gcI_change_limit(I, value);
+MORPHINE_API void mapi_gc_set_limit(morphine_instance_t I, size_t value) {
+    gcI_set_limit(I, value);
 }
 
 /*
  * {{docs body}}
  * path:architecture/api-garbage-collector
- * ## mapi_gc_change_threshold
+ * ## mapi_gc_set_threshold
  * ### Prototype
  * ```c
- * void mapi_gc_change_threshold(morphine_instance_t I, size_t value)
+ * void mapi_gc_set_threshold(morphine_instance_t I, size_t value)
  * ```
  * ### Parameters
  * * `I` - instance
@@ -242,17 +242,17 @@ MORPHINE_API void mapi_gc_change_limit(morphine_instance_t I, size_t value) {
  * Sets bytes into gc threshold
  * {{end}}
  */
-MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t I, size_t value) {
-    gcI_change_threshold(I, value);
+MORPHINE_API void mapi_gc_set_threshold(morphine_instance_t I, size_t value) {
+    gcI_set_threshold(I, value);
 }
 
 /*
  * {{docs body}}
  * path:architecture/api-garbage-collector
- * ## mapi_gc_change_grow
+ * ## mapi_gc_set_grow
  * ### Prototype
  * ```c
- * void mapi_gc_change_grow(morphine_instance_t I, uint16_t value)
+ * void mapi_gc_set_grow(morphine_instance_t I, uint16_t value)
  * ```
  * ### Parameters
  * * `I` - instance
@@ -261,17 +261,17 @@ MORPHINE_API void mapi_gc_change_threshold(morphine_instance_t I, size_t value) 
  * Sets percentage into gc grow factor
  * {{end}}
  */
-MORPHINE_API void mapi_gc_change_grow(morphine_instance_t I, uint16_t value) {
-    gcI_change_grow(I, value);
+MORPHINE_API void mapi_gc_set_grow(morphine_instance_t I, uint16_t value) {
+    gcI_set_grow(I, value);
 }
 
 /*
  * {{docs body}}
  * path:architecture/api-garbage-collector
- * ## mapi_gc_change_deal
+ * ## mapi_gc_set_deal
  * ### Prototype
  * ```c
- * void mapi_gc_change_deal(morphine_instance_t I, uint16_t value)
+ * void mapi_gc_set_deal(morphine_instance_t I, uint16_t value)
  * ```
  * ### Parameters
  * * `I` - instance
@@ -280,17 +280,17 @@ MORPHINE_API void mapi_gc_change_grow(morphine_instance_t I, uint16_t value) {
  * Sets percentage into gc deal factor
  * {{end}}
  */
-MORPHINE_API void mapi_gc_change_deal(morphine_instance_t I, uint16_t value) {
-    gcI_change_deal(I, value);
+MORPHINE_API void mapi_gc_set_deal(morphine_instance_t I, uint16_t value) {
+    gcI_set_deal(I, value);
 }
 
 /*
  * {{docs body}}
  * path:architecture/api-garbage-collector
- * ## mapi_gc_change_pause
+ * ## mapi_gc_set_pause
  * ### Prototype
  * ```c
- * void mapi_gc_change_pause(morphine_instance_t I, uint8_t value)
+ * void mapi_gc_set_pause(morphine_instance_t I, uint8_t value)
  * ```
  * ### Parameters
  * * `I` - instance
@@ -299,17 +299,17 @@ MORPHINE_API void mapi_gc_change_deal(morphine_instance_t I, uint16_t value) {
  * Sets bytes into gc pause
  * {{end}}
  */
-MORPHINE_API void mapi_gc_change_pause(morphine_instance_t I, uint8_t value) {
-    gcI_change_pause(I, value);
+MORPHINE_API void mapi_gc_set_pause(morphine_instance_t I, uint8_t value) {
+    gcI_set_pause(I, value);
 }
 
 /*
  * {{docs body}}
  * path:architecture/api-garbage-collector
- * ## mapi_gc_change_cache_callinfo
+ * ## mapi_gc_set_cache_callinfo
  * ### Prototype
  * ```c
- * void mapi_gc_change_cache_callinfo(morphine_instance_t I, size_t value)
+ * void mapi_gc_set_cache_callinfo(morphine_instance_t I, size_t value)
  * ```
  * ### Parameters
  * * `I` - instance
@@ -318,6 +318,6 @@ MORPHINE_API void mapi_gc_change_pause(morphine_instance_t I, uint8_t value) {
  * Sets count of callinfo for cache into gc
  * {{end}}
  */
-MORPHINE_API void mapi_gc_change_cache_callinfo(morphine_instance_t I, size_t value) {
-    gcI_change_cache_callinfo(I, value);
+MORPHINE_API void mapi_gc_set_cache_callinfo(morphine_instance_t I, size_t value) {
+    gcI_set_cache_callinfo(I, value);
 }

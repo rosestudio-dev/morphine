@@ -76,7 +76,7 @@ morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *nam
         .state.status = COROUTINE_STATUS_CREATED,
         .state.priority = 1,
         .state.exit = false,
-        .stack = stackI_prototype(),
+        .stack = stackI_prototype(I),
         .callstack = callstackI_prototype(),
         .env = env,
         .result = valueI_nil,

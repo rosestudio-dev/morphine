@@ -98,6 +98,7 @@ static int launcher(struct env *env, int argc, char **argv) {
         .gc.deal = 200,
         .gc.pause = 13,
         .gc.cache.callinfo = 16,
+        .coroutines.stack.limit = 65536
     };
 
     morphine_platform_t instance_platform = {

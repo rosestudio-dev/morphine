@@ -51,16 +51,13 @@ static void vmfree(void *data, void *pointer) {
 
 static void launcher(struct environment *env, const char *text, size_t size) {
     morphine_settings_t settings = {
-        .gc.limit_bytes = 64 * 1024 * 1024,
+        .gc.limit = 64 * 1024 * 1024,
         .gc.threshold = 16384,
         .gc.grow = 150,
         .gc.deal = 200,
         .gc.pause = 13,
-        .gc.cache_callinfo_holding = 16,
-        .finalizer.stack_limit = 256,
-        .finalizer.stack_grow = 32,
-        .states.stack_limit = 4096,
-        .states.stack_grow = 64,
+        .gc.cache.callinfo = 16,
+        .coroutines.stack.limit = 4096
     };
 
     morphine_platform_t instance_platform = {

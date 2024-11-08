@@ -33,3 +33,7 @@ MORPHINE_API void mapi_stack_reset(morphine_coroutine_t U) {
 MORPHINE_API size_t mapi_stack_used(morphine_coroutine_t U) {
     return stackI_space(U);
 }
+
+MORPHINE_API void mapi_stack_set_limit(morphine_coroutine_t U, size_t limit) {
+    stackI_set_limit(U, limit);
+}
