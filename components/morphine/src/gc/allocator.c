@@ -13,26 +13,26 @@ struct metadata {
 };
 
 static inline void change_allocated_size(morphine_instance_t I, size_t grow_size, bool plus) {
-    size_t alloc = I->G.bytes.allocated;
+    size_t alloc = I->G.stats.allocated;
 
     if (plus) {
         overflow_add(alloc, grow_size, SIZE_MAX) {
             throwI_panic(I, "allocation size overflow");
         }
 
-        I->G.bytes.allocated += grow_size;
+        I->G.stats.allocated += grow_size;
     } else {
         overflow_sub(alloc, grow_size, 0) {
             throwI_panic(I, "allocation size corrupted");
         }
 
-        I->G.bytes.allocated -= grow_size;
+        I->G.stats.allocated -= grow_size;
     }
 }
 
 static inline void update_max_alloc_size(morphine_instance_t I) {
-    if (I->G.bytes.max_allocated < I->G.bytes.allocated) {
-        I->G.bytes.max_allocated = I->G.bytes.allocated;
+    if (I->G.stats.max_allocated < I->G.stats.allocated) {
+        I->G.stats.max_allocated = I->G.stats.allocated;
     }
 }
 

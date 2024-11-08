@@ -185,7 +185,7 @@ MORPHINE_API const char *mapi_gc_status(morphine_instance_t I) {
  * {{end}}
  */
 MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t I) {
-    return I->G.bytes.max_allocated;
+    return I->G.stats.max_allocated;
 }
 
 /*
@@ -205,7 +205,7 @@ MORPHINE_API size_t mapi_gc_max_allocated(morphine_instance_t I) {
  * {{end}}
  */
 MORPHINE_API size_t mapi_gc_allocated(morphine_instance_t I) {
-    return I->G.bytes.allocated;
+    return I->G.stats.allocated;
 }
 
 /*

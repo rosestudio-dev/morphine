@@ -193,8 +193,8 @@ static inline bool mark_libraries(morphine_instance_t I) {
 }
 
 static inline bool mark_throw(morphine_instance_t I) {
-    if (!I->E.throw.is_message) {
-        return mark_value(I, I->E.throw.error.value);
+    if (!I->throw.is_message) {
+        return mark_value(I, I->throw.error.value);
     }
 
     return false;
@@ -248,5 +248,5 @@ void gcstageI_resolve(morphine_instance_t I, bool emergency) {
     I->G.pools.black = NULL;
 
     I->G.stats.debt = 0;
-    I->G.stats.prev_allocated = I->G.bytes.allocated;
+    I->G.stats.prev_allocated = I->G.stats.allocated;
 }

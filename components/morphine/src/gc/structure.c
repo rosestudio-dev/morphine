@@ -24,9 +24,8 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
 
         .stats.debt = 0,
         .stats.prev_allocated = 0,
-
-        .bytes.allocated = inited_bytes,
-        .bytes.max_allocated = inited_bytes,
+        .stats.allocated = inited_bytes,
+        .stats.max_allocated = inited_bytes,
 
         .pools.allocated = NULL,
         .pools.grey = NULL,

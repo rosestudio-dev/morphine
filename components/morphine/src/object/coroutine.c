@@ -17,7 +17,7 @@ static void attach(morphine_coroutine_t U) {
 
     morphine_instance_t I = U->I;
 
-    morphine_coroutine_t current = I->E.coroutines;
+    morphine_coroutine_t current = I->interpreter.coroutines;
     while (current != NULL && current != U) {
         current = current->prev;
     }
@@ -26,8 +26,8 @@ static void attach(morphine_coroutine_t U) {
         return;
     }
 
-    U->prev = I->E.coroutines;
-    I->E.coroutines = U;
+    U->prev = I->interpreter.coroutines;
+    I->interpreter.coroutines = U;
 }
 
 static void detach(morphine_coroutine_t U) {
@@ -38,7 +38,7 @@ static void detach(morphine_coroutine_t U) {
     morphine_instance_t I = U->I;
 
     morphine_coroutine_t last = NULL;
-    morphine_coroutine_t current = I->E.coroutines;
+    morphine_coroutine_t current = I->interpreter.coroutines;
     while (current != NULL && current != U) {
         last = current;
         current = current->prev;
@@ -49,13 +49,13 @@ static void detach(morphine_coroutine_t U) {
     }
 
     if (last == NULL) {
-        I->E.coroutines = current->prev;
+        I->interpreter.coroutines = current->prev;
     } else {
         last->prev = current->prev;
     }
 
-    if (current == I->E.next) {
-        I->E.next = current->prev;
+    if (current == I->interpreter.next) {
+        I->interpreter.next = current->prev;
     }
 
     current->prev = NULL;

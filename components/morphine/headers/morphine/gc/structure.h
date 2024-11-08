@@ -21,13 +21,10 @@ struct garbage_collector {
 
     struct {
         size_t debt;
-        size_t prev_allocated;
-    } stats;
-
-    struct {
         size_t allocated;
+        size_t prev_allocated;
         size_t max_allocated;
-    } bytes;
+    } stats;
 
     struct {
         struct object *allocated;

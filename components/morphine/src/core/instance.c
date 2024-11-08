@@ -20,7 +20,8 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
     *I = (struct instance) {
         .platform = platform,
         .settings = settings,
-        .E = interpreterI_prototype(),
+        .interpreter = interpreterI_prototype(),
+        .throw = throwI_prototype(),
         .libraries = librariesI_prototype(),
         .usertypes = usertypeI_prototype(),
         .data = data,

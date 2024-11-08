@@ -11,8 +11,8 @@
 #include "stages/impl.h"
 
 static inline bool ofm_condition(morphine_instance_t I, size_t reserved) {
-    return overflow_condition_add(reserved, I->G.bytes.allocated, SIZE_MAX) ||
-           (reserved + I->G.bytes.allocated) > I->settings.gc.limit;
+    return overflow_condition_add(reserved, I->G.stats.allocated, SIZE_MAX) ||
+           (reserved + I->G.stats.allocated) > I->settings.gc.limit;
 }
 
 static inline void ofm_check(morphine_instance_t I, size_t reserved) {
@@ -22,11 +22,11 @@ static inline void ofm_check(morphine_instance_t I, size_t reserved) {
 }
 
 static inline bool gc_need(morphine_instance_t I, size_t reserved) {
-    overflow_add(reserved, I->G.bytes.allocated, SIZE_MAX) {
+    overflow_add(reserved, I->G.stats.allocated, SIZE_MAX) {
         return true;
     }
 
-    size_t alloc_bytes = I->G.bytes.allocated + reserved;
+    size_t alloc_bytes = I->G.stats.allocated + reserved;
 
     uintmax_t percent_a = (uintmax_t) alloc_bytes;
     overflow_mul(percent_a, 10, UINTMAX_MAX) {
@@ -44,8 +44,8 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
 }
 
 static inline bool pause(morphine_instance_t I) {
-    if (likely(I->G.bytes.allocated > I->G.stats.prev_allocated)) {
-        size_t debt = I->G.bytes.allocated - I->G.stats.prev_allocated;
+    if (likely(I->G.stats.allocated > I->G.stats.prev_allocated)) {
+        size_t debt = I->G.stats.allocated - I->G.stats.prev_allocated;
 
         overflow_add(debt, I->G.stats.debt, SIZE_MAX) {
             I->G.stats.debt = SIZE_MAX;
@@ -54,7 +54,7 @@ static inline bool pause(morphine_instance_t I) {
         }
     }
 
-    I->G.stats.prev_allocated = I->G.bytes.allocated;
+    I->G.stats.prev_allocated = I->G.stats.allocated;
 
     return I->G.stats.debt <= (((uint32_t) 1) << I->settings.gc.pause);
 }
@@ -74,14 +74,14 @@ static inline size_t debt_calc(morphine_instance_t I) {
 }
 
 static inline void step(morphine_instance_t I, size_t reserved) {
-    if (overflow_condition_add(reserved, I->G.bytes.allocated, SIZE_MAX) ||
-        (reserved + I->G.bytes.allocated) > I->settings.gc.limit) {
+    if (overflow_condition_add(reserved, I->G.stats.allocated, SIZE_MAX) ||
+        (reserved + I->G.stats.allocated) > I->settings.gc.limit) {
         gcI_full(I, reserved);
         return;
     }
 
-    bool throw_inited = I->E.throw.inited;
-    I->E.throw.inited = false;
+    bool throw_inited = I->throw.inited;
+    I->throw.inited = false;
 
     switch (I->G.status) {
         case GC_STATUS_IDLE: {
@@ -125,7 +125,7 @@ resolve:
         }
     }
 
-    I->E.throw.inited = throw_inited;
+    I->throw.inited = throw_inited;
 }
 
 static inline void recover_pool(morphine_instance_t I, struct object **pool) {
@@ -209,8 +209,8 @@ void gcI_work(morphine_instance_t I, size_t reserved) {
 }
 
 void gcI_full(morphine_instance_t I, size_t reserved) {
-    bool throw_inited = I->E.throw.inited;
-    I->E.throw.inited = false;
+    bool throw_inited = I->throw.inited;
+    I->throw.inited = false;
 
     recover_pools(I);
     gcstageI_prepare(I);
@@ -219,7 +219,7 @@ void gcI_full(morphine_instance_t I, size_t reserved) {
     while (gcstageI_sweep(I, SIZE_MAX)) { }
 
     I->G.status = GC_STATUS_IDLE;
-    I->E.throw.inited = throw_inited;
+    I->throw.inited = throw_inited;
 
     ofm_check(I, reserved);
 }

@@ -24,8 +24,8 @@ struct throw throwI_prototype(void) {
 }
 
 void throwI_handler(morphine_instance_t I) {
-    struct throw *throw = &I->E.throw;
-    I->E.throw.inited = false;
+    struct throw *throw = &I->throw;
+    throw->inited = false;
 
     morphine_coroutine_t coroutine = throw->context;
 
@@ -90,7 +90,7 @@ void throwI_handler(morphine_instance_t I) {
 }
 
 morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
-    struct throw *throw = &I->E.throw;
+    struct throw *throw = &I->throw;
 
     if (throw->inited) {
         throw->is_message = true;
@@ -103,7 +103,7 @@ morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
 }
 
 morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
-    struct throw *throw = &I->E.throw;
+    struct throw *throw = &I->throw;
 
     throw->signal_entered++;
     throw->is_message = true;
@@ -112,7 +112,7 @@ morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
 }
 
 morphine_noret void throwI_errorv(morphine_instance_t I, struct value value) {
-    struct throw *throw = &I->E.throw;
+    struct throw *throw = &I->throw;
 
     if (throw->inited) {
         throw->is_message = false;
@@ -125,7 +125,7 @@ morphine_noret void throwI_errorv(morphine_instance_t I, struct value value) {
 }
 
 morphine_noret void throwI_panicv(morphine_instance_t I, struct value value) {
-    struct throw *throw = &I->E.throw;
+    struct throw *throw = &I->throw;
 
     throw->signal_entered++;
     throw->is_message = false;
@@ -134,7 +134,7 @@ morphine_noret void throwI_panicv(morphine_instance_t I, struct value value) {
 }
 
 const char *throwI_message(morphine_instance_t I) {
-    struct throw *throw = &I->E.throw;
+    struct throw *throw = &I->throw;
 
     if (throw->is_message) {
         return throw->error.message;
@@ -151,7 +151,7 @@ const char *throwI_message(morphine_instance_t I) {
 }
 
 bool throwI_is_nested_signal(morphine_instance_t I) {
-    return I->E.throw.signal_entered > 1;
+    return I->throw.signal_entered > 1;
 }
 
 void throwI_catchable(morphine_coroutine_t U, size_t callstate) {

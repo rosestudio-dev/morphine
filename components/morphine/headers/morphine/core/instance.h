@@ -19,7 +19,9 @@ struct instance {
     void *data;
 
     struct garbage_collector G;
-    struct interpreter E;
+
+    struct interpreter interpreter;
+    struct throw throw;
     struct libraries libraries;
     struct usertypes usertypes;
 

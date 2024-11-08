@@ -19,5 +19,5 @@ void gcstageI_prepare(morphine_instance_t I) {
     }
 
     I->G.stats.debt = 0;
-    I->G.stats.prev_allocated = I->G.bytes.allocated;
+    I->G.stats.prev_allocated = I->G.stats.allocated;
 }

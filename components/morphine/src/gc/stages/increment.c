@@ -8,22 +8,22 @@
 
 static inline void record(morphine_instance_t I) {
     {
-        morphine_coroutine_t current = I->E.coroutines;
+        morphine_coroutine_t current = I->interpreter.coroutines;
         while (current != NULL) {
             mark_object(I, objectI_cast(current));
             current = current->prev;
         }
 
-        if (I->E.running != NULL) {
-            mark_object(I, objectI_cast(I->E.running));
+        if (I->interpreter.running != NULL) {
+            mark_object(I, objectI_cast(I->interpreter.running));
         }
 
-        if (I->E.next != NULL) {
-            mark_object(I, objectI_cast(I->E.next));
+        if (I->interpreter.next != NULL) {
+            mark_object(I, objectI_cast(I->interpreter.next));
         }
 
-        if (I->E.throw.context != NULL) {
-            mark_object(I, objectI_cast(I->E.throw.context));
+        if (I->throw.context != NULL) {
+            mark_object(I, objectI_cast(I->throw.context));
         }
 
         if (I->G.finalizer.coroutine != NULL) {
