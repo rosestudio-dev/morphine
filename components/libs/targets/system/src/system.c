@@ -4,6 +4,7 @@
 
 #include "morphinel/system.h"
 #include <sys/time.h>
+#include <sys/utsname.h>
 
 static uint64_t get_millis(void) {
     struct timeval tv;
@@ -11,7 +12,7 @@ static uint64_t get_millis(void) {
     return (((uint64_t) tv.tv_sec) * 1000) + (((uint64_t) tv.tv_usec) / 1000);
 }
 
-static void delay(morphine_coroutine_t U) {
+static void lib_delay(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
@@ -34,7 +35,7 @@ static void delay(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void millis(morphine_coroutine_t U) {
+static void lib_millis(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 0);
@@ -43,9 +44,34 @@ static void millis(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void lib_uname(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 0);
+
+            struct utsname uts;
+            if (uname(&uts)) {
+                mapi_error(U, "cannot get information");
+            }
+
+            maux_construct_element_t elements[] = {
+                MAUX_CONSTRUCT_STRING("machine", uts.machine),
+                MAUX_CONSTRUCT_STRING("nodename", uts.nodename),
+                MAUX_CONSTRUCT_STRING("release", uts.release),
+                MAUX_CONSTRUCT_STRING("sysname", uts.sysname),
+                MAUX_CONSTRUCT_STRING("version", uts.version),
+                MAUX_CONSTRUCT_END
+            };
+
+            maux_construct(U, elements);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static maux_construct_element_t elements[] = {
-    MAUX_CONSTRUCT_FUNCTION("millis", millis),
-    MAUX_CONSTRUCT_FUNCTION("delay", delay),
+    MAUX_CONSTRUCT_FUNCTION("millis", lib_millis),
+    MAUX_CONSTRUCT_FUNCTION("delay", lib_delay),
+    MAUX_CONSTRUCT_FUNCTION("uname", lib_uname),
     MAUX_CONSTRUCT_END
 };
 
