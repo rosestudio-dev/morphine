@@ -3,7 +3,7 @@
 //
 
 #include <string.h>
-#include <ctype.h>
+#include "morphine/utils/ctype.h"
 #include "morphinec/lex.h"
 
 #define OPCHARS_AMORTIZATION 4
@@ -92,7 +92,7 @@ static void lex_userdata_free(morphine_instance_t I, void *data) {
     mapi_allocator_free(I, L->opchars.string);
 }
 
-static inline void opchars_append(morphine_coroutine_t U, struct mc_lex *L, char c) {
+static inline void opchars_append(morphine_coroutine_t U, struct mc_lex *L) {
     if (L->opchars.size > L->opchars.allocated) {
         mapi_error(U, "broken lexer operator chars");
     }
@@ -108,12 +108,12 @@ static inline void opchars_append(morphine_coroutine_t U, struct mc_lex *L, char
         L->opchars.allocated += OPCHARS_AMORTIZATION;
     }
 
-    L->opchars.string[L->opchars.size] = c;
+    L->opchars.string[L->opchars.size] = '\0';
     L->opchars.size++;
 }
 
 static void create_opchars(morphine_coroutine_t U, struct mc_lex *L) {
-    opchars_append(U, L, '\0');
+    opchars_append(U, L);
 
     for (size_t i = 0; i < array_size(operator_table, operator_table[0]); i++) {
         const char *op = operator_table[i].str;
@@ -121,7 +121,7 @@ static void create_opchars(morphine_coroutine_t U, struct mc_lex *L) {
         for (size_t n = 0; n < size; n++) {
             if (strchr(L->opchars.string, op[n]) == NULL) {
                 L->opchars.string[L->opchars.size - 1] = op[n];
-                opchars_append(U, L, '\0');
+                opchars_append(U, L);
             }
         }
     }
@@ -282,7 +282,7 @@ static struct mc_lex_token lex_number_based(morphine_coroutine_t U, struct mc_le
     while (true) {
         bool is_digit = false;
         for (ml_size i = 0; i < base; i++) {
-            if (baseddigits[i] == tolower(current)) {
+            if (baseddigits[i] == morphine_tolower(current)) {
                 is_digit = true;
                 break;
             }
@@ -344,7 +344,7 @@ static struct mc_lex_token lex_number(morphine_coroutine_t U, struct mc_lex *L) 
 
         if (current == '.') {
             dot = true;
-        } else if (!isdigit(current)) {
+        } else if (!morphine_isdigit(current)) {
             if (count_after_dot == 1) {
                 lex_error(U, L, "fractional part is empty");
             } else {
@@ -422,7 +422,7 @@ static void handle_utf8(morphine_coroutine_t U, struct mc_lex *L, char *buffer, 
     size_t hex_count = 0;
     for (; hex_count < chars_size; hex_count++) {
         char c = peek(L, 1);
-        if (isxdigit(c)) {
+        if (morphine_isxdigit(c)) {
             next(L);
             char value;
             if (c >= '0' && c <= '9') {
@@ -641,7 +641,7 @@ static struct mc_lex_token lex_word(
     char current = peek(L, 0);
 
     size_t from = L->pos;
-    while (current == '_' || isalpha(current) || isdigit(current)) {
+    while (current == '_' || morphine_isalpha(current) || morphine_isdigit(current)) {
         current = next(L);
     }
 
@@ -736,7 +736,7 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
     while (true) {
         if (isnewline(current)) {
             skip_newline(L);
-        } else if (isspace(current)) {
+        } else if (morphine_isspace(current)) {
             next(L);
         } else {
             break;
@@ -760,7 +760,7 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
         return multiline_comment(U, L, T);
     }
 
-    if (isdigit(current)) {
+    if (morphine_isdigit(current)) {
         return lex_number(U, L);
     }
 
@@ -772,7 +772,7 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
         return lex_extended_word(U, L, T);
     }
 
-    if (current == '_' || isalpha(current)) {
+    if (current == '_' || morphine_isalpha(current)) {
         return lex_word(U, L, T);
     }
 

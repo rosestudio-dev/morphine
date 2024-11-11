@@ -4,7 +4,7 @@
 
 #include "morphine/platform/conversions.h"
 #include "morphine/utils/overflow.h"
-#include <ctype.h>
+#include "morphine/utils/ctype.h"
 #include <limits.h>
 #include <stdio.h>
 
@@ -17,7 +17,7 @@ static ml_integer digit(char c, ml_integer base) {
         return -1;
     }
 
-    if (isdigit(c)) {
+    if (morphine_isdigit(c)) {
         ml_integer n = ((ml_integer) c) - '0';
 
         if (n >= base || n < 0 || n >= 10) {
@@ -27,8 +27,8 @@ static ml_integer digit(char c, ml_integer base) {
         return n;
     }
 
-    if (isalpha(c)) {
-        ml_integer n = ((ml_integer) c) - (isupper(c) ? 'A' : 'a');
+    if (morphine_isalpha(c)) {
+        ml_integer n = ((ml_integer) c) - (morphine_isupper(c) ? 'A' : 'a');
 
         if ((n + 10) >= base || n < 0 || n >= 26) {
             return -1;
@@ -171,7 +171,7 @@ bool platformI_string2decimal(const char *string, ml_decimal *container) {
             break;
         }
 
-        if (!isdigit(c) && c != '.' && c != '+' && c != '-') {
+        if (!morphine_isdigit(c) && c != '.' && c != '+' && c != '-') {
             goto error;
         }
     }

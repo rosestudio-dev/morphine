@@ -4,20 +4,8 @@
 
 #include <morphine.h>
 #include <string.h>
-#include <ctype.h>
 #include "morphine/libs/builtin.h"
-
-static inline bool checkblank(char c) {
-    return isspace(c);
-}
-
-static inline bool checkdigit(char c) {
-    return isdigit(c);
-}
-
-static inline bool checkalpha(char c) {
-    return isalpha(c);
-}
+#include "morphine/utils/ctype.h"
 
 static void substring(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -96,6 +84,55 @@ static void codes(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void from(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            if (mapi_args(U) == 0) {
+                maux_expect_args(U, 1);
+            }
+
+            mapi_push_arg(U, 0);
+
+            bool is_vector;
+            ml_size size;
+            if (mapi_args(U) == 1 && mapi_is(U, "vector")) {
+                is_vector = true;
+                size = mapi_vector_len(U);
+            } else {
+                is_vector = false;
+                size = mapi_args(U);
+            }
+
+            char *result = mapi_push_userdata_vec(U, size, sizeof(char));
+            mapi_rotate(U, 2);
+
+            for (ml_size i = 0; i < size; i++) {
+                if (is_vector) {
+                    mapi_vector_get(U, i);
+                } else {
+                    mapi_push_arg(U, i);
+                }
+
+                if (mapi_is(U, "integer")) {
+                    result[i] = (char) mapi_get_integer(U);
+                } else if (mapi_is(U, "string")) {
+                    if (mapi_string_len(U) != 1) {
+                        mapi_error(U, "expected char");
+                    }
+
+                    result[i] = mapi_get_string(U)[0];
+                } else {
+                    mapi_error(U, "expected integer or char");
+                }
+
+                mapi_pop(U, 1);
+            }
+
+            mapi_push_stringn(U, result, size);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void isempty(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -127,7 +164,7 @@ static void isblankstr(morphine_coroutine_t U) {
             bool isblank = true;
 
             for (size_t i = 0; i < len; i++) {
-                if (!checkblank(string[i])) {
+                if (!morphine_isblank(string[i])) {
                     isblank = false;
                 }
             }
@@ -152,7 +189,7 @@ static void isdigitstr(morphine_coroutine_t U) {
             bool isdigit = true;
 
             for (size_t i = 0; i < len; i++) {
-                if (!checkdigit(string[i])) {
+                if (!morphine_isdigit(string[i])) {
                     isdigit = false;
                 }
             }
@@ -177,7 +214,7 @@ static void isalphastr(morphine_coroutine_t U) {
             bool isalpha = true;
 
             for (size_t i = 0; i < len; i++) {
-                if (!checkalpha(string[i])) {
+                if (!morphine_isalpha(string[i])) {
                     isalpha = false;
                 }
             }
@@ -276,7 +313,7 @@ static void tolowercase(morphine_coroutine_t U) {
                 char *result = mapi_push_userdata_vec(U, len, sizeof(char));
 
                 for (size_t i = 0; i < len; i++) {
-                    result[i] = (char) tolower(string[i]);
+                    result[i] = morphine_tolower(string[i]);
                 }
 
                 mapi_push_stringn(U, result, len);
@@ -304,7 +341,7 @@ static void touppercase(morphine_coroutine_t U) {
                 char *result = mapi_push_userdata_vec(U, len, sizeof(char));
 
                 for (size_t i = 0; i < len; i++) {
-                    result[i] = (char) toupper(string[i]);
+                    result[i] = morphine_toupper(string[i]);
                 }
 
                 mapi_push_stringn(U, result, len);
@@ -500,7 +537,7 @@ static void trim(morphine_coroutine_t U) {
 
             for (size_t i = 0; i < strlen; i++) {
                 char c = string[i];
-                if (checkblank(c)) {
+                if (morphine_isblank(c)) {
                     start++;
                 } else {
                     break;
@@ -509,7 +546,7 @@ static void trim(morphine_coroutine_t U) {
 
             for (size_t i = 0; i < strlen; i++) {
                 char c = string[strlen - i - 1];
-                if (checkblank(c)) {
+                if (morphine_isblank(c)) {
                     end--;
                 } else {
                     break;
@@ -542,7 +579,7 @@ static void trimstart(morphine_coroutine_t U) {
 
             for (size_t i = 0; i < strlen; i++) {
                 char c = string[i];
-                if (checkblank(c)) {
+                if (morphine_isblank(c)) {
                     start++;
                 } else {
                     break;
@@ -575,7 +612,7 @@ static void trimend(morphine_coroutine_t U) {
 
             for (size_t i = 0; i < strlen; i++) {
                 char c = string[strlen - i - 1];
-                if (checkblank(c)) {
+                if (morphine_isblank(c)) {
                     end--;
                 } else {
                     break;
@@ -945,6 +982,7 @@ static maux_construct_element_t elements[] = {
 
     MAUX_CONSTRUCT_FUNCTION("chars", chars),
     MAUX_CONSTRUCT_FUNCTION("codes", codes),
+    MAUX_CONSTRUCT_FUNCTION("from", from),
 
     MAUX_CONSTRUCT_FUNCTION("contains", contains),
     MAUX_CONSTRUCT_FUNCTION("indexof", indexof),
