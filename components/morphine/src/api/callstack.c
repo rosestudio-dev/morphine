@@ -55,6 +55,24 @@ MORPHINE_API void mapi_push_callable(morphine_coroutine_t U) {
 /*
  * {{docs body}}
  * path:architecture/api-callstack
+ * ## mapi_push_recursion
+ * ### Prototype
+ * ```c
+ * void mapi_push_recursion(morphine_coroutine_t U)
+ * ```
+ * ### Parameters
+ * * `U` - coroutine
+ * ### Description
+ * Pushes the source of callable onto the stack
+ * {{end}}
+ */
+MORPHINE_API void mapi_push_recursion(morphine_coroutine_t U) {
+    stackI_push(U, *callstackI_info_or_error(U)->s.stack.source);
+}
+
+/*
+ * {{docs body}}
+ * path:architecture/api-callstack
  * ## mapi_extract_callable
  * ### Prototype
  * ```c

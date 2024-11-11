@@ -65,13 +65,12 @@ MORPHINE_AUX void maux_construct(morphine_coroutine_t U, maux_construct_element_
                 mapi_table_set(U);
                 break;
             case MAUX_CONSTRUCT_TYPE_FUNCTION:
-                mapi_push_string(U, element->name);
-                mapi_push_native(U, element->value.function);
+                mapi_push_string(U, element->value.function.name);
+                mapi_push_native(U, element->value.function.value);
                 mapi_table_set(U);
                 break;
-            case MAUX_CONSTRUCT_TYPE_NAMED_FUNCTION:
-                mapi_push_string(U, element->value.named.name);
-                mapi_push_native(U, element->value.named.function);
+            case MAUX_CONSTRUCT_TYPE_SIZE:
+                mapi_push_size(U, element->value.size.value, element->value.size.name);
                 mapi_table_set(U);
                 break;
             case MAUX_CONSTRUCT_TYPE_NIL:

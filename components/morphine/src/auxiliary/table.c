@@ -35,6 +35,13 @@ MORPHINE_AUX bool maux_table_access(morphine_coroutine_t U, const char *key) {
     return has;
 }
 
+MORPHINE_AUX bool maux_table_has(morphine_coroutine_t U, const char *key) {
+    mapi_push_string(U, key);
+    bool result = mapi_table_get(U);
+    mapi_pop(U, 1);
+    return result;
+}
+
 MORPHINE_AUX bool maux_table_get(morphine_coroutine_t U, const char *key) {
     mapi_push_string(U, key);
     return mapi_table_get(U);

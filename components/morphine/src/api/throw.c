@@ -26,6 +26,19 @@ MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t U, const char *
     }
 }
 
+MORPHINE_API morphine_noret void mapi_ierrorf(morphine_instance_t I, const char *str, ...) {
+    va_list args;
+    va_start(args, str);
+    struct string *result = stringI_createva(I, str, args);
+    va_end(args);
+
+    throwI_errorv(I, valueI_object(result));
+}
+
+MORPHINE_API morphine_noret void mapi_ierror(morphine_instance_t I, const char *message) {
+    throwI_error(I, message);
+}
+
 MORPHINE_API void mapi_catchable(morphine_coroutine_t U, size_t callstate) {
     throwI_catchable(U, callstate);
 }
