@@ -8,6 +8,7 @@
 #include "auxiliary/expect.h"
 #include "auxiliary/sio.h"
 #include "auxiliary/localstorage.h"
+#include "auxiliary/sharedstorage.h"
 #include "auxiliary/table.h"
 #include "auxiliary/native.h"
 #include "auxiliary/construct.h"

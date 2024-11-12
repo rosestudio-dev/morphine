@@ -47,9 +47,9 @@ link_args = []
 
 # Subdirs
 
-build_app = get_option('build_app').enabled()
-build_libs = build_app or get_option('build_libs').enabled()
-build_compiler = build_app or get_option('build_compiler').enabled()
+build_misc = get_option('build_misc').enabled()
+build_libs = get_option('build_libs').enabled()
+build_compiler = get_option('build_compiler').enabled()
 
 subdir('morphine')
 
@@ -61,6 +61,6 @@ if build_libs
     subdir('libs')
 endif
 
-if build_app
-    subdir('app')
+if build_misc
+    subdir('misc')
 endif

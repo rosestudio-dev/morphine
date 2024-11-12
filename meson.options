@@ -1,8 +1,9 @@
-option('build_app', type : 'feature', value : 'enabled')
+option('build_misc', type : 'feature', value : 'enabled')
 option('build_compiler', type : 'feature', value : 'enabled')
 option('build_libs', type : 'feature', value : 'enabled')
 
 option('libs', type : 'array', value : ['system', 'fs', 'math', 'bigint'])
+option('misc', type : 'array', value : ['app'])
 
 option('morphine_module_jumptable', type : 'feature', value : 'enabled')
 option('morphine_module_sso', type : 'feature', value : 'enabled')

@@ -73,7 +73,7 @@ def prepare():
 
     step("Configure morphine",
          [meson, "setup", "docs/wasm/buildmorphine", "-Dprefix=" + cwd + "/wasm/deps",
-          "-Dbuild_app=disabled",
+          "-Dbuild_misc=disabled",
           "-Dbuild_libs=enabled",
           "-Dlibs=bigint",
           "-Doptimization=2",

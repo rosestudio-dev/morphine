@@ -41,8 +41,13 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
 }
 
 void instanceI_close(morphine_instance_t I) {
-    sioI_close(I, I->sio.io, true);
-    sioI_close(I, I->sio.error, true);
+    if (I->sio.io != NULL) {
+        sioI_close(I, I->sio.io, true);
+    }
+
+    if (I->sio.error != NULL) {
+        sioI_close(I, I->sio.error, true);
+    }
 
     gcI_destruct(I, I->G);
 
