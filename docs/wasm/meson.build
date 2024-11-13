@@ -39,7 +39,8 @@ executable(
         '-sEXPORTED_FUNCTIONS=_morphine',
         '-sEXPORTED_RUNTIME_METHODS=ccall,cwrap',
         '-sMODULARIZE=1',
-        '-sEXPORT_ES6=1'
+        '-sEXPORT_ES6=1',
+        '-sALLOW_MEMORY_GROWTH=1'
     ],
     install : true
 )
