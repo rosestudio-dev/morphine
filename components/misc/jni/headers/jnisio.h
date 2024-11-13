@@ -7,4 +7,4 @@
 #include <jni.h>
 #include <morphine.h>
 
-void jstreamsio_push(morphine_coroutine_t, JNIEnv *, jobject input, jobject output);
+void push_jnisio(morphine_coroutine_t, JNIEnv *, jobject input, jobject output);

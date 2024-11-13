@@ -8,7 +8,8 @@ import java.io.OutputStream
 class Morphine(
     private val settings: Settings = Settings(),
     private val bridge: Bridge = Bridge(),
-    private val receiver: Receiver? = null
+    private val sendStream: OutputStream = MockOutputStream(),
+    private val receiveStream: InputStream = MockInputStream()
 ) {
     companion object {
         init {
@@ -17,11 +18,9 @@ class Morphine(
     }
 
     private val syncVm = Object()
-    private val syncQueue = Object()
 
     @Volatile
     private var interrupt = false
-    private val queue = ArrayDeque<Value>()
 
     fun compile(text: String): ByteArray {
         synchronized(syncVm) {
@@ -48,7 +47,6 @@ class Morphine(
     fun execute(binary: ByteArray) {
         synchronized(syncVm) {
             interrupt = false
-            clearQueue()
             val inputStream = ByteArrayInputStream(binary)
             if (interpreter(inputStream)) {
                 throw RuntimeException()
@@ -58,34 +56,6 @@ class Morphine(
 
     fun interrupt() {
         interrupt = true
-    }
-
-    fun send(value: Value) {
-        synchronized(syncQueue) {
-            queue.addLast(value)
-        }
-    }
-
-    private fun clearQueue() {
-        synchronized(syncQueue) {
-            queue.clear()
-        }
-    }
-
-    private fun receive(): Value {
-        synchronized(syncQueue) {
-            return queue.removeFirstOrNull() ?: Value.Primitive.MLNil
-        }
-    }
-
-    private fun waitReceive(): Value {
-        while (true) {
-            synchronized(syncQueue) {
-                if (queue.isNotEmpty()) {
-                    return queue.removeFirst()
-                }
-            }
-        }
     }
 
     private external fun compiler(out: OutputStream, text: String): Boolean
@@ -107,20 +77,11 @@ class Morphine(
         @JvmField val errorStream: OutputStream = System.err
     )
 
-    sealed interface Value {
-        sealed interface Primitive : Value {
-            data object MLNil : Primitive
-            data class MLInteger(@JvmField val value: Long) : Primitive
-            data class MLDecimal(@JvmField val value: Double) : Primitive
-            data class MLBoolean(@JvmField val value: Boolean) : Primitive
-            data class MLString(@JvmField val value: String) : Primitive
-        }
-
-        data class MLVector(@JvmField val value: List<Primitive>) : Value
-        data class MLTable(@JvmField val value: Map<Primitive, Primitive>) : Value
+    private class MockOutputStream : OutputStream() {
+        override fun write(b: Int) = Unit
     }
 
-    fun interface Receiver {
-        fun receive(value: Value)
+    private class MockInputStream : InputStream() {
+        override fun read() = -1
     }
 }

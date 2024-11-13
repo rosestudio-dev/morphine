@@ -2,10 +2,10 @@
 // Created by whyiskra on 30.01.24.
 //
 
-#include "mjni.h"
+#include "instance.h"
 #include "jniutils.h"
-#include "jstreamsio.h"
-#include "jnilib.h"
+#include "jnisio.h"
+#include "lib.h"
 #include "env.h"
 #include <morphinec.h>
 #include <morphinel.h>
@@ -172,9 +172,9 @@ JNIEXPORT jboolean JNICALL Java_ru_why_morphine_jni_Morphine_compiler(
     };
 
     morphine_instance_t I = mapi_open(platform, settings, &env);
-    morphine_coroutine_t U = mapi_coroutine(I, "jni-compiler");
+    morphine_coroutine_t U = mapi_coroutine(I, "jnicmp");
 
-    jstreamsio_push(U, jnienv, NULL, output);
+    push_jnisio(U, jnienv, NULL, output);
     jniutils_jstring2mlstring(U, jnienv, text, NULL);
     mcapi_compile(U, "jnimain", false, false);
     mapi_binary_to(U);
@@ -207,9 +207,9 @@ JNIEXPORT jboolean JNICALL Java_ru_why_morphine_jni_Morphine_interpreter(
     mapi_library_load(I, mclib_compiler());
     mapi_library_load(I, mjlib_jni());
 
-    morphine_coroutine_t U = mapi_coroutine(I, "jnicoro");
+    morphine_coroutine_t U = mapi_coroutine(I, "jniexec");
 
-    jstreamsio_push(U, jnienv, input, NULL);
+    push_jnisio(U, jnienv, input, NULL);
     mapi_binary_from(U);
     mapi_rotate(U, 2);
     mapi_pop(U, 1);
