@@ -588,34 +588,46 @@ static inline bool execute_step(morphine_instance_t I) {
     return true;
 }
 
-static inline void execute(morphine_instance_t I) {
-    while (execute_step(I)) { }
+struct wrapper_execute_data {
+    morphine_instance_t I;
+    bool result;
+};
+
+static void wrapper_execute_step(void *pointer) {
+    struct wrapper_execute_data *data = pointer;
+    data->result = execute_step(data->I);
+}
+
+static void wrapper_execute(void *pointer) {
+    struct wrapper_execute_data *data = pointer;
+    while (execute_step(data->I)) { }
+    data->result = false;
+}
+
+static void wrapper_handler(void *I) {
+    throwI_handler(I);
 }
 
 void interpreterI_run(morphine_instance_t I) {
-    if (setjmp(I->throw.handler) != 0) {
-        throwI_handler(I);
+    struct wrapper_execute_data data = {
+        .I = I,
+        .result = true
+    };
+
+    while (data.result) {
+        throwI_protect(I, wrapper_execute, wrapper_handler, &data, I);
     }
-
-    I->throw.inited = true;
-
-    execute(I);
-
-    I->throw.inited = false;
 }
 
 bool interpreterI_step(morphine_instance_t I) {
-    if (setjmp(I->throw.handler) != 0) {
-        throwI_handler(I);
-    }
+    struct wrapper_execute_data data = {
+        .I = I,
+        .result = true
+    };
 
-    I->throw.inited = true;
+    throwI_protect(I, wrapper_execute_step, wrapper_handler, &data, I);
 
-    bool result = execute_step(I);
-
-    I->throw.inited = false;
-
-    return result;
+    return data.result;
 }
 
 struct interpreter interpreterI_prototype(void) {

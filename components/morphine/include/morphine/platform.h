@@ -16,6 +16,11 @@ typedef uint32_t ml_version;
 typedef struct coroutine *morphine_coroutine_t;
 typedef struct instance *morphine_instance_t;
 
+// throw
+
+typedef void (*morphine_try_t)(void *);
+typedef void (*morphine_catch_t)(void *);
+
 // native
 
 typedef void (*morphine_native_t)(morphine_coroutine_t);

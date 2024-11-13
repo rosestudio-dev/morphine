@@ -55,6 +55,7 @@ MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t, const char *);
 MORPHINE_API morphine_noret void mapi_ierrorf(morphine_instance_t, const char *, ...);
 MORPHINE_API morphine_noret void mapi_ierror(morphine_instance_t, const char *);
 MORPHINE_API void mapi_catchable(morphine_coroutine_t, size_t callstate);
+MORPHINE_API void mapi_protect(morphine_coroutine_t, morphine_try_t, morphine_catch_t, void *);
 MORPHINE_API void mapi_push_thrown(morphine_coroutine_t);
 MORPHINE_API const char *mapi_signal_message(morphine_instance_t);
 MORPHINE_API bool mapi_is_nested_signal(morphine_instance_t);

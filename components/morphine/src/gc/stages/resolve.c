@@ -193,11 +193,16 @@ static inline bool mark_libraries(morphine_instance_t I) {
 }
 
 static inline bool mark_throw(morphine_instance_t I) {
-    if (!I->throw.is_message) {
-        return mark_value(I, I->throw.error.value);
+    bool marked = false;
+    if (I->throw.type == THROW_TYPE_VALUE && mark_value(I, I->throw.error.value)) {
+        marked = true;
     }
 
-    return false;
+    if (I->throw.special.ofm != NULL && mark_object(I, objectI_cast(I->throw.special.ofm))) {
+        marked = true;
+    }
+
+    return marked;
 }
 
 static inline bool mark_gc(morphine_instance_t I) {

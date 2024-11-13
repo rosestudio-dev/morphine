@@ -17,7 +17,7 @@ static inline bool ofm_condition(morphine_instance_t I, size_t reserved) {
 
 static inline void ofm_check(morphine_instance_t I, size_t reserved) {
     if (ofm_condition(I, reserved)) {
-        throwI_error(I, "out of memory");
+        throwI_ofm(I);
     }
 }
 
@@ -74,14 +74,13 @@ static inline size_t debt_calc(morphine_instance_t I) {
 }
 
 static inline void step(morphine_instance_t I, size_t reserved) {
-    if (overflow_condition_add(reserved, I->G.stats.allocated, SIZE_MAX) ||
-        (reserved + I->G.stats.allocated) > I->settings.gc.limit) {
+    if (ofm_condition(I, reserved)) {
         gcI_full(I, reserved);
         return;
     }
 
-    bool throw_inited = I->throw.inited;
-    I->throw.inited = false;
+    bool throw_protect_entered = I->throw.protect.entered;
+    I->throw.protect.entered = false;
 
     switch (I->G.status) {
         case GC_STATUS_IDLE: {
@@ -125,7 +124,7 @@ resolve:
         }
     }
 
-    I->throw.inited = throw_inited;
+    I->throw.protect.entered = throw_protect_entered;
 }
 
 static inline void recover_pool(morphine_instance_t I, struct object **pool) {
@@ -209,8 +208,8 @@ void gcI_work(morphine_instance_t I, size_t reserved) {
 }
 
 void gcI_full(morphine_instance_t I, size_t reserved) {
-    bool throw_inited = I->throw.inited;
-    I->throw.inited = false;
+    bool throw_protect_entered = I->throw.protect.entered;
+    I->throw.protect.entered = false;
 
     recover_pools(I);
     gcstageI_prepare(I);
@@ -219,7 +218,7 @@ void gcI_full(morphine_instance_t I, size_t reserved) {
     while (gcstageI_sweep(I, SIZE_MAX)) { }
 
     I->G.status = GC_STATUS_IDLE;
-    I->throw.inited = throw_inited;
+    I->throw.protect.entered = throw_protect_entered;
 
     ofm_check(I, reserved);
 }

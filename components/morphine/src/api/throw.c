@@ -43,9 +43,12 @@ MORPHINE_API void mapi_catchable(morphine_coroutine_t U, size_t callstate) {
     throwI_catchable(U, callstate);
 }
 
+MORPHINE_API void mapi_protect(morphine_coroutine_t U, morphine_try_t try, morphine_catch_t catch, void *data) {
+    throwI_protect(U->I, try, catch, data, data);
+}
+
 MORPHINE_API void mapi_push_thrown(morphine_coroutine_t U) {
-    stackI_push(U, U->thrown);
-    U->thrown = valueI_nil;
+    stackI_push(U, throwI_thrown(U));
 }
 
 MORPHINE_API const char *mapi_signal_message(morphine_instance_t I) {

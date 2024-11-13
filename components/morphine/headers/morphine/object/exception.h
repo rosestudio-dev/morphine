@@ -27,6 +27,7 @@ struct exception {
 
     struct {
         bool recorded;
+        bool printable;
         ml_size size;
         struct string *name;
         struct stacktrace_element *elements;
@@ -39,6 +40,7 @@ void exceptionI_free(morphine_instance_t, struct exception *);
 void exceptionI_error_print(morphine_instance_t, struct exception *, struct sio *);
 void exceptionI_stacktrace_print(morphine_instance_t, struct exception *, struct sio *, ml_size);
 void exceptionI_stacktrace_record(morphine_instance_t, struct exception *, morphine_coroutine_t);
+void exceptionI_stacktrace_stub(morphine_instance_t, struct exception *);
 
 struct stacktrace_parsed_element exceptionI_stacktrace_element(
     morphine_instance_t,

@@ -3,6 +3,7 @@
 //
 
 #include <setjmp.h>
+#include <memory.h>
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/native.h"
@@ -13,19 +14,29 @@
 #include "morphine/gc/safe.h"
 #include "morphine/object/sio.h"
 
+#define OFM_MESSAGE ("out of memory")
+
 struct throw throwI_prototype(void) {
     return (struct throw) {
-        .inited = false,
+        .context = NULL,
         .signal_entered = 0,
-        .is_message = false,
+        .protect.entered = false,
+        .type = THROW_TYPE_VALUE,
         .error.value = valueI_nil,
-        .context = NULL
+        .special.ofm = NULL,
     };
+}
+
+void throwI_special(morphine_instance_t I) {
+    struct string *text = stringI_create(I, OFM_MESSAGE);
+    struct exception *exception = exceptionI_create(I, valueI_object(text));
+    exceptionI_stacktrace_stub(I, exception);
+
+    I->throw.special.ofm = exception;
 }
 
 void throwI_handler(morphine_instance_t I) {
     struct throw *throw = &I->throw;
-    throw->inited = false;
 
     morphine_coroutine_t coroutine = throw->context;
 
@@ -48,16 +59,38 @@ void throwI_handler(morphine_instance_t I) {
     stackI_throw_fix(coroutine);
     callstackI_throw_fix(coroutine);
 
-    struct value value;
-    if (throw->is_message) {
-        value = valueI_object(stringI_create(I, throw->error.message));
-    } else {
-        value = throw->error.value;
+    struct exception *exception;
+    switch (throw->type) {
+        case THROW_TYPE_VALUE: {
+            exception = exceptionI_create(I, throw->error.value);
+            gcI_safe_obj(I, objectI_cast(exception));
+            exceptionI_stacktrace_record(I, exception, coroutine);
+            break;
+        }
+        case THROW_TYPE_MESSAGE: {
+            struct value value = valueI_object(stringI_create(I, throw->error.message));
+            gcI_safe_value(I, value);
+            exception = exceptionI_create(I, value);
+            gcI_safe_obj(I, objectI_cast(exception));
+            exceptionI_stacktrace_record(I, exception, coroutine);
+            break;
+        }
+        case THROW_TYPE_OFM: {
+            if (I->throw.special.ofm == NULL) {
+                struct value value = valueI_object(stringI_create(I, OFM_MESSAGE));
+                gcI_safe_value(I, value);
+                exception = exceptionI_create(I, value);
+                gcI_safe_obj(I, objectI_cast(exception));
+                exceptionI_stacktrace_stub(I, exception);
+            } else {
+                exception = I->throw.special.ofm;
+            }
+            break;
+        }
+        default: {
+            throwI_panic(I, "unsupported throw type");
+        }
     }
-
-    struct exception *exception = exceptionI_create(I, value);
-    gcI_safe_obj(I, objectI_cast(exception));
-    exceptionI_stacktrace_record(I, exception, coroutine);
 
     if (callinfo != NULL) {
         // set state
@@ -89,65 +122,101 @@ void throwI_handler(morphine_instance_t I) {
     gcI_reset_safe(I, 0);
 }
 
+morphine_noret static void panic(morphine_instance_t I) {
+    struct throw *throw = &I->throw;
+
+    throw->protect.entered = false;
+    throw->signal_entered++;
+    I->platform.functions.signal(I);
+}
+
+morphine_noret static void error(morphine_instance_t I) {
+    struct throw *throw = &I->throw;
+
+    if (throw->protect.entered) {
+        longjmp(throw->protect.handler, 1);
+    }
+
+    panic(I);
+}
+
 morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
     struct throw *throw = &I->throw;
 
-    if (throw->inited) {
-        throw->is_message = true;
-        throw->error.message = message;
-
-        longjmp(throw->handler, 1);
-    }
-
-    throwI_panic(I, message);
-}
-
-morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
-    struct throw *throw = &I->throw;
-
-    throw->signal_entered++;
-    throw->is_message = true;
+    throw->type = THROW_TYPE_MESSAGE;
     throw->error.message = message;
-    I->platform.functions.signal(I);
+    error(I);
 }
 
 morphine_noret void throwI_errorv(morphine_instance_t I, struct value value) {
     struct throw *throw = &I->throw;
 
-    if (throw->inited) {
-        throw->is_message = false;
-        throw->error.value = value;
-
-        longjmp(throw->handler, 1);
-    }
-
-    throwI_panicv(I, value);
+    throw->type = THROW_TYPE_VALUE;
+    throw->error.value = value;
+    error(I);
 }
 
-morphine_noret void throwI_panicv(morphine_instance_t I, struct value value) {
+morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
     struct throw *throw = &I->throw;
 
-    throw->signal_entered++;
-    throw->is_message = false;
-    throw->error.value = value;
-    I->platform.functions.signal(I);
+    throw->type = THROW_TYPE_MESSAGE;
+    throw->error.message = message;
+    panic(I);
+}
+
+morphine_noret void throwI_ofm(morphine_instance_t I) {
+    struct throw *throw = &I->throw;
+
+    throw->type = THROW_TYPE_OFM;
+    error(I);
+}
+
+void throwI_protect(
+    morphine_instance_t I,
+    morphine_try_t try,
+    morphine_catch_t catch,
+    void *try_data,
+    void *catch_data
+) {
+    struct throw *throw = &I->throw;
+
+    struct protect_frame previous;
+    memcpy(&previous, &throw->protect, sizeof(struct protect_frame));
+
+    if (setjmp(throw->protect.handler) != 0) {
+        memcpy(&throw->protect, &previous, sizeof(struct protect_frame));
+        catch(catch_data);
+    } else {
+        throw->protect.entered = true;
+        try(try_data);
+
+        memcpy(&throw->protect, &previous, sizeof(struct protect_frame));
+    }
 }
 
 const char *throwI_message(morphine_instance_t I) {
     struct throw *throw = &I->throw;
 
-    if (throw->is_message) {
-        return throw->error.message;
+    switch (throw->type) {
+        case THROW_TYPE_VALUE: {
+            struct string *string = valueI_safe_as_string(throw->error.value, NULL);
+            throw->error.value = valueI_nil;
+
+            if (string != NULL && stringI_is_cstr_compatible(I, string)) {
+                return string->chars;
+            }
+
+            return "(unsupported value)";
+        }
+        case THROW_TYPE_MESSAGE: {
+            return throw->error.message;
+        }
+        case THROW_TYPE_OFM: {
+            return OFM_MESSAGE;
+        }
     }
 
-    struct string *string = valueI_safe_as_string(throw->error.value, NULL);
-    throw->error.value = valueI_nil;
-
-    if (string != NULL && stringI_is_cstr_compatible(I, string)) {
-        return string->chars;
-    } else {
-        return "(unsupported value)";
-    }
+    return "unsupported throw type";
 }
 
 bool throwI_is_nested_signal(morphine_instance_t I) {
@@ -159,4 +228,10 @@ void throwI_catchable(morphine_coroutine_t U, size_t callstate) {
 
     callinfo->catch.enable = true;
     callinfo->catch.state = callstate;
+}
+
+struct value throwI_thrown(morphine_coroutine_t U) {
+    struct value result = U->thrown;
+    U->thrown = valueI_nil;
+    return result;
 }

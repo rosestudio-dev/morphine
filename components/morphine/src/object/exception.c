@@ -23,6 +23,8 @@ struct exception *exceptionI_create(morphine_instance_t I, struct value value) {
     struct exception *result = allocI_uni(I, NULL, sizeof(struct exception));
     (*result) = (struct exception) {
         .value = value,
+        .stacktrace.recorded = false,
+        .stacktrace.printable = false,
         .stacktrace.size = 0,
         .stacktrace.name = NULL,
         .stacktrace.elements = NULL
@@ -50,6 +52,10 @@ static void print_string(morphine_instance_t I, struct sio *sio, struct string *
 }
 
 void exceptionI_error_print(morphine_instance_t I, struct exception *exception, struct sio *sio) {
+    if (exception == NULL) {
+        throwI_error(I, "exception is null");
+    }
+
     struct value value = exception->value;
     if (!metatableI_builtin_test(I, value, MORPHINE_METAFIELD_MESSAGE, &value)) {
         value = exception->value;
@@ -71,8 +77,16 @@ void exceptionI_stacktrace_print(
     struct sio *sio,
     ml_size count
 ) {
+    if (exception == NULL) {
+        throwI_error(I, "exception is null");
+    }
+
     if (!exception->stacktrace.recorded) {
         sioI_print(I, sio, "stacktrace wasn't recorded");
+        return;
+    }
+
+    if (!exception->stacktrace.printable) {
         return;
     }
 
@@ -150,6 +164,10 @@ struct stacktrace_parsed_element exceptionI_stacktrace_element(
     struct exception *exception,
     ml_size index
 ) {
+    if (exception == NULL) {
+        throwI_error(I, "exception is null");
+    }
+
     if (!exception->stacktrace.recorded) {
         throwI_error(I, "stacktrace wasn't recorded");
     }
@@ -191,6 +209,10 @@ void exceptionI_stacktrace_record(
     struct exception *exception,
     morphine_coroutine_t coroutine
 ) {
+    if (exception == NULL) {
+        throwI_error(I, "exception is null");
+    }
+
     if (exception->stacktrace.recorded) {
         throwI_error(I, "stacktrace already recorded");
     }
@@ -211,6 +233,7 @@ void exceptionI_stacktrace_record(
 
     exception->stacktrace.elements = allocI_vec(I, NULL, size, sizeof(struct stacktrace_element));
     exception->stacktrace.recorded = true;
+    exception->stacktrace.printable = true;
     exception->stacktrace.size = size;
     for (ml_size i = 0; i < size; i++) {
         exception->stacktrace.elements[i] = (struct stacktrace_element) {
@@ -239,4 +262,20 @@ void exceptionI_stacktrace_record(
             callinfo = callinfo->prev;
         }
     }
+}
+
+void exceptionI_stacktrace_stub(morphine_instance_t I, struct exception *exception) {
+    if (exception == NULL) {
+        throwI_error(I, "exception is null");
+    }
+
+    if (exception->stacktrace.recorded) {
+        throwI_error(I, "stacktrace already recorded");
+    }
+
+    exception->stacktrace.recorded = true;
+    exception->stacktrace.printable = false;
+    exception->stacktrace.elements = NULL;
+    exception->stacktrace.size = 0;
+    exception->stacktrace.name = NULL;
 }
