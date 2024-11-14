@@ -14,6 +14,7 @@ struct jnisio_data {
     jmethodID read_id;
     jmethodID write_id;
     jmethodID flush_id;
+    jmethodID available_id;
 };
 
 static void jnisio_data_init(morphine_instance_t I, void *data) {
@@ -64,10 +65,12 @@ static struct jnisio_data *push_jnisio_data(
     jmethodID read_id = 0;
     jmethodID write_id = 0;
     jmethodID flush_id = 0;
+    jmethodID available_id = 0;
 
     if (input != NULL) {
         jclass input_class = J(jnienv, GetObjectClass, input);
         read_id = J(jnienv, GetMethodID, input_class, "read", "()I");
+        available_id = J(jnienv, GetMethodID, input_class, "available", "()I");
         J(jnienv, DeleteLocalRef, input_class);
     }
 
@@ -84,7 +87,8 @@ static struct jnisio_data *push_jnisio_data(
         .output = output,
         .read_id = read_id,
         .write_id = write_id,
-        .flush_id = flush_id
+        .flush_id = flush_id,
+        .available_id = available_id
     };
 
     return D;
@@ -107,6 +111,15 @@ static size_t buf_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, s
     }
 
     return success;
+}
+
+static bool buf_eos(morphine_sio_accessor_t A, void *data) {
+    (void) A;
+    struct jnisio_data *D = data;
+
+    jint result = J(D->jnienv, CallIntMethod, D->input, D->available_id);
+
+    return result == 0;
 }
 
 static size_t buf_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
@@ -134,7 +147,7 @@ void push_jnisio(morphine_coroutine_t U, JNIEnv *jnienv, jobject input, jobject 
         .read = input != NULL ? buf_read : NULL,
         .write = output != NULL ? buf_write : NULL,
         .flush = output != NULL ? buf_flush : NULL,
-        .eos = NULL,
+        .eos = input != NULL ? buf_eos : NULL,
         .tell = NULL,
         .seek = NULL
     };
