@@ -5,8 +5,67 @@
 #include <math.h>
 #include "morphinel/math.h"
 
+#define SHAREDKEY         ("math")
+#define RAND_DATA_TYPE    ("math-rand-data")
+#define RAND_INITIAL_SEED (159357)
+
 #define PI_CONST 3.14159265358979323846
 #define E_CONST  2.7182818284590452354
+
+struct rand_data {
+    ml_size s0;
+    ml_size s1;
+    ml_size s2;
+    ml_size next;
+};
+
+static void rand_data_init(morphine_instance_t I, void *data) {
+    (void) I;
+    struct rand_data *D = data;
+    (*D) = (struct rand_data) {
+        .s0 = 0,
+        .s1 = 0,
+        .s2 = 0,
+        .next = 0
+    };
+}
+
+static struct rand_data *push_rand_data(morphine_coroutine_t U, ml_size s0) {
+    mapi_type_declare(
+        mapi_instance(U),
+        RAND_DATA_TYPE,
+        sizeof(struct rand_data),
+        rand_data_init,
+        NULL,
+        NULL,
+        NULL,
+        false
+    );
+
+    struct rand_data *D = mapi_push_userdata(U, RAND_DATA_TYPE);
+    (*D) = (struct rand_data) {
+        .s0 = s0,
+        .s1 = 216862,
+        .s2 = 8,
+        .next = 8
+    };
+
+    return D;
+}
+
+// https://github.com/diego-santiago/Itamaraca
+static ml_size itamaraca(struct rand_data *D) {
+    const ml_decimal SR39 = 1.97484;
+
+    ml_size pn = D->s0 - D->next;
+    ml_decimal temp = ((ml_decimal) MLIMIT_SIZE_MAX) - (SR39 * pn);
+    ml_size frns = (ml_size) round(fabs(temp));
+
+    D->s0 = frns;
+    D->next = (D->next == D->s2) ? D->s1 : D->s2;
+
+    return frns;
+}
 
 #define math_func_1(name) \
 static void math_##name(morphine_coroutine_t U) { \
@@ -341,6 +400,33 @@ static void math_inf(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void math_seed(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+
+            mapi_push_arg(U, 0);
+            ml_size seed = mapi_get_size(U, NULL);
+
+            push_rand_data(U, seed);
+            maux_sharedstorage_set(U, SHAREDKEY, "rand-data");
+            maux_nb_leave();
+    maux_nb_end
+}
+
+static void math_rand(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 0);
+
+            maux_sharedstorage_get(U, SHAREDKEY, "rand-data");
+            struct rand_data *data = mapi_userdata_pointer(U, RAND_DATA_TYPE);
+
+            mapi_push_integer(U, itamaraca(data));
+            maux_nb_return();
+    maux_nb_end
+}
+
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("cos", math_cos),
     MAUX_CONSTRUCT_FUNCTION("sin", math_sin),
@@ -397,19 +483,24 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("nan", math_nan),
     MAUX_CONSTRUCT_FUNCTION("inf", math_inf),
 
+    MAUX_CONSTRUCT_FUNCTION("seed", math_seed),
+    MAUX_CONSTRUCT_FUNCTION("rand", math_rand),
+
     MAUX_CONSTRUCT_DECIMAL("constants.pi", PI_CONST),
     MAUX_CONSTRUCT_DECIMAL("constants.e", E_CONST),
     MAUX_CONSTRUCT_END
 };
 
 static void library_init(morphine_coroutine_t U) {
+    push_rand_data(U, RAND_INITIAL_SEED);
+    maux_sharedstorage_set(U, SHAREDKEY, "rand-data");
     maux_construct(U, elements);
 }
 
 MORPHINE_LIB morphine_library_t mllib_math(void) {
     return (morphine_library_t) {
         .name = "math",
-        .sharedkey = NULL,
+        .sharedkey = SHAREDKEY,
         .init = library_init
     };
 }
