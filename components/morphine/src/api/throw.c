@@ -43,6 +43,14 @@ MORPHINE_API void mapi_catchable(morphine_coroutine_t U, size_t callstate) {
     throwI_catchable(U, callstate);
 }
 
+MORPHINE_API void mapi_crashable(morphine_coroutine_t U) {
+    throwI_crashable(U);
+}
+
+MORPHINE_API void mapi_uncatch(morphine_coroutine_t U) {
+    throwI_uncatch(U);
+}
+
 MORPHINE_API void mapi_protect(morphine_coroutine_t U, morphine_try_t try, morphine_catch_t catch, void *data) {
     throwI_protect(U->I, try, catch, data, data);
 }

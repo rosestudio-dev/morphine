@@ -148,6 +148,29 @@ static void pcall(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void ucall(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            ml_size count = mapi_args(U);
+            if (count < 1) {
+                maux_expect_args(U, 1);
+            }
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "callable");
+
+            for (ml_size i = 1; i < count; i++) {
+                mapi_push_arg(U, i);
+            }
+
+            mapi_crashable(U);
+            mapi_call(U, count - 1);
+        maux_nb_state(1)
+            mapi_push_result(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void error(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -227,6 +250,7 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("getdefaultmetatable", getdefaultmetatable),
     MAUX_CONSTRUCT_FUNCTION("error", error),
     MAUX_CONSTRUCT_FUNCTION("pcall", pcall),
+    MAUX_CONSTRUCT_FUNCTION("ucall", ucall),
     MAUX_CONSTRUCT_FUNCTION("ecall", ecall),
     MAUX_CONSTRUCT_FUNCTION("vcall", vcall),
     MAUX_CONSTRUCT_FUNCTION("callable", callable),

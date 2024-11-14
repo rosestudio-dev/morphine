@@ -16,6 +16,24 @@
 
 #define OFM_MESSAGE ("out of memory")
 
+morphine_noret static void panic(morphine_instance_t I) {
+    struct throw *throw = &I->throw;
+
+    throw->protect.entered = false;
+    throw->signal_entered++;
+    I->platform.functions.signal(I);
+}
+
+morphine_noret static void error(morphine_instance_t I) {
+    struct throw *throw = &I->throw;
+
+    if (throw->protect.entered) {
+        longjmp(throw->protect.handler, 1);
+    }
+
+    panic(I);
+}
+
 struct throw throwI_prototype(void) {
     return (struct throw) {
         .context = NULL,
@@ -41,7 +59,7 @@ void throwI_handler(morphine_instance_t I) {
     morphine_coroutine_t coroutine = throw->context;
 
     if (coroutine == NULL) {
-        I->platform.functions.signal(I);
+        panic(I);
     }
 
     struct callinfo *callinfo = callstackI_info(coroutine);
@@ -54,6 +72,10 @@ void throwI_handler(morphine_instance_t I) {
 
             callinfo = callinfo->prev;
         }
+    }
+
+    if (callinfo != NULL && callinfo->catch.crash) {
+        panic(I);
     }
 
     stackI_throw_fix(coroutine);
@@ -120,24 +142,6 @@ void throwI_handler(morphine_instance_t I) {
 
     throw->context = NULL;
     gcI_reset_safe(I, 0);
-}
-
-morphine_noret static void panic(morphine_instance_t I) {
-    struct throw *throw = &I->throw;
-
-    throw->protect.entered = false;
-    throw->signal_entered++;
-    I->platform.functions.signal(I);
-}
-
-morphine_noret static void error(morphine_instance_t I) {
-    struct throw *throw = &I->throw;
-
-    if (throw->protect.entered) {
-        longjmp(throw->protect.handler, 1);
-    }
-
-    panic(I);
 }
 
 morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
@@ -227,7 +231,24 @@ void throwI_catchable(morphine_coroutine_t U, size_t callstate) {
     struct callinfo *callinfo = callstackI_info(U);
 
     callinfo->catch.enable = true;
+    callinfo->catch.crash = false;
     callinfo->catch.state = callstate;
+}
+
+void throwI_crashable(morphine_coroutine_t U) {
+    struct callinfo *callinfo = callstackI_info(U);
+
+    callinfo->catch.enable = true;
+    callinfo->catch.crash = true;
+    callinfo->catch.state = 0;
+}
+
+void throwI_uncatch(morphine_coroutine_t U) {
+    struct callinfo *callinfo = callstackI_info(U);
+
+    callinfo->catch.enable = false;
+    callinfo->catch.crash = false;
+    callinfo->catch.state = 0;
 }
 
 struct value throwI_thrown(morphine_coroutine_t U) {

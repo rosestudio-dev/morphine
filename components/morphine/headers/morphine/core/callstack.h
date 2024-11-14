@@ -40,6 +40,7 @@ struct callinfo {
 
     struct {
         bool enable;
+        bool crash;
         size_t state;
     } catch;
 

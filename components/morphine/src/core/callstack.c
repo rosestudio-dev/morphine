@@ -164,6 +164,7 @@ static inline void internal_call(
         .pc.position = 0,
         .pc.state = 0,
         .catch.enable = false,
+        .catch.crash = false,
         .catch.state = 0,
         .prev = callstackI_info(U)
     };

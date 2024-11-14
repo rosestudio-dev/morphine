@@ -53,4 +53,7 @@ const char *throwI_message(morphine_instance_t);
 bool throwI_is_nested_signal(morphine_instance_t);
 
 void throwI_catchable(morphine_coroutine_t, size_t callstate);
+void throwI_crashable(morphine_coroutine_t);
+void throwI_uncatch(morphine_coroutine_t);
+
 struct value throwI_thrown(morphine_coroutine_t);
