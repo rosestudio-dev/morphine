@@ -135,7 +135,7 @@
 // other
 
 #define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
-#define valueI_istrue(x)  ({struct value _t = (x); !valueI_is_nil(_t) && !valueI_is_exception(_t) && valueI_safe_as_boolean(_t, true);})
+#define valueI_tobool(x)  ({struct value _t = (x); (!valueI_is_nil(_t) && !valueI_is_exception(_t) && valueI_safe_as_boolean(_t, true));})
 
 struct value {
     enum value_type type;
@@ -176,10 +176,9 @@ enum value_type valueI_string2type(morphine_instance_t, const char *name);
 int valueI_compare(morphine_instance_t, struct value, struct value);
 ml_hash valueI_hash(morphine_instance_t, struct value);
 bool valueI_equal(morphine_instance_t, struct value, struct value);
-struct value valueI_value2string(morphine_instance_t, struct value);
-struct value valueI_value2integer(morphine_instance_t, struct value);
-struct value valueI_value2size(morphine_instance_t, struct value, const char *);
-struct value valueI_value2basedinteger(morphine_instance_t, struct value, ml_size base);
-struct value valueI_value2basedsize(morphine_instance_t, struct value, ml_size base, const char *);
-struct value valueI_value2decimal(morphine_instance_t, struct value);
-struct value valueI_value2boolean(morphine_instance_t, struct value);
+struct string *valueI_value2string(morphine_instance_t, struct value);
+ml_integer valueI_value2integer(morphine_instance_t, struct value);
+ml_size valueI_value2size(morphine_instance_t, struct value, const char *);
+ml_integer valueI_value2basedinteger(morphine_instance_t, struct value, ml_size base);
+ml_size valueI_value2basedsize(morphine_instance_t, struct value, ml_size base, const char *);
+ml_decimal valueI_value2decimal(morphine_instance_t, struct value);

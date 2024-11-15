@@ -76,43 +76,43 @@ MORPHINE_API ml_hash mapi_get_hash(morphine_coroutine_t U) {
 
 MORPHINE_API void mapi_to_integer(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2integer(U->I, value);
+    struct value result = valueI_integer(valueI_value2integer(U->I, value));
     stackI_replace(U, 0, result);
 }
 
 MORPHINE_API void mapi_to_size(morphine_coroutine_t U, const char *name) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2size(U->I, value, name);
+    struct value result = valueI_size(valueI_value2size(U->I, value, name));
     stackI_replace(U, 0, result);
 }
 
 MORPHINE_API void mapi_to_based_integer(morphine_coroutine_t U, ml_size base) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2basedinteger(U->I, value, base);
+    struct value result = valueI_integer(valueI_value2basedinteger(U->I, value, base));
     stackI_replace(U, 0, result);
 }
 
 MORPHINE_API void mapi_to_based_size(morphine_coroutine_t U, ml_size base, const char *name) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2basedsize(U->I, value, base, name);
+    struct value result = valueI_size(valueI_value2basedsize(U->I, value, base, name));
     stackI_replace(U, 0, result);
 }
 
 MORPHINE_API void mapi_to_decimal(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2decimal(U->I, value);
+    struct value result = valueI_decimal(valueI_value2decimal(U->I, value));
     stackI_replace(U, 0, result);
 }
 
 MORPHINE_API void mapi_to_boolean(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2boolean(U->I, value);
+    struct value result = valueI_boolean(valueI_tobool(value));
     stackI_replace(U, 0, result);
 }
 
 MORPHINE_API void mapi_to_string(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_value2string(U->I, value);
+    struct value result = valueI_object(valueI_value2string(U->I, value));
     stackI_replace(U, 0, result);
 }
 

@@ -95,57 +95,57 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
     return valueI_compare(I, a, b) == 0;
 }
 
-struct value valueI_value2string(morphine_instance_t I, struct value value) {
+struct string *valueI_value2string(morphine_instance_t I, struct value value) {
     switch (value.type) {
         case VALUE_TYPE_NIL:
-            return valueI_object(stringI_create(I, "nil"));
+            return stringI_create(I, "nil");
         case VALUE_TYPE_INTEGER:
-            return valueI_object(stringI_createf(I, "%"MLIMIT_INTEGER_PR, value.integer));
+            return stringI_createf(I, "%"MLIMIT_INTEGER_PR, value.integer);
         case VALUE_TYPE_DECIMAL:
-            return valueI_object(stringI_createf(I, "%"MLIMIT_DECIMAL_PR, value.decimal));
+            return stringI_createf(I, "%"MLIMIT_DECIMAL_PR, value.decimal);
         case VALUE_TYPE_BOOLEAN:
-            return valueI_object(stringI_create(I, value.boolean ? "true" : "false"));
+            return stringI_create(I, value.boolean ? "true" : "false");
         case VALUE_TYPE_STRING:
-            return value;
+            return valueI_as_string(value);
         case VALUE_TYPE_USERDATA:
-            return valueI_object(stringI_createf(I, "[object:userdata:%"PRIxPTR"]", value.object.userdata));
+            return stringI_createf(I, "[object:userdata:%"PRIxPTR"]", value.object.userdata);
         case VALUE_TYPE_TABLE:
-            return valueI_object(stringI_createf(I, "[object:table:%"PRIxPTR"]", value.object.table));
+            return stringI_createf(I, "[object:table:%"PRIxPTR"]", value.object.table);
         case VALUE_TYPE_VECTOR:
-            return valueI_object(stringI_createf(I, "[object:vector:%"PRIxPTR"]", value.object.vector));
+            return stringI_createf(I, "[object:vector:%"PRIxPTR"]", value.object.vector);
         case VALUE_TYPE_ITERATOR:
-            return valueI_object(stringI_createf(I, "[object:iterator:%"PRIxPTR"]", value.object.iterator));
+            return stringI_createf(I, "[object:iterator:%"PRIxPTR"]", value.object.iterator);
         case VALUE_TYPE_CLOSURE:
-            return valueI_object(stringI_createf(I, "[object:closure:%"PRIxPTR"]", value.object.closure));
+            return stringI_createf(I, "[object:closure:%"PRIxPTR"]", value.object.closure);
         case VALUE_TYPE_COROUTINE:
-            return valueI_object(stringI_createf(I, "[object:coroutine:%"PRIxPTR"]", value.object.coroutine));
+            return stringI_createf(I, "[object:coroutine:%"PRIxPTR"]", value.object.coroutine);
         case VALUE_TYPE_REFERENCE:
-            return valueI_object(stringI_createf(I, "[object:reference:%"PRIxPTR"]", value.object.reference));
+            return stringI_createf(I, "[object:reference:%"PRIxPTR"]", value.object.reference);
         case VALUE_TYPE_EXCEPTION:
-            return valueI_object(stringI_createf(I, "[object:exception:%"PRIxPTR"]", value.object.exception));
+            return stringI_createf(I, "[object:exception:%"PRIxPTR"]", value.object.exception);
         case VALUE_TYPE_FUNCTION:
-            return valueI_object(stringI_createf(I, "[object:function:%"PRIxPTR"]", value.object.function));
+            return stringI_createf(I, "[object:function:%"PRIxPTR"]", value.object.function);
         case VALUE_TYPE_NATIVE:
-            return valueI_object(stringI_createf(I, "[object:native:%"PRIxPTR"]", value.object.native));
+            return stringI_createf(I, "[object:native:%"PRIxPTR"]", value.object.native);
         case VALUE_TYPE_SIO:
-            return valueI_object(stringI_createf(I, "[object:sio:%"PRIxPTR"]", value.object.native));
+            return stringI_createf(I, "[object:sio:%"PRIxPTR"]", value.object.native);
         case VALUE_TYPE_RAW:
-            return valueI_object(stringI_createf(I, "[raw:%"PRIxPTR"]", value.raw));
+            return stringI_createf(I, "[raw:%"PRIxPTR"]", value.raw);
     }
 
     throwI_panic(I, "unsupported type");
 }
 
-struct value valueI_value2integer(morphine_instance_t I, struct value value) {
+ml_integer valueI_value2integer(morphine_instance_t I, struct value value) {
     if (valueI_is_integer(value)) {
-        return value;
+        return valueI_as_integer(value);
     } else if (valueI_is_decimal(value)) {
-        return valueI_integer((ml_integer) valueI_as_decimal(value));
+        return (ml_integer) valueI_as_decimal(value);
     } else if (valueI_is_boolean(value)) {
         if (valueI_as_boolean(value)) {
-            return valueI_integer(1);
+            return 1;
         } else {
-            return valueI_integer(0);
+            return 0;
         }
     }
 
@@ -154,27 +154,27 @@ struct value valueI_value2integer(morphine_instance_t I, struct value value) {
         ml_integer integer;
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2integer(str->chars, &integer, 10)) {
-            return valueI_integer(integer);
+            return integer;
         }
     }
 
     throwI_errorf(I, "cannot convert %s to integer", valueI_type(I, value, false));
 }
 
-struct value valueI_value2size(morphine_instance_t I, struct value value, const char *name) {
+ml_size valueI_value2size(morphine_instance_t I, struct value value, const char *name) {
     if (name == NULL) {
         name = "size";
     }
 
     if (valueI_is_integer(value)) {
-        return valueI_size(valueI_integer2namedsize(I, valueI_as_integer(value), name));
+        return valueI_integer2namedsize(I, valueI_as_integer(value), name);
     } else if (valueI_is_decimal(value)) {
-        return valueI_size(valueI_integer2namedsize(I, (ml_integer) valueI_as_decimal(value), name));
+        return valueI_integer2namedsize(I, (ml_integer) valueI_as_decimal(value), name);
     } else if (valueI_is_boolean(value)) {
         if (valueI_as_boolean(value)) {
-            return valueI_size(1);
+            return 1;
         } else {
-            return valueI_size(0);
+            return 0;
         }
     }
 
@@ -183,27 +183,27 @@ struct value valueI_value2size(morphine_instance_t I, struct value value, const 
         ml_size size;
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2size(str->chars, &size, 10)) {
-            return valueI_size(size);
+            return size;
         }
     }
 
     throwI_errorf(I, "cannot convert %s to %s", valueI_type(I, value, false), name);
 }
 
-struct value valueI_value2basedinteger(morphine_instance_t I, struct value value, ml_size base) {
+ml_integer valueI_value2basedinteger(morphine_instance_t I, struct value value, ml_size base) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         ml_integer integer;
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2integer(str->chars, &integer, base)) {
-            return valueI_integer(integer);
+            return integer;
         }
     }
 
     throwI_errorf(I, "cannot convert %s to based integer", valueI_type(I, value, false));
 }
 
-struct value valueI_value2basedsize(
+ml_size valueI_value2basedsize(
     morphine_instance_t I,
     struct value value,
     ml_size base,
@@ -218,23 +218,23 @@ struct value valueI_value2basedsize(
         ml_size size;
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2size(str->chars, &size, base)) {
-            return valueI_size(size);
+            return size;
         }
     }
 
     throwI_errorf(I, "cannot convert %s to based %s", valueI_type(I, value, false), name);
 }
 
-struct value valueI_value2decimal(morphine_instance_t I, struct value value) {
+ml_decimal valueI_value2decimal(morphine_instance_t I, struct value value) {
     if (valueI_is_integer(value)) {
-        return valueI_decimal((ml_decimal) valueI_as_integer(value));
+        return (ml_decimal) valueI_as_integer(value);
     } else if (valueI_is_decimal(value)) {
-        return value;
+        return valueI_as_decimal(value);
     } else if (valueI_is_boolean(value)) {
         if (valueI_as_boolean(value)) {
-            return valueI_decimal(1);
+            return 1;
         } else {
-            return valueI_decimal(0);
+            return 0;
         }
     }
 
@@ -243,33 +243,11 @@ struct value valueI_value2decimal(morphine_instance_t I, struct value value) {
         ml_decimal decimal;
         bool compatible = stringI_is_cstr_compatible(I, str);
         if (compatible && platformI_string2decimal(str->chars, &decimal)) {
-            return valueI_decimal(decimal);
+            return decimal;
         }
     }
 
     throwI_errorf(I, "cannot convert %s to decimal", valueI_type(I, value, false));
-}
-
-struct value valueI_value2boolean(morphine_instance_t I, struct value value) {
-    if (valueI_is_integer(value)) {
-        return valueI_boolean(valueI_as_integer(value) != 0);
-    } else if (valueI_is_decimal(value)) {
-        return valueI_boolean(valueI_as_decimal(value) != 0);
-    } else if (valueI_is_boolean(value)) {
-        return value;
-    }
-
-    struct string *str = valueI_safe_as_string(value, NULL);
-    if (str != NULL) {
-        bool compatible = stringI_is_cstr_compatible(I, str);
-        if (compatible && strcmp(str->chars, "true") == 0) {
-            return valueI_boolean(true);
-        } else if (compatible && strcmp(str->chars, "false") == 0) {
-            return valueI_boolean(false);
-        }
-    }
-
-    throwI_errorf(I, "cannot convert %s to boolean", valueI_type(I, value, false));
 }
 
 static const char *type2string(morphine_instance_t I, enum value_type type) {

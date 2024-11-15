@@ -63,7 +63,7 @@ static inline op_result_t interpreter_fun_iterator_init(
     }
 
     struct value mt_field;
-    if (likely(valueI_is_iterator(iterator))) {
+    if (valueI_is_iterator(iterator)) {
         iteratorI_init(U->I, valueI_as_iterator(iterator), key_name, value_name);
         return NORMAL;
     } else if (metatableI_builtin_test(U->I, iterator, MORPHINE_METAFIELD_ITERATOR_INIT, &mt_field)) {
@@ -90,7 +90,7 @@ static inline op_result_t interpreter_fun_iterator_has(
     }
 
     struct value mt_field;
-    if (likely(valueI_is_iterator(iterator))) {
+    if (valueI_is_iterator(iterator)) {
         bool has = iteratorI_has(U->I, valueI_as_iterator(iterator));
         (*result) = valueI_boolean(has);
         return NORMAL;
@@ -225,13 +225,13 @@ static inline op_result_t interpreter_fun_add(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        (*result) = valueI_integer(valueI_as_integer(a) + valueI_as_integer(b));
+    if (valueI_is_integer(a)) {
+        (*result) = valueI_integer(valueI_as_integer(a) + valueI_value2integer(U->I, b));
         return NORMAL;
     }
 
-    if (valueI_is_decimal(a) && valueI_is_decimal(b)) {
-        (*result) = valueI_decimal(valueI_as_decimal(a) + valueI_as_decimal(b));
+    if (valueI_is_decimal(a)) {
+        (*result) = valueI_decimal(valueI_as_decimal(a) + valueI_value2decimal(U->I, b));
         return NORMAL;
     }
 
@@ -265,13 +265,13 @@ static inline op_result_t interpreter_fun_sub(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        (*result) = valueI_integer(valueI_as_integer(a) - valueI_as_integer(b));
+    if (valueI_is_integer(a)) {
+        (*result) = valueI_integer(valueI_as_integer(a) - valueI_value2integer(U->I, b));
         return NORMAL;
     }
 
-    if (valueI_is_decimal(a) && valueI_is_decimal(b)) {
-        (*result) = valueI_decimal(valueI_as_decimal(a) - valueI_as_decimal(b));
+    if (valueI_is_decimal(a)) {
+        (*result) = valueI_decimal(valueI_as_decimal(a) - valueI_value2decimal(U->I, b));
         return NORMAL;
     }
 
@@ -305,13 +305,13 @@ static inline op_result_t interpreter_fun_mul(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        (*result) = valueI_integer(valueI_as_integer(a) * valueI_as_integer(b));
+    if (valueI_is_integer(a)) {
+        (*result) = valueI_integer(valueI_as_integer(a) * valueI_value2integer(U->I, b));
         return NORMAL;
     }
 
-    if (valueI_is_decimal(a) && valueI_is_decimal(b)) {
-        (*result) = valueI_decimal(valueI_as_decimal(a) * valueI_as_decimal(b));
+    if (valueI_is_decimal(a)) {
+        (*result) = valueI_decimal(valueI_as_decimal(a) * valueI_value2decimal(U->I, b));
         return NORMAL;
     }
 
@@ -345,22 +345,24 @@ static inline op_result_t interpreter_fun_div(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        if (unlikely(valueI_as_integer(b) == 0)) {
+    if (valueI_is_integer(a)) {
+        ml_integer b_value = valueI_value2integer(U->I, b);
+        if (unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
 
-        (*result) = valueI_integer(valueI_as_integer(a) / valueI_as_integer(b));
+        (*result) = valueI_integer(valueI_as_integer(a) / b_value);
 
         return NORMAL;
     }
 
-    if (valueI_is_decimal(a) && valueI_is_decimal(b)) {
-        if (unlikely(valueI_as_decimal(b) == 0)) {
+    if (valueI_is_decimal(a)) {
+        ml_decimal b_value = valueI_value2decimal(U->I, b);
+        if (unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
 
-        (*result) = valueI_decimal(valueI_as_decimal(a) / valueI_as_decimal(b));
+        (*result) = valueI_decimal(valueI_as_decimal(a) / b_value);
 
         return NORMAL;
     }
@@ -395,12 +397,13 @@ static inline op_result_t interpreter_fun_mod(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        if (unlikely(valueI_as_integer(b) == 0)) {
+    if (valueI_is_integer(a)) {
+        ml_integer b_value = valueI_value2integer(U->I, b);
+        if (unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
 
-        (*result) = valueI_integer(valueI_as_integer(a) % valueI_as_integer(b));
+        (*result) = valueI_integer(valueI_as_integer(a) % b_value);
 
         return NORMAL;
     }
@@ -466,13 +469,13 @@ static inline op_result_t interpreter_fun_less(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_integer(a) && valueI_is_integer(b))) {
-        (*result) = valueI_boolean(valueI_as_integer(a) < valueI_as_integer(b));
+    if (valueI_is_integer(a)) {
+        (*result) = valueI_boolean(valueI_as_integer(a) < valueI_value2integer(U->I, b));
         return NORMAL;
     }
 
-    if (valueI_is_decimal(a) && valueI_is_decimal(b)) {
-        (*result) = valueI_boolean(valueI_as_decimal(a) < valueI_as_decimal(b));
+    if (valueI_is_decimal(a)) {
+        (*result) = valueI_boolean(valueI_as_decimal(a) < valueI_value2decimal(U->I, b));
         return NORMAL;
     }
 
@@ -519,7 +522,7 @@ static inline op_result_t interpreter_fun_and(
         return NORMAL;
     }
 
-    if (likely(valueI_istrue(a))) {
+    if (valueI_tobool(a)) {
         (*result) = b;
     } else {
         (*result) = a;
@@ -555,7 +558,7 @@ static inline op_result_t interpreter_fun_or(
         return NORMAL;
     }
 
-    if (likely(valueI_istrue(a))) {
+    if (valueI_tobool(a)) {
         (*result) = a;
     } else {
         (*result) = b;
@@ -578,7 +581,7 @@ static inline op_result_t interpreter_fun_concat(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_string(a) && valueI_is_string(b))) {
+    if (valueI_is_string(a) && valueI_is_string(b)) {
         struct string *a_str = valueI_as_string(a);
         struct string *b_str = valueI_as_string(b);
         (*result) = valueI_object(stringI_concat(U->I, a_str, b_str));
@@ -586,7 +589,7 @@ static inline op_result_t interpreter_fun_concat(
         return NORMAL;
     }
 
-    if (likely(valueI_is_vector(a) && valueI_is_vector(b))) {
+    if (valueI_is_vector(a) && valueI_is_vector(b)) {
         struct vector *a_vec = valueI_as_vector(a);
         struct vector *b_vec = valueI_as_vector(b);
         (*result) = valueI_object(vectorI_concat(U->I, a_vec, b_vec));
@@ -652,7 +655,7 @@ static inline op_result_t interpreter_fun_negative(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_integer(a))) {
+    if (valueI_is_integer(a)) {
         (*result) = valueI_integer(-valueI_as_integer(a));
         return NORMAL;
     }
@@ -702,8 +705,7 @@ static inline op_result_t interpreter_fun_not(
         return NORMAL;
     }
 
-    bool istrue = valueI_istrue(a);
-    (*result) = valueI_boolean(!istrue);
+    (*result) = valueI_boolean(!valueI_tobool(a));
     return NORMAL;
 }
 
@@ -749,7 +751,7 @@ static inline op_result_t interpreter_fun_deref(
         return CALLED_COMPLETE;
     }
 
-    if (likely(valueI_is_reference(a))) {
+    if (valueI_is_reference(a)) {
         (*result) = *referenceI_get(U->I, valueI_as_reference_or_error(U->I, a));
         return NORMAL;
     }

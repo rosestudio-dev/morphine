@@ -61,14 +61,10 @@ void exceptionI_error_print(morphine_instance_t I, struct exception *exception, 
         value = exception->value;
     }
 
-    struct string *string = valueI_safe_as_string(valueI_value2string(I, value), NULL);
-    if (string != NULL) {
-        sioI_print(I, sio, "morphine error: ");
-        print_string(I, sio, string);
-        sioI_print(I, sio, "\n");
-    } else {
-        sioI_print(I, sio, "morphine error: (unsupported value)\n");
-    }
+    struct string *string = valueI_value2string(I, value);
+    sioI_print(I, sio, "morphine error: ");
+    print_string(I, sio, string);
+    sioI_print(I, sio, "\n");
 }
 
 void exceptionI_stacktrace_print(
