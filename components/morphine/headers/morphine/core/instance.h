@@ -35,7 +35,6 @@ struct instance {
 
     struct {
         struct string *names[MORPHINE_METATABLE_FIELDS_COUNT];
-        struct table *defaults[VALUE_TYPES_COUNT];
     } metatable;
 
     struct {

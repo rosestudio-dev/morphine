@@ -8,10 +8,7 @@
 #include "morphine/misc/metatable/type.h"
 
 void metatableI_set(morphine_instance_t, struct value, struct table *);
-void metatableI_set_default(morphine_instance_t, enum value_type, struct table *);
-
 struct value metatableI_get(morphine_instance_t, struct value);
-struct value metatableI_get_default(morphine_instance_t, enum value_type);
 
 bool metatableI_builtin_test(morphine_instance_t, struct value, morphine_metatable_field_t, struct value *);
 bool metatableI_test(morphine_instance_t, struct value, struct string *, struct value *);

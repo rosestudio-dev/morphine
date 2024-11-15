@@ -96,32 +96,6 @@ static void getmetatable(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void setdefaultmetatable(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 2);
-
-            mapi_push_arg(U, 0);
-            const char *type = mapi_type(U);
-            mapi_push_arg(U, 1);
-            mapi_set_default_metatable(U, type);
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void getdefaultmetatable(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-
-            mapi_push_arg(U, 0);
-            const char *type = mapi_type(U);
-            mapi_pop(U, 1);
-            mapi_get_default_metatable(U, type);
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void pcall(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -246,8 +220,6 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("println", println),
     MAUX_CONSTRUCT_FUNCTION("setmetatable", setmetatable),
     MAUX_CONSTRUCT_FUNCTION("getmetatable", getmetatable),
-    MAUX_CONSTRUCT_FUNCTION("setdefaultmetatable", setdefaultmetatable),
-    MAUX_CONSTRUCT_FUNCTION("getdefaultmetatable", getdefaultmetatable),
     MAUX_CONSTRUCT_FUNCTION("error", error),
     MAUX_CONSTRUCT_FUNCTION("pcall", pcall),
     MAUX_CONSTRUCT_FUNCTION("ucall", ucall),

@@ -300,8 +300,6 @@ MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t, const char *);
 MORPHINE_API bool mapi_metatable_builtin_test(morphine_coroutine_t, morphine_metatable_field_t);
 MORPHINE_API void mapi_set_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_get_metatable(morphine_coroutine_t);
-MORPHINE_API void mapi_set_default_metatable(morphine_coroutine_t, const char *type);
-MORPHINE_API void mapi_get_default_metatable(morphine_coroutine_t, const char *type);
 
 // stack
 

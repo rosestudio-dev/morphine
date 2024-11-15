@@ -64,22 +64,6 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
     throwI_errorf(I, "metatable cannot be set to %s", valueI_type(I, value, true));
 }
 
-void metatableI_set_default(morphine_instance_t I, enum value_type type, struct table *metatable) {
-    if (VALUE_TYPES_START > type || type >= VALUE_TYPES_COUNT) {
-        throwI_panic(I, "unsupported value type");
-    }
-
-    I->metatable.defaults[type] = metatable;
-}
-
-struct value metatableI_get_default(morphine_instance_t I, enum value_type type) {
-    if (VALUE_TYPES_START > type || type >= VALUE_TYPES_COUNT) {
-        throwI_panic(I, "unsupported value type");
-    }
-
-    return extract_metatable(I, I->metatable.defaults[type]);
-}
-
 struct value metatableI_get(morphine_instance_t I, struct value value) {
     struct table *metatable = NULL;
     if (valueI_is_table(value)) {
@@ -113,13 +97,11 @@ bool metatableI_test(
     struct string *field,
     struct value *result
 ) {
-    struct table *metatable;
+    struct table *metatable = NULL;
     if (valueI_is_table(source)) {
         metatable = valueI_as_table(source)->metatable;
     } else if (valueI_is_userdata(source)) {
         metatable = valueI_as_userdata(source)->metatable;
-    } else {
-        metatable = I->metatable.defaults[source.type];
     }
 
     struct value field_name = valueI_object(field);

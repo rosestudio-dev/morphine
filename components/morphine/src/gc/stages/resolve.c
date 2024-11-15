@@ -166,13 +166,6 @@ static inline bool mark_metatable(morphine_instance_t I) {
         }
     }
 
-    for (enum value_type type = VALUE_TYPES_START; type < VALUE_TYPES_COUNT; type++) {
-        struct table *table = I->metatable.defaults[type];
-        if (table != NULL && mark_object(I, objectI_cast(table))) {
-            marked = true;
-        }
-    }
-
     return marked;
 }
 
