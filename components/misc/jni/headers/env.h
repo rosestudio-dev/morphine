@@ -12,7 +12,6 @@ struct env {
     struct {
         JNIEnv *jnienv;
         jobject this;
-        jfieldID interrupt_id;
 
         struct {
             jobject object;

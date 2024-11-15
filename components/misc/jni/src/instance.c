@@ -108,7 +108,6 @@ static morphine_settings_t morphine_settings(JNIEnv *jnienv, jobject this) {
 static struct env init(JNIEnv *jnienv, jobject this) {
     jclass this_class = J(jnienv, GetObjectClass, this);
     jfieldID bridge_id = J(jnienv, GetFieldID, this_class, "bridge", "Lru/why/morphine/jni/Morphine$Bridge;");
-    jfieldID interrupt_id = J(jnienv, GetFieldID, this_class, "interrupt", "Z");
 
     jobject bridge = J(jnienv, GetObjectField, this, bridge_id);
     jclass bridge_class = J(jnienv, GetObjectClass, bridge);
@@ -140,7 +139,6 @@ static struct env init(JNIEnv *jnienv, jobject this) {
     return (struct env) {
         .jnienv = jnienv,
         .this = this,
-        .interrupt_id = interrupt_id,
         .input.object = input,
         .input.read_id = input_read,
         .output.object = output,
@@ -215,13 +213,7 @@ JNIEXPORT jboolean JNICALL Java_ru_why_morphine_jni_Morphine_interpreter(
     mapi_pop(U, 1);
 
     mapi_call(U, 0);
-
-    while (!J(jnienv, GetBooleanField, this, env.interrupt_id)) {
-        if (!mapi_interpreter_step(I)) {
-            break;
-        }
-    }
-
+    mapi_interpreter(I);
     mapi_close(I);
 
     return false;

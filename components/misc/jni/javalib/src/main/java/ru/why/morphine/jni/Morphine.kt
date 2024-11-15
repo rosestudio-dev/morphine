@@ -17,45 +17,29 @@ class Morphine(
         }
     }
 
-    private val syncVm = Object()
-
-    @Volatile
-    private var interrupt = false
-
     fun compile(text: String): ByteArray {
-        synchronized(syncVm) {
-            val outputStream = ByteArrayOutputStream()
-            if (compiler(outputStream, text)) {
-                throw RuntimeException()
-            }
-
-            return outputStream.toByteArray()
+        val outputStream = ByteArrayOutputStream()
+        if (compiler(outputStream, text)) {
+            throw RuntimeException()
         }
+
+        return outputStream.toByteArray()
     }
 
     fun execute(text: String) {
-        synchronized(syncVm) {
-            val outputStream = ByteArrayOutputStream()
-            if (compiler(outputStream, text)) {
-                throw RuntimeException()
-            }
-
-            execute(outputStream.toByteArray())
+        val outputStream = ByteArrayOutputStream()
+        if (compiler(outputStream, text)) {
+            throw RuntimeException()
         }
+
+        execute(outputStream.toByteArray())
     }
 
     fun execute(binary: ByteArray) {
-        synchronized(syncVm) {
-            interrupt = false
-            val inputStream = ByteArrayInputStream(binary)
-            if (interpreter(inputStream)) {
-                throw RuntimeException()
-            }
+        val inputStream = ByteArrayInputStream(binary)
+        if (interpreter(inputStream)) {
+            throw RuntimeException()
         }
-    }
-
-    fun interrupt() {
-        interrupt = true
     }
 
     private external fun compiler(out: OutputStream, text: String): Boolean
