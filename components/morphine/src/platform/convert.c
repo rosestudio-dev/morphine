@@ -2,7 +2,7 @@
 // Created by whyiskra on 30.12.23.
 //
 
-#include "morphine/platform/conversions.h"
+#include "morphine/platform/convert.h"
 #include "morphine/utils/overflow.h"
 #include "morphine/utils/ctype.h"
 #include <limits.h>

@@ -6,12 +6,11 @@
 
 #include "morphine/misc/metatable.h"
 #include "morphine/object/table.h"
-#include "morphine/object/string.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/iterator.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/vector.h"
-#include "morphine/core/throw.h"
+#include "morphine/core/convert.h"
 #include "morphine/gc/safe.h"
 
 typedef enum {
@@ -226,12 +225,12 @@ static inline op_result_t interpreter_fun_add(
     }
 
     if (valueI_is_integer(a)) {
-        (*result) = valueI_integer(valueI_as_integer(a) + valueI_value2integer(U->I, b));
+        (*result) = valueI_integer(valueI_as_integer(a) + convertI_to_integer(U->I, b));
         return NORMAL;
     }
 
     if (valueI_is_decimal(a)) {
-        (*result) = valueI_decimal(valueI_as_decimal(a) + valueI_value2decimal(U->I, b));
+        (*result) = valueI_decimal(valueI_as_decimal(a) + convertI_to_decimal(U->I, b));
         return NORMAL;
     }
 
@@ -266,12 +265,12 @@ static inline op_result_t interpreter_fun_sub(
     }
 
     if (valueI_is_integer(a)) {
-        (*result) = valueI_integer(valueI_as_integer(a) - valueI_value2integer(U->I, b));
+        (*result) = valueI_integer(valueI_as_integer(a) - convertI_to_integer(U->I, b));
         return NORMAL;
     }
 
     if (valueI_is_decimal(a)) {
-        (*result) = valueI_decimal(valueI_as_decimal(a) - valueI_value2decimal(U->I, b));
+        (*result) = valueI_decimal(valueI_as_decimal(a) - convertI_to_decimal(U->I, b));
         return NORMAL;
     }
 
@@ -306,12 +305,12 @@ static inline op_result_t interpreter_fun_mul(
     }
 
     if (valueI_is_integer(a)) {
-        (*result) = valueI_integer(valueI_as_integer(a) * valueI_value2integer(U->I, b));
+        (*result) = valueI_integer(valueI_as_integer(a) * convertI_to_integer(U->I, b));
         return NORMAL;
     }
 
     if (valueI_is_decimal(a)) {
-        (*result) = valueI_decimal(valueI_as_decimal(a) * valueI_value2decimal(U->I, b));
+        (*result) = valueI_decimal(valueI_as_decimal(a) * convertI_to_decimal(U->I, b));
         return NORMAL;
     }
 
@@ -346,7 +345,7 @@ static inline op_result_t interpreter_fun_div(
     }
 
     if (valueI_is_integer(a)) {
-        ml_integer b_value = valueI_value2integer(U->I, b);
+        ml_integer b_value = convertI_to_integer(U->I, b);
         if (unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
@@ -357,7 +356,7 @@ static inline op_result_t interpreter_fun_div(
     }
 
     if (valueI_is_decimal(a)) {
-        ml_decimal b_value = valueI_value2decimal(U->I, b);
+        ml_decimal b_value = convertI_to_decimal(U->I, b);
         if (unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
@@ -398,7 +397,7 @@ static inline op_result_t interpreter_fun_mod(
     }
 
     if (valueI_is_integer(a)) {
-        ml_integer b_value = valueI_value2integer(U->I, b);
+        ml_integer b_value = convertI_to_integer(U->I, b);
         if (unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
@@ -470,12 +469,12 @@ static inline op_result_t interpreter_fun_less(
     }
 
     if (valueI_is_integer(a)) {
-        (*result) = valueI_boolean(valueI_as_integer(a) < valueI_value2integer(U->I, b));
+        (*result) = valueI_boolean(valueI_as_integer(a) < convertI_to_integer(U->I, b));
         return NORMAL;
     }
 
     if (valueI_is_decimal(a)) {
-        (*result) = valueI_boolean(valueI_as_decimal(a) < valueI_value2decimal(U->I, b));
+        (*result) = valueI_boolean(valueI_as_decimal(a) < convertI_to_decimal(U->I, b));
         return NORMAL;
     }
 
@@ -522,7 +521,7 @@ static inline op_result_t interpreter_fun_and(
         return NORMAL;
     }
 
-    if (valueI_tobool(a)) {
+    if (convertI_to_boolean(a)) {
         (*result) = b;
     } else {
         (*result) = a;
@@ -558,7 +557,7 @@ static inline op_result_t interpreter_fun_or(
         return NORMAL;
     }
 
-    if (valueI_tobool(a)) {
+    if (convertI_to_boolean(a)) {
         (*result) = a;
     } else {
         (*result) = b;
@@ -705,7 +704,7 @@ static inline op_result_t interpreter_fun_not(
         return NORMAL;
     }
 
-    (*result) = valueI_boolean(!valueI_tobool(a));
+    (*result) = valueI_boolean(!convertI_to_boolean(a));
     return NORMAL;
 }
 

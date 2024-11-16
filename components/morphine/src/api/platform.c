@@ -3,7 +3,7 @@
 //
 
 #include "morphine/api.h"
-#include "morphine/platform/conversions.h"
+#include "morphine/platform/convert.h"
 
 MORPHINE_API bool mapi_platform_str2int(const char *string, ml_integer *container, ml_size base) {
     return platformI_string2integer(string, container, base);

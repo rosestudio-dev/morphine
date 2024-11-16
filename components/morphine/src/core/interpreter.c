@@ -209,7 +209,7 @@ sp_case(MORPHINE_OPCODE_JUMP_IF)
             {
                 get_slot(C, arg1, cond);
 
-                if (valueI_tobool(cond)) {
+                if (convertI_to_boolean(cond)) {
                     *position = arg2;
                 } else {
                     *position = arg3;

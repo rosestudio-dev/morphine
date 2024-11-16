@@ -3,16 +3,15 @@
 //
 
 #include "morphine/object/exception.h"
-#include "morphine/gc/safe.h"
-#include "morphine/gc/allocator.h"
-#include "morphine/object/string.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/native.h"
 #include "morphine/object/sio.h"
-#include "morphine/utils/overflow.h"
-#include "morphine/core/throw.h"
+#include "morphine/core/convert.h"
+#include "morphine/gc/safe.h"
+#include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/utils/overflow.h"
 
 #define plural_suffix(n) ((n) == 1 ? "" : "s")
 
@@ -61,7 +60,7 @@ void exceptionI_error_print(morphine_instance_t I, struct exception *exception, 
         value = exception->value;
     }
 
-    struct string *string = valueI_value2string(I, value);
+    struct string *string = convertI_to_string(I, value);
     sioI_print(I, sio, "morphine error: ");
     print_string(I, sio, string);
     sioI_print(I, sio, "\n");
