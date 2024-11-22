@@ -111,6 +111,46 @@ void functionI_free(morphine_instance_t I, struct function *function) {
     allocI_free(I, function);
 }
 
+struct function *functionI_copy(morphine_instance_t I, struct function *function) {
+    if (function == NULL) {
+        throwI_error(I, "function is null");
+    }
+
+    size_t rollback = gcI_safe_obj(I, objectI_cast(function));
+    struct function *result = functionI_create(
+        I,
+        function->name,
+        function->line,
+        function->constants_count,
+        function->instructions_count,
+        function->statics_count,
+        function->arguments_count,
+        function->slots_count,
+        function->params_count
+    );
+
+    gcI_safe_obj(I, objectI_cast(result));
+
+    for(ml_size i = 0; i < function->instructions_count; i ++) {
+        morphine_instruction_t instruction = functionI_instruction_get(I, function, i);
+        functionI_instruction_set(I, result, i, instruction);
+    }
+
+    for(ml_size i = 0; i < function->constants_count; i ++) {
+        struct value value = functionI_constant_get(I, function, i);
+        functionI_constant_set(I, result, i, value);
+    }
+
+    for(ml_size i = 0; i < function->statics_count; i ++) {
+        struct value value = functionI_static_get(I, function, i);
+        functionI_static_set(I, result, i, value);
+    }
+
+    gcI_reset_safe(I, rollback);
+
+    return result;
+}
+
 void functionI_complete(morphine_instance_t I, struct function *function) {
     if (function == NULL) {
         throwI_error(I, "function is null");

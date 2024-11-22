@@ -246,6 +246,7 @@ MORPHINE_API void mapi_push_function(
     ml_size params_count
 );
 
+MORPHINE_API void mapi_function_copy(morphine_coroutine_t);
 MORPHINE_API void mapi_function_complete(morphine_coroutine_t);
 MORPHINE_API bool mapi_function_is_complete(morphine_coroutine_t);
 

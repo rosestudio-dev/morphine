@@ -35,6 +35,11 @@ MORPHINE_API void mapi_push_function(
     stackI_replace(U, 0, valueI_object(function));
 }
 
+MORPHINE_API void mapi_function_copy(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    stackI_push(U, valueI_object(functionI_copy(U->I, function)));
+}
+
 MORPHINE_API void mapi_function_complete(morphine_coroutine_t U) {
     struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
     functionI_complete(U->I, function);

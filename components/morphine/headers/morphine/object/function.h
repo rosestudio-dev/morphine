@@ -41,6 +41,7 @@ struct function *functionI_create(
 
 void functionI_free(morphine_instance_t, struct function *);
 
+struct function *functionI_copy(morphine_instance_t, struct function *);
 void functionI_complete(morphine_instance_t, struct function *);
 
 morphine_instruction_t functionI_instruction_get(morphine_instance_t, struct function *, ml_size index);

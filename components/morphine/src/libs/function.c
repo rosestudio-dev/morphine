@@ -106,6 +106,16 @@ static void create(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void copy(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mapi_function_copy(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void complete(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -315,6 +325,7 @@ static void setinstruction(morphine_coroutine_t U) {
 
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("create", create),
+    MAUX_CONSTRUCT_FUNCTION("copy", copy),
     MAUX_CONSTRUCT_FUNCTION("complete", complete),
     MAUX_CONSTRUCT_FUNCTION("info", info),
     MAUX_CONSTRUCT_FUNCTION("getinstruction", getinstruction),
