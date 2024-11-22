@@ -261,65 +261,6 @@ static void metatableislocked(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void tostr(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
-            maux_expect(U, "table");
-
-            mapi_push_string(U, "{");
-
-            mapi_peek(U, 1);
-            mapi_iterator(U);
-            mapi_iterator_init(U);
-            mapi_rotate(U, 2);
-            mapi_pop(U, 1);
-        maux_nb_state(1)
-            if (!mapi_iterator_has(U)) {
-                mapi_pop(U, 1);
-                mapi_push_string(U, "}");
-                mapi_string_concat(U);
-                maux_nb_return();
-            }
-
-            mapi_iterator_next(U);
-            mapi_rotate(U, 2);
-
-            maux_library_access(U, "value.tostr");
-            mapi_rotate(U, 2);
-            mapi_call(U, 1);
-        maux_nb_state(2)
-            mapi_push_result(U);
-            mapi_push_string(U, " = ");
-            mapi_string_concat(U);
-            mapi_peek(U, 1);
-
-            maux_library_access(U, "value.tostr");
-            mapi_rotate(U, 2);
-            mapi_call(U, 1);
-        maux_nb_state(3)
-            mapi_push_result(U);
-            mapi_string_concat(U);
-
-            mapi_rotate(U, 4);
-            mapi_pop(U, 1);
-            mapi_rotate(U, 3);
-            mapi_rotate(U, 2);
-            mapi_string_concat(U);
-            mapi_rotate(U, 2);
-
-            if (mapi_iterator_has(U)) {
-                mapi_rotate(U, 2);
-                mapi_push_string(U, ", ");
-                mapi_string_concat(U);
-                mapi_rotate(U, 2);
-            }
-
-            maux_nb_continue(1);
-    maux_nb_end
-}
-
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("rawget", rawget),
     MAUX_CONSTRUCT_FUNCTION("rawset", rawset),
@@ -338,7 +279,6 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("ismutable", ismutable),
     MAUX_CONSTRUCT_FUNCTION("metatableislocked", metatableislocked),
     MAUX_CONSTRUCT_FUNCTION("islocked", islocked),
-    MAUX_CONSTRUCT_FUNCTION("tostr", tostr),
     MAUX_CONSTRUCT_END
 };
 

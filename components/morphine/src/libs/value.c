@@ -87,18 +87,10 @@ static void tostr(morphine_coroutine_t U) {
             if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_TO_STRING)) {
                 if (mapi_is_callable(U)) {
                     mapi_rotate(U, 2);
-                    mapi_scall(U, 0);
+                    maux_nb_scall(0, 1);
                 } else {
                     maux_nb_return();
                 }
-            } else if (mapi_is_type(U, "vector")) {
-                maux_library_access(U, "vector.tostr");
-                mapi_rotate(U, 2);
-                mapi_call(U, 1);
-            } else if (mapi_is_type(U, "table")) {
-                maux_library_access(U, "table.tostr");
-                mapi_rotate(U, 2);
-                mapi_call(U, 1);
             } else {
                 mapi_to_string(U);
                 maux_nb_return();
