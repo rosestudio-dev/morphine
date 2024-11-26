@@ -2,39 +2,39 @@
 // Created by why-iskra on 08.08.2024.
 //
 
-#include "controller.h"
+#include "../controller.h"
 
 struct mc_ast_node *rule_dowhile(struct parse_controller *C) {
+    ml_size token_from = parser_index(C);
     {
         parser_consume(C, et_predef_word(do));
-        parser_reduce(C, rule_statement_block);
-
+        parser_reduce(C, rule_statement_inline_block);
         if (parser_match(C, et_predef_word(while))) {
             parser_consume(C, et_operator(LPAREN));
             parser_reduce(C, rule_expression);
             parser_consume(C, et_operator(RPAREN));
         }
     }
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
     ml_line line = parser_get_line(C);
 
     parser_consume(C, et_predef_word(do));
+
     struct mc_ast_statement *statement =
-        mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
+        mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_inline_block));
 
     if (parser_match(C, et_predef_word(while))) {
-        struct mc_ast_statement_block *block = mcapi_ast_statement2block(parser_U(C), statement);
-        block->inlined = true;
-
         parser_consume(C, et_operator(LPAREN));
         struct mc_ast_expression *expression =
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+
         parser_consume(C, et_operator(RPAREN));
 
         struct mc_ast_statement_while *statement_while =
-            mcapi_ast_create_statement_while(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_statement_while(parser_U(C), parser_A(C), token_from, token_to, line);
 
         statement_while->first_condition = false;
         statement_while->condition = expression;

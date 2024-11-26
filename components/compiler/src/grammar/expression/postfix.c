@@ -2,9 +2,10 @@
 // Created by why-iskra on 05.08.2024.
 //
 
-#include "controller.h"
+#include "../controller.h"
 
 struct mc_ast_node *rule_postfix(struct parse_controller *C) {
+    ml_size token_from = parser_index(C);
     {
         parser_reduce(C, rule_primary);
 
@@ -32,8 +33,9 @@ struct mc_ast_node *rule_postfix(struct parse_controller *C) {
             break;
         }
 
+        ml_size token_to = parser_index(C);
         struct mc_ast_expression_increment *increment =
-            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), token_from, token_to, line);
 
         increment->is_postfix = true;
         increment->is_decrement = is_decrement;

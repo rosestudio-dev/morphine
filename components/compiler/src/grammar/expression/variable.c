@@ -2,13 +2,22 @@
 // Created by why-iskra on 05.08.2024.
 //
 
-#include "controller.h"
-#include "extra/arguments.h"
+#include "../controller.h"
+#include "../extra/arguments.h"
 
 static size_t function_arguments(struct parse_controller *C, struct mc_ast_expression **args) {
     if (parser_look(C, et_operator(LBRACE))) {
         struct mc_ast_expression *expression =
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_table));
+
+        if (args != NULL) {
+            args[0] = expression;
+        }
+
+        return 1;
+    } else if (parser_match(C, et_operator(LARROW))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
         if (args != NULL) {
             args[0] = expression;
@@ -42,20 +51,31 @@ static size_t function_arguments(struct parse_controller *C, struct mc_ast_expre
         }
 
         return count + 1;
+    } else if (parser_match(C, et_operator(LARROW))) {
+        struct mc_ast_expression *expression =
+            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+
+        if (args != NULL) {
+            args[index] = expression;
+        }
+
+        return count + 1;
     }
 
     return count;
 }
 
 static struct mc_ast_node *rule_variable_call(struct parse_controller *C) {
+    ml_size token_from = parser_index(C);
     size_t count = function_arguments(C, NULL);
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
     ml_line line = parser_get_line(C);
 
     struct mc_ast_expression_call *call =
-        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), line, count);
+        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), token_from, token_to, line, count);
 
     function_arguments(C, call->arguments);
 
@@ -68,6 +88,7 @@ static struct mc_ast_node *rule_variable_call(struct parse_controller *C) {
 
 static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
     size_t count;
+    ml_size token_from = parser_index(C);
     {
         parser_consume(C, et_operator(COLON));
 
@@ -79,6 +100,7 @@ static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
 
         count = function_arguments(C, NULL);
     }
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
@@ -88,10 +110,13 @@ static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
 
     struct mc_ast_expression *callable;
     if (parser_look(C, et_word())) {
+        ml_size word_token_from = parser_index(C);
         struct mc_lex_token token = parser_consume(C, et_word());
+        ml_size word_token_to = parser_index(C);
 
-        struct mc_ast_expression_value *value =
-            mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
+        struct mc_ast_expression_value *value = mcapi_ast_create_expression_value(
+            parser_U(C), parser_A(C), word_token_from, word_token_to, token.line
+        );
 
         value->type = MCEXPR_VALUE_TYPE_STR;
         value->value.string = token.word;
@@ -104,7 +129,7 @@ static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
     }
 
     struct mc_ast_expression_call *call =
-        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), line, count);
+        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), token_from, token_to, line, count);
 
     function_arguments(C, call->arguments);
 
@@ -117,6 +142,7 @@ static struct mc_ast_node *rule_variable_call_self(struct parse_controller *C) {
 
 static struct mc_ast_node *rule_variable_call_another_self(struct parse_controller *C) {
     size_t count;
+    ml_size token_from = parser_index(C);
     {
         parser_consume(C, et_operator(EXCL));
 
@@ -129,6 +155,7 @@ static struct mc_ast_node *rule_variable_call_another_self(struct parse_controll
 
         count = function_arguments(C, NULL);
     }
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
@@ -145,7 +172,7 @@ static struct mc_ast_node *rule_variable_call_another_self(struct parse_controll
     }
 
     struct mc_ast_expression_call *call =
-        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), line, count);
+        mcapi_ast_create_expression_call(parser_U(C), parser_A(C), token_from, token_to, line, count);
 
     function_arguments(C, call->arguments);
 
@@ -157,6 +184,7 @@ static struct mc_ast_node *rule_variable_call_another_self(struct parse_controll
 }
 
 struct mc_ast_node *rule_variable(struct parse_controller *C) {
+    ml_size token_from = parser_index(C);
     {
         parser_reduce(C, rule_value);
 
@@ -166,7 +194,8 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
                 parser_consume(C, et_operator(RBRACKET));
             } else if (parser_match(C, et_operator(DOT))) {
                 parser_consume(C, et_word());
-            } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE))) {
+            } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE)) ||
+                       parser_look(C, et_operator(LARROW))) {
                 parser_reduce(C, rule_variable_call);
             } else if (parser_look(C, et_operator(COLON))) {
                 parser_reduce(C, rule_variable_call_self);
@@ -191,30 +220,36 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
                 mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
             parser_consume(C, et_operator(RBRACKET));
 
+            ml_size token_to = parser_index(C);
             struct mc_ast_expression_access *access =
-                mcapi_ast_create_expression_access(parser_U(C), parser_A(C), line);
+                mcapi_ast_create_expression_access(parser_U(C), parser_A(C), token_from, token_to, line);
 
             access->container = expression;
             access->key = key;
 
             expression = mcapi_ast_access2expression(access);
         } else if (parser_match(C, et_operator(DOT))) {
+            ml_size word_token_from = parser_index(C);
             struct mc_lex_token token = parser_consume(C, et_word());
+            ml_size word_token_to = parser_index(C);
 
-            struct mc_ast_expression_value *key_value =
-                mcapi_ast_create_expression_value(parser_U(C), parser_A(C), token.line);
+            struct mc_ast_expression_value *key_value = mcapi_ast_create_expression_value(
+                parser_U(C), parser_A(C), word_token_from, word_token_to, token.line
+            );
 
             key_value->type = MCEXPR_VALUE_TYPE_STR;
             key_value->value.string = token.word;
 
+            ml_size token_to = parser_index(C);
             struct mc_ast_expression_access *access =
-                mcapi_ast_create_expression_access(parser_U(C), parser_A(C), line);
+                mcapi_ast_create_expression_access(parser_U(C), parser_A(C), token_from, token_to, line);
 
             access->container = expression;
             access->key = mcapi_ast_value2expression(key_value);
 
             expression = mcapi_ast_access2expression(access);
-        } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE))) {
+        } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE)) ||
+                   parser_look(C, et_operator(LARROW))) {
             struct mc_ast_expression *next_expression =
                 mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_variable_call));
 
@@ -222,6 +257,7 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
                 mcapi_ast_expression2call(parser_U(C), next_expression);
 
             call->callable = expression;
+            call->header.node.from = token_from;
 
             expression = next_expression;
         } else if (parser_look(C, et_operator(COLON))) {
@@ -232,6 +268,7 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
                 mcapi_ast_expression2call(parser_U(C), next_expression);
 
             call->self = expression;
+            call->header.node.from = token_from;
 
             expression = next_expression;
         } else if (parser_look(C, et_operator(EXCL))) {
@@ -242,6 +279,7 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
                 mcapi_ast_expression2call(parser_U(C), next_expression);
 
             call->callable = expression;
+            call->header.node.from = token_from;
 
             expression = next_expression;
         } else {

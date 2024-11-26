@@ -2,9 +2,10 @@
 // Created by why-iskra on 06.08.2024.
 //
 
-#include "controller.h"
+#include "../controller.h"
 
 struct mc_ast_node *rule_and(struct parse_controller *C) {
+    ml_size token_from = parser_index(C);
     {
         parser_reduce(C, rule_equal);
 
@@ -31,11 +32,12 @@ struct mc_ast_node *rule_and(struct parse_controller *C) {
             break;
         }
 
+        ml_size token_to = parser_index(C);
         struct mc_ast_expression *expressionB =
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_equal));
 
         struct mc_ast_expression_binary *binary =
-            mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
 
         binary->type = MCEXPR_BINARY_TYPE_AND;
         binary->a = expression;

@@ -51,9 +51,12 @@ void extra_get_extract(
     ml_line line = parser_get_line(C);
     if (simple && !parser_look(C, et_operator(LBRACE))) {
         if (variables != NULL) {
+            ml_size token_from = parser_index(C);
             struct mc_lex_token token = parser_consume(C, et_word());
-            struct mc_ast_expression_variable *variable =
-                mcapi_ast_create_expression_variable(parser_U(C), parser_A(C), token.line);
+            ml_size token_to = parser_index(C);
+            struct mc_ast_expression_variable *variable = mcapi_ast_create_expression_variable(
+                parser_U(C), parser_A(C), token_from, token_to, token.line
+            );
 
             variable->ignore_mutable = ignore_mutable;
             variable->index = token.word;
@@ -77,9 +80,12 @@ void extra_get_extract(
 
     for (size_t i = 0; extra_arguments_next(C, &A); i++) {
         if (variables != NULL) {
+            ml_size token_from = parser_index(C);
             struct mc_lex_token token = parser_consume(C, et_word());
-            struct mc_ast_expression_variable *variable =
-                mcapi_ast_create_expression_variable(parser_U(C), parser_A(C), token.line);
+            ml_size token_to = parser_index(C);
+            struct mc_ast_expression_variable *variable = mcapi_ast_create_expression_variable(
+                parser_U(C), parser_A(C), token_from, token_to, token.line
+            );
 
             variable->ignore_mutable = ignore_mutable;
             variable->index = token.word;
@@ -92,8 +98,9 @@ void extra_get_extract(
                     parser_U(C), parser_reduce(C, rule_expression)
                 );
             } else {
-                struct mc_ast_expression_value *value =
-                    mcapi_ast_create_expression_value(parser_U(C), parser_A(C), line);
+                struct mc_ast_expression_value *value = mcapi_ast_create_expression_value(
+                    parser_U(C), parser_A(C), token_from, token_to, line
+                );
 
                 value->type = MCEXPR_VALUE_TYPE_STR;
                 value->value.string = string;

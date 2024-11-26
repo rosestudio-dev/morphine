@@ -2,13 +2,14 @@
 // Created by why-iskra on 06.08.2024.
 //
 
-#include "controller.h"
-#include "extra/arguments.h"
+#include "../controller.h"
+#include "../extra/arguments.h"
 
 struct mc_ast_node *rule_function(struct parse_controller *C) {
     size_t args;
     size_t closures = 0;
     size_t statics = 0;
+    ml_size token_from = parser_index(C);
     {
         parser_consume(C, et_predef_word(fun));
         parser_match(C, et_predef_word(recursive));
@@ -58,6 +59,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
             parser_reduce(C, rule_statement_block);
         }
     }
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
@@ -119,17 +121,17 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
 
     struct mc_ast_statement *statement;
     ml_line eq_line = parser_get_line(C);
+    ml_size eq_token_from = parser_index(C);
     if (parser_match(C, et_operator(EQ))) {
         struct mc_ast_expression_leave *leave =
-            mcapi_ast_create_expression_leave(parser_U(C), parser_A(C), eq_line);
+            mcapi_ast_create_expression_leave(parser_U(C), parser_A(C), eq_token_from, token_to, eq_line);
 
         leave->expression = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
         struct mc_ast_statement_eval *eval =
-            mcapi_ast_create_statement_eval(parser_U(C), parser_A(C), eq_line);
+            mcapi_ast_create_statement_eval(parser_U(C), parser_A(C), eq_token_from, token_to, eq_line);
 
         eval->expression = mcapi_ast_leave2expression(leave);
-        eval->implicit = false;
 
         statement = mcapi_ast_eval2statement(eval);
     } else {
@@ -139,7 +141,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
     function->body = statement;
 
     struct mc_ast_expression_function *function_expr =
-        mcapi_ast_create_expression_function(parser_U(C), parser_A(C), line);
+        mcapi_ast_create_expression_function(parser_U(C), parser_A(C), token_from, token_to, line);
 
     function_expr->ref = function;
 

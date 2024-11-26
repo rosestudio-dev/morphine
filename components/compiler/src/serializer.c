@@ -23,6 +23,11 @@ static morphine_noret void serializer_enter_node(
     struct mc_ast_node *node,
     size_t next_state
 ) {
+    if (node == NULL) {
+        mapi_push_nil(C->U);
+        serializer_jump(C, next_state);
+    }
+
     C->callback.node = node;
     mcapi_visitor_node(C->VC, node, next_state);
 }
@@ -133,7 +138,6 @@ static void visitor_function(
                 mcapi_ast_node2statement(C->U, node);
 
             switch (statement->type) {
-                stmt_case(block)
                 stmt_case(pass)
                 stmt_case(yield)
                 stmt_case(eval)
@@ -142,7 +146,6 @@ static void visitor_function(
                 stmt_case(iterator)
                 stmt_case(declaration)
                 stmt_case(assigment)
-                stmt_case(if)
             }
             break;
         }
@@ -167,6 +170,7 @@ static void visitor_function(
                 expr_case(function)
                 expr_case(block)
                 expr_case(if)
+                expr_case(when)
                 expr_case(asm)
             }
             break;
@@ -199,7 +203,9 @@ MORPHINE_API bool mcapi_serializer_step(
             controller.callback.function = mcapi_ast_get_root_function(A);
             goto case_enter_function;
         }
-        case MCVE_ENTER_FUNCTION: case_enter_function: {
+        case MCVE_ENTER_FUNCTION:
+        case_enter_function:
+        {
             struct mc_ast_function *function = controller.callback.function;
 
             mapi_push_table(U);
@@ -250,10 +256,18 @@ MORPHINE_API bool mcapi_serializer_step(
             controller.callback.node = mcapi_ast_statement2node(function->body);
             goto case_enter_node;
         }
-        case MCVE_ENTER_NODE: case_enter_node: {
+        case MCVE_ENTER_NODE:
+        case_enter_node:
+        {
             mapi_push_table(U);
             mapi_push_string(U, mcapi_ast_type_name(U, controller.callback.node));
             maux_table_set(U, "type");
+
+            mapi_push_size(U, controller.callback.node->from, "index");
+            maux_table_set(U, "from");
+
+            mapi_push_size(U, controller.callback.node->to, "index");
+            maux_table_set(U, "to");
 
             mapi_push_table(U);
             break;

@@ -12,45 +12,39 @@ val exception = env.library("exception")
 val app = env.library("__app")
 
 val originlibrary = env.library
-fun fakelibrary<auto>(name, reload)
-    val disabled = [
-        "__app"
-    ]
+fun fakelibrary<auto>(name) {
+    val disabled = ["__app"]
 
-    iterator({ value } in disabled)
-        if (value == name)
+    iterator({ value } in disabled) {
+        if (value == name) {
             base.error("library not found")
-        end
-    end
+        }
+    }
 
-    return if (reload == nil)
-        originlibrary(name)
-    else
-        originlibrary(name, reload)
-    end
-end
+    return originlibrary(name)
+}
 
-fun errln<auto>(error)
+fun errln<auto>(error) {
     sio.flush(sio.io())
-    if(typeof error == "exception")
+    if (typeof error == "exception") {
         exception.error.print(error, sio.error())
-    else
+    } else {
         sio.write(sio.error(), value.tostr(error) .. "\n")
         sio.flush(sio.error())
-    end
-end
+    }
+}
 
-fun panic<auto>(error)
+fun panic<auto>(error) {
     errln(error)
     app.exit(1)
-end
+}
 
-fun help<auto>(program, message)
+fun help<auto>(program, message) {
     base.println("Morphine (version: " .. base.version().. ")")
 
-    if (message != nil)
+    if (message != nil) {
         errln("Message: " .. value.tostr(message))
-    end
+    }
 
     base.println("Usage: " .. program .. " [options] [program [args]]")
     base.println("Positional arguments:")
@@ -67,36 +61,33 @@ fun help<auto>(program, message)
     base.println("    --              Stop handling options")
 
     app.exit(1)
-end
+}
 
-fun repl<auto>()
-    val data = {
-        exit = false
-    }
+fun repl<auto>() {
+    val data = { exit = false }
 
-    fun exec<auto>(text)
+    fun exec<auto>(text) {
         val compiled = compiler.compile {
-            text = text,
-            name = "replfun",
-            expression = true
+            text = "return {" .. text .. "}",
+            name = "replfun"
         }
 
         return base.ecall(data.environment, compiled)
-    end
+    }
 
-    fun exit<auto>()
+    fun exit<auto>() {
         data.exit = true
-    end
+    }
 
-    fun block<auto>()
+    fun block<auto>() {
         var text = ""
-        do
+        do {
             val line = app.readline(">> ")
             text = text .. line .. "\n"
-        end while (line != "")
+        } while (line != "")
 
         return exec(text)
-    end
+    }
 
     fun help<auto>() =
 "Support functions:
@@ -105,15 +96,15 @@ fun repl<auto>()
     type 'env.restore()' to restore env
     type 'env.help()'    to print this message"
 
-    fun recursive restore<auto>()
-        data.environment ={
+    fun recursive restore<auto>() {
+        data.environment = {
             library = fakelibrary,
             exit = exit,
             block = block,
             restore = restore,
             help = help,
         }
-    end
+    }
 
     restore()
 
@@ -122,67 +113,60 @@ fun repl<auto>()
     base.println()
     base.println(help())
 
-    while(not data.exit)
+    while (not data.exit) {
         val line = app.readline("> ")
 
         val result = base.pcall(exec, line)
-        if (typeof result == "exception")
+        if (typeof result == "exception") {
             base.println("error was caused")
             exception.print(result)
-        else
+        } else {
             base.println(result)
-        end
-    end
+        }
+    }
 
     base.println("Goodbye!")
-end
+}
 
-fun tobytes<auto>(program, param)
-    if (lenof param < 1)
+fun tobytes<auto>(program, param) {
+    if (lenof param < 1) {
         help(program, "invalid bytes param")
-    end
+    }
 
-    fun convert<auto>()
-        val { modifier, param } = do
+    fun convert<auto>() {
+        val { modifier, param } = do {
             val last = param[lenof param - 1]
 
-            val int = if (string.isalpha(last))
+            val int = if (string.isalpha(last)) {
                 value.toint(string.substring(param, 0, lenof param - 1))
-            else
+            } else {
                 value.toint(param)
-            end
+            }
 
-            val modifier = if (string.isalpha(last))
+            val modifier = if (string.isalpha(last)) {
                 string.tolower(last)
-            else
-                nil
-            end
+            }
 
             { modifier = modifier, param = int }
-        end
+        }
 
-        return if (modifier == nil)
-            param
-        elif (modifier == 'k')
-            param * 1024
-        elif (modifier == 'm')
-            param * 1024 * 1024
-        elif (modifier == 'g')
-            param * 1024 * 1024 * 1024
-        else
-            nil
-        end
-    end
+        return when (modifier) {
+            nil -> param,
+            'k' -> param * 1024,
+            'm' -> param * 1024 * 1024,
+            'g' -> param * 1024 * 1024
+        }
+    }
 
     val result = base.pcall(convert)
-    if (not result)
+    if (not result) {
         help(program, "invalid bytes param")
-    end
+    }
 
     return result
-end
+}
 
-fun parse_arguments<auto>()
+fun parse_arguments<auto>() {
     val result = table.fixed {
         app_path = env.args[0],
         program_path = nil,
@@ -197,154 +181,169 @@ fun parse_arguments<auto>()
         help = false
     }
 
-    if (lenof env.args < 1)
+    if (lenof env.args < 1) {
         help("morphine", "empty command line arguments")
-    end
+    }
 
-    if (lenof env.args == 1)
+    if (lenof env.args == 1) {
         result.repl = true
         return result
-    end
+    }
 
     var require_path = false
     var parsed = 1
-    for(pass; parsed < lenof env.args; parsed ++)
-        val argument = env.args[parsed]
-        if (lenof argument == 0)
-            help(result.app_path, "empty command line arguments")
-        end
 
-        if (argument[0] != '-')
+    for(pass; parsed < lenof env.args; parsed ++) {
+        val argument = env.args[parsed]
+        if (lenof argument == 0) {
+            help(result.app_path, "empty command line arguments")
+        }
+
+        if (argument[0] != '-') {
             break
-        end
+        }
 
         var offset = 0
         var stop = false
-        for (var i = 1; i < lenof argument; i ++)
+        for (var i = 1; i < lenof argument; i ++) {
             val char = argument[i]
-            if (char == '-')
-                stop = true
-                break
-            elif (char == 'b')
-                require_path = true
-                result.binary = true
-            elif (char == 'r')
-                require_path = true
-                result.execute = true
-            elif (char == 'd')
-                require_path = true
-                result.disassembly = true
-            elif (char == 'e')
-                require_path = true
-                offset ++
-                if (parsed + offset >= lenof env.args)
-                    help(result.app_path, "no export path")
-                end
-                result.export = env.args[parsed + offset]
-            elif (char == 'n')
-                require_path = true
-                offset ++
-                if (parsed + offset >= lenof env.args)
-                    help(result.app_path, "no name")
-                end
-                result.name = env.args[parsed + offset]
-            elif (char == 'm')
-                offset ++
-                if (parsed + offset >= lenof env.args)
-                    help(result.app_path, "no bytes value")
-                end
-                val value = env.args[parsed + offset]
-                result.gc_limit = tobytes(result.app_path, value)
-            elif (char == 'h')
-                result.help = true
-            else
-                help(result.app_path, "undefined argument '" .. char .. "'")
-            end
-        end
+            when(char) {
+                '-' -> do {
+                    stop = true
+                    break
+                },
+
+                'b' -> do {
+                    require_path = true
+                    result.binary = true
+                },
+
+                'r' -> do {
+                    require_path = true
+                    result.execute = true
+                },
+
+                'd' -> do {
+                    require_path = true
+                    result.disassembly = true
+                },
+
+                'e' -> do {
+                    require_path = true
+                    offset ++
+                    if (parsed + offset >= lenof env.args) {
+                        help(result.app_path, "no export path")
+                    }
+                    result.export = env.args[parsed + offset]
+                },
+
+                'n' -> do {
+                    require_path = true
+                    offset ++
+                    if (parsed + offset >= lenof env.args) {
+                        help(result.app_path, "no name")
+                    }
+                    result.name = env.args[parsed + offset]
+                },
+
+                'm' -> do {
+                    offset ++
+                    if (parsed + offset >= lenof env.args) {
+                        help(result.app_path, "no bytes value")
+                    }
+                    val value = env.args[parsed + offset]
+                    result.gc_limit = tobytes(result.app_path, value)
+                },
+
+                'h' -> do {
+                    result.help = true
+                },
+
+                else -> help(result.app_path, "undefined argument '" .. char .. "'")
+            }
+        }
 
         parsed += offset
 
-        if (stop)
+        if (stop) {
             break
-        end
-    end
+        }
+    }
 
-    if (parsed >= lenof env.args)
-        if (require_path)
+    if (parsed >= lenof env.args) {
+        if (require_path) {
             help(result.app_path, "program path is expected")
-        else
+        } else {
             return result
-        end
-    end
+        }
+    }
 
     result.program_path = env.args[parsed]
     result.args = parsed + 1
 
     return result
-end
+}
 
-fun launch<auto>()
+fun launch<auto>() {
     val config = parse_arguments()
 
-    if (config.repl)
+    if (config.repl) {
         repl()
         leave
-    end
+    }
 
-    if (config.help)
+    if (config.help) {
         help(config.app_path)
-    end
+    }
 
     gc.settings.setlimit(config.gc_limit)
 
-    if (config.program_path != nil)
-        val content = base.pcall(fun<auto>()
-            return if (config.binary)
-                val file = fs.open(config.program_path, "rb")
-                val result = binary.receive(file)
-                sio.close(file)
+    if (config.program_path != nil) {
+        val content = base.pcall <- fun<auto>() = if (config.binary) {
+            val file = fs.open(config.program_path, "rb")
+            val result = binary.receive(file)
+            sio.close(file)
 
-                result
-            else
-                val file = fs.open(config.program_path, "rb")
-                val text = sio.readall(file)
-                sio.close(file)
+            result
+        } else {
+            val file = fs.open(config.program_path, "rb")
+            val text = sio.readall(file)
+            sio.close(file)
 
-                compiler.compile {
-                    text = text,
-                    name = config.name
-                }
-            end
-        end)
+            compiler.compile {
+                text = text,
+                name = config.name
+            }
+        }
 
-        if (typeof content == "exception")
+        if (typeof content == "exception") {
             panic(content)
-        end
+        }
 
-        if (config.disassembly)
+        if (config.disassembly) {
             compiler.dis(content)
             base.println()
-        end
+        }
 
-        if (config.export != nil)
+        if (config.export != nil) {
             val file = fs.open(config.export, "wb")
             binary.send(file, content)
             sio.close(file)
-        end
+        }
 
-        if (config.execute)
+        if (config.execute) {
             val environment = {
                 library = fakelibrary,
-                args = vector.unfixed([])
+                args = vector.unfixed()
             }
 
-            for(var i = config.args; i < lenof env.args; i ++)
+            for (var i = config.args; i < lenof env.args; i ++) {
                 vector.push(environment.args, env.args[i])
-            end
+            }
 
             base.ecall(environment, content)
-        end
-    end
-end
+        }
+    }
+}
 
 launch()

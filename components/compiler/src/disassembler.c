@@ -222,11 +222,11 @@ static void print_instructions(morphine_coroutine_t U) {
         args_lens[i] = numlen(max_args[i]);
     }
 
-    printf("instructions (%"MLIMIT_SIZE_PR"):\n", count);
+    printf("    instructions (%"MLIMIT_SIZE_PR"):\n", count);
     for (ml_size i = 0; i < count; i++) {
         morphine_instruction_t instruction = mapi_instruction_get(U, i);
 
-        printf("    %"MLIMIT_SIZE_PR". ", i);
+        printf("        %"MLIMIT_SIZE_PR". ", i);
         spaces(U, numlen(i), index_len);
 
         printf("[line: %"MLIMIT_LINE_PR"] ", instruction.line);
@@ -272,9 +272,9 @@ static void print_constants(morphine_coroutine_t U) {
 
     size_t index_len = numlen(count - 1);
 
-    printf("constants (%"MLIMIT_SIZE_PR"):\n", count);
+    printf("    constants (%"MLIMIT_SIZE_PR"):\n", count);
     for (ml_size i = 0; i < count; i++) {
-        printf("    %"MLIMIT_SIZE_PR". ", i);
+        printf("        %"MLIMIT_SIZE_PR". ", i);
         spaces(U, numlen(i), index_len);
 
         mapi_constant_get(U, i);
@@ -303,7 +303,7 @@ MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
     }
 
     mapi_function_name(U);
-    const char *name = mapi_get_string(U);
+    const char *name = mapi_get_cstr(U);
     mapi_pop(U, 1);
 
     ml_line line = mapi_function_line(U);
@@ -312,8 +312,7 @@ MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
     ml_size params = mapi_function_params(U);
     ml_size statics = mapi_static_size(U);
 
-    printf("function\n");
-    printf("    name:    %s\n", name);
+    printf("function(%s) {\n", name);
     printf("    line:    %"MLIMIT_LINE_PR"\n", line);
     printf("    args:    %"MLIMIT_SIZE_PR"\n", args);
     printf("    slots:   %"MLIMIT_SIZE_PR"\n", slots);
@@ -321,7 +320,7 @@ MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
     printf("    statics: %"MLIMIT_SIZE_PR"\n", statics);
     print_instructions(U);
     print_constants(U);
-    printf("end\n");
+    printf("}\n");
 
     mapi_pop(U, 2);
 }

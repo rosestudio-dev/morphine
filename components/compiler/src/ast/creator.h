@@ -11,6 +11,8 @@ struct mc_ast_expression *ast_create_expression(
     struct mc_ast *,
     enum mc_expression_type,
     ml_line,
+    ml_size from,
+    ml_size to,
     size_t size
 );
 
@@ -19,5 +21,7 @@ struct mc_ast_statement *ast_create_statement(
     struct mc_ast *,
     enum mc_statement_type,
     ml_line,
+    ml_size from,
+    ml_size to,
     size_t size
 );

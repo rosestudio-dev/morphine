@@ -99,7 +99,7 @@ decl_expr(binary) {
         }
         case 1: {
             serializer_set(C, "a");
-            serializer_enter_expression(C, expression->a, 2);
+            serializer_enter_expression(C, expression->b, 2);
         }
         case 2: {
             serializer_set(C, "b");
@@ -347,11 +347,7 @@ decl_expr(call) {
             serializer_push_boolean(C, expression->extract_callable);
             serializer_set(C, "extractcallable");
 
-            if (expression->self != NULL) {
-                serializer_enter_expression(C, expression->self, 1);
-            } else {
-                serializer_enter_expression(C, expression->callable, 2);
-            }
+            serializer_enter_expression(C, expression->self, 1);
         }
         case 1: {
             serializer_set(C, "self");
@@ -369,7 +365,7 @@ decl_expr(call) {
                 serializer_set(C, "arguments");
                 serializer_complete(C);
             } else {
-                serializer_enter_expression(C, expression->callable, 4);
+                serializer_enter_expression(C, expression->arguments[data->index], 4);
             }
         }
         case 4: {
@@ -396,15 +392,18 @@ decl_expr(function) {
     }
 }
 
-struct expr_block_data {
+struct block_data {
     size_t index;
 };
 
 decl_expr(block) {
-    decl_data(expr_block);
+    decl_data(block);
 
     switch (state) {
         case 0: {
+            serializer_push_boolean(C, expression->inlined);
+            serializer_set(C, "inlined");
+
             data->index = 0;
             serializer_push_vector(C, expression->count);
             serializer_jump(C, 1);
@@ -412,7 +411,7 @@ decl_expr(block) {
         case 1: {
             if (data->index >= expression->count) {
                 serializer_set(C, "statements");
-                serializer_jump(C, 3);
+                serializer_complete(C);
             } else {
                 serializer_enter_statement(C, expression->statements[data->index], 2);
             }
@@ -421,13 +420,6 @@ decl_expr(block) {
             serializer_vector_set(C, data->index);
             data->index++;
             serializer_jump(C, 1);
-        }
-        case 3: {
-            serializer_enter_expression(C, expression->expression, 4);
-        }
-        case 4: {
-            serializer_set(C, "expression");
-            serializer_complete(C);
         }
         default:
             break;
@@ -441,11 +433,11 @@ decl_expr(if) {
         }
         case 1: {
             serializer_set(C, "condition");
-            serializer_enter_expression(C, expression->if_expression, 2);
+            serializer_enter_statement(C, expression->if_statement, 2);
         }
         case 2: {
             serializer_set(C, "if");
-            serializer_enter_expression(C, expression->else_expression, 3);
+            serializer_enter_statement(C, expression->else_statement, 3);
         }
         case 3: {
             serializer_set(C, "else");
@@ -456,31 +448,59 @@ decl_expr(if) {
     }
 }
 
-struct stmt_block_data {
+struct when_data {
     size_t index;
 };
 
-decl_stmt(block) {
-    decl_data(stmt_block);
+decl_expr(when) {
+    decl_data(when);
 
     switch (state) {
         case 0: {
-            data->index = 0;
-            serializer_push_vector(C, statement->count);
-            serializer_jump(C, 1);
+            serializer_enter_expression(C, expression->expression, 1);
         }
         case 1: {
-            if (data->index >= statement->count) {
+            serializer_set(C, "expression");
+
+            serializer_enter_statement(C, expression->else_statement, 2);
+        }
+        case 2: {
+            serializer_set(C, "else");
+
+            data->index = 0;
+            serializer_push_vector(C, expression->count);
+            serializer_jump(C, 3);
+        }
+        case 3: {
+            if (data->index >= expression->count) {
+                serializer_set(C, "conditions");
+                serializer_jump(C, 5);
+            } else {
+                serializer_enter_expression(C, expression->if_conditions[data->index], 4);
+            }
+        }
+        case 4: {
+            serializer_vector_set(C, data->index);
+            data->index++;
+            serializer_jump(C, 3);
+        }
+        case 5: {
+            data->index = 0;
+            serializer_push_vector(C, expression->count);
+            serializer_jump(C, 6);
+        }
+        case 6: {
+            if (data->index >= expression->count) {
                 serializer_set(C, "statements");
                 serializer_complete(C);
             } else {
-                serializer_enter_statement(C, statement->statements[data->index], 2);
+                serializer_enter_statement(C, expression->if_statements[data->index], 7);
             }
         }
-        case 2: {
+        case 7: {
             serializer_vector_set(C, data->index);
             data->index++;
-            serializer_jump(C, 1);
+            serializer_jump(C, 6);
         }
         default:
             break;
@@ -508,9 +528,6 @@ decl_stmt(yield) {
 decl_stmt(eval) {
     switch (state) {
         case 0: {
-            serializer_push_boolean(C, statement->implicit);
-            serializer_set(C, "implicit");
-
             serializer_enter_expression(C, statement->expression, 1);
         }
         case 1: {
@@ -576,9 +593,17 @@ decl_stmt(iterator) {
         }
         case 1: {
             serializer_set(C, "declaration");
-            serializer_enter_statement(C, statement->statement, 2);
+            serializer_enter_expression(C, statement->key, 2);
         }
         case 2: {
+            serializer_set(C, "key");
+            serializer_enter_expression(C, statement->value, 3);
+        }
+        case 3: {
+            serializer_set(C, "value");
+            serializer_enter_statement(C, statement->statement, 4);
+        }
+        case 4: {
             serializer_set(C, "statement");
             serializer_complete(C);
         }
@@ -726,33 +751,6 @@ decl_stmt(assigment) {
             serializer_vector_set(C, data->index);
             data->index++;
             serializer_jump(C, 5);
-        }
-        default:
-            break;
-    }
-}
-
-decl_stmt(if) {
-    switch (state) {
-        case 0: {
-            serializer_enter_expression(C, statement->condition, 1);
-        }
-        case 1: {
-            serializer_set(C, "condition");
-            serializer_enter_statement(C, statement->if_statement, 2);
-        }
-        case 2: {
-            serializer_set(C, "if");
-
-            if (statement->else_statement != NULL) {
-                serializer_enter_statement(C, statement->else_statement, 3);
-            } else {
-                serializer_complete(C);
-            }
-        }
-        case 3: {
-            serializer_set(C, "else");
-            serializer_complete(C);
         }
         default:
             break;

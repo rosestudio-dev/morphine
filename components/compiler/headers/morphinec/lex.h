@@ -53,16 +53,19 @@ enum mc_lex_token_operator {
     MCLTOP_SLASHEQ,    // /=
     MCLTOP_PERCENTEQ,  // %=
     MCLTOP_DOTDOTEQ,   // ..=
+    MCLTOP_LARROW,     // <-
+    MCLTOP_RARROW,     // ->
     MCLTOP_EXCL,       // !
 };
 
 struct mc_lex_token {
     enum mc_lex_token_type type;
     ml_line line;
+    ml_size index;
 
     struct {
-        size_t from;
-        size_t to;
+        ml_size from;
+        ml_size to;
     } range;
 
     union {
@@ -77,9 +80,10 @@ struct mc_lex_token {
 
 struct mc_lex;
 
-MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t, const char *, size_t);
+MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t);
 MORPHINE_API struct mc_lex *mcapi_get_lex(morphine_coroutine_t);
 
+MORPHINE_API bool mcapi_lex_is_end(struct mc_lex *);
 MORPHINE_API struct mc_lex_token mcapi_lex_step(morphine_coroutine_t, struct mc_lex *, struct mc_strtable *);
 
 MORPHINE_API const char *mcapi_lex_type2str(morphine_coroutine_t, enum mc_lex_token_type);

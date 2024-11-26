@@ -372,9 +372,18 @@ ml_line parser_get_line(struct parse_controller *C) {
     struct element element = current_element(C, NULL);
     if (element.is_reduced) {
         return element.reduced.node->line;
-    } else {
-        return element.token.line;
     }
+
+    return element.token.line;
+}
+
+ml_size parser_index(struct parse_controller *C) {
+    struct element element = current_element(C, NULL);
+    if(element.is_reduced) {
+        return element.reduced.node->from;
+    }
+
+    return element.token.index;
 }
 
 morphine_noret void parser_errorf(struct parse_controller *C, const char *str, ...) {
@@ -509,7 +518,7 @@ static void parser_userdata_free(morphine_instance_t I, void *data) {
     parser_userdata_free_context(I, P->context.trash);
 }
 
-MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U, bool expression) {
+MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U) {
     mapi_type_declare(
         mapi_instance(U),
         MC_PARSER_USERDATA_TYPE,
@@ -522,12 +531,7 @@ MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U, bool ex
     );
 
     struct mc_parser *P = mapi_push_userdata(U, MC_PARSER_USERDATA_TYPE);
-
-    if (expression) {
-        push_context(U, P, rule_expression_root);
-    } else {
-        push_context(U, P, rule_statement_root);
-    }
+    push_context(U, P, rule_root);
 
     return P;
 }

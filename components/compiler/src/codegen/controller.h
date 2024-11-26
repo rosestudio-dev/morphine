@@ -94,6 +94,13 @@ morphine_noret void codegen_expression(
     size_t next_state
 );
 
+morphine_noret void codegen_eval(
+    struct codegen_controller *,
+    struct mc_ast_statement *,
+    struct instruction_slot result_slot,
+    size_t next_state
+);
+
 morphine_noret void codegen_set(
     struct codegen_controller *,
     struct mc_ast_expression *,

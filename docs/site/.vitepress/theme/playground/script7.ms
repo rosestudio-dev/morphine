@@ -2,8 +2,8 @@
  * Disassembler
  */
 
-fun code()
+fun code() {
     // Code...
-end
+}
 
 env.library("compiler").dis(code)

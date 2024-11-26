@@ -124,6 +124,8 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "expression_block";
                 case MCEXPRT_if:
                     return "expression_if";
+                case MCEXPRT_when:
+                    return "expression_when";
                 case MCEXPRT_asm:
                     return "expression_asm";
             }
@@ -132,8 +134,6 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
         case MCANT_STATEMENT: {
             struct mc_ast_statement *statement = mcapi_ast_node2statement(U, node);
             switch (statement->type) {
-                case MCSTMTT_block:
-                    return "statement_block";
                 case MCSTMTT_pass:
                     return "statement_pass";
                 case MCSTMTT_yield:
@@ -150,8 +150,6 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "statement_declaration";
                 case MCSTMTT_assigment:
                     return "statement_assigment";
-                case MCSTMTT_if:
-                    return "statement_if";
             }
             break;
         }
@@ -224,11 +222,15 @@ static void init_node(
     struct mc_ast *A,
     struct mc_ast_node *node,
     enum mc_ast_node_type type,
-    ml_line line
+    ml_line line,
+    ml_size from,
+    ml_size to
 ) {
     (*node) = (struct mc_ast_node) {
         .type = type,
         .line = line,
+        .from = from,
+        .to = to,
         .prev = A->nodes
     };
 
@@ -240,11 +242,13 @@ struct mc_ast_expression *ast_create_expression(
     struct mc_ast *A,
     enum mc_expression_type type,
     ml_line line,
+    ml_size from,
+    ml_size to,
     size_t size
 ) {
     struct mc_ast_expression *expression =
         mapi_allocator_uni(mapi_instance(U), NULL, size);
-    init_node(A, &expression->node, MCANT_EXPRESSION, line);
+    init_node(A, &expression->node, MCANT_EXPRESSION, line, from, to);
 
     expression->type = type;
 
@@ -256,11 +260,13 @@ struct mc_ast_statement *ast_create_statement(
     struct mc_ast *A,
     enum mc_statement_type type,
     ml_line line,
+    ml_size from,
+    ml_size to,
     size_t size
 ) {
     struct mc_ast_statement *statement =
         mapi_allocator_uni(mapi_instance(U), NULL, size);
-    init_node(A, &statement->node, MCANT_STATEMENT, line);
+    init_node(A, &statement->node, MCANT_STATEMENT, line, from, to);
 
     statement->type = type;
 

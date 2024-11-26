@@ -3,7 +3,7 @@
 //
 
 #include <string.h>
-#include "controller.h"
+#include "../controller.h"
 
 struct collector {
     size_t data;
@@ -193,7 +193,7 @@ static void build_section(
     }
 
     while (true) {
-        if (parser_look(C, et_asm_predef_word(end))) {
+        if (parser_look(C, et_operator(RBRACE))) {
             break;
         }
 
@@ -228,10 +228,9 @@ static struct collector build(
 
     parser_consume(C, et_predef_word(asm));
 
-    parser_consume(C, et_operator(LPAREN));
-
-    if (parser_look(C, et_word())) {
+    if (parser_match(C, et_operator(LPAREN))) {
         struct mc_lex_token name = parser_consume(C, et_word());
+        parser_consume(C, et_operator(RPAREN));
 
         if (result != NULL) {
             result->has_emitter = true;
@@ -241,7 +240,7 @@ static struct collector build(
         result->has_emitter = false;
     }
 
-    parser_consume(C, et_operator(RPAREN));
+    parser_consume(C, et_operator(LBRACE));
 
     parser_change_mode(C, PWM_ASM);
 
@@ -249,19 +248,23 @@ static struct collector build(
         build_section(C, result, &collector);
     }
 
-    parser_consume(C, et_asm_predef_word(end));
+    parser_consume(C, et_operator(RBRACE));
 
     return collector;
 }
 
 struct mc_ast_node *rule_asm(struct parse_controller *C) {
+    ml_size token_from = parser_index(C);
     struct collector collector = build(C, NULL);
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
     struct mc_ast_expression_asm *result = mcapi_ast_create_expression_asm(
         parser_U(C),
         parser_A(C),
+        token_from,
+        token_to,
         parser_get_line(C),
         collector.data,
         collector.slots,

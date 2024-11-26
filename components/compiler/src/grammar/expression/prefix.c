@@ -2,9 +2,10 @@
 // Created by why-iskra on 06.08.2024.
 //
 
-#include "controller.h"
+#include "../controller.h"
 
 struct mc_ast_node *rule_prefix(struct parse_controller *C) {
+    ml_size token_from = parser_index(C);
     {
         bool matched = parser_match(C, et_operator(MINUS)) ||
                        parser_match(C, et_operator(STAR)) ||
@@ -21,6 +22,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             parser_reduce(C, rule_postfix);
         }
     }
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
@@ -31,7 +33,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
         struct mc_ast_expression_unary *unary =
-            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
 
         unary->type = MCEXPR_UNARY_TYPE_NEGATE;
         unary->expression = expression;
@@ -44,7 +46,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
         struct mc_ast_expression_unary *unary =
-            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
 
         unary->type = MCEXPR_UNARY_TYPE_DEREF;
         unary->expression = expression;
@@ -57,7 +59,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
         struct mc_ast_expression_unary *unary =
-            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
 
         unary->type = MCEXPR_UNARY_TYPE_REF;
         unary->expression = expression;
@@ -70,7 +72,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
         struct mc_ast_expression_unary *unary =
-            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
 
         unary->type = MCEXPR_UNARY_TYPE_NOT;
         unary->expression = expression;
@@ -83,7 +85,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
         struct mc_ast_expression_unary *unary =
-            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
 
         unary->type = MCEXPR_UNARY_TYPE_TYPE;
         unary->expression = expression;
@@ -96,7 +98,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
         struct mc_ast_expression_unary *unary =
-            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
 
         unary->type = MCEXPR_UNARY_TYPE_LEN;
         unary->expression = expression;
@@ -109,7 +111,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
         struct mc_ast_expression_increment *increment =
-            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), token_from, token_to, line);
 
         increment->is_postfix = false;
         increment->is_decrement = false;
@@ -123,7 +125,7 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
 
         struct mc_ast_expression_increment *increment =
-            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), line);
+            mcapi_ast_create_expression_increment(parser_U(C), parser_A(C), token_from, token_to, line);
 
         increment->is_postfix = false;
         increment->is_decrement = true;

@@ -2,8 +2,8 @@
 // Created by why-iskra on 12.08.2024.
 //
 
-#include "controller.h"
-#include "extra/extract.h"
+#include "../controller.h"
+#include "../extra/extract.h"
 
 #define assigment_table_size (sizeof(assigment_table) / sizeof(assigment_table[0]))
 
@@ -35,7 +35,9 @@ static bool match_assigment_operator(struct parse_controller *C) {
 
 static struct mc_ast_expression *build_assigment(
     struct parse_controller *C,
-    struct mc_ast_expression *destination
+    struct mc_ast_expression *destination,
+    ml_size token_from,
+    ml_size token_to
 ) {
     for (size_t i = 0; i < assigment_table_size; i++) {
         ml_line line = parser_get_line(C);
@@ -44,7 +46,7 @@ static struct mc_ast_expression *build_assigment(
                 mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
             struct mc_ast_expression_binary *binary =
-                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), line);
+                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
 
             binary->type = assigment_table[i].binary_type;
             binary->a = destination;
@@ -63,6 +65,7 @@ struct mc_ast_node *rule_assigment(struct parse_controller *C) {
     size_t extract_size = 0;
     ml_line line = 0;
 
+    ml_size token_from = parser_index(C);
     {
         line = parser_get_line(C);
         if (parser_match(C, et_predef_word(extract))) {
@@ -78,6 +81,7 @@ struct mc_ast_node *rule_assigment(struct parse_controller *C) {
             }
         }
     }
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
@@ -85,22 +89,17 @@ struct mc_ast_node *rule_assigment(struct parse_controller *C) {
         struct mc_ast_expression *expression =
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
-        struct mc_ast_statement_eval *eval =
-            mcapi_ast_create_statement_eval(parser_U(C), parser_A(C), expression->node.line);
+        struct mc_ast_statement_eval *eval = mcapi_ast_create_statement_eval(
+            parser_U(C), parser_A(C), token_from, token_to, expression->node.line
+        );
 
         eval->expression = expression;
-        eval->implicit = expression->type != MCEXPRT_asm &&
-                         expression->type != MCEXPRT_call &&
-                         expression->type != MCEXPRT_leave &&
-                         expression->type != MCEXPRT_break &&
-                         expression->type != MCEXPRT_continue &&
-                         expression->type != MCEXPRT_increment;
-
         return mcapi_ast_statement_eval2node(eval);
     }
 
-    struct mc_ast_statement_assigment *assigment =
-        mcapi_ast_create_statement_assigment(parser_U(C), parser_A(C), line, extract_size);
+    struct mc_ast_statement_assigment *assigment = mcapi_ast_create_statement_assigment(
+        parser_U(C), parser_A(C), token_from, token_to, line, extract_size
+    );
 
     if (extract_size > 0) {
         parser_consume(C, et_predef_word(extract));
@@ -117,7 +116,7 @@ struct mc_ast_node *rule_assigment(struct parse_controller *C) {
     } else {
         assigment->is_extract = false;
         assigment->value = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
-        assigment->expression = build_assigment(C, assigment->value);
+        assigment->expression = build_assigment(C, assigment->value, token_from, token_to);
     }
 
     return mcapi_ast_statement_assigment2node(assigment);

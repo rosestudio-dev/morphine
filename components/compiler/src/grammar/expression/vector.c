@@ -2,11 +2,12 @@
 // Created by why-iskra on 05.08.2024.
 //
 
-#include "controller.h"
-#include "extra/arguments.h"
+#include "../controller.h"
+#include "../extra/arguments.h"
 
 struct mc_ast_node *rule_vector(struct parse_controller *C) {
     size_t count;
+    ml_size token_from = parser_index(C);
     {
         struct arguments A = extra_arguments_init_full(
             C, true, true, et_operator(LBRACKET), et_operator(RBRACKET), et_operator(COMMA)
@@ -18,13 +19,15 @@ struct mc_ast_node *rule_vector(struct parse_controller *C) {
 
         count = extra_arguments_finish(C, &A);
     }
+    ml_size token_to = parser_index(C);
 
     parser_reset(C);
 
     ml_line line = parser_get_line(C);
 
-    struct mc_ast_expression_vector *vector =
-        mcapi_ast_create_expression_vector(parser_U(C), parser_A(C), line, count);
+    struct mc_ast_expression_vector *vector = mcapi_ast_create_expression_vector(
+        parser_U(C), parser_A(C), token_from, token_to, line, count
+    );
 
     struct arguments A = extra_arguments_init_full(
         C, true, true, et_operator(LBRACKET), et_operator(RBRACKET), et_operator(COMMA)

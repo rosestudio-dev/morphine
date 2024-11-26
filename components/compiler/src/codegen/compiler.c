@@ -530,20 +530,29 @@ decl_expr(call) {
     }
 }
 
-struct expression_block_data {
+struct block_data {
     size_t index;
 };
 
 decl_expr(block) {
-    decl_data(expression_block);
+    decl_data(block);
     switch (state) {
         case 0:
-            codegen_enter_scope(C, false);
+            if (expression->count == 0) {
+                size_t constant = codegen_add_constant_nil(C);
+                codegen_instruction_LOAD(C, constant, codegen_result(C));
+                codegen_complete(C);
+            }
+
+            if (!expression->inlined) {
+                codegen_enter_scope(C, false);
+            }
+
             data->index = 0;
             codegen_jump(C, 1);
         case 1:
-            if (data->index >= expression->count) {
-                codegen_expression(C, expression->expression, codegen_result(C), 3);
+            if (data->index == expression->count - 1) {
+                codegen_eval(C, expression->statements[data->index], codegen_result(C), 3);
             } else {
                 codegen_statement(C, expression->statements[data->index], 2);
             }
@@ -551,21 +560,24 @@ decl_expr(block) {
             data->index++;
             codegen_jump(C, 1);
         case 3:
-            codegen_exit_scope(C);
+            if (!expression->inlined) {
+                codegen_exit_scope(C);
+            }
+
             codegen_complete(C);
         default:
             break;
     }
 }
 
-struct expression_if_data {
+struct if_data {
     anchor_t anchor_if;
     anchor_t anchor_else;
     anchor_t anchor_end;
 };
 
 decl_expr(if) {
-    decl_data(expression_if);
+    decl_data(if);
     switch (state) {
         case 0:
             codegen_expression(C, expression->condition, codegen_result(C), 1);
@@ -575,14 +587,111 @@ decl_expr(if) {
             data->anchor_end = codegen_add_anchor(C);
             codegen_instruction_JUMP_IF(C, codegen_result(C), data->anchor_if, data->anchor_else);
             codegen_anchor_change(C, data->anchor_if);
-            codegen_expression(C, expression->if_expression, codegen_result(C), 2);
+
+            codegen_enter_scope(C, false);
+            codegen_eval(C, expression->if_statement, codegen_result(C), 2);
         case 2:
+            codegen_exit_scope(C);
+
             codegen_instruction_JUMP(C, data->anchor_end);
             codegen_anchor_change(C, data->anchor_else);
-            codegen_expression(C, expression->else_expression, codegen_result(C), 3);
+
+            codegen_enter_scope(C, false);
+            codegen_eval(C, expression->else_statement, codegen_result(C), 3);
         case 3:
+            codegen_exit_scope(C);
+
             codegen_anchor_change(C, data->anchor_end);
             codegen_complete(C);
+        default:
+            break;
+    }
+}
+
+struct when_data {
+    size_t index;
+    struct instruction_slot temp;
+    anchor_t anchor_else;
+    anchor_t *anchors;
+};
+
+decl_expr(when) {
+    decl_data_sized(when, sizeof(anchor_t) * expression->count);
+    data->anchors = ((void *) data) + sizeof(struct when_data);
+
+    switch (state) {
+        case 0: {
+            data->index = 0;
+            data->temp = codegen_declare_temporary(C);
+
+            for (size_t i = 0; i < expression->count; i++) {
+                data->anchors[i] = codegen_add_anchor(C);
+            }
+
+            if (expression->expression != NULL) {
+                codegen_expression(C, expression->expression, codegen_result(C), 1);
+            } else {
+                codegen_jump(C, 1);
+            }
+        }
+        case 1: {
+            if (data->index >= expression->count) {
+                codegen_jump(C, 3);
+            } else {
+                codegen_expression(C, expression->if_conditions[data->index], data->temp, 2);
+            }
+        }
+        case 2: {
+            if (expression->expression != NULL) {
+                codegen_instruction_EQUAL(C, codegen_result(C), data->temp, data->temp);
+            }
+
+            data->anchor_else = codegen_add_anchor(C);
+            codegen_instruction_JUMP_IF(C, data->temp, data->anchors[data->index], data->anchor_else);
+            codegen_anchor_change(C, data->anchor_else);
+
+            data->index++;
+            codegen_jump(C, 1);
+        }
+        case 3: {
+            codegen_enter_scope(C, false);
+            if (expression->else_statement != NULL) {
+                codegen_eval(C, expression->else_statement, codegen_result(C), 4);
+            } else {
+                size_t constant = codegen_add_constant_nil(C);
+                codegen_instruction_LOAD(C, constant, codegen_result(C));
+                codegen_jump(C, 4);
+            }
+        }
+        case 4: {
+            codegen_exit_scope(C);
+
+            data->anchor_else = codegen_add_anchor(C);
+            codegen_instruction_JUMP(C, data->anchor_else);
+
+            data->index = 0;
+            codegen_jump(C, 5);
+        }
+        case 5: {
+            if (data->index >= expression->count) {
+                codegen_jump(C, 7);
+            } else {
+                codegen_anchor_change(C, data->anchors[data->index]);
+                codegen_enter_scope(C, false);
+                codegen_eval(C, expression->if_statements[data->index], codegen_result(C), 6);
+            }
+        }
+        case 6: {
+            codegen_exit_scope(C);
+            codegen_instruction_JUMP(C, data->anchor_else);
+
+            data->index++;
+            codegen_jump(C, 5);
+        }
+        case 7: {
+            codegen_anchor_change(C, data->anchor_else);
+            codegen_complete(C);
+        }
         default:
             break;
     }
@@ -916,74 +1025,6 @@ decl_stmt(yield) {
 
     codegen_instruction_YIELD(C);
     codegen_complete(C);
-}
-
-struct statement_block_data {
-    size_t index;
-};
-
-decl_stmt(block) {
-    decl_data(statement_block);
-    switch (state) {
-        case 0:
-            if (!statement->inlined) {
-                codegen_enter_scope(C, false);
-            }
-            data->index = 0;
-            codegen_jump(C, 1);
-        case 1:
-            if (data->index >= statement->count) {
-                if (!statement->inlined) {
-                    codegen_exit_scope(C);
-                }
-
-                codegen_complete(C);
-            } else {
-                codegen_statement(C, statement->statements[data->index], 2);
-            }
-        case 2:
-            data->index++;
-            codegen_jump(C, 1);
-        default:
-            break;
-    }
-}
-
-struct statement_if_data {
-    struct instruction_slot slot;
-    anchor_t anchor_if;
-    anchor_t anchor_else;
-    anchor_t anchor_end;
-};
-
-decl_stmt(if) {
-    decl_data(statement_if);
-    switch (state) {
-        case 0:
-            data->slot = codegen_declare_temporary(C);
-            codegen_expression(C, statement->condition, data->slot, 1);
-        case 1:
-            data->anchor_if = codegen_add_anchor(C);
-            data->anchor_else = codegen_add_anchor(C);
-            data->anchor_end = codegen_add_anchor(C);
-            codegen_instruction_JUMP_IF(C, data->slot, data->anchor_if, data->anchor_else);
-            codegen_anchor_change(C, data->anchor_if);
-            codegen_statement(C, statement->if_statement, 2);
-        case 2:
-            if (statement->else_statement != NULL) {
-                codegen_instruction_JUMP(C, data->anchor_end);
-                codegen_anchor_change(C, data->anchor_else);
-                codegen_statement(C, statement->else_statement, 3);
-            } else {
-                codegen_anchor_change(C, data->anchor_else);
-                codegen_jump(C, 3);
-            }
-        case 3:
-            codegen_anchor_change(C, data->anchor_end);
-            codegen_complete(C);
-        default:
-            break;
-    }
 }
 
 struct asm_data {

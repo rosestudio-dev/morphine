@@ -24,6 +24,7 @@
 enum result_type {
     RT_STATEMENT,
     RT_EXPRESSION,
+    RT_EVAL,
     RT_SET
 };
 
@@ -711,6 +712,21 @@ morphine_noret void codegen_expression(
     mcapi_visitor_node(C->VC, mcapi_ast_expression2node(expression), next_state);
 }
 
+morphine_noret void codegen_eval(
+    struct codegen_controller *C,
+    struct mc_ast_statement *statement,
+    struct instruction_slot result_slot,
+    size_t next_state
+) {
+    struct result result = {
+        .type = RT_EVAL,
+        .slot = result_slot
+    };
+
+    push_result(C, result);
+    mcapi_visitor_node(C->VC, mcapi_ast_statement2node(statement), next_state);
+}
+
 morphine_noret void codegen_set(
     struct codegen_controller *C,
     struct mc_ast_expression *expression,
@@ -906,6 +922,7 @@ struct instruction_slot codegen_result(struct codegen_controller *C) {
         case RT_STATEMENT:
             mapi_error(C->U, "no results");
         case RT_EXPRESSION:
+        case RT_EVAL:
         case RT_SET:
             break;
     }
@@ -995,6 +1012,46 @@ size_t codegen_closures(
 
 // visitor
 
+static void visitor_function_eval(
+    struct codegen_controller *C,
+    struct mc_ast_node *node,
+    size_t state
+) {
+    switch (state) {
+        case 0: {
+            if (node == NULL) {
+                codegen_jump(C, 2);
+            }
+
+            struct mc_ast_statement *statement =
+                mcapi_ast_node2statement(C->U, node);
+
+            if (statement->type == MCSTMTT_eval) {
+                struct mc_ast_statement_eval *eval = mcapi_ast_statement2eval(C->U, statement);
+                codegen_expression(C, eval->expression, codegen_result(C), 1);
+            } else {
+                codegen_statement(C, statement, 2);
+            }
+        }
+        case 1: {
+            codegen_complete(C);
+        }
+        case 2: {
+            size_t constant = codegen_add_constant_nil(C);
+            codegen_add_instruction(
+                C, MORPHINE_OPCODE_LOAD,
+                (struct instruction_argument) { .type = IAT_constant_index, .value_constant_index = constant },
+                (struct instruction_argument) { .type = IAT_dslot, .value_dslot = codegen_result(C) },
+                (struct instruction_argument) { .type = IAT_stub, .value_stub = 0 }
+            );
+
+            codegen_complete(C);
+        }
+        default:
+            break;
+    }
+}
+
 #define expr_case(n) case MCEXPRT_##n: codegen_compile_expression_##n(C, mcapi_ast_expression2##n(C->U, expression), state); break;
 #define stmt_case(n) case MCSTMTT_##n: codegen_compile_statement_##n(C, mcapi_ast_statement2##n(C->U, statement), state); break;
 #define set_case(n)  case MCEXPRT_##n: codegen_compile_set_##n(C, mcapi_ast_expression2##n(C->U, expression), state); break;
@@ -1020,7 +1077,6 @@ static void visitor_function(
                 mcapi_ast_node2statement(C->U, node);
 
             switch (statement->type) {
-                stmt_case(block)
                 stmt_case(pass)
                 stmt_case(yield)
                 stmt_case(eval)
@@ -1029,7 +1085,6 @@ static void visitor_function(
                 stmt_case(iterator)
                 stmt_case(declaration)
                 stmt_case(assigment)
-                stmt_case(if)
             }
             break;
         }
@@ -1054,6 +1109,7 @@ static void visitor_function(
                 expr_case(function)
                 expr_case(block)
                 expr_case(if)
+                expr_case(when)
                 expr_case(asm)
             }
             break;
@@ -1068,6 +1124,10 @@ static void visitor_function(
                 default:
                     codegen_errorf(C, "unsupported for set");
             }
+            break;
+        }
+        case RT_EVAL: {
+            visitor_function_eval(C, node, state);
             break;
         }
     }

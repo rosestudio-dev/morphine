@@ -15,7 +15,6 @@ enum mc_ast_node_type {
 };
 
 enum mc_statement_type {
-    MCSTMTT_block,
     MCSTMTT_pass,
     MCSTMTT_yield,
     MCSTMTT_eval,
@@ -24,7 +23,6 @@ enum mc_statement_type {
     MCSTMTT_iterator,
     MCSTMTT_declaration,
     MCSTMTT_assigment,
-    MCSTMTT_if,
 };
 
 enum mc_expression_type {
@@ -44,12 +42,15 @@ enum mc_expression_type {
     MCEXPRT_function,
     MCEXPRT_block,
     MCEXPRT_if,
+    MCEXPRT_when,
     MCEXPRT_asm,
 };
 
 struct mc_ast_node {
     enum mc_ast_node_type type;
     ml_line line;
+    ml_size from;
+    ml_size to;
 
     struct mc_ast_node *prev;
 };
@@ -116,7 +117,7 @@ static inline struct mc_ast_node *mcapi_ast_statement2node(struct mc_ast_stateme
 #define ast_args(args...) , args
 #define ast_noargs
 #define ast_declare_node(ntype, prefix, name, args...) \
-    MORPHINE_API struct mc_ast_##ntype##_##name *mcapi_ast_create_##ntype##_##name(morphine_coroutine_t, struct mc_ast *, ml_line line args); \
+    MORPHINE_API struct mc_ast_##ntype##_##name *mcapi_ast_create_##ntype##_##name(morphine_coroutine_t, struct mc_ast *, ml_size from, ml_size to, ml_line line args); \
     static inline struct mc_ast_##ntype##_##name *mcapi_ast_##ntype##2##name(morphine_coroutine_t U, struct mc_ast_##ntype *ntype) { if(ntype->type != prefix##_##name) { mapi_error(U, "expected " #name " " #ntype); } return (struct mc_ast_##ntype##_##name *) ntype; } \
     static inline struct mc_ast_##ntype##_##name *mcapi_ast_node2##name##_##ntype(morphine_coroutine_t U, struct mc_ast_node *node) { return mcapi_ast_##ntype##2##name(U, mcapi_ast_node2##ntype(U, node)); } \
     static inline struct mc_ast_##ntype *mcapi_ast_##name##2##ntype(struct mc_ast_##ntype##_##name *ntype##_##name) { return (struct mc_ast_##ntype *) ntype##_##name; } \
@@ -242,33 +243,28 @@ ast_declare_expr(access, ast_noargs)
 
 ast_declare_expr(block, ast_args(size_t count))
     size_t count;
+    bool inlined;
     struct mc_ast_statement **statements;
-    struct mc_ast_expression *expression;
 };
 
 ast_declare_expr(if, ast_noargs)
     struct mc_ast_expression *condition;
-    struct mc_ast_expression *if_expression;
-    struct mc_ast_expression *else_expression;
+    struct mc_ast_statement *if_statement;
+    struct mc_ast_statement *else_statement;
+};
+
+ast_declare_expr(when, ast_args(size_t count))
+    size_t count;
+    struct mc_ast_expression *expression;
+    struct mc_ast_expression **if_conditions;
+    struct mc_ast_statement **if_statements;
+    struct mc_ast_statement *else_statement;
 };
 
 // statements
 
 ast_declare_stmt(eval, ast_noargs)
-    bool implicit;
     struct mc_ast_expression *expression;
-};
-
-ast_declare_stmt(block, ast_args(size_t count))
-    size_t count;
-    bool inlined;
-    struct mc_ast_statement **statements;
-};
-
-ast_declare_stmt(if, ast_noargs)
-    struct mc_ast_expression *condition;
-    struct mc_ast_statement *if_statement;
-    struct mc_ast_statement *else_statement;
 };
 
 ast_declare_stmt(pass, ast_noargs) };
@@ -301,6 +297,8 @@ ast_declare_stmt(declaration, ast_args(size_t count))
 
 ast_declare_stmt(iterator, ast_noargs)
     struct mc_ast_statement_declaration *declaration;
+    struct mc_ast_expression *key;
+    struct mc_ast_expression *value;
     struct mc_ast_statement *statement;
 };
 

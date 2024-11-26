@@ -4,7 +4,7 @@
 
 val println = env.library("base.println")
 
-fun factorial(n) = asm(emt)
+fun factorial(n) = asm(emt) {
     section data
         zero 0
         one  1
@@ -24,6 +24,6 @@ cll:    load    one, emt
         call    emt, 1
         result  emt
         mul     emt, num, emt
-end
+}
 
 println(factorial(20))

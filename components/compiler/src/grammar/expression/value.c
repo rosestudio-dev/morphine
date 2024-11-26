@@ -2,7 +2,7 @@
 // Created by why-iskra on 05.08.2024.
 //
 
-#include "controller.h"
+#include "../controller.h"
 
 struct mc_ast_node *rule_value(struct parse_controller *C) {
     if (parser_match(C, et_operator(LPAREN))) {

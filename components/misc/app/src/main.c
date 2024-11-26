@@ -120,7 +120,7 @@ static int launcher(struct env *env, int argc, char **argv) {
     init_args(U, argc, argv);
 
     mapi_push_stringn(U, launcher_data, launcher_size);
-    mcapi_compile(U, "launcher", false, false);
+    mcapi_compile(U, "launcher", false);
 
     mapi_call(U, 0);
     mapi_interpreter(I);

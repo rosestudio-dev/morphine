@@ -19,8 +19,9 @@
 
 struct mc_lex {
     char *text;
-    size_t len;
-    size_t pos;
+    ml_size len;
+    ml_size pos;
+    ml_size index;
     ml_line line;
 
     struct {
@@ -67,6 +68,8 @@ static struct {
     operator(SLASHEQ, "/="),
     operator(PERCENTEQ, "%="),
     operator(DOTDOTEQ, "..="),
+    operator(LARROW, "<-"),
+    operator(RARROW, "->"),
     operator(EXCL, "!")
 #undef operator
 };
@@ -79,6 +82,7 @@ static void lex_userdata_init(morphine_instance_t I, void *data) {
         .text = NULL,
         .len = 0,
         .pos = 0,
+        .index = 0,
         .line = 1,
         .opchars.allocated = 0,
         .opchars.size = 0,
@@ -127,7 +131,10 @@ static void create_opchars(morphine_coroutine_t U, struct mc_lex *L) {
     }
 }
 
-MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U, const char *text, size_t len) {
+MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U) {
+    ml_size len = mapi_string_len(U);
+    const char *text = mapi_get_string(U);
+
     mapi_type_declare(
         mapi_instance(U),
         MC_LEX_USERDATA_TYPE,
@@ -192,7 +199,7 @@ static struct mc_lex_token comment(
     struct mc_lex *L,
     struct mc_strtable *T
 ) {
-    size_t start = L->pos;
+    ml_size start = L->pos;
     next(L);
     next(L);
 
@@ -209,6 +216,7 @@ static struct mc_lex_token comment(
         .type = MCLTT_COMMENT,
         .comment = index,
         .line = L->line,
+        .index = L->index ++,
         .range.from = start,
         .range.to = L->pos
     };
@@ -220,7 +228,7 @@ static struct mc_lex_token multiline_comment(
     struct mc_lex *L,
     struct mc_strtable *T
 ) {
-    size_t start = L->pos;
+    ml_size start = L->pos;
     ml_line saved_line = L->line;
     next(L);
     next(L);
@@ -261,6 +269,7 @@ static struct mc_lex_token multiline_comment(
         .type = MCLTT_MULTILINE_COMMENT,
         .comment = index,
         .line = L->line,
+        .index = L->index ++,
         .range.from = start,
         .range.to = L->pos
     };
@@ -271,7 +280,7 @@ static struct mc_lex_token lex_number_based(morphine_coroutine_t U, struct mc_le
         lex_error(U, L, "number base is out of range");
     }
 
-    size_t from = L->pos;
+    ml_size from = L->pos;
 
     next(L);
     next(L);
@@ -315,13 +324,14 @@ static struct mc_lex_token lex_number_based(morphine_coroutine_t U, struct mc_le
         .type = MCLTT_INTEGER,
         .integer = result,
         .line = L->line,
+        .index = L->index ++,
         .range.from = from,
         .range.to = L->pos
     };
 }
 
 static struct mc_lex_token lex_number(morphine_coroutine_t U, struct mc_lex *L) {
-    size_t start = L->pos;
+    ml_size start = L->pos;
     bool dot = false;
 
     if (peek(L, 0) == '0') {
@@ -380,6 +390,7 @@ static struct mc_lex_token lex_number(morphine_coroutine_t U, struct mc_lex *L) 
             .type = MCLTT_DECIMAL,
             .decimal = result,
             .line = L->line,
+            .index = L->index ++,
             .range.from = start,
             .range.to = L->pos
         };
@@ -394,6 +405,7 @@ static struct mc_lex_token lex_number(morphine_coroutine_t U, struct mc_lex *L) 
             .type = MCLTT_INTEGER,
             .integer = result,
             .line = L->line,
+            .index = L->index ++,
             .range.from = start,
             .range.to = L->pos
         };
@@ -567,7 +579,7 @@ static struct mc_lex_token lex_string(
     struct mc_strtable *T
 ) {
     ml_line saved_line = L->line;
-    size_t saved_pos = L->pos;
+    ml_size saved_pos = L->pos;
 
     size_t size = handle_string(U, L, NULL);
     char *str = mapi_push_userdata_uni(U, size);
@@ -583,6 +595,7 @@ static struct mc_lex_token lex_string(
         .type = MCLTT_STRING,
         .string = index,
         .line = saved_line,
+        .index = L->index ++,
         .range.from = saved_pos,
         .range.to = L->pos
     };
@@ -597,7 +610,7 @@ static struct mc_lex_token lex_extended_word(
     char open = peek(L, 0);
 
     char current = next(L);
-    size_t from = L->pos;
+    ml_size from = L->pos;
 
     while (true) {
         if (current == eoschar || isnewline(current)) {
@@ -611,7 +624,7 @@ static struct mc_lex_token lex_extended_word(
         current = next(L);
     }
 
-    size_t to = L->pos;
+    ml_size to = L->pos;
     next(L);
 
     const char *str = L->text + from;
@@ -627,6 +640,7 @@ static struct mc_lex_token lex_extended_word(
         .type = MCLTT_EXTENDED_WORD,
         .word = index,
         .line = saved_line,
+        .index = L->index ++,
         .range.from = from,
         .range.to = to
     };
@@ -640,12 +654,12 @@ static struct mc_lex_token lex_word(
     ml_line saved_line = L->line;
     char current = peek(L, 0);
 
-    size_t from = L->pos;
+    ml_size from = L->pos;
     while (current == '_' || morphine_isalpha(current) || morphine_isdigit(current)) {
         current = next(L);
     }
 
-    size_t to = L->pos;
+    ml_size to = L->pos;
 
     const char *str = L->text + from;
     size_t size = to - from;
@@ -660,6 +674,7 @@ static struct mc_lex_token lex_word(
         .type = MCLTT_WORD,
         .word = index,
         .line = saved_line,
+        .index = L->index ++,
         .range.from = from,
         .range.to = to
     };
@@ -668,8 +683,8 @@ static struct mc_lex_token lex_word(
 static bool handle_operator(
     morphine_coroutine_t U,
     struct mc_lex *L,
-    size_t from,
-    size_t to,
+    ml_size from,
+    ml_size to,
     ml_line line,
     struct mc_lex_token *token
 ) {
@@ -691,6 +706,7 @@ static bool handle_operator(
                     .type = MCLTT_OPERATOR,
                     .op = operator_table[i].type,
                     .line = line,
+                    .index = L->index ++,
                     .range.from = from,
                     .range.to = to
                 };
@@ -704,7 +720,7 @@ static bool handle_operator(
 }
 
 static struct mc_lex_token lex_operator(morphine_coroutine_t U, struct mc_lex *L) {
-    size_t from = L->pos;
+    ml_size from = L->pos;
 
     while (true) {
         char current = next(L);
@@ -724,6 +740,10 @@ static struct mc_lex_token lex_operator(morphine_coroutine_t U, struct mc_lex *L
     } else {
         lex_error(U, L, "unknown operator");
     }
+}
+
+MORPHINE_API bool mcapi_lex_is_end(struct mc_lex *L) {
+    return L->pos >= L->len;
 }
 
 MORPHINE_API struct mc_lex_token mcapi_lex_step(
@@ -746,8 +766,14 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
     }
 
     if (current == eoschar) {
+        ml_size index = L->index;
+        if (!mcapi_lex_is_end(L)) {
+            L->index++;
+        }
+
         return (struct mc_lex_token) {
             .type = MCLTT_EOS,
+            .index = index,
             .line = L->line
         };
     }

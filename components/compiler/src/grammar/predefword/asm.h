@@ -12,5 +12,3 @@ predef_word(false)
 predef_word(nil)
 
 predef_word(slot)
-
-predef_word(end)

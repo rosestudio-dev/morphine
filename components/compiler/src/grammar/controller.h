@@ -69,9 +69,10 @@ struct parse_controller;
 typedef struct mc_ast_node *(*parse_function_t)(struct parse_controller *);
 
 ml_line parser_get_line(struct parse_controller *);
+ml_size parser_index(struct parse_controller *);
 morphine_noret void parser_errorf(struct parse_controller *, const char *, ...);
-struct mc_strtable_entry parser_string(struct parse_controller *, mc_strtable_index_t);
 
+struct mc_strtable_entry parser_string(struct parse_controller *, mc_strtable_index_t);
 morphine_coroutine_t parser_U(struct parse_controller *);
 struct mc_ast *parser_A(struct parse_controller *);
 bool parser_look(struct parse_controller *, struct expected_token);
@@ -85,19 +86,13 @@ void parser_change_mode(struct parse_controller *, enum predefined_word_mode);
 
 #define rule(name) struct mc_ast_node *rule_##name(struct parse_controller *)
 
-rule(statement_root);
-rule(expression_root);
-
-rule(statement_explicit);
-rule(statement_explicit_without_semicolon);
-rule(statement_implicit);
+rule(root);
 
 rule(statement_block);
+rule(statement_inline_block);
 rule(expression_block);
 
-rule(statement_if);
-rule(expression_if);
-
+rule(statement);
 rule(while);
 rule(dowhile);
 rule(for);
@@ -122,6 +117,8 @@ rule(constant);
 rule(table);
 rule(vector);
 rule(function);
+rule(if);
+rule(when);
 rule(asm);
 
 #undef rule

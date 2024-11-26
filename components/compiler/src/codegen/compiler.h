@@ -26,9 +26,9 @@ expr(call);
 expr(function);
 expr(block);
 expr(if);
+expr(when);
 expr(asm);
 
-stmt(block);
 stmt(pass);
 stmt(yield);
 stmt(eval);
@@ -37,7 +37,6 @@ stmt(for);
 stmt(iterator);
 stmt(declaration);
 stmt(assigment);
-stmt(if);
 
 set(variable);
 set(access);

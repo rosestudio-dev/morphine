@@ -22,19 +22,12 @@ static void compile(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
 
             bool vector = false;
-            bool expression = false;
             bool yieldable = false;
             const char *name = DEFAULT_MAIN_NAME;
             if (mapi_is_type(U, "table")) {
                 mapi_push_string(U, "name");
                 if (mapi_table_get(U)) {
                     name = mapi_get_cstr(U);
-                }
-                mapi_pop(U, 1);
-
-                mapi_push_string(U, "expression");
-                if (mapi_table_get(U)) {
-                    expression = mapi_get_boolean(U);
                 }
                 mapi_pop(U, 1);
 
@@ -55,11 +48,11 @@ static void compile(morphine_coroutine_t U) {
             }
 
             if (!yieldable) {
-                mcapi_compile(U, name, expression, vector);
+                mcapi_compile(U, name, vector);
                 maux_nb_return();
             } else {
-                const char *text = mapi_get_string(U);
-                ml_size text_len = mapi_string_len(U);
+                mcapi_push_lex(U);
+                maux_localstorage_set(U, "LV");
 
                 mapi_push_boolean(U, vector);
                 maux_localstorage_set(U, "vector");
@@ -73,10 +66,7 @@ static void compile(morphine_coroutine_t U) {
                 mcapi_push_ast(U);
                 maux_localstorage_set(U, "A");
 
-                mcapi_push_lex(U, text, text_len);
-                maux_localstorage_set(U, "LV");
-
-                mcapi_push_parser(U, expression);
+                mcapi_push_parser(U);
                 maux_localstorage_set(U, "PG");
 
                 maux_nb_continue(1);
@@ -287,6 +277,10 @@ static void push_token(
     mapi_push_size(U, token.line, "line");
     mapi_table_set(U);
 
+    mapi_push_string(U, "index");
+    mapi_push_size(U, token.index, "index");
+    mapi_table_set(U);
+
     mapi_push_string(U, "range");
     mapi_push_table(U);
 
@@ -319,12 +313,9 @@ static void lex(morphine_coroutine_t U) {
                 mapi_table_get(U);
             }
 
-            const char *text = mapi_get_string(U);
-            ml_size text_len = mapi_string_len(U);
-
             if (!yieldable) {
+                struct mc_lex *lex = mcapi_push_lex(U);
                 struct mc_strtable *strtable = mcapi_push_strtable(U);
-                struct mc_lex *lex = mcapi_push_lex(U, text, text_len);
 
                 mapi_push_vector(U, 0);
                 mapi_vector_mode_fixed(U, false);
@@ -333,14 +324,14 @@ static void lex(morphine_coroutine_t U) {
                     token = mcapi_lex_step(U, lex, strtable);
                     push_token(U, strtable, token);
                     mapi_vector_push(U);
-                } while (token.type != MCLTT_EOS);
+                } while (!mcapi_lex_is_end(lex));
                 maux_nb_return();
             } else {
+                mcapi_push_lex(U);
+                maux_localstorage_set(U, "L");
+
                 mcapi_push_strtable(U);
                 maux_localstorage_set(U, "T");
-
-                mcapi_push_lex(U, text, text_len);
-                maux_localstorage_set(U, "L");
 
                 mapi_push_vector(U, 0);
                 mapi_vector_mode_fixed(U, false);
@@ -360,7 +351,7 @@ static void lex(morphine_coroutine_t U) {
             push_token(U, T, token);
             mapi_vector_push(U);
 
-            if (token.type == MCLTT_EOS) {
+            if (mcapi_lex_is_end(L)) {
                 maux_nb_return();
             } else {
                 maux_nb_continue(1);
@@ -375,7 +366,6 @@ static void ast(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
 
             bool yieldable = false;
-            bool expression = false;
             if (mapi_is_type(U, "table")) {
                 mapi_push_string(U, "yieldable");
                 if (mapi_table_get(U)) {
@@ -383,28 +373,20 @@ static void ast(morphine_coroutine_t U) {
                 }
                 mapi_pop(U, 1);
 
-                mapi_push_string(U, "expression");
-                if (mapi_table_get(U)) {
-                    expression = mapi_get_boolean(U);
-                }
-                mapi_pop(U, 1);
-
                 mapi_push_string(U, "text");
                 mapi_table_get(U);
             }
-
-            const char *text = mapi_get_string(U);
-            ml_size text_len = mapi_string_len(U);
 
             if (!yieldable) {
                 struct mc_strtable *T = mcapi_push_strtable(U);
                 struct mc_ast *A = mcapi_push_ast(U);
 
                 {
-                    struct mc_lex *L = mcapi_push_lex(U, text, text_len);
-                    struct mc_parser *P = mcapi_push_parser(U, expression);
+                    mapi_peek(U, 2);
+                    struct mc_lex *L = mcapi_push_lex(U);
+                    struct mc_parser *P = mcapi_push_parser(U);
                     while (mcapi_parser_step(U, P, A, L, T)) { }
-                    mapi_pop(U, 2);
+                    mapi_pop(U, 3);
                 }
 
                 {
@@ -414,16 +396,16 @@ static void ast(morphine_coroutine_t U) {
 
                 maux_nb_return();
             } else {
+                mcapi_push_lex(U);
+                maux_localstorage_set(U, "LV");
+
                 mcapi_push_strtable(U);
                 maux_localstorage_set(U, "T");
 
                 mcapi_push_ast(U);
                 maux_localstorage_set(U, "A");
 
-                mcapi_push_lex(U, text, text_len);
-                maux_localstorage_set(U, "LV");
-
-                mcapi_push_parser(U, expression);
+                mcapi_push_parser(U);
                 maux_localstorage_set(U, "P");
 
                 maux_nb_continue(1);

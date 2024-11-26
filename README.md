@@ -50,67 +50,67 @@ val vector = env.library("vector")
 val exception = env.library("exception")
 val sio = env.library("sio")
 
-fun dump<println>() println(self) end
+fun dump<println>() { println(self) }
 
 fun getobject<auto>() = setmetatable({ index = 0, dump }) {
-    _mf_gc = fun<println, format>()
+     fun _mf_gc<println, format>() {
         println(format("collected (index: ${index})!", self))
         leave
         println("Unreached ...")
-    end,
-    _mf_add = fun(value)
+    },
+    fun _mf_add(value) {
         self.index += value or return "oh no..."
-    end
+    }
 }
 
-fun worker<auto>()
+fun worker<auto>() {
     val current = coroutine.current()
     val name = coroutine.name(current)
     println("Coroutine " .. name .. " started")
 
-    fun recursive getting(value) = if(value > 0)
+    fun recursive getting(value) = if(value > 0) {
         invoked(value - 1)
-    else
+    } else {
         self
-    end
+    }
 
     val text = format("Recursion allocated: ${value}KB") {
-        value = do
+        value = do {
             val bytes = allocated()
             getting!bytes(100) / 1024
-        end
+        }
     }
 
     println(text)
 
     val object = getobject()
-    for(var i = 0; i < 1000; i++)
-        eval object + i
+    for(var i = 0; i < 1000; i++) {
+        object + i
         yield
-    end
+    }
     println(object + nil)
     object:dump()
-end
+}
 
-do
-    val coroutines = vector.unfixed([])
-    for(var i = 0; i < 100; i++)
+do {
+    val coroutines = vector.unfixed()
+    for(var i = 0; i < 100; i++) {
         val created = coroutine.create("worker" .. tostr(i), worker)
         vector.push(coroutines, created)
-    end
+    }
 
-    iterator({ key, value } in coroutines)
+    iterator({ key, value } in coroutines) {
         coroutine.launch(value)
         coroutines[key] = nil
-    end
-end
+    }
+}
 
 // Reference test
-do
+do {
     val value = ref { text = "reference test" }
     env.library("gc.control").full()
     println(*value or "cleared")
-end
+}
 
 /*
  * Protected call
@@ -118,16 +118,16 @@ end
 
 fun pcalltest<error>(throw) = throw or error("hello world!")
 
-do
+do {
     var pcallres = pcall(pcalltest, nil)
     println(exception.value(pcallres))
     exception.print(pcallres, sio.io())
-end
+}
 
-do
+do {
     val pcallres = pcall(pcalltest, "no errors")
     println(pcallres)
-end
+}
 ```
 
 ## Try It Now

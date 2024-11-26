@@ -2,9 +2,10 @@
 // Created by why-iskra on 06.08.2024.
 //
 
-#include "controller.h"
+#include "../controller.h"
 
 struct mc_ast_node *rule_condition(struct parse_controller *C) {
+    ml_size token_from = parser_index(C);
     {
         parser_reduce(C, rule_concat);
 
@@ -36,11 +37,12 @@ struct mc_ast_node *rule_condition(struct parse_controller *C) {
                 parser_consume(C, et_operator(LT));
             }
 
+            ml_size token_to = parser_index(C);
             struct mc_ast_expression *expressionB =
                 mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_concat));
 
             struct mc_ast_expression_binary *binary =
-                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), line);
+                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
 
             binary->type = MCEXPR_BINARY_TYPE_LESS;
 
@@ -59,11 +61,12 @@ struct mc_ast_node *rule_condition(struct parse_controller *C) {
                 parser_consume(C, et_operator(LTEQ));
             }
 
+            ml_size token_to = parser_index(C);
             struct mc_ast_expression *expressionB =
                 mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_concat));
 
             struct mc_ast_expression_binary *binary_cond =
-                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), line);
+                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
 
             binary_cond->type = MCEXPR_BINARY_TYPE_LESS;
 
@@ -76,14 +79,14 @@ struct mc_ast_node *rule_condition(struct parse_controller *C) {
             }
 
             struct mc_ast_expression_binary *binary_eq =
-                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), line);
+                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
 
             binary_eq->type = MCEXPR_BINARY_TYPE_EQUAL;
             binary_eq->a = expression;
             binary_eq->b = expressionB;
 
             struct mc_ast_expression_binary *binary =
-                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), line);
+                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
 
             binary->type = MCEXPR_BINARY_TYPE_OR;
             binary->a = mcapi_ast_binary2expression(binary_cond);
