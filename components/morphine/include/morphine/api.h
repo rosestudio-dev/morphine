@@ -221,7 +221,7 @@ MORPHINE_API void mapi_coroutine_name(morphine_coroutine_t);
 
 // iterator
 
-MORPHINE_API void mapi_iterator(morphine_coroutine_t);
+MORPHINE_API void mapi_push_iterator(morphine_coroutine_t);
 MORPHINE_API void mapi_iterator_init(morphine_coroutine_t);
 MORPHINE_API bool mapi_iterator_has(morphine_coroutine_t);
 MORPHINE_API void mapi_iterator_next(morphine_coroutine_t);

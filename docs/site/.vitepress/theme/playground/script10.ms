@@ -3,13 +3,13 @@
  */
 
 val base = env.library("base")
-val tostr = env.library("value.tostr")
+val { serialize } = env.library("value")
 val format = env.library("string.format")
 val bigint = env.library("bigint.wrap")
 
 fun cachable<auto>(function) = base.setmetatable({ function, cache = { } }) {
-    fun _mf_call<base, tostr>(s, arguments) {
-        val key = tostr(arguments) .. tostr(s)
+    fun _mf_call<base, serialize>(s, arguments) {
+        val key = serialize(arguments) .. serialize(s)
         val result = self.cache[key] or base.vcall!s(self.function, arguments .. [self])
 
         self.cache[key] = result
@@ -17,12 +17,12 @@ fun cachable<auto>(function) = base.setmetatable({ function, cache = { } }) {
     }
 }
 
-val cachefib = cachable <- fun<bigint>(n, f) = if(n < 2) {
+val fib = cachable <- fun<bigint>(n, f) = if(n < 2) {
     bigint(1)
 } else {
     f(n - 2) + f(n - 1)
 }
 
 for(var i = 1; i <= 1000; i++) {
-    base.println(format("${i}. ${num}") { i, num = cachefib(i) })
+    base.println(format("${i}. ${num}") { i, num = fib(i) })
 }

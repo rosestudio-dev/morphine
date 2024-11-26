@@ -20,10 +20,10 @@
 /*
  * {{docs body}}
  * path:architecture/api-iterator
- * ## mapi_iterator
+ * ## mapi_push_iterator
  * ### Prototype
  * ```c
- * void mapi_iterator(morphine_coroutine_t U)
+ * void mapi_push_iterator(morphine_coroutine_t U)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -31,7 +31,7 @@
  * Peeks the iterable value from the stack and push iterator value to the stack
  * {{end}}
  */
-MORPHINE_API void mapi_iterator(morphine_coroutine_t U) {
+MORPHINE_API void mapi_push_iterator(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
     struct iterator *iterator = iteratorI_create(U->I, value);
 

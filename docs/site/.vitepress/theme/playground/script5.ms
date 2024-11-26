@@ -7,10 +7,11 @@ val code = "
 "
 
 val base = env.library("base")
+val serialize = env.library("value.serialize")
 val compiler = env.library("compiler")
 
 val tokens = compiler.lex(code)
 
-iterator({ key, value } in tokens) {
-    base.println(value)
+iterator({ value } in tokens) {
+    base.println(serialize(value))
 }

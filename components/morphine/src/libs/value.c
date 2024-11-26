@@ -151,6 +151,345 @@ static void hash(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void serialize(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            if (mapi_args(U) == 2) {
+                mapi_push_arg(U, 1);
+            } else {
+                maux_expect_args(U, 1);
+
+                mapi_push_table(U);
+                mapi_push_boolean(U, false);
+                maux_table_set(U, "pretty");
+                mapi_push_size(U, 0, "level");
+                maux_table_set(U, "level");
+                mapi_push_size(U, 4, NULL);
+                maux_table_set(U, "tab");
+            }
+
+            mapi_push_arg(U, 0);
+            if (mapi_is(U, "table")) {
+                maux_library_access(U, "value.table.serialize");
+                mapi_rotate(U, 2);
+                mapi_peek(U, 2);
+                maux_nb_call(2, 1);
+            } else if (mapi_is(U, "vector")) {
+                maux_library_access(U, "value.vector.serialize");
+                mapi_rotate(U, 2);
+                mapi_peek(U, 2);
+                maux_nb_call(2, 1);
+            } else if (mapi_is(U, "string")) {
+                maux_library_access(U, "value.string.serialize");
+                mapi_rotate(U, 2);
+                maux_nb_call(1, 1);
+            } else {
+                maux_library_access(U, "value.tostr");
+                mapi_rotate(U, 2);
+                maux_nb_call(1, 1);
+            }
+        maux_nb_state(1)
+            mapi_push_result(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void tabulation(morphine_coroutine_t U, ml_size level, ml_size size) {
+    mapi_push_string(U, "");
+    for (ml_size i = 0; i < size; i++) {
+        mapi_push_string(U, " ");
+        mapi_string_concat(U);
+    }
+
+    mapi_push_string(U, "");
+    for (ml_size i = 0; i < level; i++) {
+        mapi_peek(U, 1);
+        mapi_string_concat(U);
+    }
+
+    mapi_rotate(U, 2);
+    mapi_pop(U, 1);
+}
+
+static void table_serialize(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            bool pretty = false;
+            ml_size level = 0;
+            ml_size tab = 4;
+            if (mapi_args(U) == 2) {
+                mapi_push_arg(U, 1);
+
+                if (maux_table_has(U, "pretty")) {
+                    maux_table_get(U, "pretty");
+                    pretty = mapi_get_boolean(U);
+                    mapi_pop(U, 1);
+                }
+
+                if (maux_table_has(U, "level")) {
+                    maux_table_get(U, "level");
+                    level = mapi_get_size(U, "level");
+                    mapi_pop(U, 1);
+                }
+
+                if (maux_table_has(U, "tab")) {
+                    maux_table_get(U, "tab");
+                    tab = mapi_get_size(U, NULL);
+                    mapi_pop(U, 1);
+                }
+
+                mapi_pop(U, 1);
+            } else {
+                maux_expect_args(U, 1);
+            }
+
+            mapi_push_table(U);
+            mapi_push_boolean(U, pretty);
+            maux_table_set(U, "pretty");
+            mapi_push_size(U, level + 1, "level");
+            maux_table_set(U, "level");
+            mapi_push_size(U, tab, NULL);
+            maux_table_set(U, "tab");
+
+            mapi_push_string(U, pretty ? "{\n" : "{");
+
+            mapi_push_arg(U, 0);
+            if (mapi_table_len(U) == 0) {
+                mapi_push_string(U, pretty ? "{ }" : "{}");
+                maux_nb_return();
+            }
+
+            mapi_push_iterator(U);
+            mapi_rotate(U, 2);
+            mapi_pop(U, 1);
+
+            mapi_iterator_init(U);
+        maux_nb_state(1)
+            if (!mapi_iterator_has(U)) {
+                mapi_pop(U, 1);
+
+                mapi_peek(U, 1);
+                maux_table_get(U, "pretty");
+                bool pretty = mapi_get_boolean(U);
+                mapi_pop(U, 1);
+                maux_table_get(U, "level");
+                ml_size level = mapi_get_size(U, "level");
+                mapi_pop(U, 1);
+                maux_table_get(U, "tab");
+                ml_size tab = mapi_get_size(U, NULL);
+                mapi_pop(U, 2);
+
+                if (pretty) {
+                    tabulation(U, level - 1, tab);
+                    mapi_push_string(U, "}");
+                    mapi_string_concat(U);
+                } else {
+                    mapi_push_string(U, "}");
+                }
+                mapi_string_concat(U);
+                maux_nb_return();
+            }
+
+            mapi_iterator_next(U);
+            mapi_rotate(U, 2);
+
+            maux_library_access(U, "value.serialize");
+            mapi_rotate(U, 2);
+            mapi_peek(U, 5);
+            maux_nb_call(2, 2);
+        maux_nb_state(2)
+            mapi_push_result(U);
+            mapi_rotate(U, 2);
+
+            maux_library_access(U, "value.serialize");
+            mapi_rotate(U, 2);
+            mapi_peek(U, 5);
+            maux_nb_call(2, 3);
+        maux_nb_state(3)
+            mapi_push_result(U);
+
+            mapi_peek(U, 4);
+            maux_table_get(U, "pretty");
+            bool pretty = mapi_get_boolean(U);
+            mapi_pop(U, 1);
+            maux_table_get(U, "level");
+            ml_size level = mapi_get_size(U, "level");
+            mapi_pop(U, 1);
+            maux_table_get(U, "tab");
+            ml_size tab = mapi_get_size(U, NULL);
+            mapi_pop(U, 2);
+
+            mapi_rotate(U, 2);
+            mapi_push_string(U, pretty ? " = " : "=");
+            mapi_string_concat(U);
+            mapi_rotate(U, 2);
+            mapi_string_concat(U);
+
+            mapi_rotate(U, 2);
+            bool has_next = mapi_iterator_has(U);
+            mapi_rotate(U, 2);
+
+            if (pretty) {
+                tabulation(U, level, tab);
+                mapi_rotate(U, 2);
+                mapi_string_concat(U);
+
+                mapi_push_string(U, has_next ? ",\n" : "\n");
+                mapi_string_concat(U);
+            } else if (has_next) {
+                mapi_push_string(U, ",");
+                mapi_string_concat(U);
+            }
+
+            mapi_rotate(U, 2);
+            mapi_rotate(U, 3);
+            mapi_string_concat(U);
+            mapi_rotate(U, 2);
+            maux_nb_im_continue(1);
+    maux_nb_end
+}
+
+static void vector_serialize(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            bool pretty = false;
+            ml_size level = 0;
+            ml_size tab = 4;
+            if (mapi_args(U) == 2) {
+                mapi_push_arg(U, 1);
+
+                if (maux_table_has(U, "pretty")) {
+                    maux_table_get(U, "pretty");
+                    pretty = mapi_get_boolean(U);
+                    mapi_pop(U, 1);
+                }
+
+                if (maux_table_has(U, "level")) {
+                    maux_table_get(U, "level");
+                    level = mapi_get_size(U, "level");
+                    mapi_pop(U, 1);
+                }
+
+                if (maux_table_has(U, "tab")) {
+                    maux_table_get(U, "tab");
+                    tab = mapi_get_size(U, NULL);
+                    mapi_pop(U, 1);
+                }
+
+                mapi_pop(U, 1);
+            } else {
+                maux_expect_args(U, 1);
+            }
+
+            mapi_push_table(U);
+            mapi_push_boolean(U, pretty);
+            maux_table_set(U, "pretty");
+            mapi_push_size(U, level + 1, "level");
+            maux_table_set(U, "level");
+            mapi_push_size(U, tab, NULL);
+            maux_table_set(U, "tab");
+
+            mapi_push_string(U, pretty ? "[\n" : "[");
+
+            mapi_push_arg(U, 0);
+            if (mapi_vector_len(U) == 0) {
+                mapi_push_string(U, pretty ? "[ ]" : "[]");
+                maux_nb_return();
+            }
+
+            mapi_push_iterator(U);
+            mapi_rotate(U, 2);
+            mapi_pop(U, 1);
+
+            mapi_iterator_init(U);
+        maux_nb_state(1)
+            if (!mapi_iterator_has(U)) {
+                mapi_pop(U, 1);
+
+                mapi_peek(U, 1);
+                maux_table_get(U, "pretty");
+                bool pretty = mapi_get_boolean(U);
+                mapi_pop(U, 1);
+                maux_table_get(U, "level");
+                ml_size level = mapi_get_size(U, "level");
+                mapi_pop(U, 1);
+                maux_table_get(U, "tab");
+                ml_size tab = mapi_get_size(U, NULL);
+                mapi_pop(U, 2);
+
+                if (pretty) {
+                    tabulation(U, level - 1, tab);
+                    mapi_push_string(U, "]");
+                    mapi_string_concat(U);
+                } else {
+                    mapi_push_string(U, "]");
+                }
+                mapi_string_concat(U);
+                maux_nb_return();
+            }
+
+            mapi_iterator_next(U);
+            mapi_rotate(U, 2);
+            mapi_pop(U, 1);
+
+            maux_library_access(U, "value.serialize");
+            mapi_rotate(U, 2);
+            mapi_peek(U, 4);
+            maux_nb_call(2, 2);
+        maux_nb_state(2)
+            mapi_push_result(U);
+
+            mapi_peek(U, 3);
+            maux_table_get(U, "pretty");
+            bool pretty = mapi_get_boolean(U);
+            mapi_pop(U, 1);
+            maux_table_get(U, "level");
+            ml_size level = mapi_get_size(U, "level");
+            mapi_pop(U, 1);
+            maux_table_get(U, "tab");
+            ml_size tab = mapi_get_size(U, NULL);
+            mapi_pop(U, 2);
+
+            mapi_rotate(U, 2);
+            bool has_next = mapi_iterator_has(U);
+            mapi_rotate(U, 2);
+
+            if (pretty) {
+                tabulation(U, level, tab);
+                mapi_rotate(U, 2);
+                mapi_string_concat(U);
+
+                mapi_push_string(U, has_next ? ",\n" : "\n");
+                mapi_string_concat(U);
+            } else if (has_next) {
+                mapi_push_string(U, ",");
+                mapi_string_concat(U);
+            }
+
+            mapi_rotate(U, 2);
+            mapi_rotate(U, 3);
+            mapi_string_concat(U);
+            mapi_rotate(U, 2);
+            maux_nb_im_continue(1);
+    maux_nb_end
+}
+
+static void string_serialize(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+
+            mapi_push_string(U, "'");
+            mapi_push_arg(U, 0);
+            mapi_string_concat(U);
+
+            mapi_push_string(U, "'");
+            mapi_string_concat(U);
+
+            maux_nb_return();
+    maux_nb_end
+}
+
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("toint", toint),
     MAUX_CONSTRUCT_FUNCTION("tosize", tosize),
@@ -159,6 +498,10 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("tostr", tostr),
     MAUX_CONSTRUCT_FUNCTION("compare", compare),
     MAUX_CONSTRUCT_FUNCTION("hash", hash),
+    MAUX_CONSTRUCT_FUNCTION("serialize", serialize),
+    MAUX_CONSTRUCT_FUNCTION("table.serialize", table_serialize),
+    MAUX_CONSTRUCT_FUNCTION("vector.serialize", vector_serialize),
+    MAUX_CONSTRUCT_FUNCTION("string.serialize", string_serialize),
     MAUX_CONSTRUCT_INTEGER("constants.intmin", MLIMIT_INTEGER_MIN),
     MAUX_CONSTRUCT_INTEGER("constants.intmax", MLIMIT_INTEGER_MAX),
     MAUX_CONSTRUCT_INTEGER("constants.sizemax", MLIMIT_SIZE_MAX),
