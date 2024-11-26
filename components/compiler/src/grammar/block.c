@@ -49,15 +49,3 @@ struct mc_ast_node *rule_statement_block(struct parse_controller *C) {
     eval->expression = mcapi_ast_block2expression(result);
     return mcapi_ast_statement_eval2node(eval);
 }
-
-struct mc_ast_node *rule_statement_inline_block(struct parse_controller *C) {
-    struct mc_ast_expression_block *result = block(C);
-    result->inlined = true;
-
-    struct mc_ast_statement_eval *eval = mcapi_ast_create_statement_eval(
-        parser_U(C), parser_A(C), result->header.node.from, result->header.node.to, result->header.node.line
-    );
-
-    eval->expression = mcapi_ast_block2expression(result);
-    return mcapi_ast_statement_eval2node(eval);
-}

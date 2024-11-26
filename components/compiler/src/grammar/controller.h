@@ -89,7 +89,6 @@ void parser_change_mode(struct parse_controller *, enum predefined_word_mode);
 rule(root);
 
 rule(statement_block);
-rule(statement_inline_block);
 rule(expression_block);
 
 rule(statement);
