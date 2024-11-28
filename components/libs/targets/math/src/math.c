@@ -54,7 +54,7 @@ static struct rand_data *push_rand_data(morphine_coroutine_t U, ml_size s0) {
 }
 
 // https://github.com/diego-santiago/Itamaraca
-static ml_size itamaraca(struct rand_data *D) {
+static uint8_t itamaraca(struct rand_data *D) {
     const ml_decimal SR39 = 1.97484;
 
     ml_size pn = D->s0 - D->next;
@@ -64,7 +64,7 @@ static ml_size itamaraca(struct rand_data *D) {
     D->s0 = frns;
     D->next = (D->next == D->s2) ? D->s1 : D->s2;
 
-    return frns;
+    return (uint8_t) (frns % 256);
 }
 
 #define math_func_1(name) \
@@ -422,7 +422,11 @@ static void math_rand(morphine_coroutine_t U) {
             maux_sharedstorage_get(U, SHAREDKEY, "rand-data");
             struct rand_data *data = mapi_userdata_pointer(U, RAND_DATA_TYPE);
 
-            mapi_push_integer(U, itamaraca(data));
+            ml_integer result = 0;
+            for (size_t i = 0; i < sizeof(ml_integer); i++) {
+                result |= ((ml_integer) itamaraca(data)) << (i * 8);
+            }
+            mapi_push_integer(U, result < 0 ? -result : result);
             maux_nb_return();
     maux_nb_end
 }
