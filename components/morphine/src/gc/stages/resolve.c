@@ -195,6 +195,10 @@ static inline bool mark_throw(morphine_instance_t I) {
         marked = true;
     }
 
+    if (I->throw.special.af != NULL && mark_object(I, objectI_cast(I->throw.special.af))) {
+        marked = true;
+    }
+
     return marked;
 }
 

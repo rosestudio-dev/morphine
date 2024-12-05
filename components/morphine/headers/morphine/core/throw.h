@@ -14,6 +14,7 @@ typedef enum {
     THROW_TYPE_VALUE,
     THROW_TYPE_MESSAGE,
     THROW_TYPE_OFM,
+    THROW_TYPE_AF,
 } throw_type_t;
 
 struct protect_frame {
@@ -35,6 +36,7 @@ struct throw {
 
     struct {
         struct exception *ofm;
+        struct exception *af;
     } special;
 };
 
@@ -48,6 +50,7 @@ morphine_noret void throwI_error(morphine_instance_t, const char *message);
 morphine_noret void throwI_errorv(morphine_instance_t, struct value value);
 morphine_noret void throwI_panic(morphine_instance_t, const char *message);
 morphine_noret void throwI_ofm(morphine_instance_t);
+morphine_noret void throwI_af(morphine_instance_t);
 
 const char *throwI_message(morphine_instance_t);
 bool throwI_is_nested_signal(morphine_instance_t);

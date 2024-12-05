@@ -86,7 +86,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
     }
 
     if (unlikely(result == NULL)) {
-        throwI_panic(I, "allocation fault");
+        throwI_af(I);
     }
 
     update_max_alloc_size(I);

@@ -15,6 +15,7 @@
 #include "morphine/object/sio.h"
 
 #define OFM_MESSAGE ("out of memory")
+#define AF_MESSAGE  ("allocation fault")
 
 morphine_noret static void panic(morphine_instance_t I) {
     struct throw *throw = &I->throw;
@@ -42,15 +43,23 @@ struct throw throwI_prototype(void) {
         .type = THROW_TYPE_VALUE,
         .error.value = valueI_nil,
         .special.ofm = NULL,
+        .special.af = NULL,
     };
 }
 
-void throwI_special(morphine_instance_t I) {
-    struct string *text = stringI_create(I, OFM_MESSAGE);
-    struct exception *exception = exceptionI_create(I, valueI_object(text));
+static struct exception *create_special(morphine_instance_t I, const char *msg) {
+    gcI_safe_enter(I);
+    struct value text = gcI_safe(I, valueI_object(stringI_create(I, msg)));
+    struct exception *exception = gcI_safe_obj(I, exception, exceptionI_create(I, text));
     exceptionI_stacktrace_stub(I, exception);
+    gcI_safe_exit(I);
 
-    I->throw.special.ofm = exception;
+    return exception;
+}
+
+void throwI_special(morphine_instance_t I) {
+    I->throw.special.ofm = create_special(I, OFM_MESSAGE);
+    I->throw.special.af = create_special(I, AF_MESSAGE);
 }
 
 void throwI_handler(morphine_instance_t I) {
@@ -82,7 +91,7 @@ void throwI_handler(morphine_instance_t I) {
     callstackI_throw_fix(coroutine);
 
     gcI_safe_enter(I);
-    struct exception *exception;
+    struct exception *exception = NULL;
     switch (throw->type) {
         case THROW_TYPE_VALUE: {
             exception = gcI_safe_obj(I, exception, exceptionI_create(I, throw->error.value));
@@ -97,17 +106,24 @@ void throwI_handler(morphine_instance_t I) {
         }
         case THROW_TYPE_OFM: {
             if (I->throw.special.ofm == NULL) {
-                struct value value = gcI_safe(I, valueI_object(stringI_create(I, OFM_MESSAGE)));
-                exception = gcI_safe_obj(I, exception, exceptionI_create(I, value));
-                exceptionI_stacktrace_stub(I, exception);
+                exception = create_special(I, OFM_MESSAGE);
             } else {
                 exception = I->throw.special.ofm;
             }
             break;
         }
-        default: {
-            throwI_panic(I, "unsupported throw type");
+        case THROW_TYPE_AF: {
+            if (I->throw.special.af == NULL) {
+                exception = create_special(I, AF_MESSAGE);
+            } else {
+                exception = I->throw.special.af;
+            }
+            break;
         }
+    }
+
+    if (exception == NULL) {
+        throwI_panic(I, "unsupported throw type");
     }
 
     if (callinfo != NULL) {
@@ -171,6 +187,13 @@ morphine_noret void throwI_ofm(morphine_instance_t I) {
     error(I);
 }
 
+morphine_noret void throwI_af(morphine_instance_t I) {
+    struct throw *throw = &I->throw;
+
+    throw->type = THROW_TYPE_AF;
+    error(I);
+}
+
 void throwI_protect(
     morphine_instance_t I,
     morphine_try_t try,
@@ -215,6 +238,9 @@ const char *throwI_message(morphine_instance_t I) {
         }
         case THROW_TYPE_OFM: {
             return OFM_MESSAGE;
+        }
+        case THROW_TYPE_AF: {
+            return AF_MESSAGE;
         }
     }
 
