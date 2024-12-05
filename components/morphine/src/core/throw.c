@@ -81,28 +81,24 @@ void throwI_handler(morphine_instance_t I) {
     stackI_throw_fix(coroutine);
     callstackI_throw_fix(coroutine);
 
+    gcI_safe_enter(I);
     struct exception *exception;
     switch (throw->type) {
         case THROW_TYPE_VALUE: {
-            exception = exceptionI_create(I, throw->error.value);
-            gcI_safe_obj(I, objectI_cast(exception));
+            exception = gcI_safe_obj(I, exception, exceptionI_create(I, throw->error.value));
             exceptionI_stacktrace_record(I, exception, coroutine);
             break;
         }
         case THROW_TYPE_MESSAGE: {
-            struct value value = valueI_object(stringI_create(I, throw->error.message));
-            gcI_safe_value(I, value);
-            exception = exceptionI_create(I, value);
-            gcI_safe_obj(I, objectI_cast(exception));
+            struct value value = gcI_safe(I, valueI_object(stringI_create(I, throw->error.message)));
+            exception = gcI_safe_obj(I, exception, exceptionI_create(I, value));
             exceptionI_stacktrace_record(I, exception, coroutine);
             break;
         }
         case THROW_TYPE_OFM: {
             if (I->throw.special.ofm == NULL) {
-                struct value value = valueI_object(stringI_create(I, OFM_MESSAGE));
-                gcI_safe_value(I, value);
-                exception = exceptionI_create(I, value);
-                gcI_safe_obj(I, objectI_cast(exception));
+                struct value value = gcI_safe(I, valueI_object(stringI_create(I, OFM_MESSAGE)));
+                exception = gcI_safe_obj(I, exception, exceptionI_create(I, value));
                 exceptionI_stacktrace_stub(I, exception);
             } else {
                 exception = I->throw.special.ofm;
@@ -141,7 +137,7 @@ void throwI_handler(morphine_instance_t I) {
     }
 
     throw->context = NULL;
-    gcI_reset_safe(I, 0);
+    gcI_safe_exit(I);
 }
 
 morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
@@ -184,11 +180,13 @@ void throwI_protect(
 ) {
     struct throw *throw = &I->throw;
 
+    size_t safe_level = gcI_safe_level(I);
     struct protect_frame previous;
     memcpy(&previous, &throw->protect, sizeof(struct protect_frame));
 
     if (setjmp(throw->protect.handler) != 0) {
         memcpy(&throw->protect, &previous, sizeof(struct protect_frame));
+        gcI_safe_reset(I, safe_level);
         catch(catch_data);
     } else {
         throw->protect.entered = true;

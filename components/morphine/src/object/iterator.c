@@ -12,6 +12,9 @@
 #include "morphine/gc/safe.h"
 
 struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
+    gcI_safe_enter(I);
+    gcI_safe(I, value);
+
     struct table *table = valueI_safe_as_table(value, NULL);
     struct vector *vector = valueI_safe_as_vector(value, NULL);
     struct string *string = valueI_safe_as_string(value, NULL);
@@ -31,8 +34,6 @@ struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
         throwI_error(I, "iterator only supports table, vector or string");
     }
 
-    size_t rollback = gcI_safe_obj(I, object);
-
     // create
     struct iterator *result = allocI_uni(I, NULL, sizeof(struct iterator));
     (*result) = (struct iterator) {
@@ -49,7 +50,7 @@ struct iterator *iteratorI_create(morphine_instance_t I, struct value value) {
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_ITERATOR);
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }
@@ -160,13 +161,14 @@ struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
 struct table *iteratorI_next_table(morphine_instance_t I, struct iterator *iterator) {
     struct pair pair = iteratorI_next(I, iterator);
 
-    struct table *table = tableI_create(I);
-    size_t rollback = gcI_safe_obj(I, objectI_cast(table));
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(iterator));
+    struct table *table = gcI_safe_obj(I, table, tableI_create(I));
 
     tableI_set(I, table, iterator->name.key, pair.key);
     tableI_set(I, table, iterator->name.value, pair.value);
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return table;
 }

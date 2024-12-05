@@ -66,8 +66,9 @@ morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *nam
         throwI_error(I, "coroutine name is null");
     }
 
-    size_t rollback = gcI_safe_obj(I, objectI_cast(name));
-    gcI_safe_value(I, env);
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(name));
+    gcI_safe(I, env);
 
     // create
     morphine_coroutine_t result = allocI_uni(I, NULL, sizeof(struct coroutine));
@@ -87,7 +88,7 @@ morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *nam
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_COROUTINE);
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }

@@ -51,7 +51,8 @@ struct function *functionI_create(
         throwI_error(I, "too many args");
     }
 
-    size_t rollback = gcI_safe_obj(I, objectI_cast(name));
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(name));
 
     // create
     struct function *result = allocI_uni(I, NULL, sizeof(struct function));
@@ -73,7 +74,7 @@ struct function *functionI_create(
     objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);
 
     // config
-    gcI_safe_obj(I, objectI_cast(result));
+    gcI_safe(I, valueI_object(result));
 
     result->instructions = allocI_vec(I, NULL, instructions_count, sizeof(morphine_instruction_t));
     result->instructions_count = instructions_count;
@@ -99,7 +100,7 @@ struct function *functionI_create(
         result->statics[i] = valueI_nil;
     }
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }
@@ -116,8 +117,10 @@ struct function *functionI_copy(morphine_instance_t I, struct function *function
         throwI_error(I, "function is null");
     }
 
-    size_t rollback = gcI_safe_obj(I, objectI_cast(function));
-    struct function *result = functionI_create(
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(function));
+
+    struct function *result = gcI_safe_obj(I, function, functionI_create(
         I,
         function->name,
         function->line,
@@ -127,9 +130,7 @@ struct function *functionI_copy(morphine_instance_t I, struct function *function
         function->arguments_count,
         function->slots_count,
         function->params_count
-    );
-
-    gcI_safe_obj(I, objectI_cast(result));
+    ));
 
     for(ml_size i = 0; i < function->instructions_count; i ++) {
         morphine_instruction_t instruction = functionI_instruction_get(I, function, i);
@@ -146,7 +147,7 @@ struct function *functionI_copy(morphine_instance_t I, struct function *function
         functionI_static_set(I, result, i, value);
     }
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }

@@ -562,12 +562,14 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     struct hashmap *hashmap = &table->hashmap;
 
     {
-        size_t rollback = gcI_safe_value(I, key);
-        gcI_safe_value(I, value);
+        gcI_safe_enter(I);
+        gcI_safe(I, valueI_object(table));
+        gcI_safe(I, key);
+        gcI_safe(I, value);
 
         resize(I, hashmap);
 
-        gcI_reset_safe(I, rollback);
+        gcI_safe_exit(I);
     }
 
     gcI_barrier(I, table, key);
@@ -775,11 +777,11 @@ struct table *tableI_copy(morphine_instance_t I, struct table *table) {
         throwI_error(I, "table is null");
     }
 
-    struct table *result = tableI_create(I);
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(table));
+    struct table *result = gcI_safe_obj(I, table, tableI_create(I));
     result->mode.mutable = table->mode.mutable;
     result->mode.fixed = table->mode.fixed;
-
-    size_t rollback = gcI_safe_obj(I, objectI_cast(result));
 
     struct bucket *current = table->hashmap.buckets.tail;
     while (current != NULL) {
@@ -788,7 +790,7 @@ struct table *tableI_copy(morphine_instance_t I, struct table *table) {
         current = current->ll.next;
     }
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }

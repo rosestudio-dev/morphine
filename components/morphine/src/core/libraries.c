@@ -58,8 +58,8 @@ void librariesI_load(morphine_instance_t I, morphine_library_t library) {
         I->libraries.allocated += MPARAM_LIBRARIES_GROW;
     }
 
-    struct string *name = stringI_create(I, library.name);
-    size_t rollback = gcI_safe_obj(I, objectI_cast(name));
+    gcI_safe_enter(I);
+    struct string *name = gcI_safe_obj(I, string, stringI_create(I, library.name));
 
     if (library.sharedkey != NULL && !sharedstorageI_define(I, library.sharedkey)) {
         throwI_error(I, "library sharedkey conflict");
@@ -73,7 +73,7 @@ void librariesI_load(morphine_instance_t I, morphine_library_t library) {
 
     I->libraries.size++;
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 }
 
 static struct table *init_library(morphine_coroutine_t U, morphine_library_init_t init) {
@@ -81,15 +81,15 @@ static struct table *init_library(morphine_coroutine_t U, morphine_library_init_
 
     init(U);
 
-    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
-    size_t rollback = gcI_safe_obj(U->I, objectI_cast(table));
+    gcI_safe_enter(U->I);
+    struct table *table = gcI_safe_obj(U->I, table, valueI_as_table_or_error(U->I, stackI_peek(U, 0)));
 
     stackI_pop(U, 1);
     if (stackI_space(U) != space_size) {
         throwI_error(U->I, "library initialization corrupted");
     }
 
-    gcI_reset_safe(U->I, rollback);
+    gcI_safe_exit(U->I);
 
     return table;
 }

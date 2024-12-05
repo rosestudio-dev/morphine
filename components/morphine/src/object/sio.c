@@ -211,10 +211,11 @@ size_t sioI_printf(morphine_instance_t I, struct sio *sio, const char *str, ...)
 }
 
 size_t sioI_vprintf(morphine_instance_t I, struct sio *sio, const char *str, va_list args) {
-    struct string *result = stringI_createva(I, str, args);
-    size_t rollback = gcI_safe_obj(I, objectI_cast(result));
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(sio));
+    struct string *result = gcI_safe_obj(I, string, stringI_createva(I, str, args));
     size_t written = sioI_write(I, sio, (const uint8_t *) result->chars, result->size);
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return written;
 }

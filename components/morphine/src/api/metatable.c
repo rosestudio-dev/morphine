@@ -12,8 +12,9 @@
 MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t U, const char *field) {
     struct value source = stackI_peek(U, 0);
 
-    struct string *string = stringI_create(U->I, field);
-    size_t rollback = gcI_safe_obj(U->I, objectI_cast(string));
+    gcI_safe_enter(U->I);
+    
+    struct string *string = gcI_safe_obj(U->I, string, stringI_create(U->I, field));
 
     struct value mt;
     bool result = metatableI_test(U->I, source, string, &mt);
@@ -22,7 +23,7 @@ MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t U, const char *field)
         stackI_push(U, mt);
     }
 
-    gcI_reset_safe(U->I, rollback);
+    gcI_safe_exit(U->I);
 
     return result;
 }

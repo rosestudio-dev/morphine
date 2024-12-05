@@ -330,8 +330,9 @@ static void write_tail(struct data *D) {
 }
 
 void binaryI_to(morphine_instance_t I, struct sio *sio, struct value value) {
-    size_t rollback = gcI_safe_value(I, value);
-    gcI_safe_obj(I, objectI_cast(sio));
+    gcI_safe_enter(I);
+    gcI_safe(I, value);
+    gcI_safe(I, valueI_object(sio));
 
     struct data data = {
         .I = I,
@@ -342,8 +343,7 @@ void binaryI_to(morphine_instance_t I, struct sio *sio, struct value value) {
         .acc = ACC_INIT
     };
 
-    data.table = tableI_create(I);
-    gcI_safe_obj(I, objectI_cast(data.table));
+    data.table = gcI_safe_obj(I, table, tableI_create(I));
 
     vectorize(&data);
 
@@ -353,5 +353,5 @@ void binaryI_to(morphine_instance_t I, struct sio *sio, struct value value) {
 
     sioI_flush(I, sio);
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 }

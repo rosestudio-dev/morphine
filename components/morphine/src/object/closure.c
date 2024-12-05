@@ -12,7 +12,8 @@
 struct closure *closureI_create(morphine_instance_t I, struct value callable, ml_size size) {
     struct value extracted = callstackI_extract_callable(I, callable);
 
-    size_t rollback = gcI_safe_value(I, extracted);
+    gcI_safe_enter(I);
+    gcI_safe(I, extracted);
 
     // create
     struct closure *result = allocI_uni(I, NULL, sizeof(struct closure));
@@ -25,7 +26,7 @@ struct closure *closureI_create(morphine_instance_t I, struct value callable, ml
     objectI_init(I, objectI_cast(result), OBJ_TYPE_CLOSURE);
 
     // config
-    gcI_safe_obj(I, objectI_cast(result));
+    gcI_safe(I, valueI_object(result));
 
     result->values = allocI_vec(I, NULL, size, sizeof(struct value));
     result->size = size;
@@ -34,7 +35,7 @@ struct closure *closureI_create(morphine_instance_t I, struct value callable, ml
         result->values[i] = valueI_nil;
     }
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }

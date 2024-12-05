@@ -39,15 +39,25 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
         .finalizer.resolver = NULL,
         .finalizer.name = NULL,
 
-        .safe.index = 0,
+        .safe.values.occupied = 0,
+        .safe.rollback.occupied = 0,
 
         .cache.callinfo.pool = NULL,
         .cache.callinfo.size = 0,
     };
 
-    size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
-    for (size_t i = 0; i < size; i++) {
-        I->G.safe.stack[i] = valueI_nil;
+    {
+        size_t size = sizeof(I->G.safe.values.stack) / sizeof(I->G.safe.values.stack[0]);
+        for (size_t i = 0; i < size; i++) {
+            I->G.safe.values.stack[i] = valueI_nil;
+        }
+    }
+
+    {
+        size_t size = sizeof(I->G.safe.rollback.stack) / sizeof(I->G.safe.rollback.stack[0]);
+        for (size_t i = 0; i < size; i++) {
+            I->G.safe.rollback.stack[i] = 0;
+        }
     }
 
     gcI_set_limit(I, I->settings.gc.limit);

@@ -29,7 +29,8 @@ struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
     objectI_init(I, objectI_cast(result), OBJ_TYPE_VECTOR);
 
     // config
-    size_t rollback = gcI_safe_obj(I, objectI_cast(result));
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(result));
 
     result->values = allocI_vec(I, NULL, size, sizeof(struct value));
     result->size.accessible = size;
@@ -39,7 +40,7 @@ struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
         result->values[i] = valueI_nil;
     }
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }
@@ -141,7 +142,9 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
     }
 
     if (vector->size.accessible == vector->size.real) {
-        size_t rollback = gcI_safe_value(I, value);
+        gcI_safe_enter(I);
+        gcI_safe(I, valueI_object(vector));
+        gcI_safe(I, value);
         overflow_add(MPARAM_VECTOR_AMORTIZATION, vector->size.real, MLIMIT_SIZE_MAX) {
             throwI_error(I, "vector size limit has been exceeded");
         }
@@ -154,7 +157,7 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
         );
 
         vector->size.real += MPARAM_VECTOR_AMORTIZATION;
-        gcI_reset_safe(I, rollback);
+        gcI_safe_exit(I);
     }
 
     gcI_barrier(I, vector, value);
@@ -195,7 +198,9 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
     vector->size.accessible--;
 
     if (vector->size.real - vector->size.accessible > MPARAM_VECTOR_AMORTIZATION) {
-        size_t rollback = gcI_safe_value(I, value);
+        gcI_safe_enter(I);
+        gcI_safe(I, valueI_object(vector));
+        gcI_safe(I, value);
         if (MPARAM_VECTOR_AMORTIZATION > vector->size.real) {
             throwI_error(I, "vector size exceeded limit");
         }
@@ -208,7 +213,7 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
         );
 
         vector->size.real -= MPARAM_VECTOR_AMORTIZATION;
-        gcI_reset_safe(I, rollback);
+        gcI_safe_exit(I);
     }
 
     return value;
@@ -396,8 +401,11 @@ void vectorI_sort(morphine_instance_t I, struct vector *vector) {
         throwI_error(I, "sort vector too big");
     }
 
-    struct userdata *userdata = userdataI_create_vec(I, vec_size * 2, sizeof(struct value));
-    size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(vector));
+    struct userdata *userdata = gcI_safe_obj(
+        I, userdata, userdataI_create_vec(I, vec_size * 2, sizeof(struct value))
+    );
 
     for (ml_size factor = 0; factor < (sizeof(factor) * 8); factor++) {
         ml_size mul = ((ml_size) 1) << factor;
@@ -435,7 +443,7 @@ void vectorI_sort(morphine_instance_t I, struct vector *vector) {
         }
     }
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 }
 
 struct value vectorI_iterator_first(morphine_instance_t I, struct vector *vector, bool *has) {

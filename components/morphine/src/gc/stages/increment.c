@@ -64,10 +64,8 @@ static inline void record(morphine_instance_t I) {
     }
 
     {
-        size_t size = sizeof(I->G.safe.stack) / sizeof(struct value);
-
-        for (size_t i = 0; i < size; i++) {
-            mark_value(I, I->G.safe.stack[i]);
+        for (size_t i = 0; i < I->G.safe.values.occupied; i++) {
+            mark_value(I, I->G.safe.values.stack[i]);
         }
     }
 }

@@ -44,8 +44,15 @@ struct garbage_collector {
     } finalizer;
 
     struct {
-        size_t index;
-        struct value stack[16];
+        struct {
+            size_t occupied;
+            struct value stack[16];
+        } values;
+
+        struct {
+            size_t occupied;
+            size_t stack[16];
+        } rollback;
     } safe;
 
     struct {

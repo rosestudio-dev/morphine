@@ -94,8 +94,10 @@ void gcI_finalize(morphine_instance_t I) {
     }
 
     if (I->G.pools.finalize != NULL && I->G.finalizer.candidate == NULL) {
-        morphine_coroutine_t coroutine = coroutineI_create(I, I->G.finalizer.name, valueI_nil);
-        size_t rollback = gcI_safe_obj(I, objectI_cast(coroutine));
+        gcI_safe_enter(I);
+        morphine_coroutine_t coroutine = gcI_safe_obj(
+            I, coroutine, coroutineI_create(I, I->G.finalizer.name, valueI_nil)
+        );
 
         coroutineI_priority(coroutine, 1);
 
@@ -104,6 +106,6 @@ void gcI_finalize(morphine_instance_t I) {
 
         I->G.finalizer.coroutine = coroutine;
 
-        gcI_reset_safe(I, rollback);
+        gcI_safe_exit(I);
     }
 }

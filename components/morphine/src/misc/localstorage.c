@@ -16,22 +16,23 @@ void localstorageI_set(morphine_coroutine_t U, struct value key, struct value va
     morphine_instance_t I = U->I;
     struct value local_key = localkey(U);
 
-    size_t rollback = gcI_safe_value(I, key);
-    gcI_safe_value(I, value);
+    gcI_safe_enter(I);
+    gcI_safe(I, key);
+    gcI_safe(I, value);
 
     bool has = false;
     struct value table = tableI_get(I, I->localstorage, local_key, &has);
 
     if (!has) {
         table = valueI_object(tableI_create(I));
-        gcI_safe_value(I, table);
+        gcI_safe(I, table);
 
         tableI_set(I, I->localstorage, local_key, table);
     }
 
     tableI_set(I, valueI_as_table_or_error(I, table), key, value);
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 }
 
 struct value localstorageI_get(morphine_coroutine_t U, struct value key, bool *has) {

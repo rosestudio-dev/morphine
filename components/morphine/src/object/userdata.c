@@ -38,18 +38,14 @@ struct userdata *userdataI_instance(morphine_instance_t I, const char *type, str
         throwI_error(I, "type unexpected metatable");
     }
 
-    size_t rollback;
+    gcI_safe_enter(I);
     if (metatable != NULL) {
-        rollback = gcI_safe_obj(I, objectI_cast(metatable));
+        gcI_safe(I, valueI_object(metatable));
     }
     struct userdata *userdata = create(I);
 
     // config
-    if (metatable != NULL) {
-        gcI_safe_obj(I, objectI_cast(userdata));
-    } else {
-        rollback = gcI_safe_obj(I, objectI_cast(userdata));
-    }
+    gcI_safe(I, valueI_object(userdata));
 
     userdata->data = allocI_uni(I, NULL, info.allocate);
     userdata->is_typed = true;
@@ -69,19 +65,19 @@ struct userdata *userdataI_instance(morphine_instance_t I, const char *type, str
 
     userdata->typed.inited = true;
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return userdata;
 }
 
 struct userdata *userdataI_create(morphine_instance_t I, size_t size) {
-    struct userdata *userdata = create(I);
-    size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
+    gcI_safe_enter(I);
+    struct userdata *userdata = gcI_safe_obj(I, userdata, create(I));
 
     userdata->data = allocI_uni(I, NULL, size);
     userdata->untyped.size = size;
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return userdata;
 }
@@ -89,14 +85,13 @@ struct userdata *userdataI_create(morphine_instance_t I, size_t size) {
 struct userdata *userdataI_create_vec(
     morphine_instance_t I, size_t count, size_t size
 ) {
-    struct userdata *userdata = create(I);
-
-    size_t rollback = gcI_safe_obj(I, objectI_cast(userdata));
+    gcI_safe_enter(I);
+    struct userdata *userdata = gcI_safe_obj(I, userdata, create(I));
 
     userdata->data = allocI_vec(I, NULL, count, size);
     userdata->untyped.size = count * size;
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return userdata;
 }

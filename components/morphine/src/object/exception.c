@@ -16,7 +16,8 @@
 #define plural_suffix(n) ((n) == 1 ? "" : "s")
 
 struct exception *exceptionI_create(morphine_instance_t I, struct value value) {
-    size_t rollback = gcI_safe_value(I, value);
+    gcI_safe_enter(I);
+    gcI_safe(I, value);
 
     // create
     struct exception *result = allocI_uni(I, NULL, sizeof(struct exception));
@@ -31,7 +32,7 @@ struct exception *exceptionI_create(morphine_instance_t I, struct value value) {
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_EXCEPTION);
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }

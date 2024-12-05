@@ -17,7 +17,8 @@ struct native *nativeI_create(morphine_instance_t I, struct string *name, morphi
         throwI_error(I, "native function is null");
     }
 
-    size_t rollback = gcI_safe_obj(I, objectI_cast(name));
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(name));
 
     // create
     struct native *result = allocI_uni(I, NULL, sizeof(struct native));
@@ -28,7 +29,7 @@ struct native *nativeI_create(morphine_instance_t I, struct string *name, morphi
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_NATIVE);
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return result;
 }

@@ -274,8 +274,8 @@ void callstackI_call_unsafe(
 
     struct value mt_field;
     if (unlikely(metatableI_builtin_test(U->I, callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
-        struct vector *vector = vectorI_create(U->I, argc);
-        size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
+        gcI_safe_enter(U->I);
+        struct vector *vector = gcI_safe_obj(U->I, vector, vectorI_create(U->I, argc));
 
         for (ml_size i = 0; i < argc; i++) {
             vectorI_set(U->I, vector, i, args[i]);
@@ -303,7 +303,7 @@ void callstackI_call_unsafe(
             call_arg_args
         );
 
-        gcI_reset_safe(U->I, rollback);
+        gcI_safe_exit(U->I);
     } else {
         overflow_add(pop_size, argc + 2, SIZE_MAX) {
             throwI_error(U->I, "pop overflow");
@@ -371,8 +371,8 @@ void callstackI_call_from_api(
     struct value callable = stackI_peek(U, callable_offset);
     struct value mt_field;
     if (unlikely(metatableI_builtin_test(U->I, callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
-        struct vector *vector = vectorI_create(U->I, argc);
-        size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
+        gcI_safe_enter(U->I);
+        struct vector *vector = gcI_safe_obj(U->I, vector, vectorI_create(U->I, argc));
 
         for (ml_size i = 0; i < argc; i++) {
             vectorI_set(U->I, vector, i, stackI_peek(U, argc - i - 1));
@@ -403,7 +403,7 @@ void callstackI_call_from_api(
             call_arg_args
         );
 
-        gcI_reset_safe(U->I, rollback);
+        gcI_safe_exit(U->I);
     } else {
         struct stack_value call_arg_self;
         size_t offset = 0;
@@ -456,8 +456,8 @@ void callstackI_call_from_interpreter(
 
     struct value mt_field;
     if (unlikely(metatableI_builtin_test(U->I, *callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
-        struct vector *vector = vectorI_create(U->I, argc);
-        size_t rollback = gcI_safe_obj(U->I, objectI_cast(vector));
+        gcI_safe_enter(U->I);
+        struct vector *vector = gcI_safe_obj(U->I, vector, vectorI_create(U->I, argc));
 
         for (ml_size i = 0; i < argc; i++) {
             struct value arg = callinfo->s.stack.space[function->slots_count + i];
@@ -482,7 +482,7 @@ void callstackI_call_from_interpreter(
             call_arg_args
         );
 
-        gcI_reset_safe(U->I, rollback);
+        gcI_safe_exit(U->I);
     } else {
         struct stack_value call_arg_callable = saved_callable;
         struct stack_value call_arg_env = save_value(U, NULL);

@@ -141,15 +141,16 @@ static void read_head(struct data *D) {
     D->size = get_ml_size(D);
     D->value = get_ml_size(D);
 
-    D->vector = vectorI_create(D->I, D->size);
-    gcI_safe_obj(D->I, objectI_cast(D->vector));
+    D->vector = gcI_safe_obj(D->I, vector, vectorI_create(D->I, D->size));
 }
 
 static struct string *read_object_string(struct data *D) {
     ml_size size = get_ml_size(D);
 
-    struct userdata *userdata = userdataI_create_vec(D->I, size, sizeof(char));
-    size_t rollback = gcI_safe_obj(D->I, objectI_cast(userdata));
+    gcI_safe_enter(D->I);
+    struct userdata *userdata = gcI_safe_obj(
+        D->I, userdata, userdataI_create_vec(D->I, size, sizeof(char))
+    );
 
     char *buffer = userdata->data;
     for (ml_size i = 0; i < size; i++) {
@@ -157,7 +158,7 @@ static struct string *read_object_string(struct data *D) {
     }
 
     struct string *string = stringI_createn(D->I, size, buffer);
-    gcI_reset_safe(D->I, rollback);
+    gcI_safe_exit(D->I);
 
     return string;
 }
@@ -180,10 +181,10 @@ static void read_objects_info(struct data *D) {
                 vectorI_set(D->I, D->vector, vector_index, valueI_boolean(get_bool(D)));
                 continue;
             case VALUE_TYPE_STRING: {
-                struct string *string = read_object_string(D);
-                size_t rollback = gcI_safe_obj(D->I, objectI_cast(string));
+                gcI_safe_enter(D->I);
+                struct string *string = gcI_safe_obj(D->I, string, read_object_string(D));
                 vectorI_set(D->I, D->vector, vector_index, valueI_object(string));
-                gcI_reset_safe(D->I, rollback);
+                gcI_safe_exit(D->I);
                 continue;
             }
             case VALUE_TYPE_TABLE: {
@@ -198,8 +199,8 @@ static void read_objects_info(struct data *D) {
                 continue;
             }
             case VALUE_TYPE_FUNCTION: {
-                struct string *name = read_object_string(D);
-                size_t rollback = gcI_safe_obj(D->I, objectI_cast(name));
+                gcI_safe_enter(D->I);
+                struct string *name = gcI_safe_obj(D->I, string, read_object_string(D));
 
                 ml_line line = get_ml_line(D);
                 ml_size constants_count = get_ml_size(D);
@@ -223,7 +224,7 @@ static void read_objects_info(struct data *D) {
 
                 vectorI_set(D->I, D->vector, vector_index, valueI_object(function));
 
-                gcI_reset_safe(D->I, rollback);
+                gcI_safe_exit(D->I);
                 continue;
             }
             default:
@@ -330,7 +331,8 @@ static void read_tail(struct data *D) {
 }
 
 struct value binaryI_from(morphine_instance_t I, struct sio *sio) {
-    size_t rollback = gcI_safe_obj(I, objectI_cast(sio));
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(sio));
 
     struct data data = {
         .I = I,
@@ -348,7 +350,7 @@ struct value binaryI_from(morphine_instance_t I, struct sio *sio) {
 
     struct value value = vectorI_get(I, data.vector, data.value);
 
-    gcI_reset_safe(I, rollback);
+    gcI_safe_exit(I);
 
     return value;
 }
