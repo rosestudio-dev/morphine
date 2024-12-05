@@ -113,7 +113,7 @@ void exceptionI_stacktrace_print(
             if (reversed == count_before) {
                 ml_size skipped = size - count;
                 sioI_printf(
-                    I, sio, "    ... (skipped %"MLIMIT_SIZE_PR" element%s)\n",
+                    I, sio, "    (skipped %"MLIMIT_SIZE_PR" element%s)\n",
                     skipped, plural_suffix(skipped)
                 );
             }

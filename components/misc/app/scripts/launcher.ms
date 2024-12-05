@@ -66,9 +66,11 @@ fun help<auto>(program, message) {
 fun repl<auto>() {
     val data = { exit = false }
 
+    fun wrapper(text) = "return do { " .. text .. "}"
+
     fun exec<auto>(text) {
         val compiled = compiler.compile {
-            text = "return {" .. text .. "}",
+            text = wrapper(text),
             name = "replfun"
         }
 
@@ -83,7 +85,7 @@ fun repl<auto>() {
         var text = ""
         do {
             val line = app.readline(">> ")
-            text = text .. line .. "\n"
+            text ..= line .. "\n"
         } while (line != "")
 
         return exec(text)
@@ -118,7 +120,6 @@ fun repl<auto>() {
 
         val result = base.pcall(exec, line)
         if (typeof result == "exception") {
-            base.println("error was caused")
             exception.print(result)
         } else {
             base.println(result)
