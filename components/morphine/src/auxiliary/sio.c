@@ -18,14 +18,14 @@ struct buffer_data {
     uint8_t *vector;
 };
 
-static inline void check_close(morphine_sio_accessor_t A, struct buffer_data *B) {
+static inline void check_close(morphine_instance_t I, struct buffer_data *B) {
     if (B->closed) {
-        mapi_sio_accessor_error(A, "buffer closed");
+        mapi_ierror(I, "buffer closed");
     }
 }
 
-static void *buffer_open(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static void *buffer_open(morphine_instance_t I, void *data) {
+    (void) I;
 
     struct buffer_data *B = data;
     B->closed = false;
@@ -33,16 +33,16 @@ static void *buffer_open(morphine_sio_accessor_t A, void *data) {
     return B;
 }
 
-static void buffer_close(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static void buffer_close(morphine_instance_t I, void *data) {
+    (void) I;
 
     struct buffer_data *B = data;
     B->closed = true;
 }
 
-static size_t buffer_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
+static size_t buffer_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
     struct buffer_data *B = data;
-    check_close(A, B);
+    check_close(I, B);
 
     size_t read = 0;
     for (size_t i = 0; i < size; i++) {
@@ -58,14 +58,14 @@ static size_t buffer_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer
     return read;
 }
 
-static size_t buffer_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
+static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
     struct buffer_data *B = data;
-    check_close(A, B);
+    check_close(I, B);
 
     for (size_t i = 0; i < size; i++) {
         if (B->pointer >= B->size) {
             overflow_add(B->size, 1, SIZE_MAX) {
-                mapi_sio_accessor_error(A, "sio buffer overflow");
+                mapi_ierror(I, "sio buffer overflow");
             }
 
             B->size++;
@@ -73,11 +73,11 @@ static size_t buffer_write(morphine_sio_accessor_t A, void *data, const uint8_t 
 
         if (B->size >= B->allocated) {
             overflow_add(B->allocated, B->factor, SIZE_MAX) {
-                mapi_sio_accessor_error(A, "sio buffer overflow");
+                mapi_ierror(I, "sio buffer overflow");
             }
 
             size_t new_size = B->allocated + B->factor;
-            B->vector = mapi_sio_accessor_alloc_vec(A, B->vector, new_size, sizeof(char));
+            B->vector = mapi_allocator_vec(I, B->vector, new_size, sizeof(char));
             B->allocated = new_size;
         }
 
@@ -89,13 +89,13 @@ static size_t buffer_write(morphine_sio_accessor_t A, void *data, const uint8_t 
 }
 
 static bool buffer_seek(
-    morphine_sio_accessor_t A,
+    morphine_instance_t I,
     void *data,
     size_t offset,
     morphine_sio_seek_mode_t mode
 ) {
     struct buffer_data *B = data;
-    check_close(A, B);
+    check_close(I, B);
 
     switch (mode) {
         case MORPHINE_SIO_SEEK_MODE_SET: {
@@ -143,9 +143,9 @@ static bool buffer_seek(
     return false;
 }
 
-static size_t buffer_tell(morphine_sio_accessor_t A, void *data) {
+static size_t buffer_tell(morphine_instance_t I, void *data) {
     struct buffer_data *B = data;
-    check_close(A, B);
+    check_close(I, B);
 
     if (B->pointer > B->size) {
         return B->size;
@@ -154,9 +154,9 @@ static size_t buffer_tell(morphine_sio_accessor_t A, void *data) {
     }
 }
 
-static bool buffer_eos(morphine_sio_accessor_t A, void *data) {
+static bool buffer_eos(morphine_instance_t I, void *data) {
     struct buffer_data *B = data;
-    check_close(A, B);
+    check_close(I, B);
 
     return B->pointer >= B->size;
 }

@@ -10,10 +10,6 @@
 #include "morphine/gc/safe.h"
 #include "morphine/gc/barrier.h"
 
-struct sio_accessor {
-    morphine_instance_t I;
-};
-
 struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interface) {
     if (interface.write == NULL && interface.read == NULL) {
         throwI_error(I, "sio interface hasn't read/write functions");
@@ -33,10 +29,6 @@ struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interfac
     return result;
 }
 
-static inline struct sio_accessor get_accessor(morphine_instance_t I) {
-    return (struct sio_accessor) { .I = I };
-}
-
 static inline void close(morphine_instance_t I, struct sio *sio, bool force) {
     if (!force && !sio->opened) {
         throwI_error(I, "sio already closed");
@@ -44,8 +36,7 @@ static inline void close(morphine_instance_t I, struct sio *sio, bool force) {
 
     if (sio->opened && sio->interface.close != NULL) {
         sio->opened = false;
-        struct sio_accessor A = get_accessor(I);
-        sio->interface.close(&A, sio->data);
+        sio->interface.close(I, sio->data);
     }
 }
 
@@ -79,8 +70,7 @@ void sioI_open(morphine_instance_t I, struct sio *sio, void *arg) {
     if (sio->interface.open == NULL) {
         sio->data = arg;
     } else {
-        struct sio_accessor A = get_accessor(I);
-        sio->data = sio->interface.open(&A, arg);
+        sio->data = sio->interface.open(I, arg);
     }
 
     sio->opened = true;
@@ -119,8 +109,7 @@ size_t sioI_read(morphine_instance_t I, struct sio *sio, uint8_t *buffer, size_t
         throwI_error(I, "sio is write only");
     }
 
-    struct sio_accessor A = get_accessor(I);
-    return sio->interface.read(&A, sio->data, buffer, size);
+    return sio->interface.read(I, sio->data, buffer, size);
 }
 
 size_t sioI_write(morphine_instance_t I, struct sio *sio, const uint8_t *buffer, size_t size) {
@@ -130,16 +119,14 @@ size_t sioI_write(morphine_instance_t I, struct sio *sio, const uint8_t *buffer,
         throwI_error(I, "sio is read only");
     }
 
-    struct sio_accessor A = get_accessor(I);
-    return sio->interface.write(&A, sio->data, buffer, size);
+    return sio->interface.write(I, sio->data, buffer, size);
 }
 
 void sioI_flush(morphine_instance_t I, struct sio *sio) {
     checks(I, sio);
 
     if (sio->interface.flush != NULL) {
-        struct sio_accessor A = get_accessor(I);
-        return sio->interface.flush(&A, sio->data);
+        return sio->interface.flush(I, sio->data);
     }
 }
 
@@ -155,8 +142,7 @@ static inline bool sio_seek(
         return false;
     }
 
-    struct sio_accessor A = get_accessor(I);
-    return sio->interface.seek(&A, sio->data, offset, mode);
+    return sio->interface.seek(I, sio->data, offset, mode);
 }
 
 bool sioI_seek_set(morphine_instance_t I, struct sio *sio, size_t offset) {
@@ -182,8 +168,7 @@ size_t sioI_tell(morphine_instance_t I, struct sio *sio) {
         return 0;
     }
 
-    struct sio_accessor A = get_accessor(I);
-    return sio->interface.tell(&A, sio->data);
+    return sio->interface.tell(I, sio->data);
 }
 
 bool sioI_eos(morphine_instance_t I, struct sio *sio) {
@@ -193,8 +178,7 @@ bool sioI_eos(morphine_instance_t I, struct sio *sio) {
         return false;
     }
 
-    struct sio_accessor A = get_accessor(I);
-    return sio->interface.eos(&A, sio->data);
+    return sio->interface.eos(I, sio->data);
 }
 
 size_t sioI_print(morphine_instance_t I, struct sio *sio, const char *str) {
@@ -218,32 +202,4 @@ size_t sioI_vprintf(morphine_instance_t I, struct sio *sio, const char *str, va_
     gcI_safe_exit(I);
 
     return written;
-}
-
-void *sioI_accessor_alloc(morphine_sio_accessor_t A, void *pointer, size_t size) {
-    return allocI_uni(A->I, pointer, size);
-}
-
-void *sioI_accessor_alloc_vec(morphine_sio_accessor_t A, void *pointer, size_t n, size_t size) {
-    return allocI_vec(A->I, pointer, n, size);
-}
-
-void sioI_accessor_free(morphine_sio_accessor_t A, void *pointer) {
-    allocI_free(A->I, pointer);
-}
-
-morphine_noret void sioI_accessor_error(morphine_sio_accessor_t A, const char *str) {
-    throwI_error(A->I, str);
-}
-
-morphine_noret void sioI_accessor_errorf(morphine_sio_accessor_t A, const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    sioI_accessor_errorv(A, str, args);
-    va_end(args);
-}
-
-morphine_noret void sioI_accessor_errorv(morphine_sio_accessor_t A, const char *str, va_list args) {
-    struct string *result = stringI_createva(A->I, str, args);
-    throwI_errorv(A->I, valueI_object(result));
 }

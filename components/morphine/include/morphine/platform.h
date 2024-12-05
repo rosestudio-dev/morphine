@@ -41,15 +41,14 @@ typedef enum {
     MORPHINE_SIO_SEEK_MODE_END,
 } morphine_sio_seek_mode_t;
 
-typedef struct sio_accessor *morphine_sio_accessor_t;
-typedef void *(*morphine_sio_open_t)(morphine_sio_accessor_t, void *args);
-typedef size_t (*morphine_sio_read_t)(morphine_sio_accessor_t, void *data, uint8_t *buffer, size_t size);
-typedef size_t (*morphine_sio_write_t)(morphine_sio_accessor_t, void *data, const uint8_t *buffer, size_t size);
-typedef void (*morphine_sio_flush_t)(morphine_sio_accessor_t, void *data);
-typedef bool (*morphine_sio_seek_t)(morphine_sio_accessor_t, void *data, size_t, morphine_sio_seek_mode_t);
-typedef size_t (*morphine_sio_tell_t)(morphine_sio_accessor_t, void *data);
-typedef bool (*morphine_sio_eos_t)(morphine_sio_accessor_t, void *data);
-typedef void (*morphine_sio_close_t)(morphine_sio_accessor_t, void *data);
+typedef void *(*morphine_sio_open_t)(morphine_instance_t, void *args);
+typedef size_t (*morphine_sio_read_t)(morphine_instance_t, void *data, uint8_t *buffer, size_t size);
+typedef size_t (*morphine_sio_write_t)(morphine_instance_t, void *data, const uint8_t *buffer, size_t size);
+typedef void (*morphine_sio_flush_t)(morphine_instance_t, void *data);
+typedef bool (*morphine_sio_seek_t)(morphine_instance_t, void *data, size_t, morphine_sio_seek_mode_t);
+typedef size_t (*morphine_sio_tell_t)(morphine_instance_t, void *data);
+typedef bool (*morphine_sio_eos_t)(morphine_instance_t, void *data);
+typedef void (*morphine_sio_close_t)(morphine_instance_t, void *data);
 
 typedef struct {
     morphine_sio_open_t open;

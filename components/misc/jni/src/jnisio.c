@@ -94,8 +94,8 @@ static struct jnisio_data *push_jnisio_data(
     return D;
 }
 
-static size_t buf_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
-    (void) A;
+static size_t buf_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
+    (void) I;
     struct jnisio_data *D = data;
 
     size_t success = 0;
@@ -113,8 +113,8 @@ static size_t buf_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, s
     return success;
 }
 
-static bool buf_eos(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static bool buf_eos(morphine_instance_t I, void *data) {
+    (void) I;
     struct jnisio_data *D = data;
 
     jint result = J(D->jnienv, CallIntMethod, D->input, D->available_id);
@@ -122,8 +122,8 @@ static bool buf_eos(morphine_sio_accessor_t A, void *data) {
     return result == 0;
 }
 
-static size_t buf_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    (void) A;
+static size_t buf_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
+    (void) I;
     struct jnisio_data *D = data;
 
     for (size_t i = 0; i < size; i++) {
@@ -133,8 +133,8 @@ static size_t buf_write(morphine_sio_accessor_t A, void *data, const uint8_t *bu
     return size;
 }
 
-static void buf_flush(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static void buf_flush(morphine_instance_t I, void *data) {
+    (void) I;
     struct jnisio_data *D = data;
 
     J(D->jnienv, CallVoidMethod, D->output, D->flush_id);

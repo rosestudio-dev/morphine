@@ -5,7 +5,7 @@
 #include "morphine/utils/ctype.h"
 
 #define M(a) (1 << (a))
-#define NONE 0
+#define NONE (0)
 
 const uint8_t morphine_ctype_probs[UCHAR_MAX + 1] = {
     // control

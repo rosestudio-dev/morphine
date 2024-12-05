@@ -116,26 +116,3 @@ MORPHINE_API size_t mapi_sio_printf(morphine_coroutine_t U, const char *str, ...
 
     return written;
 }
-
-MORPHINE_API void *mapi_sio_accessor_alloc(morphine_sio_accessor_t A, void *pointer, size_t size) {
-    return sioI_accessor_alloc(A, pointer, size);
-}
-
-MORPHINE_API void *mapi_sio_accessor_alloc_vec(morphine_sio_accessor_t A, void *p, size_t n, size_t size) {
-    return sioI_accessor_alloc_vec(A, p, n, size);
-}
-
-MORPHINE_API void mapi_sio_accessor_free(morphine_sio_accessor_t A, void *pointer) {
-    sioI_accessor_free(A, pointer);
-}
-
-MORPHINE_API morphine_noret void mapi_sio_accessor_error(morphine_sio_accessor_t A, const char *str) {
-    sioI_accessor_error(A, str);
-}
-
-MORPHINE_API morphine_noret void mapi_sio_accessor_errorf(morphine_sio_accessor_t A, const char *str, ...) {
-    va_list args;
-    va_start(args, str);
-    sioI_accessor_errorv(A, str, args);
-    va_end(args);
-}

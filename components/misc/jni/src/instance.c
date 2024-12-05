@@ -12,8 +12,8 @@
 #include <setjmp.h>
 #include <malloc.h>
 
-static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    (void) A;
+static size_t io_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
+    (void) I;
     struct env *env = data;
 
     for (size_t i = 0; i < size; i++) {
@@ -23,8 +23,8 @@ static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buf
     return size;
 }
 
-static size_t io_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
-    (void) A;
+static size_t io_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
+    (void) I;
     struct env *env = data;
 
     size_t success = 0;
@@ -42,14 +42,14 @@ static size_t io_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, si
     return success;
 }
 
-static void io_flush(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static void io_flush(morphine_instance_t I, void *data) {
+    (void) I;
     struct env *env = data;
     J(env->jnienv, CallVoidMethod, env->output.object, env->output.flush_id);
 }
 
-static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    (void) A;
+static size_t io_error_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
+    (void) I;
     struct env *env = data;
 
     for (size_t i = 0; i < size; i++) {
@@ -59,8 +59,8 @@ static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_
     return size;
 }
 
-static void io_error_flush(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static void io_error_flush(morphine_instance_t I, void *data) {
+    (void) I;
     struct env *env = data;
     J(env->jnienv, CallVoidMethod, env->error.object, env->error.flush_id);
 }
@@ -174,7 +174,7 @@ JNIEXPORT jboolean JNICALL Java_ru_why_morphine_jni_Morphine_compiler(
 
     push_jnisio(U, jnienv, NULL, output);
     jniutils_jstring2mlstring(U, jnienv, text, NULL);
-    mcapi_compile(U, "jnimain", false, false);
+    mcapi_compile(U, "jnimain", false);
     mapi_binary_to(U);
 
     mapi_close(I);

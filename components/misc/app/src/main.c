@@ -13,37 +13,37 @@
 #include "env.h"
 #include "library.h"
 
-static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    (void) A;
+static size_t io_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
+    (void) I;
     (void) data;
 
     return fwrite(buffer, 1, size, stdout);
 }
 
-static size_t io_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
-    (void) A;
+static size_t io_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
+    (void) I;
     (void) data;
 
     return fread(buffer, 1, size, stdin);
 }
 
-static void io_flush(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static void io_flush(morphine_instance_t I, void *data) {
+    (void) I;
     (void) data;
 
     fflush(stdout);
 }
 
-static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
-    (void) A;
+static size_t io_error_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
+    (void) I;
     (void) data;
 
     fwrite(buffer, 1, size, stderr);
     return size;
 }
 
-static void io_error_flush(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static void io_error_flush(morphine_instance_t I, void *data) {
+    (void) I;
     (void) data;
 
     fflush(stderr);

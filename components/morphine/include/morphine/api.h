@@ -351,11 +351,6 @@ MORPHINE_API size_t mapi_sio_tell(morphine_coroutine_t);
 MORPHINE_API bool mapi_sio_eos(morphine_coroutine_t);
 MORPHINE_API size_t mapi_sio_print(morphine_coroutine_t, const char *);
 MORPHINE_API size_t mapi_sio_printf(morphine_coroutine_t, const char *, ...);
-MORPHINE_API void *mapi_sio_accessor_alloc(morphine_sio_accessor_t, void *, size_t);
-MORPHINE_API void *mapi_sio_accessor_alloc_vec(morphine_sio_accessor_t, void *, size_t n, size_t size);
-MORPHINE_API void mapi_sio_accessor_free(morphine_sio_accessor_t, void *);
-MORPHINE_API morphine_noret void mapi_sio_accessor_error(morphine_sio_accessor_t, const char *);
-MORPHINE_API morphine_noret void mapi_sio_accessor_errorf(morphine_sio_accessor_t, const char *, ...);
 
 // exception
 

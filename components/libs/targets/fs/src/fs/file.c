@@ -13,25 +13,25 @@ struct file_data {
     FILE *file;
 };
 
-static void *file_open(morphine_sio_accessor_t A, void *data) {
+static void *file_open(morphine_instance_t I, void *data) {
     struct file_data *D = data;
 
     D->file = fopen(D->path, D->mode);
     if (D->file == NULL) {
-        mapi_sio_accessor_error(A, "failed to open file");
+        mapi_ierror(I, "failed to open file");
     }
 
     D->closed = false;
 
     if (ferror(D->file)) {
-        mapi_sio_accessor_error(A, "file error");
+        mapi_ierror(I, "file error");
     }
 
     return D;
 }
 
-static void file_close(morphine_sio_accessor_t A, void *data) {
-    (void) A;
+static void file_close(morphine_instance_t I, void *data) {
+    (void) I;
 
     struct file_data *D = data;
 
@@ -42,96 +42,96 @@ static void file_close(morphine_sio_accessor_t A, void *data) {
     }
 }
 
-static void file_flush(morphine_sio_accessor_t A, void *data) {
+static void file_flush(morphine_instance_t I, void *data) {
     struct file_data *D = data;
 
     if (D->closed) {
-        mapi_sio_accessor_error(A, "file closed");
+        mapi_ierror(I, "file closed");
     }
 
     fflush(D->file);
 
     if (ferror(D->file)) {
-        mapi_sio_accessor_error(A, "file error");
+        mapi_ierror(I, "file error");
     }
 }
 
-static size_t file_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
+static size_t file_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
     struct file_data *D = data;
 
     if (D->closed) {
-        mapi_sio_accessor_error(A, "file closed");
+        mapi_ierror(I, "file closed");
     }
 
     size_t result = fwrite(buffer, 1, size, D->file);
 
     if (ferror(D->file)) {
-        mapi_sio_accessor_error(A, "file error");
+        mapi_ierror(I, "file error");
     }
 
     return result;
 }
 
-static size_t file_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
+static size_t file_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
     struct file_data *D = data;
 
     if (D->closed) {
-        mapi_sio_accessor_error(A, "file closed");
+        mapi_ierror(I, "file closed");
     }
 
     size_t result = fread(buffer, 1, size, D->file);
 
     if (ferror(D->file)) {
-        mapi_sio_accessor_error(A, "file error");
+        mapi_ierror(I, "file error");
     }
 
     return result;
 }
 
-static bool file_eos(morphine_sio_accessor_t A, void *data) {
+static bool file_eos(morphine_instance_t I, void *data) {
     struct file_data *D = data;
 
     if (D->closed) {
-        mapi_sio_accessor_error(A, "file closed");
+        mapi_ierror(I, "file closed");
     }
 
     bool result = feof(D->file) != 0;
 
     if (ferror(D->file)) {
-        mapi_sio_accessor_error(A, "file error");
+        mapi_ierror(I, "file error");
     }
 
     return result;
 }
 
-static size_t file_tell(morphine_sio_accessor_t A, void *data) {
+static size_t file_tell(morphine_instance_t I, void *data) {
     struct file_data *D = data;
 
     if (D->closed) {
-        mapi_sio_accessor_error(A, "file closed");
+        mapi_ierror(I, "file closed");
     }
 
     if (ferror(D->file)) {
-        mapi_sio_accessor_error(A, "file error");
+        mapi_ierror(I, "file error");
     }
 
     long int tell = ftell(D->file);
     if (tell < 0) {
-        mapi_sio_accessor_error(A, "file error");
+        mapi_ierror(I, "file error");
     }
 
     return (size_t) tell;
 }
 
-static bool file_seek(morphine_sio_accessor_t A, void *data, size_t size, morphine_sio_seek_mode_t mode) {
+static bool file_seek(morphine_instance_t I, void *data, size_t size, morphine_sio_seek_mode_t mode) {
     struct file_data *D = data;
 
     if (D->closed) {
-        mapi_sio_accessor_error(A, "file closed");
+        mapi_ierror(I, "file closed");
     }
 
     if (size > -1UL) {
-        mapi_sio_accessor_error(A, "too big offset");
+        mapi_ierror(I, "too big offset");
     }
 
     bool result = false;
@@ -151,7 +151,7 @@ static bool file_seek(morphine_sio_accessor_t A, void *data, size_t size, morphi
     }
 
     if (ferror(D->file)) {
-        mapi_sio_accessor_error(A, "file error");
+        mapi_ierror(I, "file error");
     }
 
     return result;
