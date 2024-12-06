@@ -125,24 +125,6 @@ static void flush(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void io(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 0);
-            mapi_push_sio_io(U);
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void error(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 0);
-            mapi_push_sio_error(U);
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void read(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -261,8 +243,6 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("seekend", seekend),
     MAUX_CONSTRUCT_FUNCTION("tell", tell),
     MAUX_CONSTRUCT_FUNCTION("eos", eos),
-    MAUX_CONSTRUCT_FUNCTION("io", io),
-    MAUX_CONSTRUCT_FUNCTION("error", error),
     MAUX_CONSTRUCT_FUNCTION("buffer", buffer),
     MAUX_CONSTRUCT_FUNCTION("readall", readall),
     MAUX_CONSTRUCT_FUNCTION("readto", readto),
@@ -272,6 +252,16 @@ static maux_construct_element_t elements[] = {
 
 static void library_init(morphine_coroutine_t U) {
     maux_construct(U, elements);
+
+    mapi_push_table(U);
+
+    mapi_push_sio_io(U);
+    maux_table_set(U, "io");
+
+    mapi_push_sio_error(U);
+    maux_table_set(U, "err");
+
+    maux_table_set(U, "stream");
 }
 
 MORPHINE_LIB morphine_library_t mlib_builtin_sio(void) {

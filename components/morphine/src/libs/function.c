@@ -276,7 +276,7 @@ static void getinstruction(morphine_coroutine_t U) {
 static void setinstruction(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 3);
+            maux_expect_args_minimum(U, 3);
 
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
@@ -284,6 +284,8 @@ static void setinstruction(morphine_coroutine_t U) {
             morphine_instruction_t instruction;
             mapi_push_arg(U, 2);
             if (mapi_is_type(U, "table")) {
+                maux_expect_args(U, 3);
+
                 mapi_push_string(U, "opcode");
                 mapi_table_getoe(U);
                 instruction.opcode = maux_opcode_from_name(U, mapi_get_cstr(U));
@@ -302,12 +304,11 @@ static void setinstruction(morphine_coroutine_t U) {
                     mapi_pop(U, 1);
                 }
             } else {
-                maux_expect_args(U, 4);
-
-                instruction.opcode = maux_opcode_from_name(U, mapi_get_cstr(U));
-
-                mapi_push_arg(U, 3);
                 instruction.line = mapi_get_size(U, "line");
+
+                maux_expect_args_minimum(U, 4);
+                mapi_push_arg(U, 3);
+                instruction.opcode = maux_opcode_from_name(U, mapi_get_cstr(U));
 
                 ml_size count = mapi_opcode(U, instruction.opcode);
                 maux_expect_args(U, 4 + count);

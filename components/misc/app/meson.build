@@ -10,15 +10,17 @@ morphine_scripts_paths = run_command(
 ).stdout().strip().split('\n')
 
 morphine_scripts = custom_target(
+    'scripts',
     command : [
         python, script_data,
         '-s', meson.current_source_dir(),
         '-f', ':'.join(morphine_scripts_paths),
         '-p', 'scripts/',
-        '-o', '@OUTPUT@'
+        '-n', meson.current_build_dir() / 'scripts'
     ],
+    depend_files : morphine_scripts_paths,
     input : morphine_scripts_paths,
-    output : 'scripts.h'
+    output : ['scripts.c', 'scripts.h']
 )
 
 cc = meson.get_compiler('c')

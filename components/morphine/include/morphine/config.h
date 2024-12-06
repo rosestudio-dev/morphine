@@ -10,6 +10,7 @@
 // modifiers
 
 #define morphine_noret  __attribute__((noreturn))
+#define morphine_unused __attribute__((unused))
 #define morphine_export extern
 
 // tags

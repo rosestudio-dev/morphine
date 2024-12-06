@@ -45,6 +45,35 @@ static void copy(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void trim(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 3);
+
+            mapi_push_arg(U, 1);
+            ml_size from = mapi_get_size(U, "index");
+
+            mapi_push_arg(U, 2);
+            ml_size to = mapi_get_size(U, "index");
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "vector");
+
+            mapi_push_vector(U, from <= to ? to - from : 0);
+
+            for (ml_size i = from; i < to; i++) {
+                mapi_peek(U, 1);
+                mapi_vector_get(U, i);
+                mapi_rotate(U, 2);
+                mapi_pop(U, 1);
+
+                mapi_vector_set(U, i - from);
+            }
+
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void sort(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -289,6 +318,7 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("create", create),
     MAUX_CONSTRUCT_FUNCTION("clear", clear),
     MAUX_CONSTRUCT_FUNCTION("copy", copy),
+    MAUX_CONSTRUCT_FUNCTION("trim", trim),
     MAUX_CONSTRUCT_FUNCTION("sort", sort),
     MAUX_CONSTRUCT_FUNCTION("resize", resize),
     MAUX_CONSTRUCT_FUNCTION("add", add),

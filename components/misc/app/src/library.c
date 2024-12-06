@@ -4,6 +4,7 @@
 
 #include "library.h"
 #include "env.h"
+#include "scripts.h"
 
 #ifdef USE_READLINE
 
@@ -32,7 +33,7 @@ static void api_readline(morphine_coroutine_t U, const char *promt) {
 }
 #endif
 
-static void lexit(morphine_coroutine_t U) {
+static void lib_exit(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
@@ -42,7 +43,7 @@ static void lexit(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void lreadline(morphine_coroutine_t U) {
+static void lib_readline(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
@@ -54,9 +55,33 @@ static void lreadline(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void lib_getscript(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            const char *name = mapi_get_cstr(U);
+
+            const struct scripts_raw_data *data = scripts_data_table;
+            for (; data->name != NULL; data++) {
+                if (strcmp(data->name, name) == 0) {
+                    break;
+                }
+            }
+
+            if (data->name == NULL) {
+                mapi_error(U, "script not found");
+            }
+
+            mapi_push_stringn(U, (const char *) data->data, data->size);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static maux_construct_element_t elements[] = {
-    MAUX_CONSTRUCT_FUNCTION("exit", lexit),
-    MAUX_CONSTRUCT_FUNCTION("readline", lreadline),
+    MAUX_CONSTRUCT_FUNCTION("exit", lib_exit),
+    MAUX_CONSTRUCT_FUNCTION("readline", lib_readline),
+    MAUX_CONSTRUCT_FUNCTION("getscript", lib_getscript),
     MAUX_CONSTRUCT_END
 };
 

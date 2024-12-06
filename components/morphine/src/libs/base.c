@@ -5,15 +5,6 @@
 #include <morphine.h>
 #include "morphine/libs/builtin.h"
 
-static void version(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 0);
-            mapi_push_string(U, mapi_version_name());
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void print(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -215,7 +206,6 @@ static void callable(morphine_coroutine_t U) {
 }
 
 static maux_construct_element_t elements[] = {
-    MAUX_CONSTRUCT_FUNCTION("version", version),
     MAUX_CONSTRUCT_FUNCTION("print", print),
     MAUX_CONSTRUCT_FUNCTION("println", println),
     MAUX_CONSTRUCT_FUNCTION("setmetatable", setmetatable),
@@ -238,6 +228,9 @@ static maux_construct_element_t elements[] = {
 
 static void library_init(morphine_coroutine_t U) {
     maux_construct(U, elements);
+
+    mapi_push_string(U, mapi_version_name());
+    maux_table_set(U, "version");
 }
 
 MORPHINE_LIB morphine_library_t mlib_builtin_base(void) {

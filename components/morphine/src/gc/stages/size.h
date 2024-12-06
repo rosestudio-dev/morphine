@@ -17,7 +17,6 @@
 #include "morphine/object/vector.h"
 #include "morphine/object/sio.h"
 #include "morphine/core/throw.h"
-#include "morphine/utils/unused.h"
 
 static inline size_t size_table(struct table *table) {
     return sizeof(struct table) +
@@ -42,8 +41,7 @@ static inline size_t size_function(struct function *function) {
            ((size_t) function->constants_count) * sizeof(struct value);
 }
 
-static inline size_t size_userdata(struct userdata *userdata) {
-    unused(userdata);
+static inline size_t size_userdata(morphine_unused struct userdata *userdata) {
     return sizeof(struct userdata);
 }
 
@@ -53,34 +51,29 @@ static inline size_t size_coroutine(struct coroutine *coroutine) {
            coroutine->callstack.size * sizeof(struct callstack);
 }
 
-static inline size_t size_native(struct native *native) {
-    unused(native);
+static inline size_t size_native(morphine_unused struct native *native) {
     return sizeof(struct native);
 }
 
-static inline size_t size_iterator(struct iterator *iterator) {
-    unused(iterator);
+static inline size_t size_iterator(morphine_unused struct iterator *iterator) {
     return sizeof(struct iterator);
 }
 
-static inline size_t size_exception(struct exception *exception) {
-    unused(exception);
+static inline size_t size_exception(morphine_unused struct exception *exception) {
     return sizeof(struct exception) +
            ((size_t) exception->stacktrace.elements) * sizeof(struct stacktrace_element);
 }
 
-static inline size_t size_string(struct string *string) {
+static inline size_t size_string(morphine_unused struct string *string) {
     return sizeof(struct string) +
            (((size_t) string->size) + 1) * sizeof(char);
 }
 
-static inline size_t size_reference(struct reference *reference) {
-    unused(reference);
+static inline size_t size_reference(morphine_unused struct reference *reference) {
     return sizeof(struct reference);
 }
 
-static inline size_t size_sio(struct sio *sio) {
-    unused(sio);
+static inline size_t size_sio(morphine_unused struct sio *sio) {
     return sizeof(struct sio);
 }
 

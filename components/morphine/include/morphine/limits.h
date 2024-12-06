@@ -6,6 +6,7 @@
 
 #include <stdint.h>
 #include <inttypes.h>
+#include <assert.h>
 
 // common
 
@@ -47,8 +48,8 @@ typedef uint32_t ml_line;
 
 // checks
 
-_Static_assert((sizeof(size_t) <= sizeof(uintmax_t)) && (4 <= sizeof(size_t)), "incompatible arch");
+static_assert((sizeof(size_t) <= sizeof(uintmax_t)) && (4 <= sizeof(size_t)), "incompatible arch");
 
-_Static_assert(sizeof(ml_size) <= sizeof(size_t), "ml_size incompatible with arch");
-_Static_assert((sizeof(ml_size) <= sizeof(ml_integer)) && (MLIMIT_SIZE_MAX <= MLIMIT_INTEGER_MAX), "ml_size incompatible with ml_integer");
-_Static_assert(sizeof(ml_argument) < sizeof(ml_size), "ml_argument incompatible with ml_size");
+static_assert(sizeof(ml_size) <= sizeof(size_t), "ml_size incompatible with arch");
+static_assert((sizeof(ml_size) <= sizeof(ml_integer)) && (MLIMIT_SIZE_MAX <= MLIMIT_INTEGER_MAX), "ml_size incompatible with ml_integer");
+static_assert(sizeof(ml_argument) < sizeof(ml_size), "ml_argument incompatible with ml_size");

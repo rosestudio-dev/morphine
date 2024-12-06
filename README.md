@@ -121,7 +121,7 @@ fun pcalltest<error>(throw) = throw or error("hello world!")
 do {
     var pcallres = pcall(pcalltest, nil)
     println(exception.value(pcallres))
-    exception.print(pcallres, sio.io())
+    exception.print(pcallres, sio.stream.io)
 }
 
 do {

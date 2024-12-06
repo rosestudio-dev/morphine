@@ -24,3 +24,14 @@ MORPHINE_AUX void maux_expect_args(morphine_coroutine_t U, size_t count) {
         }
     }
 }
+
+MORPHINE_AUX void maux_expect_args_minimum(morphine_coroutine_t U, size_t count) {
+    size_t got = mapi_args(U);
+    if (got < count) {
+        if (count == 1) {
+            mapi_errorf(U, "expected minimum 1 argument, but got %zu", got);
+        } else {
+            mapi_errorf(U, "expected minimum %zu arguments, but got %zu", count, got);
+        }
+    }
+}
