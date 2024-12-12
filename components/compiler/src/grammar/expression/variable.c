@@ -6,60 +6,57 @@
 #include "../extra/arguments.h"
 
 static size_t function_arguments(struct parse_controller *C, struct mc_ast_expression **args) {
+    bool error = true;
+    size_t count = 0;
+
+    if (parser_look(C, et_operator(LPAREN))) {
+        error = false;
+
+        struct arguments A = extra_arguments_init_full(
+            C, true, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
+        );
+
+        size_t index = 0;
+        for (; extra_arguments_next(C, &A); index++) {
+            struct mc_ast_expression *expression =
+                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
+
+            if (args != NULL) {
+                args[index] = expression;
+            }
+        }
+
+        count += extra_arguments_finish(C, &A);
+    }
+
     if (parser_look(C, et_operator(LBRACE))) {
+        error = false;
+
         struct mc_ast_expression *expression =
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_table));
 
         if (args != NULL) {
-            args[0] = expression;
+            args[count] = expression;
         }
 
-        return 1;
-    } else if (parser_match(C, et_operator(LARROW))) {
-        struct mc_ast_expression *expression =
-            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
-
-        if (args != NULL) {
-            args[0] = expression;
-        }
-
-        return 1;
+        count++;
     }
 
-    struct arguments A = extra_arguments_init_full(
-        C, true, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
-    );
+    if (parser_match(C, et_operator(LARROW))) {
+        error = false;
 
-    size_t index = 0;
-    for (; extra_arguments_next(C, &A); index++) {
         struct mc_ast_expression *expression =
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
         if (args != NULL) {
-            args[index] = expression;
+            args[count] = expression;
         }
+
+        count++;
     }
 
-    size_t count = extra_arguments_finish(C, &A);
-
-    if (parser_look(C, et_operator(LBRACE))) {
-        struct mc_ast_expression *expression =
-            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_table));
-
-        if (args != NULL) {
-            args[index] = expression;
-        }
-
-        return count + 1;
-    } else if (parser_match(C, et_operator(LARROW))) {
-        struct mc_ast_expression *expression =
-            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
-
-        if (args != NULL) {
-            args[index] = expression;
-        }
-
-        return count + 1;
+    if (error) {
+        parser_consume(C, et_operator(LPAREN));
     }
 
     return count;
