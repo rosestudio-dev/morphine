@@ -20,6 +20,7 @@ struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
     (*result) = (struct vector) {
         .mode.fixed = true,
         .mode.mutable = true,
+        .mode.accessible = true,
         .mode.locked = false,
         .size.real = 0,
         .size.accessible = 0,
@@ -79,6 +80,18 @@ void vectorI_mode_mutable(morphine_instance_t I, struct vector *vector, bool is_
     vector->mode.mutable = is_mutable;
 }
 
+void vectorI_mode_accessible(morphine_instance_t I, struct vector *vector, bool is_accessible) {
+    if (vector == NULL) {
+        throwI_error(I, "vector is null");
+    }
+
+    if (vector->mode.locked) {
+        throwI_error(I, "vector is locked");
+    }
+
+    vector->mode.accessible = is_accessible;
+}
+
 void vectorI_mode_lock(morphine_instance_t I, struct vector *vector) {
     if (vector == NULL) {
         throwI_error(I, "vector is null");
@@ -93,18 +106,6 @@ ml_size vectorI_size(morphine_instance_t I, struct vector *vector) {
     }
 
     return vector->size.accessible;
-}
-
-struct value vectorI_get(morphine_instance_t I, struct vector *vector, ml_size index) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
-    if (index >= vector->size.accessible) {
-        throwI_error(I, "vector index out of bounce");
-    }
-
-    return vector->values[index];
 }
 
 void vectorI_set(morphine_instance_t I, struct vector *vector, ml_size index, struct value value) {
@@ -170,6 +171,36 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
     }
 
     vector->values[index] = value;
+}
+
+bool vectorI_has(morphine_instance_t I, struct vector *vector, struct value value) {
+    if (vector == NULL) {
+        throwI_error(I, "vector is null");
+    }
+
+    for (ml_size i = 0; i < vector->size.accessible; i++) {
+        if (valueI_equal(I, vector->values[i], value)) {
+            return true;
+        }
+    }
+
+    return false;
+}
+
+struct value vectorI_get(morphine_instance_t I, struct vector *vector, ml_size index) {
+    if (vector == NULL) {
+        throwI_error(I, "vector is null");
+    }
+
+    if (!vector->mode.accessible) {
+        throwI_error(I, "vector is inaccessible");
+    }
+
+    if (index >= vector->size.accessible) {
+        throwI_error(I, "vector index out of bounce");
+    }
+
+    return vector->values[index];
 }
 
 struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_size index) {
@@ -254,6 +285,10 @@ struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
         throwI_error(I, "vector is null");
     }
 
+    if (!vector->mode.accessible) {
+        throwI_error(I, "vector is inaccessible");
+    }
+
     ml_size size = vector->size.accessible;
 
     struct vector *result = vectorI_create(I, size);
@@ -284,6 +319,7 @@ struct vector *vectorI_concat(morphine_instance_t I, struct vector *a, struct ve
     struct vector *result = vectorI_create(I, size);
     result->mode.mutable = a->mode.mutable;
     result->mode.fixed = a->mode.fixed;
+    result->mode.accessible = a->mode.accessible;
     result->mode.locked = a->mode.locked;
 
     memcpy(
@@ -451,6 +487,10 @@ struct value vectorI_iterator_first(morphine_instance_t I, struct vector *vector
         throwI_error(I, "vector is null");
     }
 
+    if (!vector->mode.accessible) {
+        throwI_error(I, "vector is inaccessible");
+    }
+
     if (has != NULL) {
         (*has) = vector->size.accessible > 0;
     }
@@ -470,6 +510,10 @@ struct pair vectorI_iterator_next(
 ) {
     if (vector == NULL) {
         throwI_error(I, "vector is null");
+    }
+
+    if (!vector->mode.accessible) {
+        throwI_error(I, "vector is inaccessible");
     }
 
     if (key == NULL) {

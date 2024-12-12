@@ -469,6 +469,7 @@ struct table *tableI_create(morphine_instance_t I) {
 
         .mode.fixed = false,
         .mode.mutable = true,
+        .mode.accessible = true,
         .mode.metatable_locked = false,
         .mode.locked = false,
 
@@ -520,6 +521,18 @@ void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mut
     }
 
     table->mode.mutable = is_mutable;
+}
+
+void tableI_mode_accessible(morphine_instance_t I, struct table *table, bool is_accessible) {
+    if (table == NULL) {
+        throwI_error(I, "table is null");
+    }
+
+    if (table->mode.locked) {
+        throwI_error(I, "table is locked");
+    }
+
+    table->mode.accessible = is_accessible;
 }
 
 void tableI_mode_lock_metatable(morphine_instance_t I, struct table *table) {
@@ -613,9 +626,21 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     }
 }
 
+bool tableI_has(morphine_instance_t I, struct table *table, struct value key) {
+    if (table == NULL) {
+        throwI_error(I, "table is null");
+    }
+
+    return get(I, &table->hashmap, key) != NULL;
+}
+
 struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
     if (table == NULL) {
         throwI_error(I, "table is null");
+    }
+
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -664,6 +689,10 @@ void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, s
 struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index, bool *has) {
     if (table == NULL) {
         throwI_error(I, "table is null");
+    }
+
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
     }
 
     struct hashmap *hashmap = &table->hashmap;
@@ -777,6 +806,10 @@ struct table *tableI_copy(morphine_instance_t I, struct table *table) {
         throwI_error(I, "table is null");
     }
 
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
+    }
+
     gcI_safe_enter(I);
     gcI_safe(I, valueI_object(table));
     struct table *result = gcI_safe_obj(I, table, tableI_create(I));
@@ -800,6 +833,10 @@ struct value tableI_iterator_first(morphine_instance_t I, struct table *table, b
         throwI_error(I, "table is null");
     }
 
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
+    }
+
     struct hashmap *hashmap = &table->hashmap;
     struct bucket *bucket = hashmap->buckets.tail;
 
@@ -817,6 +854,10 @@ struct value tableI_iterator_first(morphine_instance_t I, struct table *table, b
 struct pair tableI_iterator_next(morphine_instance_t I, struct table *table, struct value *key, bool *next) {
     if (table == NULL) {
         throwI_error(I, "table is null");
+    }
+
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
     }
 
     if (key == NULL) {

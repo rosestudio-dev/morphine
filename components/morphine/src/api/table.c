@@ -32,6 +32,11 @@ MORPHINE_API void mapi_table_mode_fixed(morphine_coroutine_t U, bool is_fixed) {
     tableI_mode_fixed(U->I, table, is_fixed);
 }
 
+MORPHINE_API void mapi_table_mode_accessible(morphine_coroutine_t U, bool is_accessible) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    tableI_mode_accessible(U->I, table, is_accessible);
+}
+
 MORPHINE_API void mapi_table_mode_lock_metatable(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
     tableI_mode_lock_metatable(U->I, table);
@@ -52,6 +57,11 @@ MORPHINE_API bool mapi_table_mode_is_fixed(morphine_coroutine_t U) {
     return table->mode.fixed;
 }
 
+MORPHINE_API bool mapi_table_mode_is_accessible(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    return table->mode.accessible;
+}
+
 MORPHINE_API bool mapi_table_mode_metatable_is_locked(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
     return table->mode.metatable_locked;
@@ -69,6 +79,13 @@ MORPHINE_API void mapi_table_set(morphine_coroutine_t U) {
 
     tableI_set(U->I, valueI_as_table_or_error(U->I, table), key, value);
     stackI_pop(U, 2);
+}
+
+MORPHINE_API bool mapi_table_has(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 1));
+    struct value value = stackI_peek(U, 0);
+
+    return tableI_has(U->I, table, value);
 }
 
 MORPHINE_API bool mapi_table_get(morphine_coroutine_t U) {
@@ -148,13 +165,11 @@ MORPHINE_API void mapi_table_idx_keyoe(morphine_coroutine_t U, ml_size index) {
 }
 
 MORPHINE_API void mapi_table_getoe(morphine_coroutine_t U) {
-    struct value table = stackI_peek(U, 1);
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 1));
     struct value value = stackI_peek(U, 0);
 
-    bool has = false;
-    struct value result = tableI_get(U->I, valueI_as_table_or_error(U->I, table), value, &has);
-
-    if (has) {
+    if (tableI_has(U->I, table, value)) {
+        struct value result = tableI_get(U->I, table, value, NULL);
         stackI_replace(U, 0, result);
     } else {
         throwI_errorf(U->I, "cannot get value from table by key");
@@ -162,13 +177,11 @@ MORPHINE_API void mapi_table_getoe(morphine_coroutine_t U) {
 }
 
 MORPHINE_API void mapi_table_removeoe(morphine_coroutine_t U) {
-    struct value table = stackI_peek(U, 1);
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 1));
     struct value value = stackI_peek(U, 0);
 
-    bool has = false;
-    struct value result = tableI_remove(U->I, valueI_as_table_or_error(U->I, table), value, &has);
-
-    if (has) {
+    if (tableI_has(U->I, table, value)) {
+        struct value result = tableI_remove(U->I, table, value, NULL);
         stackI_replace(U, 0, result);
     } else {
         throwI_errorf(U->I, "cannot remove from table by key");

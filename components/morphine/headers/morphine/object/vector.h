@@ -12,6 +12,7 @@ struct vector {
     struct {
         bool fixed;
         bool mutable;
+        bool accessible;
         bool locked;
     } mode;
 
@@ -28,13 +29,15 @@ void vectorI_free(morphine_instance_t, struct vector *);
 
 void vectorI_mode_fixed(morphine_instance_t, struct vector *, bool is_fixed);
 void vectorI_mode_mutable(morphine_instance_t, struct vector *, bool is_mutable);
+void vectorI_mode_accessible(morphine_instance_t, struct vector *, bool is_accessible);
 void vectorI_mode_lock(morphine_instance_t, struct vector *);
 
 ml_size vectorI_size(morphine_instance_t, struct vector *);
 
 void vectorI_set(morphine_instance_t, struct vector *, ml_size, struct value);
-struct value vectorI_get(morphine_instance_t, struct vector *, ml_size);
 void vectorI_add(morphine_instance_t, struct vector *, ml_size, struct value);
+bool vectorI_has(morphine_instance_t, struct vector *, struct value);
+struct value vectorI_get(morphine_instance_t, struct vector *, ml_size);
 struct value vectorI_remove(morphine_instance_t, struct vector *, ml_size);
 
 void vectorI_resize(morphine_instance_t, struct vector *, ml_size);

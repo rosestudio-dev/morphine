@@ -103,6 +103,22 @@ static void resize(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void has(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 2);
+
+            mapi_push_arg(U, 0);
+            maux_expect(U, "vector");
+
+            mapi_push_arg(U, 1);
+
+            bool result = mapi_vector_has(U);
+            mapi_push_boolean(U, result);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void add(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -217,7 +233,9 @@ static void mutable(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             bool value = true;
-            if (mapi_args(U) == 1) {
+            if (mapi_args(U) == 0) {
+                mapi_push_vector(U, 0);
+            } if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
                 maux_expect(U, "vector");
             } else {
@@ -237,10 +255,26 @@ static void mutable(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void unfixed(morphine_coroutine_t U) {
+static void immutable(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            bool value = false;
+            if (mapi_args(U) == 0) {
+                mapi_push_vector(U, 0);
+            } else {
+                maux_expect_args(U, 1);
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            }
+
+            mapi_vector_mode_mutable(U, false);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void fixed(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            bool value = true;
             if (mapi_args(U) == 0) {
                 mapi_push_vector(U, 0);
             } else if (mapi_args(U) == 1) {
@@ -259,6 +293,64 @@ static void unfixed(morphine_coroutine_t U) {
             }
 
             mapi_vector_mode_fixed(U, value);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void unfixed(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            if (mapi_args(U) == 0) {
+                mapi_push_vector(U, 0);
+            } else {
+                maux_expect_args(U, 1);
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            }
+
+            mapi_vector_mode_fixed(U, false);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void accessible(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            bool value = true;
+            if (mapi_args(U) == 0) {
+                mapi_push_vector(U, 0);
+            } else if (mapi_args(U) == 1) {
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            } else {
+                maux_expect_args(U, 2);
+
+                mapi_push_arg(U, 1);
+                maux_expect(U, "boolean");
+                value = mapi_get_boolean(U);
+                mapi_pop(U, 1);
+
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            }
+
+            mapi_vector_mode_accessible(U, value);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void inaccessible(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            if (mapi_args(U) == 0) {
+                mapi_push_vector(U, 0);
+            } else {
+                maux_expect_args(U, 1);
+                mapi_push_arg(U, 0);
+                maux_expect(U, "vector");
+            }
+
+            mapi_vector_mode_accessible(U, false);
             maux_nb_return();
     maux_nb_end
 }
@@ -301,6 +393,19 @@ static void isfixed(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void isaccessible(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_expect(U, "vector");
+
+            bool value = mapi_vector_mode_is_accessible(U);
+            mapi_push_boolean(U, value);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void islocked(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -321,6 +426,7 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("trim", trim),
     MAUX_CONSTRUCT_FUNCTION("sort", sort),
     MAUX_CONSTRUCT_FUNCTION("resize", resize),
+    MAUX_CONSTRUCT_FUNCTION("has", has),
     MAUX_CONSTRUCT_FUNCTION("add", add),
     MAUX_CONSTRUCT_FUNCTION("remove", remove_),
     MAUX_CONSTRUCT_FUNCTION("push", push),
@@ -330,10 +436,15 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("frontpeek", frontpeek),
     MAUX_CONSTRUCT_FUNCTION("frontpop", frontpop),
     MAUX_CONSTRUCT_FUNCTION("mutable", mutable),
+    MAUX_CONSTRUCT_FUNCTION("immutable", immutable),
+    MAUX_CONSTRUCT_FUNCTION("fixed", fixed),
     MAUX_CONSTRUCT_FUNCTION("unfixed", unfixed),
+    MAUX_CONSTRUCT_FUNCTION("accessible", accessible),
+    MAUX_CONSTRUCT_FUNCTION("inaccessible", inaccessible),
     MAUX_CONSTRUCT_FUNCTION("lock", lock),
     MAUX_CONSTRUCT_FUNCTION("isfixed", isfixed),
     MAUX_CONSTRUCT_FUNCTION("ismutable", ismutable),
+    MAUX_CONSTRUCT_FUNCTION("isaccessible", isaccessible),
     MAUX_CONSTRUCT_FUNCTION("islocked", islocked),
     MAUX_CONSTRUCT_END
 };
