@@ -8,8 +8,6 @@
 #include "morphine/core/value.h"
 #include "morphine/utils/semicolon.h"
 
-#define throwI_errorf(I, ...) semicolon_blk(morphine_instance_t _instance = (I); throwI_errorv(_instance, valueI_object(stringI_createf(_instance, __VA_ARGS__)));)
-
 typedef enum {
     THROW_TYPE_VALUE,
     THROW_TYPE_MESSAGE,
@@ -46,9 +44,10 @@ void throwI_special(morphine_instance_t);
 void throwI_handler(morphine_instance_t);
 void throwI_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void *, void *);
 
-morphine_noret void throwI_error(morphine_instance_t, const char *message);
-morphine_noret void throwI_errorv(morphine_instance_t, struct value value);
-morphine_noret void throwI_panic(morphine_instance_t, const char *message);
+morphine_noret void throwI_error(morphine_instance_t, const char *);
+morphine_noret void throwI_errorv(morphine_instance_t, struct value);
+morphine_noret void throwI_errorf(morphine_instance_t, const char *, ...);
+morphine_noret void throwI_panic(morphine_instance_t, const char *);
 morphine_noret void throwI_ofm(morphine_instance_t);
 morphine_noret void throwI_af(morphine_instance_t);
 

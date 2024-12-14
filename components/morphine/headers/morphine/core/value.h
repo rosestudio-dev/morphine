@@ -41,7 +41,7 @@
 #define valueI_is_iterator(x)  valueI_is(ITERATOR, x)
 #define valueI_is_sio(x)       valueI_is(SIO, x)
 
-#define valueI_is_object(x)   typeI_value_is_obj((x).type)
+#define valueI_is_object(x)   (typeI_isobj((x).type))
 #define valueI_is_metatype(x) ({struct value _a = (x); (valueI_is_table(_a) || valueI_is_userdata(_a));})
 #define valueI_is_iterable(x) ({struct value _a = (x); (valueI_is_table(_a) || valueI_is_vector(_a));})
 #define valueI_is_callable(x) ({struct value _a = (x); (valueI_is_closure(_a) || valueI_is_function(_a) || valueI_is_native(_a));})
@@ -170,7 +170,6 @@ struct pair {
 
 const char *valueI_type(morphine_instance_t, struct value, bool raw);
 bool valueI_is_type(morphine_instance_t, const char *name, bool raw);
-enum value_type valueI_string2type(morphine_instance_t, const char *name);
 
 int valueI_compare(morphine_instance_t, struct value, struct value);
 ml_hash valueI_hash(morphine_instance_t, struct value);

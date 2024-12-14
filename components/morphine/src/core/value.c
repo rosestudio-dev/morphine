@@ -91,48 +91,6 @@ bool valueI_equal(morphine_instance_t I, struct value a, struct value b) {
     return valueI_compare(I, a, b) == 0;
 }
 
-static const char *type2string(morphine_instance_t I, enum value_type type) {
-    switch (type) {
-        case VALUE_TYPE_NIL:
-            return "nil";
-        case VALUE_TYPE_INTEGER:
-            return "integer";
-        case VALUE_TYPE_DECIMAL:
-            return "decimal";
-        case VALUE_TYPE_BOOLEAN:
-            return "boolean";
-        case VALUE_TYPE_NATIVE:
-            return "native";
-        case VALUE_TYPE_STRING:
-            return "string";
-        case VALUE_TYPE_USERDATA:
-            return "userdata";
-        case VALUE_TYPE_TABLE:
-            return "table";
-        case VALUE_TYPE_VECTOR:
-            return "vector";
-        case VALUE_TYPE_CLOSURE:
-            return "closure";
-        case VALUE_TYPE_COROUTINE:
-            return "coroutine";
-        case VALUE_TYPE_FUNCTION:
-            return "function";
-        case VALUE_TYPE_REFERENCE:
-            return "reference";
-        case VALUE_TYPE_EXCEPTION:
-            return "exception";
-        case VALUE_TYPE_ITERATOR:
-            return "iterator";
-        case VALUE_TYPE_SIO:
-            return "sio";
-        case VALUE_TYPE_RAW:
-            return "raw";
-    }
-
-    throwI_panic(I, "unsupported type");
-}
-
-
 const char *valueI_type(morphine_instance_t I, struct value value, bool raw) {
     if (!raw) {
         struct userdata *userdata = valueI_safe_as_userdata(value, NULL);
@@ -144,7 +102,7 @@ const char *valueI_type(morphine_instance_t I, struct value value, bool raw) {
         }
     }
 
-    return type2string(I, value.type);
+    return typeI_tostring(I, value.type);
 }
 
 bool valueI_is_type(morphine_instance_t I, const char *name, bool raw) {
@@ -152,21 +110,15 @@ bool valueI_is_type(morphine_instance_t I, const char *name, bool raw) {
         return true;
     }
 
-    for (enum value_type t = VALUE_TYPES_START; t < VALUE_TYPES_COUNT; t++) {
-        if (strcmp(type2string(I, t), name) == 0) {
-            return true;
-        }
-    }
+#define type_if(s)                 if (strcmp(#s, name) == 0) { return true; };
+#define mspec_type_object(i, n, s) type_if(s)
+#define mspec_type_value(i, n, s)  type_if(s)
+
+#include "morphine/core/type/specification.h"
+
+#undef type_if
+#undef mspec_type_object
+#undef mspec_type_value
 
     return false;
-}
-
-enum value_type valueI_string2type(morphine_instance_t I, const char *name) {
-    for (enum value_type t = VALUE_TYPES_START; t < VALUE_TYPES_COUNT; t++) {
-        if (strcmp(type2string(I, t), name) == 0) {
-            return t;
-        }
-    }
-
-    throwI_errorf(I, "unknown type '%s'", name);
 }

@@ -170,17 +170,17 @@ static void serialize(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 0);
             if (mapi_is(U, "table")) {
-                maux_library_access(U, "value.table.serialize");
+                maux_library_access(U, "value.serializetype.table");
                 mapi_rotate(U, 2);
                 mapi_peek(U, 2);
                 maux_nb_call(2, 1);
             } else if (mapi_is(U, "vector")) {
-                maux_library_access(U, "value.vector.serialize");
+                maux_library_access(U, "value.serializetype.vector");
                 mapi_rotate(U, 2);
                 mapi_peek(U, 2);
                 maux_nb_call(2, 1);
             } else if (mapi_is(U, "string")) {
-                maux_library_access(U, "value.string.serialize");
+                maux_library_access(U, "value.serializetype.string");
                 mapi_rotate(U, 2);
                 maux_nb_call(1, 1);
             } else {
@@ -211,7 +211,7 @@ static void tabulation(morphine_coroutine_t U, ml_size level, ml_size size) {
     mapi_pop(U, 1);
 }
 
-static void table_serialize(morphine_coroutine_t U) {
+static void serializetype_table(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             bool pretty = false;
@@ -349,7 +349,7 @@ static void table_serialize(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void vector_serialize(morphine_coroutine_t U) {
+static void serializetype_vector(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             bool pretty = false;
@@ -474,7 +474,7 @@ static void vector_serialize(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void string_serialize(morphine_coroutine_t U) {
+static void serializetype_string(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
@@ -499,12 +499,23 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("compare", compare),
     MAUX_CONSTRUCT_FUNCTION("hash", hash),
     MAUX_CONSTRUCT_FUNCTION("serialize", serialize),
-    MAUX_CONSTRUCT_FUNCTION("table.serialize", table_serialize),
-    MAUX_CONSTRUCT_FUNCTION("vector.serialize", vector_serialize),
-    MAUX_CONSTRUCT_FUNCTION("string.serialize", string_serialize),
-    MAUX_CONSTRUCT_INTEGER("constants.intmin", MLIMIT_INTEGER_MIN),
-    MAUX_CONSTRUCT_INTEGER("constants.intmax", MLIMIT_INTEGER_MAX),
-    MAUX_CONSTRUCT_INTEGER("constants.sizemax", MLIMIT_SIZE_MAX),
+    MAUX_CONSTRUCT_FUNCTION("serializetype.table", serializetype_table),
+    MAUX_CONSTRUCT_FUNCTION("serializetype.vector", serializetype_vector),
+    MAUX_CONSTRUCT_FUNCTION("serializetype.string", serializetype_string),
+    MAUX_CONSTRUCT_INTEGER("limits.intmin", MLIMIT_INTEGER_MIN),
+    MAUX_CONSTRUCT_INTEGER("limits.intmax", MLIMIT_INTEGER_MAX),
+    MAUX_CONSTRUCT_INTEGER("limits.sizemax", MLIMIT_SIZE_MAX),
+
+#define def_type(s)                MAUX_CONSTRUCT_STRING("type."#s, #s),
+#define mspec_type_object(i, n, s) def_type(s)
+#define mspec_type_value(i, n, s)  def_type(s)
+
+#include "morphine/core/type/specification.h"
+
+#undef def_type
+#undef mspec_type_object
+#undef mspec_type_value
+
     MAUX_CONSTRUCT_END
 };
 

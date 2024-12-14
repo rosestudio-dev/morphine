@@ -172,6 +172,15 @@ morphine_noret void throwI_errorv(morphine_instance_t I, struct value value) {
     error(I);
 }
 
+morphine_noret void throwI_errorf(morphine_instance_t I, const char *message, ...) {
+    va_list args;
+    va_start(args, message);
+    struct string *error = stringI_createva(I, message, args);
+    va_end(args);
+
+    throwI_errorv(I, valueI_object(error));
+}
+
 morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
     struct throw *throw = &I->throw;
 

@@ -9,6 +9,7 @@
 #include "platform.h"
 #include "misc/instruction/type.h"
 #include "misc/metatable/type.h"
+#include "core/type/constants.h"
 
 MORPHINE_API const char *mapi_version_name(void);
 MORPHINE_API ml_version mapi_version(void);

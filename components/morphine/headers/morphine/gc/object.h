@@ -6,7 +6,7 @@
 
 #include "morphine/platform.h"
 #include "morphine/utils/cast.h"
-#include "morphine/type.h"
+#include "morphine/core/type.h"
 
 #define objectI_cast(x) cast(struct object *, (x))
 
