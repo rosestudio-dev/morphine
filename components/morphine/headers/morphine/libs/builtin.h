@@ -22,3 +22,4 @@ MORPHINE_LIB morphine_library_t mlib_builtin_closure(void);
 MORPHINE_LIB morphine_library_t mlib_builtin_exception(void);
 MORPHINE_LIB morphine_library_t mlib_builtin_sharedstorage(void);
 MORPHINE_LIB morphine_library_t mlib_builtin_iterator(void);
+MORPHINE_LIB morphine_library_t mlib_builtin_assertion(void);

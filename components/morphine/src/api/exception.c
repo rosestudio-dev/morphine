@@ -21,6 +21,12 @@ MORPHINE_API void mapi_exception_value(morphine_coroutine_t U) {
     stackI_push(U, exception->value);
 }
 
+MORPHINE_API void mapi_exception_message(morphine_coroutine_t U) {
+    struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
+    struct string *message = exceptionI_message(U->I, exception);
+    stackI_push(U, valueI_object(message));
+}
+
 MORPHINE_API void mapi_exception_error_print(morphine_coroutine_t U) {
     struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 1));
     struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));

@@ -167,7 +167,7 @@ static void buffer_free(morphine_instance_t I, void *data) {
 }
 
 MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t U, size_t factor, bool read, bool write) {
-    if (factor == 0) {
+    if (write && factor == 0) {
         mapi_error(U, "sio buffer extension factor is zero");
     }
 

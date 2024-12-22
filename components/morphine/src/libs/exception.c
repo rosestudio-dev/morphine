@@ -28,6 +28,17 @@ static void value(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void message(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+
+            mapi_exception_message(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void print(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -156,6 +167,7 @@ static void stacktrace_get(morphine_coroutine_t U) {
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("create", create),
     MAUX_CONSTRUCT_FUNCTION("value", value),
+    MAUX_CONSTRUCT_FUNCTION("message", message),
     MAUX_CONSTRUCT_FUNCTION("print", print),
     MAUX_CONSTRUCT_FUNCTION("error.print", error_print),
     MAUX_CONSTRUCT_FUNCTION("stacktrace.print", stacktrace_print),

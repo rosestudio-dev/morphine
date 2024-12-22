@@ -42,6 +42,27 @@ void exceptionI_free(morphine_instance_t I, struct exception *exception) {
     allocI_free(I, exception);
 }
 
+struct string *exceptionI_message(morphine_instance_t I, struct exception *exception) {
+    if (exception == NULL) {
+        throwI_error(I, "exception is null");
+    }
+
+    struct value value = exception->value;
+    if (!metatableI_builtin_test(I, value, MORPHINE_METAFIELD_MESSAGE, &value)) {
+        value = exception->value;
+    }
+
+    gcI_safe_enter(I);
+
+    gcI_safe(I, valueI_object(exception));
+    gcI_safe(I, value);
+    struct string *string = gcI_safe_obj(I, string, convertI_to_string(I, value));
+
+    gcI_safe_exit(I);
+
+    return string;
+}
+
 static void print_string(morphine_instance_t I, struct sio *sio, struct string *string) {
     if (string->size > MLIMIT_STACKTRACE_STRING) {
         sioI_write(I, sio, (const uint8_t *) (string->chars), MLIMIT_STACKTRACE_STRING * sizeof(char));
@@ -52,19 +73,17 @@ static void print_string(morphine_instance_t I, struct sio *sio, struct string *
 }
 
 void exceptionI_error_print(morphine_instance_t I, struct exception *exception, struct sio *sio) {
-    if (exception == NULL) {
-        throwI_error(I, "exception is null");
-    }
+    gcI_safe_enter(I);
 
-    struct value value = exception->value;
-    if (!metatableI_builtin_test(I, value, MORPHINE_METAFIELD_MESSAGE, &value)) {
-        value = exception->value;
-    }
+    gcI_safe(I, valueI_object(exception));
+    gcI_safe(I, valueI_object(sio));
+    struct string *string = gcI_safe_obj(I, string, exceptionI_message(I, exception));
 
-    struct string *string = convertI_to_string(I, value);
     sioI_print(I, sio, "morphine error: ");
     print_string(I, sio, string);
     sioI_print(I, sio, "\n");
+
+    gcI_safe_exit(I);
 }
 
 void exceptionI_stacktrace_print(

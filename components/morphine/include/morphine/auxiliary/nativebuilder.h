@@ -15,7 +15,7 @@
 #define maux_nb_leave()        do { mapi_leave(_maux_nb_coro); goto _maux_nb_end_leave; } while(0)
 #define maux_nb_return(x)      do { { x; } mapi_return(_maux_nb_coro); goto _maux_nb_end_leave; } while(0)
 
-#define maux_nb_operation(op, s) do { mapi_continue(_maux_nb_coro, (s)); if(mapi_op(_maux_nb_coro, (op))) { goto _maux_nb_end_leave; } mapi_result(_maux_nb_coro); maux_nb_im_continue(s); } while(0)
+#define maux_nb_operation(op, s) do { mapi_continue(_maux_nb_coro, (s)); if (mapi_op(_maux_nb_coro, (op))) { goto _maux_nb_end_leave; } mapi_result(_maux_nb_coro); maux_nb_im_continue(s); } while(0)
 #define maux_nb_call(args, s)    do { mapi_continue(_maux_nb_coro, (s)); mapi_call(_maux_nb_coro, (args)); goto _maux_nb_end_leave; } while(0)
 #define maux_nb_ecall(args, s)   do { mapi_continue(_maux_nb_coro, (s)); mapi_ecall(_maux_nb_coro, (args)); goto _maux_nb_end_leave; } while(0)
 #define maux_nb_scall(args, s)   do { mapi_continue(_maux_nb_coro, (s)); mapi_scall(_maux_nb_coro, (args)); goto _maux_nb_end_leave; } while(0)

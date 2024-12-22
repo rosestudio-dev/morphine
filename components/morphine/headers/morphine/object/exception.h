@@ -37,6 +37,7 @@ struct exception {
 struct exception *exceptionI_create(morphine_instance_t, struct value);
 void exceptionI_free(morphine_instance_t, struct exception *);
 
+struct string *exceptionI_message(morphine_instance_t, struct exception *);
 void exceptionI_error_print(morphine_instance_t, struct exception *, struct sio *);
 void exceptionI_stacktrace_print(morphine_instance_t, struct exception *, struct sio *, ml_size);
 void exceptionI_stacktrace_record(morphine_instance_t, struct exception *, morphine_coroutine_t);

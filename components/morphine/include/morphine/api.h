@@ -374,6 +374,7 @@ MORPHINE_API size_t mapi_sio_printf(morphine_coroutine_t, const char *, ...);
 
 MORPHINE_API void mapi_push_exception(morphine_coroutine_t);
 MORPHINE_API void mapi_exception_value(morphine_coroutine_t);
+MORPHINE_API void mapi_exception_message(morphine_coroutine_t);
 MORPHINE_API void mapi_exception_error_print(morphine_coroutine_t);
 MORPHINE_API void mapi_exception_stacktrace_print(morphine_coroutine_t, ml_size);
 MORPHINE_API void mapi_exception_stacktrace_record(morphine_coroutine_t, morphine_coroutine_t);
