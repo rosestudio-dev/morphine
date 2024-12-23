@@ -1,9 +1,9 @@
-val { println, error } = env.library("base")
-val { format, repeat } = env.library("string")
-val { tostr, tobool, toint } = env.library("value")
-val { fixed } = env.library("table")
-val { trim } = env.library("vector")
-val { exit } = env.library("__app")
+val { println, error } = env.lib("base")
+val { format, repeat } = env.lib("string")
+val { tostr, tobool, toint } = env.lib("value")
+val { fixed } = env.lib("table")
+val { trim } = env.lib("vector")
+val { exit } = env.lib("__app")
 val tobytes = env.load("utils.tobytes")
 
 val type = {

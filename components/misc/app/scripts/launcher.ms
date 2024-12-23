@@ -1,13 +1,13 @@
-val { version, pcall, ecall, println } = env.library("base")
-val { exit } = env.library("__app")
-val { tostr } = env.library("value")
-val { pack, unpack } = env.library("packer")
-val exception = env.library("exception")
-val compiler = env.library("compiler")
-val vector = env.library("vector")
-val sio = env.library("sio")
-val fs = env.library("fs")
-val gc = env.library("gc")
+val { version, pcall, ecall, println } = env.lib("base")
+val { exit } = env.lib("__app")
+val { tostr } = env.lib("value")
+val { pack, unpack } = env.lib("packer")
+val exception = env.lib("exception")
+val compiler = env.lib("compiler")
+val vector = env.lib("vector")
+val sio = env.lib("sio")
+val fs = env.lib("fs")
+val gc = env.lib("gc")
 
 val parseargs = env.load("utils.parseargs")
 val fakelib = env.load("utils.fakelib")
@@ -102,7 +102,7 @@ if (config.export != nil) {
 
 if (config.run) {
     val environment = {
-        library = fakelib,
+        lib = fakelib,
         args = vector.copy(config.args)
     }
 

@@ -33,7 +33,7 @@ static morphine_library_t (*builtins[])(void) = {
     mlib_builtin_assertion,
 };
 
-static void library(morphine_coroutine_t U) {
+static void lib(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
@@ -89,8 +89,8 @@ static void init_libraries(morphine_instance_t I) {
         librariesI_load(I, builtins[i]());
     }
 
-    struct string *name = stringI_create(I, "library");
-    struct value native = valueI_object(nativeI_create(I, name, library));
+    struct string *name = stringI_create(I, "lib");
+    struct value native = valueI_object(nativeI_create(I, name, lib));
     tableI_set(I, I->env, valueI_object(name), native);
 }
 

@@ -1,6 +1,6 @@
 do {
-    val app = env.library("__app")
-    val compiler = env.library("compiler")
+    val app = env.lib("__app")
+    val compiler = env.lib("compiler")
 
     env.load = fun load<auto>(name) {
         env.__load_cache = env.__load_cache or { }

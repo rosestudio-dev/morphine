@@ -1,6 +1,6 @@
-val { isalpha, tolower, substring } = env.library("string")
-val { tostr, toint } = env.library("value")
-val { error } = env.library("base")
+val { isalpha, tolower, substring } = env.lib("string")
+val { tostr, toint } = env.lib("value")
+val { error } = env.lib("base")
 
 return fun tobytes<auto>(value) {
     val last = value[lenof value - 1]

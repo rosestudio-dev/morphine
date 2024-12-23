@@ -1,7 +1,7 @@
-val { version, pcall, ecall, println } = env.library("base")
-val exception = env.library("exception")
-val compiler = env.library("compiler")
-val app = env.library("__app")
+val { version, pcall, ecall, println } = env.lib("base")
+val exception = env.lib("exception")
+val compiler = env.lib("compiler")
+val app = env.lib("__app")
 
 val fakelib = env.load("utils.fakelib")
 
@@ -41,7 +41,7 @@ fun repl<auto>() {
 
     fun recursive restore<auto>() {
         data.environment = {
-            library = fakelib,
+            lib = fakelib,
             exit = exit,
             block = block,
             restore = restore,
