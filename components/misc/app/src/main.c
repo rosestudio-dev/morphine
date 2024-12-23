@@ -115,7 +115,7 @@ static int launcher(struct env *env, int argc, char **argv) {
     mapi_library_load(I, mclib_compiler());
     mapi_library_load(I, mllib_launcher());
 
-    morphine_coroutine_t U = mapi_coroutine(I, "app");
+    morphine_coroutine_t U = mapi_coroutine(I);
 
     init_args(U, argc, argv);
 
@@ -123,6 +123,8 @@ static int launcher(struct env *env, int argc, char **argv) {
     mcapi_compile(U, "app", false);
 
     mapi_call(U, 0);
+
+    mapi_attach(U);
     mapi_interpreter(I);
 
     mapi_close(I);

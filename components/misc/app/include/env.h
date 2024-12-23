@@ -17,5 +17,5 @@ struct env {
     } exit;
 };
 
-morphine_noret void env_signal(morphine_instance_t I);
-morphine_noret void env_exit(morphine_instance_t I, ml_integer code);
+morphine_noret void env_signal(morphine_instance_t, void *, bool);
+morphine_noret void env_exit(morphine_instance_t, ml_integer code);

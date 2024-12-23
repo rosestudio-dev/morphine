@@ -22,7 +22,7 @@ MORPHINE_API bool mapi_interpreter_step(morphine_instance_t);
 MORPHINE_API void mapi_close(morphine_instance_t);
 
 MORPHINE_API morphine_instance_t mapi_instance(morphine_coroutine_t);
-MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t, const char *);
+MORPHINE_API morphine_coroutine_t mapi_coroutine(morphine_instance_t);
 
 // library
 

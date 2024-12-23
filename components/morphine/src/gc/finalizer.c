@@ -86,7 +86,7 @@ void gcI_init_finalizer(morphine_instance_t I) {
 
 void gcI_finalize(morphine_instance_t I) {
     if (I->G.finalizer.coroutine != NULL) {
-        if (I->G.finalizer.coroutine->state.status == COROUTINE_STATUS_DEAD) {
+        if (I->G.finalizer.coroutine->status == COROUTINE_STATUS_DEAD) {
             I->G.finalizer.coroutine = NULL;
         }
 

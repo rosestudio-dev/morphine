@@ -7,9 +7,6 @@
 #include "morphine/core/stack.h"
 #include "morphine/core/value.h"
 
-#define COROUTINE_STATUS_START (COROUTINE_STATUS_CREATED)
-#define COROUTINE_STATUS_COUNT (COROUTINE_STATUS_DEAD + 1)
-
 enum coroutine_status {
     COROUTINE_STATUS_CREATED,
     COROUTINE_STATUS_RUNNING,
@@ -21,11 +18,8 @@ struct coroutine {
     struct object header;
     struct string *name;
 
-    struct {
-        enum coroutine_status status;
-        ml_size priority;
-        bool exit;
-    } state;
+    enum coroutine_status status;
+    ml_size priority;
 
     struct stack stack;
     struct callstack callstack;
@@ -48,4 +42,3 @@ void coroutineI_kill(morphine_coroutine_t);
 bool coroutineI_isalive(morphine_coroutine_t U);
 
 const char *coroutineI_status2string(morphine_coroutine_t, enum coroutine_status status);
-enum coroutine_status coroutineI_string2status(morphine_coroutine_t, const char *name);

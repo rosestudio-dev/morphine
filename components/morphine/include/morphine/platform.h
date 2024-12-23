@@ -65,10 +65,10 @@ typedef struct {
 
 typedef struct {
     struct {
-        void *(*malloc)(void *, size_t);
-        void *(*realloc)(void *, void *, size_t);
-        void (*free)(void *, void *);
-        void (*signal)(morphine_instance_t) morphine_noret;
+        void *(*malloc)(void *data, size_t size);
+        void *(*realloc)(void *data, void *pointer, size_t size);
+        void (*free)(void *data, void *pointer);
+        void (*signal)(morphine_instance_t, void *data, bool is_panic) morphine_noret;
     } functions;
 
     morphine_sio_interface_t sio_io_interface;

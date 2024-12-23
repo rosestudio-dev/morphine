@@ -44,6 +44,8 @@ struct callinfo {
         size_t state;
     } catch;
 
+    bool exit;
+
     struct callinfo *prev;
 };
 

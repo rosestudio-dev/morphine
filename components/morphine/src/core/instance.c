@@ -6,6 +6,7 @@
 #include "morphine/object/table.h"
 #include "morphine/object/sio.h"
 #include "morphine/object/native.h"
+#include "morphine/object/coroutine.h"
 #include "morphine/gc/finalizer.h"
 #include "morphine/gc/control.h"
 #include "morphine/api.h"
@@ -93,25 +94,31 @@ static void init_libraries(morphine_instance_t I) {
     tableI_set(I, I->env, valueI_object(name), native);
 }
 
+static void init_main_coroutine(morphine_instance_t I) {
+    struct string *name = stringI_create(I, MPARAM_MAIN_COROUTINE_NAME);
+    I->main = coroutineI_create(I, name, valueI_object(I->env));
+}
+
 static void init(morphine_instance_t I) {
     init_sio(I);
     init_throw(I);
+    init_metatables(I);
     init_env(I);
     init_localstorage(I);
     init_sharedstorage(I);
-    init_metatables(I);
+    init_main_coroutine(I);
     init_libraries(I);
 }
 
 morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settings_t settings, void *data) {
     if (sizeof(struct instance) >= settings.gc.limit) {
-        platform.functions.signal(NULL);
+        platform.functions.signal(NULL, data, false);
     }
 
     morphine_instance_t I = platform.functions.malloc(data, sizeof(struct instance));
 
     if (I == NULL) {
-        platform.functions.signal(NULL);
+        platform.functions.signal(NULL, data, true);
     }
 
     *I = (struct instance) {
@@ -122,6 +129,7 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
         .libraries = librariesI_prototype(),
         .usertypes = usertypeI_prototype(),
         .data = data,
+        .main = NULL,
         .env = NULL,
         .localstorage = NULL,
         .sharedstorage = NULL,

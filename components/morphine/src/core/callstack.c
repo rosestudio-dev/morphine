@@ -166,6 +166,7 @@ static inline void internal_call(
         .catch.enable = false,
         .catch.crash = false,
         .catch.state = 0,
+        .exit = true,
         .prev = callstackI_info(U)
     };
 
@@ -246,14 +247,15 @@ void callstackI_set_result(morphine_coroutine_t U, struct value result) {
 }
 
 void callstackI_return(morphine_coroutine_t U, struct value value) {
+    struct callinfo *callinfo = callstackI_info_or_error(U);
     U->result = value;
-    U->state.exit = true;
+    callinfo->exit = true;
 }
 
 void callstackI_continue(morphine_coroutine_t U, size_t state) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
     callinfo->pc.state = state;
-    U->state.exit = false;
+    callinfo->exit = false;
 }
 
 size_t callstackI_state(morphine_coroutine_t U) {

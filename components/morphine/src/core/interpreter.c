@@ -521,34 +521,26 @@ static inline void step(morphine_coroutine_t U) {
         return;
     }
 
-    I->throw.context = U;
-
     struct value source = *callinfo->s.stack.source;
 
+    I->throw.context = U;
+
     if (likely(valueI_is_function(source))) {
-        U->state.exit = false;
+        callinfo->exit = false;
         step_function(U, valueI_as_function(source));
     } else if (valueI_is_native(source)) {
-        U->state.exit = true;
+        callinfo->exit = true;
         struct native *native = valueI_as_native(source);
         native->function(U);
     } else {
         throwI_error(U->I, "attempt to execute unsupported callable");
     }
 
-    if (unlikely(U->state.exit)) {
-        if (unlikely(callinfo != callstackI_info(U))) {
-            while (callstackI_info(U) != NULL) {
-                callstackI_pop(U);
-            }
+    I->throw.context = NULL;
 
-            throwI_error(U->I, "callstack corrupted");
-        }
-
+    if (unlikely(callinfo->exit && callinfo == callstackI_info(U))) {
         callstackI_pop(U);
     }
-
-    I->throw.context = NULL;
 }
 
 static inline bool execute_step(morphine_instance_t I) {
@@ -576,9 +568,9 @@ static inline bool execute_step(morphine_instance_t I) {
 
     morphine_coroutine_t coroutine = interpreter->running;
 
-    bool is_current_circle = (interpreter->circle % coroutine->state.priority) == 0;
+    bool is_current_circle = (interpreter->circle % coroutine->priority) == 0;
 
-    if (likely(is_current_circle && (coroutine->state.status == COROUTINE_STATUS_RUNNING))) {
+    if (likely(is_current_circle && (coroutine->status == COROUTINE_STATUS_RUNNING))) {
         step(coroutine);
     }
 

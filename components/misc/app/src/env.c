@@ -5,12 +5,12 @@
 #include <stdio.h>
 #include "env.h"
 
-morphine_noret void env_signal(morphine_instance_t I) {
-    struct env *env = mapi_instance_data(I);
+morphine_noret void env_signal(morphine_instance_t I, void *data, bool is_panic) {
+    struct env *env = data;
     const char *message = mapi_signal_message(I);
-    fprintf(stderr, "morphine panic: %s\n", message);
+    fprintf(stderr, "morphine %s: %s\n", is_panic ? "panic" : "error", message);
 
-    if (I != NULL && !mapi_is_nested_signal(I)) {
+    if (I != NULL && !mapi_is_nested_signal(I) && !is_panic) {
         mapi_close(I);
     }
 

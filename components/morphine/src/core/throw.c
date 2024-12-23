@@ -17,12 +17,12 @@
 #define OFM_MESSAGE ("out of memory")
 #define AF_MESSAGE  ("allocation fault")
 
-morphine_noret static void panic(morphine_instance_t I) {
+morphine_noret static void panic(morphine_instance_t I, bool is_panic) {
     struct throw *throw = &I->throw;
 
     throw->protect.entered = false;
     throw->signal_entered++;
-    I->platform.functions.signal(I);
+    I->platform.functions.signal(I, I->data, is_panic);
 }
 
 morphine_noret static void error(morphine_instance_t I) {
@@ -32,7 +32,7 @@ morphine_noret static void error(morphine_instance_t I) {
         longjmp(throw->protect.handler, 1);
     }
 
-    panic(I);
+    panic(I, false);
 }
 
 struct throw throwI_prototype(void) {
@@ -68,7 +68,7 @@ void throwI_handler(morphine_instance_t I) {
     morphine_coroutine_t coroutine = throw->context;
 
     if (coroutine == NULL) {
-        panic(I);
+        error(I);
     }
 
     struct callinfo *callinfo = callstackI_info(coroutine);
@@ -84,7 +84,7 @@ void throwI_handler(morphine_instance_t I) {
     }
 
     if (callinfo != NULL && callinfo->catch.crash) {
-        panic(I);
+        panic(I, false);
     }
 
     stackI_throw_fix(coroutine);
@@ -186,7 +186,7 @@ morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
 
     throw->type = THROW_TYPE_MESSAGE;
     throw->error.message = message;
-    panic(I);
+    panic(I, true);
 }
 
 morphine_noret void throwI_ofm(morphine_instance_t I) {

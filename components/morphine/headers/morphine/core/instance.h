@@ -29,6 +29,7 @@ struct instance {
     struct sso sso;
 #endif
 
+    struct coroutine *main;
     struct table *env;
     struct table *localstorage;
     struct table *sharedstorage;

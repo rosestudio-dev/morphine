@@ -194,7 +194,7 @@ MORPHINE_API void mapi_coroutine_priority(morphine_coroutine_t U, ml_size priori
  * {{end}}
  */
 MORPHINE_API const char *mapi_coroutine_status(morphine_coroutine_t U) {
-    return coroutineI_status2string(U, U->state.status);
+    return coroutineI_status2string(U, U->status);
 }
 
 /*

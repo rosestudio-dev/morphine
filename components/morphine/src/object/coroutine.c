@@ -74,9 +74,8 @@ morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *nam
     morphine_coroutine_t result = allocI_uni(I, NULL, sizeof(struct coroutine));
     (*result) = (struct coroutine) {
         .name = name,
-        .state.status = COROUTINE_STATUS_CREATED,
-        .state.priority = 1,
-        .state.exit = false,
+        .status = COROUTINE_STATUS_CREATED,
+        .priority = 1,
         .stack = stackI_prototype(I),
         .callstack = callstackI_prototype(),
         .env = env,
@@ -101,14 +100,14 @@ void coroutineI_free(morphine_instance_t I, morphine_coroutine_t coroutine) {
 
 void coroutineI_priority(morphine_coroutine_t U, ml_size priority) {
     if (priority <= 0) {
-        U->state.priority = 1;
+        U->priority = 1;
     } else {
-        U->state.priority = priority;
+        U->priority = priority;
     }
 }
 
 void coroutineI_attach(morphine_coroutine_t U) {
-    switch (U->state.status) {
+    switch (U->status) {
         case COROUTINE_STATUS_RUNNING:
         case COROUTINE_STATUS_SUSPENDED:
             throwI_error(U->I, "coroutine is already attached");
@@ -116,7 +115,7 @@ void coroutineI_attach(morphine_coroutine_t U) {
             throwI_error(U->I, "coroutine is dead");
         case COROUTINE_STATUS_CREATED: {
             attach(U);
-            U->state.status = COROUTINE_STATUS_RUNNING;
+            U->status = COROUTINE_STATUS_RUNNING;
             return;
         }
     }
@@ -125,9 +124,9 @@ void coroutineI_attach(morphine_coroutine_t U) {
 }
 
 void coroutineI_suspend(morphine_coroutine_t U) {
-    switch (U->state.status) {
+    switch (U->status) {
         case COROUTINE_STATUS_RUNNING:
-            U->state.status = COROUTINE_STATUS_SUSPENDED;
+            U->status = COROUTINE_STATUS_SUSPENDED;
             return;
         case COROUTINE_STATUS_SUSPENDED:
             return;
@@ -141,11 +140,11 @@ void coroutineI_suspend(morphine_coroutine_t U) {
 }
 
 void coroutineI_resume(morphine_coroutine_t U) {
-    switch (U->state.status) {
+    switch (U->status) {
         case COROUTINE_STATUS_RUNNING:
             return;
         case COROUTINE_STATUS_SUSPENDED:
-            U->state.status = COROUTINE_STATUS_RUNNING;
+            U->status = COROUTINE_STATUS_RUNNING;
             return;
         case COROUTINE_STATUS_DEAD:
             throwI_error(U->I, "coroutine is dead");
@@ -158,11 +157,11 @@ void coroutineI_resume(morphine_coroutine_t U) {
 
 void coroutineI_kill(morphine_coroutine_t U) {
     detach(U);
-    U->state.status = COROUTINE_STATUS_DEAD;
+    U->status = COROUTINE_STATUS_DEAD;
 }
 
 bool coroutineI_isalive(morphine_coroutine_t U) {
-    switch (U->state.status) {
+    switch (U->status) {
         case COROUTINE_STATUS_CREATED:
         case COROUTINE_STATUS_RUNNING:
         case COROUTINE_STATUS_SUSPENDED:
@@ -187,14 +186,4 @@ const char *coroutineI_status2string(morphine_coroutine_t U, enum coroutine_stat
     }
 
     throwI_panic(U->I, "unknown coroutine status");
-}
-
-enum coroutine_status coroutineI_string2status(morphine_coroutine_t U, const char *name) {
-    for (enum coroutine_status t = COROUTINE_STATUS_START; t < COROUTINE_STATUS_COUNT; t++) {
-        if (strcmp(coroutineI_status2string(U, t), name) == 0) {
-            return t;
-        }
-    }
-
-    throwI_error(U->I, "unknown coroutine status");
 }
