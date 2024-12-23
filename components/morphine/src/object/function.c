@@ -132,17 +132,17 @@ struct function *functionI_copy(morphine_instance_t I, struct function *function
         function->params_count
     ));
 
-    for(ml_size i = 0; i < function->instructions_count; i ++) {
+    for (ml_size i = 0; i < function->instructions_count; i++) {
         morphine_instruction_t instruction = functionI_instruction_get(I, function, i);
         functionI_instruction_set(I, result, i, instruction);
     }
 
-    for(ml_size i = 0; i < function->constants_count; i ++) {
+    for (ml_size i = 0; i < function->constants_count; i++) {
         struct value value = functionI_constant_get(I, function, i);
         functionI_constant_set(I, result, i, value);
     }
 
-    for(ml_size i = 0; i < function->statics_count; i ++) {
+    for (ml_size i = 0; i < function->statics_count; i++) {
         struct value value = functionI_static_get(I, function, i);
         functionI_static_set(I, result, i, value);
     }
@@ -340,6 +340,8 @@ void functionI_packer_write_data(struct function *function, struct packer_write 
     for (ml_size i = 0; i < function->statics_count; i++) {
         packerI_write_value(W, function->statics[i]);
     }
+
+    packerI_write_bool(W, function->complete);
 }
 
 struct function *functionI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
@@ -414,5 +416,8 @@ void functionI_packer_read_data(morphine_instance_t I, struct function *function
         gcI_safe_exit(I);
     }
 
-    functionI_complete(I, function);
+    bool is_complete = packerI_read_bool(R);
+    if (is_complete) {
+        functionI_complete(I, function);
+    }
 }

@@ -13,27 +13,27 @@ struct environment {
     jmp_buf abort_jmp;
 };
 
-morphine_noret static void signal(morphine_instance_t I) {
-    struct environment *env = mapi_instance_data(I);
+morphine_noret static void signal(morphine_instance_t I, void *data, bool is_panic) {
+    struct environment *env = data;
     const char *message = mapi_signal_message(I);
-    fprintf(stderr, "morphine panic: %s\n", message);
+    fprintf(stderr, "morphine %s: %s\n", is_panic ? "panic" : "error", message);
 
-    if (I != NULL && !mapi_is_nested_signal(I)) {
+    if (I != NULL && !mapi_is_nested_signal(I) && !is_panic) {
         mapi_close(I);
     }
 
     longjmp(env->abort_jmp, 1);
 }
 
-static size_t io_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
+static size_t io_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
     return fwrite(buffer, 1, size, stdout);
 }
 
-static size_t io_read(morphine_sio_accessor_t A, void *data, uint8_t *buffer, size_t size) {
+static size_t io_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
     return fread(buffer, 1, size, stdin);
 }
 
-static size_t io_error_write(morphine_sio_accessor_t A, void *data, const uint8_t *buffer, size_t size) {
+static size_t io_error_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
     return fwrite(buffer, 1, size, stderr);
 }
 
@@ -73,7 +73,7 @@ static void launcher(struct environment *env, const char *text, size_t size) {
     mapi_library_load(I, mclib_compiler());
     mlapi_import_all(I);
 
-    morphine_coroutine_t U = mapi_coroutine(I, "wasm-app");
+    morphine_coroutine_t U = mapi_coroutine(I);
 
     mapi_push_stringn(U, text, size);
     mcapi_compile(U, "main", false, false);
