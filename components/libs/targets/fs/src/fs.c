@@ -293,13 +293,13 @@ static void construct_stat(morphine_coroutine_t U, struct stat st) {
     maux_construct(U, elements);
 }
 
-static void safedir_init(morphine_instance_t I, void *p) {
+static void safedir_constructor(morphine_instance_t I, void *p) {
     (void) I;
     struct safedir *D = p;
     D->dir = NULL;
 }
 
-static void safedir_free(morphine_instance_t I, void *p) {
+static void safedir_destructor(morphine_instance_t I, void *p) {
     (void) I;
     struct safedir *D = p;
 
@@ -315,11 +315,11 @@ static struct safedir *create_safedir(morphine_coroutine_t U, const char *path) 
         mapi_instance(U),
         SAFEDIR_TYPE,
         sizeof(struct safedir),
-        safedir_init,
-        safedir_free,
+        false,
+        safedir_constructor,
+        safedir_destructor,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     struct safedir *D = mapi_push_userdata(U, SAFEDIR_TYPE);

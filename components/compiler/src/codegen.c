@@ -1135,7 +1135,7 @@ static void visitor_function(
 
 // api
 
-static void codegen_userdata_init(morphine_instance_t I, void *data) {
+static void codegen_userdata_constructor(morphine_instance_t I, void *data) {
     (void) I;
 
     struct mc_codegen *G = data;
@@ -1164,7 +1164,7 @@ static void codegen_userdata_free_context(morphine_instance_t I, struct context 
     }
 }
 
-static void codegen_userdata_free(morphine_instance_t I, void *data) {
+static void codegen_userdata_destructor(morphine_instance_t I, void *data) {
     struct mc_codegen *G = data;
     codegen_userdata_free_context(I, G->context);
     codegen_userdata_free_context(I, G->compiled);
@@ -1175,11 +1175,11 @@ MORPHINE_API struct mc_codegen *mcapi_push_codegen(morphine_coroutine_t U) {
         mapi_instance(U),
         MC_CODEGEN_USERDATA_TYPE,
         sizeof(struct mc_codegen),
-        codegen_userdata_init,
-        codegen_userdata_free,
+        false,
+        codegen_userdata_constructor,
+        codegen_userdata_destructor,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     return mapi_push_userdata(U, MC_CODEGEN_USERDATA_TYPE);

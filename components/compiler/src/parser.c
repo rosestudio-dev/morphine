@@ -488,7 +488,7 @@ void parser_change_mode(struct parse_controller *C, enum predefined_word_mode mo
 
 // api
 
-static void parser_userdata_init(morphine_instance_t I, void *data) {
+static void parser_userdata_constructor(morphine_instance_t I, void *data) {
     (void) I;
 
     struct mc_parser *P = data;
@@ -511,7 +511,7 @@ static void parser_userdata_free_context(morphine_instance_t I, struct context *
     }
 }
 
-static void parser_userdata_free(morphine_instance_t I, void *data) {
+static void parser_userdata_destructor(morphine_instance_t I, void *data) {
     struct mc_parser *P = data;
     mapi_allocator_free(I, P->stack.elements);
     parser_userdata_free_context(I, P->context.current);
@@ -523,11 +523,11 @@ MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U) {
         mapi_instance(U),
         MC_PARSER_USERDATA_TYPE,
         sizeof(struct mc_parser),
-        parser_userdata_init,
-        parser_userdata_free,
+        false,
+        parser_userdata_constructor,
+        parser_userdata_destructor,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     struct mc_parser *P = mapi_push_userdata(U, MC_PARSER_USERDATA_TYPE);

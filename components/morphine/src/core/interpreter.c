@@ -12,6 +12,8 @@
 #include "morphine/gc/control.h"
 #include "morphine/gc/finalizer.h"
 
+#define semicolon_blk(x) do { x } while (0)
+
 // loop
 
 #define sp_fetch() \
@@ -24,12 +26,12 @@
     )
 
 #define sp_yield() semicolon_blk(return;)
-#define sp_next() semicolon_blk((*position)++;)
-#define sp_end() sp_next(); sp_continue()
+#define sp_next()  semicolon_blk((*position)++;)
+#define sp_end()   sp_next(); sp_continue()
 
 #define sp_dispatch(o) switch (o)
-#define sp_case(o) case (o):
-#define sp_continue() break;
+#define sp_case(o)     case (o):
+#define sp_continue()  break;
 
 // access
 
@@ -52,9 +54,9 @@
 #define set_param(C, a, x) semicolon_blk(struct value _temp = (x); (C)->s.stack.space[slots_count + (a)] = _temp;)
 #define get_param(C, a, n) struct value n = ((C)->s.stack.space[slots_count + (a)]); semicolon_blk()
 
-#define arg1 instruction.argument1
-#define arg2 instruction.argument2
-#define arg3 instruction.argument3
+#define arg1 (instruction.argument1)
+#define arg2 (instruction.argument2)
+#define arg3 (instruction.argument3)
 
 // other
 
@@ -83,8 +85,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
 
         sp_fetch();
 
-        sp_dispatch (instruction.opcode)
-        {
+        sp_dispatch (instruction.opcode) {
 sp_case(MORPHINE_OPCODE_YIELD)
             {
                 sp_next();

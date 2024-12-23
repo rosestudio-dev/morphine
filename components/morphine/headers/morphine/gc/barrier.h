@@ -7,7 +7,7 @@
 #include "morphine/core/value.h"
 #include "morphine/gc/pools.h"
 
-#define gcI_barrier(I, o, x) semicolon_blk(struct value _a = (x); if(valueI_is_object(_a)) gcI_objbarrier((I), (o), valueI_as_object(_a));)
+#define gcI_barrier(I, o, x)    do { struct value _a = (x); if(valueI_is_object(_a)) gcI_objbarrier((I), (o), valueI_as_object(_a)); } while (0)
 #define gcI_objbarrier(I, o, d) gcI_object_barrier((I), objectI_cast(o), objectI_cast(d))
 
 static inline void gcI_object_barrier(

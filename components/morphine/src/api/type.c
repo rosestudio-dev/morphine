@@ -13,13 +13,20 @@ MORPHINE_API void mapi_type_declare(
     morphine_instance_t I,
     const char *name,
     size_t allocate,
-    morphine_userdata_init_t init,
-    morphine_userdata_free_t free,
+    bool require_metatable,
+    morphine_userdata_constructor_t constructor,
+    morphine_userdata_destructor_t destructor,
     morphine_userdata_compare_t compare,
-    morphine_userdata_hash_t hash,
-    bool require_metatable
+    morphine_userdata_hash_t hash
 ) {
-    usertypeI_declare(I, name, allocate, init, free, compare, hash, require_metatable);
+    usertypeI_declare(
+        I, name, allocate,
+        require_metatable,
+        constructor,
+        destructor,
+        compare,
+        hash
+    );
 }
 
 MORPHINE_API bool mapi_type_is_declared(morphine_instance_t I, const char *name) {

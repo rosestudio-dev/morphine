@@ -212,7 +212,7 @@ MORPHINE_API void *mcapi_visitor_alloc_saved_vec(
 
 // api
 
-static void visitor_userdata_init(morphine_instance_t I, void *data) {
+static void visitor_userdata_constructor(morphine_instance_t I, void *data) {
     (void) I;
 
     struct mc_visitor *V = data;
@@ -254,7 +254,7 @@ static void visitor_userdata_free_function_context(
     }
 }
 
-static void visitor_userdata_free(morphine_instance_t I, void *data) {
+static void visitor_userdata_destructor(morphine_instance_t I, void *data) {
     struct mc_visitor *V = data;
     visitor_userdata_free_node_context(I, V->node_context);
     visitor_userdata_free_node_context(I, V->trash.node_context);
@@ -267,11 +267,11 @@ MORPHINE_API struct mc_visitor *mcapi_push_visitor(morphine_coroutine_t U) {
         mapi_instance(U),
         MC_VISITOR_USERDATA_TYPE,
         sizeof(struct mc_visitor),
-        visitor_userdata_init,
-        visitor_userdata_free,
+        false,
+        visitor_userdata_constructor,
+        visitor_userdata_destructor,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     return mapi_push_userdata(U, MC_VISITOR_USERDATA_TYPE);

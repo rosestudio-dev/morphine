@@ -19,7 +19,7 @@ struct mc_strtable {
     struct entry *entries;
 };
 
-static void strtable_userdata_init(morphine_instance_t I, void *data) {
+static void strtable_userdata_constructor(morphine_instance_t I, void *data) {
     (void) I;
 
     struct mc_strtable *T = data;
@@ -30,7 +30,7 @@ static void strtable_userdata_init(morphine_instance_t I, void *data) {
     };
 }
 
-static void strtable_userdata_free(morphine_instance_t I, void *data) {
+static void strtable_userdata_destructor(morphine_instance_t I, void *data) {
     struct mc_strtable *T = data;
 
     for (size_t i = 0; i < T->used; i++) {
@@ -45,11 +45,11 @@ MORPHINE_API struct mc_strtable *mcapi_push_strtable(morphine_coroutine_t U) {
         mapi_instance(U),
         MC_STRTABLE_USERDATA_TYPE,
         sizeof(struct mc_strtable),
-        strtable_userdata_init,
-        strtable_userdata_free,
+        false,
+        strtable_userdata_constructor,
+        strtable_userdata_destructor,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     return mapi_push_userdata(U, MC_STRTABLE_USERDATA_TYPE);

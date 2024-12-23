@@ -27,8 +27,8 @@ typedef void (*morphine_native_t)(morphine_coroutine_t);
 
 // userdata
 
-typedef void (*morphine_userdata_init_t)(morphine_instance_t, void *);
-typedef void (*morphine_userdata_free_t)(morphine_instance_t, void *);
+typedef void (*morphine_userdata_constructor_t)(morphine_instance_t, void *);
+typedef void (*morphine_userdata_destructor_t)(morphine_instance_t, void *);
 typedef int (*morphine_userdata_compare_t)(morphine_instance_t, void *, void *);
 typedef ml_hash (*morphine_userdata_hash_t)(morphine_instance_t, void *);
 

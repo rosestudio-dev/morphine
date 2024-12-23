@@ -161,7 +161,7 @@ static bool buffer_eos(morphine_instance_t I, void *data) {
     return B->pointer >= B->size;
 }
 
-static void buffer_free(morphine_instance_t I, void *data) {
+static void buffer_destructor(morphine_instance_t I, void *data) {
     struct buffer_data *B = data;
     mapi_allocator_free(I, B->vector);
 }
@@ -189,7 +189,7 @@ MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t U, size_t factor, bo
         .vector = NULL
     };
 
-    mapi_userdata_set_free(U, buffer_free);
+    mapi_userdata_set_destructor(U, buffer_destructor);
 
     data->vector = mapi_allocator_vec(mapi_instance(U), NULL, str_len, sizeof(char));
     data->allocated = ((size_t) str_len) * sizeof(char);

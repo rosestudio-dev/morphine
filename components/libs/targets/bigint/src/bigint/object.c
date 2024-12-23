@@ -64,7 +64,7 @@ static inline int bigint_raw_compare(struct mlib_bigint *bigintA, struct mlib_bi
 
 // userdata
 
-static void bigint_userdata_init(morphine_instance_t I, void *data) {
+static void bigint_userdata_constructor(morphine_instance_t I, void *data) {
     (void) I;
 
     struct mlib_bigint *bigint = data;
@@ -76,7 +76,7 @@ static void bigint_userdata_init(morphine_instance_t I, void *data) {
     };
 }
 
-static void bigint_userdata_free(morphine_instance_t I, void *data) {
+static void bigint_userdata_destructor(morphine_instance_t I, void *data) {
     struct mlib_bigint *bigint = data;
     mapi_allocator_free(I, bigint->digits);
 }
@@ -105,11 +105,11 @@ static struct mlib_bigint *bigint_userdata(morphine_coroutine_t U) {
         mapi_instance(U),
         MLIB_BIGINT_USERDATA_TYPE,
         sizeof(struct mlib_bigint),
-        bigint_userdata_init,
-        bigint_userdata_free,
+        false,
+        bigint_userdata_constructor,
+        bigint_userdata_destructor,
         bigint_userdata_compare,
-        bigint_userdata_hash,
-        false
+        bigint_userdata_hash
     );
 
     struct mlib_bigint *bigint = mapi_push_userdata(U, MLIB_BIGINT_USERDATA_TYPE);

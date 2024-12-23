@@ -43,9 +43,14 @@ MORPHINE_API void *mapi_push_userdata_vec(morphine_coroutine_t U, size_t count, 
     return userdata->data;
 }
 
-MORPHINE_API void mapi_userdata_set_free(morphine_coroutine_t U, morphine_userdata_free_t free) {
+MORPHINE_API void mapi_userdata_set_destructor(morphine_coroutine_t U, morphine_userdata_destructor_t destructor) {
     struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
-    userdataI_set_free(U->I, userdata, free);
+    userdataI_set_destructor(U->I, userdata, destructor);
+}
+
+MORPHINE_API void mapi_userdata_mode_lock_destructor(morphine_coroutine_t U) {
+    struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
+    userdataI_mode_lock_destructor(U->I, userdata);
 }
 
 MORPHINE_API void mapi_userdata_mode_lock_metatable(morphine_coroutine_t U) {
@@ -56,6 +61,11 @@ MORPHINE_API void mapi_userdata_mode_lock_metatable(morphine_coroutine_t U) {
 MORPHINE_API void mapi_userdata_mode_lock_size(morphine_coroutine_t U) {
     struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
     userdataI_mode_lock_size(U->I, userdata);
+}
+
+MORPHINE_API bool mapi_userdata_mode_destructor_is_locked(morphine_coroutine_t U) {
+    struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
+    return userdata->mode.destructor_locked;
 }
 
 MORPHINE_API bool mapi_userdata_mode_metatable_is_locked(morphine_coroutine_t U) {

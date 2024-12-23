@@ -7,8 +7,8 @@
 #undef sp_continue
 
 #define sp_dispatch(x) goto *sp_dispatch_tab[x];
-#define sp_case(l) OL_##l:
-#define sp_continue() semicolon_blk(sp_fetch(); sp_dispatch(instruction.opcode))
+#define sp_case(l)     OL_##l:
+#define sp_continue()  semicolon_blk(sp_fetch(); sp_dispatch(instruction.opcode))
 
 static const void *const sp_dispatch_tab[] = {
 #define mspec_instruction_label(n)                &&OL_MORPHINE_OPCODE_##n,

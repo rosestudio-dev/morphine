@@ -38,11 +38,11 @@ void usertypeI_declare(
     morphine_instance_t I,
     const char *name,
     size_t allocate,
-    morphine_userdata_init_t init,
-    morphine_userdata_free_t free,
+    bool require_metatable,
+    morphine_userdata_constructor_t constructor,
+    morphine_userdata_destructor_t destructor,
     morphine_userdata_compare_t compare,
-    morphine_userdata_hash_t hash,
-    bool require_metatable
+    morphine_userdata_hash_t hash
 ) {
     if (valueI_is_type(I, name, true)) {
         throwI_error(I, "unavailable type name");
@@ -53,8 +53,8 @@ void usertypeI_declare(
         while (usertype != NULL) {
             if (strcmp(usertype->info.name, name) == 0) {
                 bool check = usertype->info.allocate == allocate &&
-                             usertype->info.init == init &&
-                             usertype->info.free == free &&
+                             usertype->info.constructor == constructor &&
+                             usertype->info.destructor == destructor &&
                              usertype->info.compare == compare &&
                              usertype->info.hash == hash &&
                              usertype->info.require_metatable == require_metatable;
@@ -82,8 +82,8 @@ void usertypeI_declare(
     char *name_str = ((void *) usertype) + sizeof(struct usertype);
     (*usertype) = (struct usertype) {
         .info.name = name_str,
-        .info.init = init,
-        .info.free = free,
+        .info.constructor = constructor,
+        .info.destructor = destructor,
         .info.compare = compare,
         .info.hash = hash,
         .info.allocate = allocate,

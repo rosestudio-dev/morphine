@@ -100,11 +100,11 @@ MORPHINE_API void mapi_type_declare(
     morphine_instance_t,
     const char *name,
     size_t allocate,
-    morphine_userdata_init_t,
-    morphine_userdata_free_t,
+    bool require_metatable,
+    morphine_userdata_constructor_t,
+    morphine_userdata_destructor_t,
     morphine_userdata_compare_t,
-    morphine_userdata_hash_t,
-    bool require_metatable
+    morphine_userdata_hash_t
 );
 MORPHINE_API bool mapi_type_is_declared(morphine_instance_t, const char *name);
 MORPHINE_API const char *mapi_type(morphine_coroutine_t);
@@ -213,9 +213,11 @@ MORPHINE_API morphine_native_t mapi_native_function(morphine_coroutine_t);
 MORPHINE_API void *mapi_push_userdata(morphine_coroutine_t, const char *type);
 MORPHINE_API void *mapi_push_userdata_uni(morphine_coroutine_t, size_t size);
 MORPHINE_API void *mapi_push_userdata_vec(morphine_coroutine_t, size_t count, size_t size);
-MORPHINE_API void mapi_userdata_set_free(morphine_coroutine_t, morphine_userdata_free_t);
+MORPHINE_API void mapi_userdata_set_destructor(morphine_coroutine_t, morphine_userdata_destructor_t);
+MORPHINE_API void mapi_userdata_mode_lock_destructor(morphine_coroutine_t);
 MORPHINE_API void mapi_userdata_mode_lock_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_userdata_mode_lock_size(morphine_coroutine_t);
+MORPHINE_API bool mapi_userdata_mode_destructor_is_locked(morphine_coroutine_t);
 MORPHINE_API bool mapi_userdata_mode_metatable_is_locked(morphine_coroutine_t);
 MORPHINE_API bool mapi_userdata_mode_size_is_locked(morphine_coroutine_t);
 MORPHINE_API void *mapi_userdata_resize(morphine_coroutine_t, size_t size);

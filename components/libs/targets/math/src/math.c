@@ -19,7 +19,7 @@ struct rand_data {
     ml_size next;
 };
 
-static void rand_data_init(morphine_instance_t I, void *data) {
+static void rand_data_constructor(morphine_instance_t I, void *data) {
     (void) I;
     struct rand_data *D = data;
     (*D) = (struct rand_data) {
@@ -35,11 +35,11 @@ static struct rand_data *push_rand_data(morphine_coroutine_t U, ml_size s0) {
         mapi_instance(U),
         RAND_DATA_TYPE,
         sizeof(struct rand_data),
-        rand_data_init,
+        false,
+        rand_data_constructor,
         NULL,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     struct rand_data *D = mapi_push_userdata(U, RAND_DATA_TYPE);

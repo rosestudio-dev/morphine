@@ -5,26 +5,15 @@
 #include <morphine.h>
 #include "morphine/libs/builtin.h"
 
-static void lockmetatable(morphine_coroutine_t U) {
+static void destructorislocked(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, "userdata");
 
-            mapi_userdata_mode_lock_metatable(U);
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void locksize(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
-            maux_expect(U, "userdata");
-
-            mapi_userdata_mode_lock_size(U);
+            bool value = mapi_userdata_mode_destructor_is_locked(U);
+            mapi_push_boolean(U, value);
             maux_nb_return();
     maux_nb_end
 }
@@ -70,8 +59,7 @@ static void istyped(morphine_coroutine_t U) {
 
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("istyped", istyped),
-    MAUX_CONSTRUCT_FUNCTION("lockmetatable", lockmetatable),
-    MAUX_CONSTRUCT_FUNCTION("locksize", locksize),
+    MAUX_CONSTRUCT_FUNCTION("destructorislocked", destructorislocked),
     MAUX_CONSTRUCT_FUNCTION("metatableislocked", metatableislocked),
     MAUX_CONSTRUCT_FUNCTION("sizeislocked", sizeislocked),
     MAUX_CONSTRUCT_END

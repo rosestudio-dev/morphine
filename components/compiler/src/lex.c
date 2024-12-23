@@ -74,7 +74,7 @@ static struct {
 #undef operator
 };
 
-static void lex_userdata_init(morphine_instance_t I, void *data) {
+static void lex_userdata_constructor(morphine_instance_t I, void *data) {
     (void) I;
 
     struct mc_lex *L = data;
@@ -90,7 +90,7 @@ static void lex_userdata_init(morphine_instance_t I, void *data) {
     };
 }
 
-static void lex_userdata_free(morphine_instance_t I, void *data) {
+static void lex_userdata_destructor(morphine_instance_t I, void *data) {
     struct mc_lex *L = data;
     mapi_allocator_free(I, L->text);
     mapi_allocator_free(I, L->opchars.string);
@@ -139,11 +139,11 @@ MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U) {
         mapi_instance(U),
         MC_LEX_USERDATA_TYPE,
         sizeof(struct mc_lex),
-        lex_userdata_init,
-        lex_userdata_free,
+        false,
+        lex_userdata_constructor,
+        lex_userdata_destructor,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     struct mc_lex *L = mapi_push_userdata(U, MC_LEX_USERDATA_TYPE);

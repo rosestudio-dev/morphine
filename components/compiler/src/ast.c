@@ -14,7 +14,7 @@ struct mc_ast {
 
 // api
 
-static void ast_userdata_init(morphine_instance_t I, void *data) {
+static void ast_userdata_constructor(morphine_instance_t I, void *data) {
     (void) I;
 
     struct mc_ast *A = data;
@@ -25,7 +25,7 @@ static void ast_userdata_init(morphine_instance_t I, void *data) {
     };
 }
 
-static void ast_userdata_free(morphine_instance_t I, void *data) {
+static void ast_userdata_destructor(morphine_instance_t I, void *data) {
     struct mc_ast *A = data;
 
     struct mc_ast_node *node = A->nodes;
@@ -51,11 +51,11 @@ MORPHINE_API struct mc_ast *mcapi_push_ast(morphine_coroutine_t U) {
         mapi_instance(U),
         MC_AST_USERDATA_TYPE,
         sizeof(struct mc_ast),
-        ast_userdata_init,
-        ast_userdata_free,
+        false,
+        ast_userdata_constructor,
+        ast_userdata_destructor,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     return mapi_push_userdata(U, MC_AST_USERDATA_TYPE);

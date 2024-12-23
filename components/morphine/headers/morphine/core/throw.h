@@ -6,7 +6,6 @@
 
 #include <setjmp.h>
 #include "morphine/core/value.h"
-#include "morphine/utils/semicolon.h"
 
 typedef enum {
     THROW_TYPE_VALUE,

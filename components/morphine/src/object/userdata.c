@@ -16,8 +16,9 @@ static struct userdata *create(morphine_instance_t I) {
     (*result) = (struct userdata) {
         .is_typed = false,
         .untyped.size = 0,
-        .untyped.free = NULL,
+        .untyped.destructor = NULL,
         .data = NULL,
+        .mode.destructor_locked = false,
         .mode.metatable_locked = false,
         .mode.size_locked = false,
         .metatable = NULL,
@@ -51,6 +52,7 @@ struct userdata *userdataI_instance(morphine_instance_t I, const char *type, str
     userdata->is_typed = true;
     userdata->typed.usertype = usertype;
     userdata->typed.inited = false;
+    userdata->mode.destructor_locked = true;
     userdata->mode.metatable_locked = true;
     userdata->mode.size_locked = true;
 
@@ -59,8 +61,8 @@ struct userdata *userdataI_instance(morphine_instance_t I, const char *type, str
 
     usertypeI_ref(I, usertype);
 
-    if (info.init != NULL) {
-        info.init(I, userdata->data);
+    if (info.constructor != NULL) {
+        info.constructor(I, userdata->data);
     }
 
     userdata->typed.inited = true;
@@ -97,27 +99,31 @@ struct userdata *userdataI_create_vec(
 }
 
 void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
-    morphine_userdata_free_t free_function = NULL;
+    morphine_userdata_destructor_t destructor = NULL;
     if (userdata->is_typed) {
         struct usertype_info info = usertypeI_info(I, userdata->typed.usertype);
         usertypeI_unref(I, userdata->typed.usertype);
 
         if (userdata->typed.inited) {
-            free_function = info.free;
+            destructor = info.destructor;
         }
     } else {
-        free_function = userdata->untyped.free;
+        destructor = userdata->untyped.destructor;
     }
 
-    if (free_function != NULL) {
-        free_function(I, userdata->data);
+    if (destructor != NULL) {
+        destructor(I, userdata->data);
     }
 
     allocI_free(I, userdata->data);
     allocI_free(I, userdata);
 }
 
-void userdataI_set_free(morphine_instance_t I, struct userdata *userdata, morphine_userdata_free_t free) {
+void userdataI_set_destructor(
+    morphine_instance_t I,
+    struct userdata *userdata,
+    morphine_userdata_destructor_t destructor
+) {
     if (userdata == NULL) {
         throwI_error(I, "userdata is null");
     }
@@ -126,7 +132,23 @@ void userdataI_set_free(morphine_instance_t I, struct userdata *userdata, morphi
         throwI_error(I, "userdata is typed");
     }
 
-    userdata->untyped.free = free;
+    if (userdata->mode.destructor_locked) {
+        throwI_error(I, "userdata destructor is locked");
+    }
+
+    userdata->untyped.destructor = destructor;
+}
+
+void userdataI_mode_lock_destructor(morphine_instance_t I, struct userdata *userdata) {
+    if (userdata == NULL) {
+        throwI_error(I, "userdata is null");
+    }
+
+    if (userdata->is_typed) {
+        throwI_error(I, "userdata is typed");
+    }
+
+    userdata->mode.destructor_locked = true;
 }
 
 void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userdata) {

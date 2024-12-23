@@ -3,7 +3,6 @@
 //
 
 #include "morphine/misc/instruction.h"
-#include "morphine/utils/semicolon.h"
 
 static const ml_size opcode_args[] = {
 #define mspec_instruction_args0(n, s)             0,
@@ -43,8 +42,8 @@ bool instructionI_validate(
         goto error;
     }
 
-#define arg_type_index(a, s) semicolon_blk(if (instruction.argument##a >= (s)) goto error;)
-#define arg_type_size(a, s)  semicolon_blk(if (instruction.argument##a > (s)) goto error;)
+#define arg_type_index(a, s) do { if (instruction.argument##a >= (s)) goto error; } while (0)
+#define arg_type_size(a, s)  do { if (instruction.argument##a > (s)) goto error; } while (0)
 
 #define arg_undefined(a)
 #define arg_position(a)
