@@ -17,6 +17,10 @@
 
 static void api_readline(morphine_coroutine_t U, const char *promt) {
     char *result = readline(promt);
+    if (result == NULL) {
+        env_exit(mapi_instance(U), 0);
+    }
+
     mapi_push_string(U, result);
     add_history(result);
     free(result);
