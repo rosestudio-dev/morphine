@@ -2,10 +2,10 @@
  * 1000 Fibonacci numbers
  */
 
-val base = env.library("base")
-val { serialize } = env.library("value")
-val format = env.library("string.format")
-val bigint = env.library("bigint.wrap")
+val base = env.lib("base")
+val { serialize } = env.lib("value")
+val format = env.lib("string.format")
+val bigint = env.lib("bigint.wrap")
 
 fun cachable<auto>(function) = base.setmetatable({ function, cache = { } }) {
     fun _mf_call<base, serialize>(s, arguments) {

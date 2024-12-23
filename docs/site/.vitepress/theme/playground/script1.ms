@@ -2,7 +2,7 @@
  * Mandelbrot set
  */
 
-val base = env.library("base")
+val base = env.lib("base")
 val chars = [" ", ".", ":", "-", "=", "+", "*", "#", "%", "@"]
 for(var y = -1.3; y <= 1.3; y += 0.3) {
     for(var x = -2.1; x <= 1.1; x += 0.1) {

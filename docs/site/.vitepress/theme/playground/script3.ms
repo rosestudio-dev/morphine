@@ -2,8 +2,8 @@
  * 99 bottles of beer
  */
 
-val base = env.library("base")
-val tostr = env.library("value.tostr")
+val base = env.lib("base")
+val tostr = env.lib("value.tostr")
 
 fun bottles<tostr>(count) =
     tostr(count) .. " bottle" .. if (count == 1) { "" } else { "s" }

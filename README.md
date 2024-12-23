@@ -40,15 +40,15 @@ val {
     setmetatable,
     error,
     pcall
-} = env.library("base")
+} = env.lib("base")
 
-val tostr = env.library("value.tostr")
-val allocated = env.library("gc.stat.memory.current")
-val format = env.library("string.format")
-val coroutine = env.library("coroutine")
-val vector = env.library("vector")
-val exception = env.library("exception")
-val sio = env.library("sio")
+val tostr = env.lib("value.tostr")
+val allocated = env.lib("gc.stat.memory.current")
+val format = env.lib("string.format")
+val coroutine = env.lib("coroutine")
+val vector = env.lib("vector")
+val exception = env.lib("exception")
+val sio = env.lib("sio")
 
 fun dump<println>() { println(self) }
 
@@ -108,7 +108,7 @@ do {
 // Reference test
 do {
     val value = ref { text = "reference test" }
-    env.library("gc.control").full()
+    env.lib("gc.control").full()
     println(*value or "cleared")
 }
 

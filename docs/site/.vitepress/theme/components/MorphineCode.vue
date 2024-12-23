@@ -36,9 +36,14 @@ function getInput() {
   let inputRef = ref("")
   const text = localStorage.getItem("morphine-playground-code")
   if (text == null) {
-    inputRef.value = scripts[Math.floor(Math.random() * scripts.length)]
+    inputRef.value = scripts[0]
   } else {
     inputRef.value = text
+  }
+
+  let script = localStorage.getItem("morphine-playground-script")
+  if (script == null) {
+    localStorage.setItem("morphine-playground-script", "0")
   }
 
   return inputRef
@@ -71,13 +76,16 @@ function hasScrollBar(elem) {
 }
 
 function changeScript() {
-  let index = Math.floor(Math.random() * scripts.length)
-  let result = scripts[index];
-  if (result == inputRef.value) {
-    result = scripts[(index + 1) % scripts.length]
+  let rawindex = 0
+  try {
+    rawindex = parseInt(localStorage.getItem("morphine-playground-script"))
+  } catch (_) {
   }
 
-  inputRef.value = result
+  let index = (Math.abs(rawindex) + 1) % scripts.length
+  localStorage.setItem("morphine-playground-script", index.toString())
+
+  inputRef.value = scripts[index]
 }
 
 async function hlrun() {

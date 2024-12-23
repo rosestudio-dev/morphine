@@ -2,7 +2,7 @@
  * Morphine assembler
  */
 
-val println = env.library("base.println")
+val println = env.lib("base.println")
 
 fun factorial(n) = asm(emt) {
     section data

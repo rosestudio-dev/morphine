@@ -2,8 +2,8 @@
  * PI number generator
  */
 
-val { print, println } = env.library("base")
-val bigint = env.library("bigint.wrap")
+val { print, println } = env.lib("base")
+val bigint = env.lib("bigint.wrap")
 
 fun calcPi<bigint>(printnum) {
     val ZERO = bigint(0)

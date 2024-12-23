@@ -6,9 +6,9 @@ val code = "
     // Code...
 "
 
-val base = env.library("base")
-val serialize = env.library("value.serialize")
-val compiler = env.library("compiler")
+val base = env.lib("base")
+val serialize = env.lib("value.serialize")
+val compiler = env.lib("compiler")
 
 val tokens = compiler.lex(code)
 

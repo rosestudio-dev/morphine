@@ -76,9 +76,11 @@ static void launcher(struct environment *env, const char *text, size_t size) {
     morphine_coroutine_t U = mapi_coroutine(I);
 
     mapi_push_stringn(U, text, size);
-    mcapi_compile(U, "main", false, false);
+    mcapi_compile(U, "main", false);
 
     mapi_call(U, 0);
+    mapi_attach(U);
+
     mapi_interpreter(I);
 
     mapi_close(I);

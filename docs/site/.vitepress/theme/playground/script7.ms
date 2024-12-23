@@ -6,4 +6,4 @@ fun code() {
     // Code...
 }
 
-env.library("compiler").dis(code)
+env.lib("compiler").dis(code)
