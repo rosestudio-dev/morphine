@@ -389,10 +389,10 @@ MORPHINE_API size_t mapi_exception_stacktrace_state(morphine_coroutine_t, ml_siz
 
 MORPHINE_API bool mapi_op(morphine_coroutine_t, const char *op);
 
-// binary
+// packer
 
-MORPHINE_API void mapi_binary_to(morphine_coroutine_t);
-MORPHINE_API void mapi_binary_from(morphine_coroutine_t);
+MORPHINE_API void mapi_pack(morphine_coroutine_t);
+MORPHINE_API void mapi_unpack(morphine_coroutine_t);
 
 // platform
 

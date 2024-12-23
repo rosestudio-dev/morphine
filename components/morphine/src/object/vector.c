@@ -4,7 +4,6 @@
 
 #include <memory.h>
 #include "morphine/object/vector.h"
-#include "morphine/object/string.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
@@ -551,4 +550,59 @@ struct pair vectorI_iterator_next(
     }
 
     return valueI_pair(valueI_size(index), vector->values[index]);
+}
+
+void vectorI_packer_vectorize(struct vector *vector, struct packer_vectorize *V) {
+    if (!vector->mode.accessible) {
+        packerI_vectorize_error(V, "vector is inaccessible");
+    }
+
+    for (ml_size i = 0; i < vector->size.accessible; i++) {
+        packerI_vectorize_append(V, vector->values[i]);
+    }
+}
+
+void vectorI_packer_write_info(struct vector *vector, struct packer_write *W) {
+    if (!vector->mode.accessible) {
+        packerI_write_error(W, "vector is inaccessible");
+    }
+
+    packerI_write_ml_size(W, vector->size.accessible);
+}
+
+void vectorI_packer_write_data(struct vector *vector, struct packer_write *W) {
+    if (!vector->mode.accessible) {
+        packerI_write_error(W, "vector is inaccessible");
+    }
+
+    for (ml_size i = 0; i < vector->size.accessible; i++) {
+        packerI_write_value(W, vector->values[i]);
+    }
+
+    packerI_write_bool(W, vector->mode.mutable);
+    packerI_write_bool(W, vector->mode.fixed);
+    packerI_write_bool(W, vector->mode.accessible);
+    packerI_write_bool(W, vector->mode.locked);
+}
+
+struct vector *vectorI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
+    ml_size size = packerI_read_ml_size(R);
+    return vectorI_create(I, size);
+}
+
+void vectorI_packer_read_data(morphine_instance_t I, struct vector *vector, struct packer_read *R) {
+    for (ml_size i = 0; i < vector->size.accessible; i++) {
+        gcI_safe_enter(I);
+        struct value value = gcI_safe(I, packerI_read_value(R));
+        vectorI_set(I, vector, i, value);
+        gcI_safe_exit(I);
+    }
+
+    vectorI_mode_mutable(I, vector, packerI_read_bool(R));
+    vectorI_mode_fixed(I, vector, packerI_read_bool(R));
+    vectorI_mode_accessible(I, vector, packerI_read_bool(R));
+
+    if (packerI_read_bool(R)) {
+        vectorI_mode_lock(I, vector);
+    }
 }

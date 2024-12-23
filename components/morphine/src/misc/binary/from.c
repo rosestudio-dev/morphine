@@ -2,19 +2,16 @@
 // Created by why-iskra on 21.08.2024.
 //
 
-#include "morphine/misc/binary.h"
-#include "morphine/core/value.h"
+#include "morphine/misc/packer.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/safe.h"
-#include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
+#include "morphine/object/closure.h"
 #include "morphine/object/vector.h"
 #include "morphine/object/table.h"
 #include "morphine/object/string.h"
-#include "morphine/object/sio.h"
-#include "morphine/algorithm/crc32.h"
-#include "morphine/misc/instruction.h"
 #include "morphine/object/userdata.h"
+#include "morphine/algorithm/crc32.h"
 #include <string.h>
 
 struct data {
@@ -25,23 +22,25 @@ struct data {
 
     ml_size size;
     ml_size value;
-    uint8_t acc;
 };
+
+struct packer_read {
+    struct data *D;
+};
+
+// simple read
 
 static inline uint8_t get_byte(struct data *D) {
     uint8_t byte = 0;
     size_t read_count = sioI_read(D->I, D->sio, &byte, 1);
 
     if (read_count != 1) {
-        throwI_error(D->I, "corrupted binary");
+        throwI_error(D->I, "corrupted packed data");
     }
 
     crc32_char(&D->crc, byte);
 
-    uint8_t acc = D->acc;
-    D->acc = byte;
-
-    return acc ^ byte;
+    return byte;
 }
 
 #define get_type(t, n) static inline t get_##n(struct data *D) { \
@@ -61,7 +60,7 @@ static inline uint8_t get_byte(struct data *D) {
         t result; \
     } buffer; \
     uint8_t zeros = get_byte(D); \
-    if (zeros > sizeof(t)) { throwI_error(D->I, "corrupted binary"); } \
+    if (zeros > sizeof(t)) { throwI_error(D->I, "corrupted packed data"); } \
     for (size_t i = 0; i < sizeof(t) - zeros; i++) { buffer.raw[i] = get_byte(D); } \
     for (size_t i = sizeof(t) - zeros; i < sizeof(t); i++) { buffer.raw[i] = 0; } \
     return buffer.result; \
@@ -79,6 +78,46 @@ get_type(char, char)
 get_type(bool, bool)
 get_type(uint8_t, uint8)
 get_type(uint32_t, uint32)
+
+static struct string *read_object_string(struct data *D) {
+    ml_size size = get_ml_size(D);
+
+    gcI_safe_enter(D->I);
+    struct userdata *userdata = gcI_safe_obj(
+        D->I, userdata, userdataI_create_vec(D->I, size, sizeof(char))
+    );
+
+    char *buffer = userdata->data;
+    for (ml_size i = 0; i < size; i++) {
+        buffer[i] = get_char(D);
+    }
+
+    struct string *string = stringI_createn(D->I, size, buffer);
+    gcI_safe_exit(D->I);
+
+    return string;
+}
+
+// wrappers
+
+#define read_wrapper(t, n) t packerI_read_##n(struct packer_read *R) { return get_##n(R->D); }
+
+read_wrapper(ml_size, ml_size)
+read_wrapper(ml_line, ml_line)
+read_wrapper(ml_argument, ml_argument)
+read_wrapper(morphine_opcode_t, opcode)
+read_wrapper(bool, bool)
+
+struct string *packerI_read_object_string(struct packer_read *R) {
+    return read_object_string(R->D);
+}
+
+struct value packerI_read_value(struct packer_read *R) {
+    ml_size key_index = valueI_integer2index(R->D->I, get_ml_integer(R->D));
+    return vectorI_get(R->D->I, R->D->vector, key_index);
+}
+
+// complex read
 
 static void check_format_tag(struct data *D) {
     char buffer[sizeof(FORMAT_TAG)];
@@ -105,8 +144,8 @@ static void check_prob(struct data *D) {
         throwI_error(D->I, "unsupported morphine version");
     }
 
-    if (get_ml_version(D) != MORPHINEC_BINARY_VERSION) {
-        throwI_error(D->I, "unsupported binary version");
+    if (get_ml_version(D) != PACKER_VERSION) {
+        throwI_error(D->I, "unsupported packer version");
     }
 
     if (get_ml_version(D) != MORPHINE_VERSION_CODE) {
@@ -131,7 +170,7 @@ static void check_prob(struct data *D) {
 
     return;
 error:
-    throwI_error(D->I, "unsupported binary architecture");
+    throwI_error(D->I, "invalid packer probes");
 }
 
 static void read_head(struct data *D) {
@@ -144,174 +183,97 @@ static void read_head(struct data *D) {
     D->vector = gcI_safe_obj(D->I, vector, vectorI_create(D->I, D->size));
 }
 
-static struct string *read_object_string(struct data *D) {
-    ml_size size = get_ml_size(D);
-
-    gcI_safe_enter(D->I);
-    struct userdata *userdata = gcI_safe_obj(
-        D->I, userdata, userdataI_create_vec(D->I, size, sizeof(char))
-    );
-
-    char *buffer = userdata->data;
-    for (ml_size i = 0; i < size; i++) {
-        buffer[i] = get_char(D);
-    }
-
-    struct string *string = stringI_createn(D->I, size, buffer);
-    gcI_safe_exit(D->I);
-
-    return string;
-}
-
 static void read_objects_info(struct data *D) {
+    struct packer_read read = { .D = D };
+
     for (ml_size index = 0; index < D->size; index++) {
         ml_size vector_index = valueI_integer2index(D->I, get_ml_integer(D));
         enum value_type type = get_value_type(D);
         switch (type) {
-            case VALUE_TYPE_NIL:
+            case VALUE_TYPE_NIL: {
                 vectorI_set(D->I, D->vector, vector_index, valueI_nil);
-                continue;
-            case VALUE_TYPE_INTEGER:
+                break;
+            }
+            case VALUE_TYPE_INTEGER: {
                 vectorI_set(D->I, D->vector, vector_index, valueI_integer(get_ml_integer(D)));
-                continue;
-            case VALUE_TYPE_DECIMAL:
+                break;
+            }
+            case VALUE_TYPE_DECIMAL: {
                 vectorI_set(D->I, D->vector, vector_index, valueI_decimal(get_ml_decimal(D)));
-                continue;
-            case VALUE_TYPE_BOOLEAN:
+                break;
+            }
+            case VALUE_TYPE_BOOLEAN: {
                 vectorI_set(D->I, D->vector, vector_index, valueI_boolean(get_bool(D)));
-                continue;
+                break;
+            }
             case VALUE_TYPE_STRING: {
                 gcI_safe_enter(D->I);
                 struct string *string = gcI_safe_obj(D->I, string, read_object_string(D));
                 vectorI_set(D->I, D->vector, vector_index, valueI_object(string));
                 gcI_safe_exit(D->I);
-                continue;
+                break;
             }
             case VALUE_TYPE_TABLE: {
-                struct table *table = tableI_create(D->I);
+                gcI_safe_enter(D->I);
+                struct table *table = gcI_safe_obj(D->I, table, tableI_packer_read_info(D->I, &read));
                 vectorI_set(D->I, D->vector, vector_index, valueI_object(table));
-                continue;
+                gcI_safe_exit(D->I);
+                break;
             }
             case VALUE_TYPE_VECTOR: {
-                ml_size size = get_ml_size(D);
-                struct vector *vector = vectorI_create(D->I, size);
+                gcI_safe_enter(D->I);
+                struct vector *vector = gcI_safe_obj(D->I, vector, vectorI_packer_read_info(D->I, &read));
                 vectorI_set(D->I, D->vector, vector_index, valueI_object(vector));
-                continue;
+                gcI_safe_exit(D->I);
+                break;
             }
             case VALUE_TYPE_FUNCTION: {
                 gcI_safe_enter(D->I);
-                struct string *name = gcI_safe_obj(D->I, string, read_object_string(D));
-
-                ml_line line = get_ml_line(D);
-                ml_size constants_count = get_ml_size(D);
-                ml_size instructions_count = get_ml_size(D);
-                ml_size statics_count = get_ml_size(D);
-                ml_size arguments_count = get_ml_size(D);
-                ml_size slots_count = get_ml_size(D);
-                ml_size params_count = get_ml_size(D);
-
-                struct function *function = functionI_create(
-                    D->I,
-                    name,
-                    line,
-                    constants_count,
-                    instructions_count,
-                    statics_count,
-                    arguments_count,
-                    slots_count,
-                    params_count
-                );
-
+                struct function *function = gcI_safe_obj(D->I, function, functionI_packer_read_info(D->I, &read));
                 vectorI_set(D->I, D->vector, vector_index, valueI_object(function));
-
                 gcI_safe_exit(D->I);
-                continue;
+                break;
             }
-            default:
-                throwI_error(D->I, "corrupted binary");
+            case VALUE_TYPE_CLOSURE: {
+                gcI_safe_enter(D->I);
+                struct closure *closure = gcI_safe_obj(D->I, closure, closureI_packer_read_info(D->I, &read));
+                vectorI_set(D->I, D->vector, vector_index, valueI_object(closure));
+                gcI_safe_exit(D->I);
+                break;
+            }
+            default: {
+                throwI_error(D->I, "corrupted packed data");
+            }
         }
     }
 }
 
 static void read_objects_data(struct data *D) {
+    struct packer_read read = { .D = D };
+
     for (ml_size index = 0; index < D->size; index++) {
-        struct value vector_value = vectorI_get(D->I, D->vector, index);
-        switch (vector_value.type) {
+        struct value value = vectorI_get(D->I, D->vector, index);
+        switch (value.type) {
             case VALUE_TYPE_NIL:
             case VALUE_TYPE_INTEGER:
             case VALUE_TYPE_DECIMAL:
             case VALUE_TYPE_BOOLEAN:
             case VALUE_TYPE_STRING:
-                continue;
-            case VALUE_TYPE_TABLE: {
-                struct table *table = valueI_as_table_or_error(D->I, vector_value);
-                ml_size size = get_ml_size(D);
-                for (ml_size i = 0; i < size; i++) {
-                    ml_size key_index = valueI_integer2index(D->I, get_ml_integer(D));
-                    struct value key = vectorI_get(D->I, D->vector, key_index);
-
-                    ml_size value_index = valueI_integer2index(D->I, get_ml_integer(D));
-                    struct value value = vectorI_get(D->I, D->vector, value_index);
-
-                    tableI_set(D->I, table, key, value);
-                }
-                continue;
-            }
-            case VALUE_TYPE_VECTOR: {
-                struct vector *vector = valueI_as_vector_or_error(D->I, vector_value);
-                for (ml_size i = 0; i < vectorI_size(D->I, vector); i++) {
-                    ml_size value_index = valueI_integer2index(D->I, get_ml_integer(D));
-                    struct value value = vectorI_get(D->I, D->vector, value_index);
-
-                    vectorI_set(D->I, vector, i, value);
-                }
-                continue;
-            }
-            case VALUE_TYPE_FUNCTION: {
-                struct function *function = valueI_as_function_or_error(D->I, vector_value);
-
-                for (ml_size i = 0; i < function->instructions_count; i++) {
-                    morphine_instruction_t instruction;
-                    instruction.opcode = get_opcode(D);
-                    instruction.line = get_ml_line(D);
-                    instruction.argument1 = 0;
-                    instruction.argument2 = 0;
-                    instruction.argument3 = 0;
-
-                    bool valid = false;
-                    ml_size count = instructionI_opcode_args(instruction.opcode, &valid);
-
-                    if (!valid) {
-                        throwI_error(D->I, "corrupted binary");
-                    }
-
-                    if (count > 0) {
-                        instruction.argument1 = get_ml_argument(D);
-                    }
-
-                    if (count > 1) {
-                        instruction.argument2 = get_ml_argument(D);
-                    }
-
-                    if (count > 2) {
-                        instruction.argument3 = get_ml_argument(D);
-                    }
-
-                    functionI_instruction_set(D->I, function, i, instruction);
-                }
-
-                for (ml_size i = 0; i < function->constants_count; i++) {
-                    ml_size value_index = valueI_integer2index(D->I, get_ml_integer(D));
-                    struct value value = vectorI_get(D->I, D->vector, value_index);
-
-                    functionI_constant_set(D->I, function, i, value);
-                }
-
-                functionI_complete(D->I, function);
-                continue;
-            }
+                break;
+            case VALUE_TYPE_TABLE:
+                tableI_packer_read_data(D->I, valueI_as_table(value), &read);
+                break;
+            case VALUE_TYPE_VECTOR:
+                vectorI_packer_read_data(D->I, valueI_as_vector(value), &read);
+                break;
+            case VALUE_TYPE_FUNCTION:
+                functionI_packer_read_data(D->I, valueI_as_function(value), &read);
+                break;
+            case VALUE_TYPE_CLOSURE:
+                closureI_packer_read_data(D->I, valueI_as_closure(value), &read);
+                break;
             default:
-                throwI_error(D->I, "corrupted binary");
+                throwI_error(D->I, "corrupted packed data");
         }
     }
 }
@@ -326,11 +288,11 @@ static void read_tail(struct data *D) {
     uint32_t got = get_uint32(D);
 
     if (expected != got) {
-        throwI_error(D->I, "corrupted binary");
+        throwI_error(D->I, "corrupted packed data");
     }
 }
 
-struct value binaryI_from(morphine_instance_t I, struct sio *sio) {
+struct value packerI_from(morphine_instance_t I, struct sio *sio) {
     gcI_safe_enter(I);
     gcI_safe(I, valueI_object(sio));
 
@@ -341,7 +303,6 @@ struct value binaryI_from(morphine_instance_t I, struct sio *sio) {
         .crc = crc32_init(),
         .size = 0,
         .value = 0,
-        .acc = ACC_INIT
     };
 
     read_head(&data);

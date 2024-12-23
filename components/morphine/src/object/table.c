@@ -895,3 +895,90 @@ struct pair tableI_iterator_next(morphine_instance_t I, struct table *table, str
 
     return current->pair;
 }
+
+void tableI_packer_vectorize(struct table *table, struct packer_vectorize *V) {
+    if (!table->mode.accessible) {
+        packerI_vectorize_error(V, "table is inaccessible");
+    }
+
+    struct bucket *current = table->hashmap.buckets.tail;
+    while (current != NULL) {
+        packerI_vectorize_append(V, current->pair.key);
+        packerI_vectorize_append(V, current->pair.value);
+
+        current = current->ll.next;
+    }
+
+    if (table->metatable != NULL) {
+        packerI_vectorize_append(V, valueI_object(table->metatable));
+    }
+}
+
+void tableI_packer_write_info(struct table *table, struct packer_write *W) {
+    if (!table->mode.accessible) {
+        packerI_write_error(W, "table is inaccessible");
+    }
+}
+
+void tableI_packer_write_data(struct table *table, struct packer_write *W) {
+    if (!table->mode.accessible) {
+        packerI_write_error(W, "table is inaccessible");
+    }
+
+    packerI_write_ml_size(W, table->hashmap.buckets.count);
+
+    struct bucket *current = table->hashmap.buckets.tail;
+    while (current != NULL) {
+        packerI_write_value(W, current->pair.key);
+        packerI_write_value(W, current->pair.value);
+
+        current = current->ll.next;
+    }
+
+    packerI_write_bool(W, table->metatable != NULL);
+    if (table->metatable != NULL) {
+        packerI_write_value(W, valueI_object(table->metatable));
+    }
+
+    packerI_write_bool(W, table->mode.mutable);
+    packerI_write_bool(W, table->mode.fixed);
+    packerI_write_bool(W, table->mode.accessible);
+    packerI_write_bool(W, table->mode.metatable_locked);
+    packerI_write_bool(W, table->mode.locked);
+}
+
+struct table *tableI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
+    (void) R;
+    return tableI_create(I);
+}
+
+void tableI_packer_read_data(morphine_instance_t I, struct table *table, struct packer_read *R) {
+    ml_size size = packerI_read_ml_size(R);
+    for (ml_size i = 0; i < size; i++) {
+        gcI_safe_enter(I);
+        struct value key = gcI_safe(I, packerI_read_value(R));
+        struct value value = gcI_safe(I, packerI_read_value(R));
+        tableI_set(I, table, key, value);
+        gcI_safe_exit(I);
+    }
+
+    bool has_metatable = packerI_read_bool(R);
+    if (has_metatable) {
+        gcI_safe_enter(I);
+        struct value metatable = gcI_safe(I, packerI_read_value(R));
+        metatableI_set(I, valueI_object(table), valueI_as_table_or_error(I, metatable));
+        gcI_safe_exit(I);
+    }
+
+    tableI_mode_mutable(I, table, packerI_read_bool(R));
+    tableI_mode_fixed(I, table, packerI_read_bool(R));
+    tableI_mode_accessible(I, table, packerI_read_bool(R));
+
+    if (packerI_read_bool(R)) {
+        tableI_mode_lock_metatable(I, table);
+    }
+
+    if (packerI_read_bool(R)) {
+        tableI_mode_lock(I, table);
+    }
+}

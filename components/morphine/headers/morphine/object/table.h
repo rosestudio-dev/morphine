@@ -5,6 +5,7 @@
 #pragma once
 
 #include "morphine/core/value.h"
+#include "morphine/misc/packer.h"
 
 enum bucket_color {
     BUCKET_COLOR_BLACK,
@@ -83,3 +84,9 @@ struct table *tableI_copy(morphine_instance_t, struct table *);
 
 struct value tableI_iterator_first(morphine_instance_t, struct table *, bool *has);
 struct pair tableI_iterator_next(morphine_instance_t, struct table *, struct value *key, bool *next);
+
+void tableI_packer_vectorize(struct table *, struct packer_vectorize *);
+void tableI_packer_write_info(struct table *, struct packer_write *);
+void tableI_packer_write_data(struct table *, struct packer_write *);
+struct table *tableI_packer_read_info(morphine_instance_t, struct packer_read *);
+void tableI_packer_read_data(morphine_instance_t, struct table *, struct packer_read *);

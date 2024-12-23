@@ -8,4 +8,4 @@
 #include "morphine/object/function.h"
 
 ml_size instructionI_opcode_args(morphine_opcode_t, bool *valid);
-bool instructionI_validate(morphine_instruction_t, struct function *function);
+bool instructionI_validate(morphine_instruction_t, struct function *);

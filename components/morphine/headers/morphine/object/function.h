@@ -6,7 +6,8 @@
 
 #include <stddef.h>
 #include "morphine/core/value.h"
-#include "morphine/misc/instruction.h"
+#include "morphine/misc/packer.h"
+#include "morphine/misc/instruction/type.h"
 
 struct function {
     struct object header;
@@ -52,3 +53,9 @@ void functionI_constant_set(morphine_instance_t, struct function *, ml_size inde
 
 struct value functionI_static_get(morphine_instance_t, struct function *, ml_size index);
 void functionI_static_set(morphine_instance_t, struct function *, ml_size index, struct value);
+
+void functionI_packer_vectorize(struct function *, struct packer_vectorize *);
+void functionI_packer_write_info(struct function *, struct packer_write *);
+void functionI_packer_write_data(struct function *, struct packer_write *);
+struct function *functionI_packer_read_info(morphine_instance_t, struct packer_read *);
+void functionI_packer_read_data(morphine_instance_t, struct function *, struct packer_read *);

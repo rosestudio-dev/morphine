@@ -290,3 +290,129 @@ void functionI_static_set(
     gcI_barrier(I, function, value);
     function->statics[index] = value;
 }
+
+void functionI_packer_vectorize(struct function *function, struct packer_vectorize *V) {
+    for (ml_size i = 0; i < function->constants_count; i++) {
+        packerI_vectorize_append(V, function->constants[i]);
+    }
+
+    for (ml_size i = 0; i < function->statics_count; i++) {
+        packerI_vectorize_append(V, function->statics[i]);
+    }
+}
+
+void functionI_packer_write_info(struct function *function, struct packer_write *W) {
+    packerI_write_ml_line(W, function->line);
+    packerI_write_ml_size(W, function->constants_count);
+    packerI_write_ml_size(W, function->instructions_count);
+    packerI_write_ml_size(W, function->statics_count);
+    packerI_write_ml_size(W, function->arguments_count);
+    packerI_write_ml_size(W, function->slots_count);
+    packerI_write_ml_size(W, function->params_count);
+    packerI_write_object_string(W, function->name);
+}
+
+void functionI_packer_write_data(struct function *function, struct packer_write *W) {
+    for (ml_size i = 0; i < function->instructions_count; i++) {
+        morphine_instruction_t instruction = function->instructions[i];
+        packerI_write_opcode(W, instruction.opcode);
+        packerI_write_ml_line(W, instruction.line);
+
+        ml_size count = instructionI_opcode_args(instruction.opcode, NULL);
+
+        if (count > 0) {
+            packerI_write_ml_argument(W, instruction.argument1);
+        }
+
+        if (count > 1) {
+            packerI_write_ml_argument(W, instruction.argument2);
+        }
+
+        if (count > 2) {
+            packerI_write_ml_argument(W, instruction.argument3);
+        }
+    }
+
+    for (ml_size i = 0; i < function->constants_count; i++) {
+        packerI_write_value(W, function->constants[i]);
+    }
+
+    for (ml_size i = 0; i < function->statics_count; i++) {
+        packerI_write_value(W, function->statics[i]);
+    }
+}
+
+struct function *functionI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
+    ml_line line = packerI_read_ml_line(R);
+    ml_size constants_count = packerI_read_ml_size(R);
+    ml_size instructions_count = packerI_read_ml_size(R);
+    ml_size statics_count = packerI_read_ml_size(R);
+    ml_size arguments_count = packerI_read_ml_size(R);
+    ml_size slots_count = packerI_read_ml_size(R);
+    ml_size params_count = packerI_read_ml_size(R);
+
+    gcI_safe_enter(I);
+    struct string *name = gcI_safe_obj(I, string, packerI_read_object_string(R));
+    struct function *function = functionI_create(
+        I,
+        name,
+        line,
+        constants_count,
+        instructions_count,
+        statics_count,
+        arguments_count,
+        slots_count,
+        params_count
+    );
+    gcI_safe_exit(I);
+
+    return function;
+}
+
+void functionI_packer_read_data(morphine_instance_t I, struct function *function, struct packer_read *R) {
+    for (ml_size i = 0; i < function->instructions_count; i++) {
+        morphine_instruction_t instruction;
+        instruction.opcode = packerI_read_opcode(R);
+        instruction.line = packerI_read_ml_line(R);
+        instruction.argument1 = 0;
+        instruction.argument2 = 0;
+        instruction.argument3 = 0;
+
+        bool valid = false;
+        ml_size count = instructionI_opcode_args(instruction.opcode, &valid);
+
+        if (!valid) {
+            throwI_error(I, "corrupted instruction");
+        }
+
+        if (count > 0) {
+            instruction.argument1 = packerI_read_ml_argument(R);
+        }
+
+        if (count > 1) {
+            instruction.argument2 = packerI_read_ml_argument(R);
+        }
+
+        if (count > 2) {
+            instruction.argument3 = packerI_read_ml_argument(R);
+        }
+
+        functionI_instruction_set(I, function, i, instruction);
+    }
+
+    for (ml_size i = 0; i < function->constants_count; i++) {
+        gcI_safe_enter(I);
+        struct value value = gcI_safe(I, packerI_read_value(R));
+        functionI_constant_set(I, function, i, value);
+        gcI_safe_exit(I);
+    }
+
+    for (ml_size i = 0; i < function->statics_count; i++) {
+        gcI_safe_enter(I);
+        struct value value = gcI_safe(I, packerI_read_value(R));
+        functionI_static_set(I, function, i, value);
+        gcI_safe_exit(I);
+    }
+
+    functionI_complete(I, function);
+}

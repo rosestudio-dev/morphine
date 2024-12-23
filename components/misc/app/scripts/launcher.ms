@@ -1,10 +1,10 @@
 val { version, pcall, ecall, println } = env.library("base")
 val { exit } = env.library("__app")
 val { tostr } = env.library("value")
+val { pack, unpack } = env.library("packer")
 val exception = env.library("exception")
 val compiler = env.library("compiler")
 val vector = env.library("vector")
-val binary = env.library("binary")
 val sio = env.library("sio")
 val fs = env.library("fs")
 val gc = env.library("gc")
@@ -17,12 +17,12 @@ val pattern = {
     program = if (lenof env.args > 0) { env.args[0] } else { "morphine" },
     version,
     optional = [
-        { name = "binary",      key = "b", type = parseargs.type.toggle,                                    desc = "Binary program" },
+        { name = "packed",      key = "p", type = parseargs.type.toggle,                                    desc = "Packed program" },
         { name = "inline",      key = "i", type = parseargs.type.toggle,                                    desc = "Inline program" },
         { name = "run",         key = "r", type = parseargs.type.toggle,                                    desc = "Run program" },
         { name = "disassembly", key = "d", type = parseargs.type.toggle,                                    desc = "Disassembly program" },
         { name = "export",      key = "e", type = parseargs.type.string, value = "path",                    desc = "Export program" },
-        { name = "name",        key = "n", type = parseargs.type.string, value = "name",  default = "main", desc = "Program name (gives an effect for a non-binary format)" },
+        { name = "name",        key = "n", type = parseargs.type.string, value = "name",  default = "main", desc = "Program name (gives an effect for a non-packed format)" },
         { name = "memory",      key = "m", type = parseargs.type.bytes,  value = "bytes", default = "256M", desc = "Allocation limit" },
     ],
     positional = [
@@ -62,9 +62,9 @@ if (config.repl) {
 
 gc.settings.setlimit(config.memory)
 
-val content = pcall <- fun<auto>() = if (config.binary) {
+val content = pcall <- fun<auto>() = if (config.packed) {
     val file = fs.open(config.program, "rb")
-    val result = binary.receive(file)
+    val result = unpack(file)
     sio.close(file)
 
     result
@@ -96,7 +96,7 @@ if (config.disassembly) {
 
 if (config.export != nil) {
     val file = fs.open(config.export, "wb")
-    binary.send(file, content)
+    pack(file, content)
     sio.close(file)
 }
 
