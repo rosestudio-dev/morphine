@@ -46,14 +46,14 @@ static void lib(morphine_coroutine_t U) {
 }
 
 static void init_sio(morphine_instance_t I) {
-    I->sio.io = sioI_create(I, I->platform.sio_io_interface);
-    I->sio.error = sioI_create(I, I->platform.sio_error_interface);
+    I->sio.io = sioI_create(I, I->platform.sio.io);
+    I->sio.err = sioI_create(I, I->platform.sio.err);
 
     sioI_hold(I, I->sio.io, valueI_raw(0));
-    sioI_hold(I, I->sio.error, valueI_raw(0));
+    sioI_hold(I, I->sio.err, valueI_raw(0));
 
     sioI_open(I, I->sio.io, I->data);
-    sioI_open(I, I->sio.error, I->data);
+    sioI_open(I, I->sio.err, I->data);
 }
 
 static void init_throw(morphine_instance_t I) {
@@ -112,13 +112,13 @@ static void init(morphine_instance_t I) {
 
 morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settings_t settings, void *data) {
     if (sizeof(struct instance) >= settings.gc.limit) {
-        platform.functions.signal(NULL, data, false);
+        platform.signal(NULL, data, false);
     }
 
-    morphine_instance_t I = platform.functions.malloc(data, sizeof(struct instance));
+    morphine_instance_t I = platform.memory.alloc(data, sizeof(struct instance));
 
     if (I == NULL) {
-        platform.functions.signal(NULL, data, true);
+        platform.signal(NULL, data, true);
     }
 
     *I = (struct instance) {
@@ -148,18 +148,20 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
 }
 
 void instanceI_close(morphine_instance_t I) {
+    throwI_danger_enter(I);
     if (I->sio.io != NULL) {
         sioI_close(I, I->sio.io, true);
     }
 
-    if (I->sio.error != NULL) {
-        sioI_close(I, I->sio.error, true);
+    if (I->sio.err != NULL) {
+        sioI_close(I, I->sio.err, true);
     }
 
     gcI_destruct(I, I->G);
 
     librariesI_free(I, &I->libraries);
     usertypeI_free(I, &I->usertypes);
+    throwI_danger_exit(I);
 
-    I->platform.functions.free(I->data, I);
+    I->platform.memory.free(I->data, I);
 }

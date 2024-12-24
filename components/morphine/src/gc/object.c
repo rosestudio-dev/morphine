@@ -19,17 +19,7 @@
 #include "morphine/core/instance.h"
 #include "morphine/gc/pools.h"
 
-void objectI_init(morphine_instance_t I, struct object *object, enum obj_type type) {
-    *object = (struct object) {
-        .type = type,
-        .flags.finalized = false,
-        .color = OBJ_COLOR_WHITE
-    };
-
-    gcI_pools_insert(object, &I->G.pools.allocated);
-}
-
-void objectI_free(morphine_instance_t I, struct object *object) {
+static inline void destruct(morphine_instance_t I, struct object *object) {
     switch (object->type) {
         case OBJ_TYPE_USERDATA:
             userdataI_free(I, cast(struct userdata *, object));
@@ -70,4 +60,20 @@ void objectI_free(morphine_instance_t I, struct object *object) {
     }
 
     throwI_panic(I, "unknown object type");
+}
+
+void objectI_init(morphine_instance_t I, struct object *object, enum obj_type type) {
+    *object = (struct object) {
+        .type = type,
+        .flags.finalized = false,
+        .color = OBJ_COLOR_WHITE
+    };
+
+    gcI_pools_insert(object, &I->G.pools.allocated);
+}
+
+void objectI_free(morphine_instance_t I, struct object *object) {
+    throwI_danger_enter(I);
+    destruct(I, object);
+    throwI_danger_exit(I);
 }

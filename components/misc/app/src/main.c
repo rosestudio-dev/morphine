@@ -49,7 +49,7 @@ static void io_error_flush(morphine_instance_t I, void *data) {
     fflush(stderr);
 }
 
-static void *vmmalloc(void *data, size_t size) {
+static void *vmalloc(void *data, size_t size) {
     (void) data;
     return malloc(size);
 }
@@ -102,12 +102,12 @@ static int launcher(struct env *env, int argc, char **argv) {
     };
 
     morphine_platform_t instance_platform = {
-        .functions.malloc = vmmalloc,
-        .functions.realloc = vmrealloc,
-        .functions.free = vmfree,
-        .functions.signal = env_signal,
-        .sio_io_interface = maux_sio_interface_srwf(io_read, io_write, io_flush),
-        .sio_error_interface = maux_sio_interface_swf(io_error_write, io_error_flush),
+        .signal = env_signal,
+        .memory.alloc = vmalloc,
+        .memory.realloc = vmrealloc,
+        .memory.free = vmfree,
+        .sio.io = maux_sio_interface_srwf(io_read, io_write, io_flush),
+        .sio.err = maux_sio_interface_swf(io_error_write, io_error_flush),
     };
 
     morphine_instance_t I = mapi_open(instance_platform, settings, env);

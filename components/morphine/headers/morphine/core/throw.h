@@ -22,6 +22,7 @@ struct protect_frame {
 struct throw {
     morphine_coroutine_t context;
     size_t signal_entered;
+    size_t danger_entered;
 
     struct protect_frame protect;
 
@@ -51,6 +52,9 @@ morphine_noret void throwI_panicv(morphine_instance_t, struct value);
 morphine_noret void throwI_panicf(morphine_instance_t, const char *, ...);
 morphine_noret void throwI_ofm(morphine_instance_t);
 morphine_noret void throwI_af(morphine_instance_t);
+
+void throwI_danger_enter(morphine_instance_t);
+void throwI_danger_exit(morphine_instance_t);
 
 const char *throwI_message(morphine_instance_t);
 bool throwI_is_nested_signal(morphine_instance_t);

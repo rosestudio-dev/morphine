@@ -12,8 +12,8 @@ MORPHINE_API void mapi_push_sio_io(morphine_coroutine_t U) {
     stackI_push(U, valueI_object(U->I->sio.io));
 }
 
-MORPHINE_API void mapi_push_sio_error(morphine_coroutine_t U) {
-    stackI_push(U, valueI_object(U->I->sio.error));
+MORPHINE_API void mapi_push_sio_err(morphine_coroutine_t U) {
+    stackI_push(U, valueI_object(U->I->sio.err));
 }
 
 MORPHINE_API void mapi_push_sio(morphine_coroutine_t U, morphine_sio_interface_t interface) {
@@ -32,7 +32,7 @@ MORPHINE_API void mapi_sio_hold(morphine_coroutine_t U) {
 MORPHINE_API void mapi_sio_open(morphine_coroutine_t U, void *data) {
     struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
 
-    if (sio == U->I->sio.io || sio == U->I->sio.error) {
+    if (sio == U->I->sio.io || sio == U->I->sio.err) {
         return;
     }
 
@@ -47,7 +47,7 @@ MORPHINE_API bool mapi_sio_is_opened(morphine_coroutine_t U) {
 MORPHINE_API void mapi_sio_close(morphine_coroutine_t U, bool force) {
     struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 0));
 
-    if (sio == U->I->sio.io || sio == U->I->sio.error) {
+    if (sio == U->I->sio.io || sio == U->I->sio.err) {
         stackI_pop(U, 1);
         return;
     }

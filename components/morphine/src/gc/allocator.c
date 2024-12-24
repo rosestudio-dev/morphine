@@ -69,7 +69,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
         gcI_work(I, nsize);
 
         change_allocated_size(I, nsize, true);
-        result = I->platform.functions.malloc(I->data, nsize);
+        result = I->platform.memory.alloc(I->data, nsize);
     } else {
         struct metadata *metadata = p - sizeof(struct metadata);
 
@@ -82,7 +82,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
             change_allocated_size(I, metadata->size - nsize, false);
         }
 
-        result = I->platform.functions.realloc(I->data, metadata, nsize);
+        result = I->platform.memory.realloc(I->data, metadata, nsize);
     }
 
     if (unlikely(result == NULL)) {
@@ -103,5 +103,5 @@ void allocI_free(morphine_instance_t I, void *p) {
 
     struct metadata *metadata = p - sizeof(struct metadata);
     change_allocated_size(I, metadata->size, false);
-    I->platform.functions.free(I->data, metadata);
+    I->platform.memory.free(I->data, metadata);
 }

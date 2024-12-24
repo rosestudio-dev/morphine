@@ -63,16 +63,26 @@ typedef struct {
 
 // platform
 
-typedef struct {
-    struct {
-        void *(*malloc)(void *data, size_t size);
-        void *(*realloc)(void *data, void *pointer, size_t size);
-        void (*free)(void *data, void *pointer);
-        void (*signal)(morphine_instance_t, void *data, bool is_panic) morphine_noret;
-    } functions;
+typedef void *(*morphine_malloc_t)(void *data, size_t size);
+typedef void *(*morphine_realloc_t)(void *data, void *pointer, size_t size);
+typedef void (*morphine_free_t)(void *data, void *pointer);
+typedef void (*morphine_signal_t)(morphine_instance_t, void *data, bool is_panic) morphine_noret;
 
-    morphine_sio_interface_t sio_io_interface;
-    morphine_sio_interface_t sio_error_interface;
+typedef struct {
+    morphine_malloc_t alloc;
+    morphine_realloc_t realloc;
+    morphine_free_t free;
+} morphine_platform_memory_t;
+
+typedef struct {
+    morphine_sio_interface_t io;
+    morphine_sio_interface_t err;
+} morphine_platform_sio_t;
+
+typedef struct {
+    morphine_signal_t signal;
+    morphine_platform_memory_t memory;
+    morphine_platform_sio_t sio;
 } morphine_platform_t;
 
 // settings
@@ -109,3 +119,23 @@ typedef struct {
     const char *sharedkey;
     morphine_library_init_t init;
 } morphine_library_t;
+
+// isolate
+
+typedef void (*morphine_isolate_init_t)(morphine_instance_t);
+
+typedef struct {
+    morphine_isolate_init_t init;
+    bool error_propagation;
+
+    struct {
+        struct {
+            bool memory;
+            bool sio;
+        } flags;
+
+        void *data;
+        morphine_platform_memory_t memory;
+        morphine_platform_sio_t sio;
+    } custom;
+} morphine_isolate_config_t;

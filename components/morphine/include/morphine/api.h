@@ -354,7 +354,7 @@ MORPHINE_API void mapi_sharedstorage_clear(morphine_coroutine_t, const char *sha
 // sio
 
 MORPHINE_API void mapi_push_sio_io(morphine_coroutine_t);
-MORPHINE_API void mapi_push_sio_error(morphine_coroutine_t);
+MORPHINE_API void mapi_push_sio_err(morphine_coroutine_t);
 MORPHINE_API void mapi_push_sio(morphine_coroutine_t, morphine_sio_interface_t);
 MORPHINE_API void mapi_sio_hold(morphine_coroutine_t);
 MORPHINE_API void mapi_sio_open(morphine_coroutine_t, void *);
@@ -395,6 +395,10 @@ MORPHINE_API bool mapi_op(morphine_coroutine_t, const char *op);
 
 MORPHINE_API void mapi_pack(morphine_coroutine_t);
 MORPHINE_API void mapi_unpack(morphine_coroutine_t);
+
+// isolate
+
+MORPHINE_API void mapi_isolate(morphine_coroutine_t, morphine_isolate_config_t, ml_size);
 
 // platform
 

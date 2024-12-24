@@ -258,7 +258,7 @@ static void library_init(morphine_coroutine_t U) {
     mapi_push_sio_io(U);
     maux_table_set(U, "io");
 
-    mapi_push_sio_error(U);
+    mapi_push_sio_err(U);
     maux_table_set(U, "err");
 
     maux_table_set(U, "stream");

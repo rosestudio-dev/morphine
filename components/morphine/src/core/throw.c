@@ -14,6 +14,9 @@
 #include "morphine/gc/safe.h"
 #include "morphine/object/sio.h"
 
+#define SIGNAL_RECURSION (1024)
+#define DANGER_RECURSION (1024)
+
 #define OFM_MESSAGE ("out of memory")
 #define AF_MESSAGE  ("allocation fault")
 
@@ -21,12 +24,23 @@ morphine_noret static void csignal(morphine_instance_t I, bool is_panic) {
     struct throw *throw = &I->throw;
 
     throw->protect.entered = false;
-    throw->signal_entered++;
-    I->platform.functions.signal(I, I->data, is_panic);
+
+    if (throw->signal_entered >= SIGNAL_RECURSION) {
+        throw->type = THROW_TYPE_MESSAGE;
+        throw->error.message = "signal recursion detected";
+    } else {
+        throw->signal_entered++;
+    }
+
+    I->platform.signal(I, I->data, is_panic);
 }
 
 morphine_noret static void error(morphine_instance_t I) {
     struct throw *throw = &I->throw;
+
+    if (throw->danger_entered > 0) {
+        csignal(I, true);
+    }
 
     if (throw->protect.entered) {
         longjmp(throw->protect.handler, 1);
@@ -39,6 +53,7 @@ struct throw throwI_prototype(void) {
     return (struct throw) {
         .context = NULL,
         .signal_entered = 0,
+        .danger_entered = 0,
         .protect.entered = false,
         .type = THROW_TYPE_VALUE,
         .error.value = valueI_nil,
@@ -142,8 +157,8 @@ void throwI_handler(morphine_instance_t I) {
         size_t stack_size = stackI_space(coroutine);
         stackI_pop(coroutine, stack_size);
     } else {
-        exceptionI_error_print(I, exception, I->sio.error);
-        exceptionI_stacktrace_print(I, exception, I->sio.error, MPARAM_TRACESTACK_COUNT);
+        exceptionI_error_print(I, exception, I->sio.err);
+        exceptionI_stacktrace_print(I, exception, I->sio.err, MPARAM_TRACESTACK_COUNT);
 
         while (callstackI_info(coroutine) != NULL) {
             callstackI_pop(coroutine);
@@ -218,6 +233,22 @@ morphine_noret void throwI_af(morphine_instance_t I) {
 
     throw->type = THROW_TYPE_AF;
     error(I);
+}
+
+void throwI_danger_enter(morphine_instance_t I) {
+    if (I->throw.danger_entered >= DANGER_RECURSION) {
+        throwI_panic(I, "danger section recursion detected");
+    } else {
+        I->throw.danger_entered++;
+    }
+}
+
+void throwI_danger_exit(morphine_instance_t I) {
+    if (I->throw.danger_entered == 0) {
+        throwI_panic(I, "danger section corrupted");
+    } else {
+        I->throw.danger_entered--;
+    }
 }
 
 void throwI_protect(

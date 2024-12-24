@@ -40,7 +40,7 @@ struct instance {
 
     struct {
         struct sio *io;
-        struct sio *error;
+        struct sio *err;
     } sio;
 };
 

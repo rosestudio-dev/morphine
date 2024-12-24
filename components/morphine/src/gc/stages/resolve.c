@@ -149,7 +149,7 @@ static inline bool mark_sio(morphine_instance_t I) {
         marked = true;
     }
 
-    if (mark_object(I, objectI_cast(I->sio.error))) {
+    if (mark_object(I, objectI_cast(I->sio.err))) {
         marked = true;
     }
 
