@@ -27,6 +27,18 @@ struct garbage_collector {
     } stats;
 
     struct {
+        size_t limit;
+        size_t threshold;
+        uint16_t grow;
+        uint16_t deal;
+        size_t pause;
+
+        struct {
+            size_t callinfo;
+        } cache;
+    } settings;
+
+    struct {
         struct object *allocated;
         struct object *grey;
         struct object *black;

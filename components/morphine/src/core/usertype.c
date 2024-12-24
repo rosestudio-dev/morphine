@@ -128,7 +128,7 @@ struct usertype *usertypeI_get(morphine_instance_t I, const char *name) {
 
 struct usertype_info usertypeI_info(morphine_instance_t I, struct usertype *usertype) {
     if (usertype == NULL) {
-        throwI_panic(I, "type is null");
+        throwI_error(I, "type is null");
     }
 
     return usertype->info;
@@ -136,7 +136,7 @@ struct usertype_info usertypeI_info(morphine_instance_t I, struct usertype *user
 
 void usertypeI_ref(morphine_instance_t I, struct usertype *usertype) {
     if (usertype == NULL) {
-        throwI_panic(I, "type is null");
+        throwI_error(I, "type is null");
     }
 
     usertype->references++;
@@ -144,7 +144,7 @@ void usertypeI_ref(morphine_instance_t I, struct usertype *usertype) {
 
 void usertypeI_unref(morphine_instance_t I, struct usertype *usertype) {
     if (usertype == NULL) {
-        throwI_panic(I, "type is null");
+        throwI_error(I, "type is null");
     }
 
     if (usertype->references == 0) {

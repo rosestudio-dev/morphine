@@ -27,6 +27,13 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
         .stats.allocated = inited_bytes,
         .stats.max_allocated = inited_bytes,
 
+        .settings.limit = 0,
+        .settings.threshold = 0,
+        .settings.grow = 0,
+        .settings.deal = 0,
+        .settings.pause = 0,
+        .settings.cache.callinfo = 0,
+
         .pools.allocated = NULL,
         .pools.grey = NULL,
         .pools.black = NULL,

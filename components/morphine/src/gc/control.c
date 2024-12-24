@@ -12,7 +12,7 @@
 
 static inline bool ofm_condition(morphine_instance_t I, size_t reserved) {
     return overflow_condition_add(reserved, I->G.stats.allocated, SIZE_MAX) ||
-           (reserved + I->G.stats.allocated) > I->settings.gc.limit;
+           (reserved + I->G.stats.allocated) > I->G.settings.limit;
 }
 
 static inline void ofm_check(morphine_instance_t I, size_t reserved) {
@@ -39,8 +39,8 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
     }
 
     uintmax_t percent = (percent_a * 10) / percent_b;
-    bool start = percent >= I->settings.gc.grow;
-    return start || (alloc_bytes >= I->settings.gc.limit);
+    bool start = percent >= I->G.settings.grow;
+    return start || (alloc_bytes >= I->G.settings.limit);
 }
 
 static inline bool pause(morphine_instance_t I) {
@@ -56,7 +56,7 @@ static inline bool pause(morphine_instance_t I) {
 
     I->G.stats.prev_allocated = I->G.stats.allocated;
 
-    return I->G.stats.debt <= (((uint32_t) 1) << I->settings.gc.pause);
+    return I->G.stats.debt <= I->G.settings.pause;
 }
 
 static inline size_t debt_calc(morphine_instance_t I) {
@@ -65,7 +65,7 @@ static inline size_t debt_calc(morphine_instance_t I) {
         conv = 1;
     }
 
-    size_t percent = I->settings.gc.deal;
+    size_t percent = I->G.settings.deal;
     overflow_mul(conv, percent, SIZE_MAX) {
         return SIZE_MAX;
     }
@@ -138,11 +138,11 @@ static void recover_pools(morphine_instance_t I) {
 }
 
 void gcI_set_limit(morphine_instance_t I, size_t value) {
-    I->settings.gc.limit = value;
+    I->G.settings.limit = value;
 }
 
 void gcI_set_threshold(morphine_instance_t I, size_t value) {
-    I->settings.gc.threshold = value;
+    I->G.settings.threshold = value;
 }
 
 void gcI_set_grow(morphine_instance_t I, uint16_t value) {
@@ -150,7 +150,7 @@ void gcI_set_grow(morphine_instance_t I, uint16_t value) {
         throwI_error(I, "gc grow must be greater than 100");
     }
 
-    I->settings.gc.grow = value / 10;
+    I->G.settings.grow = value / 10;
 }
 
 void gcI_set_deal(morphine_instance_t I, uint16_t value) {
@@ -158,7 +158,7 @@ void gcI_set_deal(morphine_instance_t I, uint16_t value) {
         throwI_error(I, "gc deal must be greater than 100");
     }
 
-    I->settings.gc.deal = value / 10;
+    I->G.settings.deal = value / 10;
 }
 
 void gcI_set_pause(morphine_instance_t I, uint8_t value) {
@@ -166,11 +166,11 @@ void gcI_set_pause(morphine_instance_t I, uint8_t value) {
         throwI_error(I, "gc pause must be less than 32");
     }
 
-    I->settings.gc.pause = value;
+    I->G.settings.pause = ((size_t) 1) << value;
 }
 
 void gcI_set_cache_callinfo(morphine_instance_t I, size_t value) {
-    I->settings.gc.cache.callinfo = value;
+    I->G.settings.cache.callinfo = value;
 }
 
 void gcI_enable(morphine_instance_t I) {

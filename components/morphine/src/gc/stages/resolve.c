@@ -51,7 +51,7 @@ static inline void resolve_pools(morphine_instance_t I) {
 static inline void resolve_cache(morphine_instance_t I, bool emergency) {
     struct callinfo *current = I->G.cache.callinfo.pool;
     while (current != NULL) {
-        if (!emergency && I->G.cache.callinfo.size < I->settings.gc.cache.callinfo) {
+        if (!emergency && I->G.cache.callinfo.size < I->G.settings.cache.callinfo) {
             break;
         }
 

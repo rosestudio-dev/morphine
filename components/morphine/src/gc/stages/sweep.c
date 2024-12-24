@@ -34,10 +34,10 @@ bool gcstageI_sweep(morphine_instance_t I, size_t debt) {
     }
 
     if (unlikely(I->G.pools.sweep == NULL)) {
-        if (I->G.stats.allocated > I->settings.gc.threshold) {
+        if (I->G.stats.allocated > I->G.settings.threshold) {
             I->G.stats.prev_allocated = I->G.stats.allocated;
         } else {
-            I->G.stats.prev_allocated = I->settings.gc.threshold;
+            I->G.stats.prev_allocated = I->G.settings.threshold;
         }
 
         return false;

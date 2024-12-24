@@ -17,7 +17,7 @@
 #define OFM_MESSAGE ("out of memory")
 #define AF_MESSAGE  ("allocation fault")
 
-morphine_noret static void panic(morphine_instance_t I, bool is_panic) {
+morphine_noret static void csignal(morphine_instance_t I, bool is_panic) {
     struct throw *throw = &I->throw;
 
     throw->protect.entered = false;
@@ -32,7 +32,7 @@ morphine_noret static void error(morphine_instance_t I) {
         longjmp(throw->protect.handler, 1);
     }
 
-    panic(I, false);
+    csignal(I, false);
 }
 
 struct throw throwI_prototype(void) {
@@ -84,7 +84,7 @@ void throwI_handler(morphine_instance_t I) {
     }
 
     if (callinfo != NULL && callinfo->catch.crash) {
-        panic(I, false);
+        csignal(I, false);
     }
 
     stackI_throw_fix(coroutine);
@@ -186,7 +186,24 @@ morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
 
     throw->type = THROW_TYPE_MESSAGE;
     throw->error.message = message;
-    panic(I, true);
+    csignal(I, true);
+}
+
+morphine_noret void throwI_panicv(morphine_instance_t I, struct value value) {
+    struct throw *throw = &I->throw;
+
+    throw->type = THROW_TYPE_VALUE;
+    throw->error.value = value;
+    csignal(I, true);
+}
+
+morphine_noret void throwI_panicf(morphine_instance_t I, const char *message, ...) {
+    va_list args;
+    va_start(args, message);
+    struct string *error = stringI_createva(I, message, args);
+    va_end(args);
+
+    throwI_panicv(I, valueI_object(error));
 }
 
 morphine_noret void throwI_ofm(morphine_instance_t I) {
