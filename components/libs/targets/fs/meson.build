@@ -10,7 +10,7 @@ morphinelfs = library(
     'morphinelfs', sources,
     include_directories : [include],
     dependencies : [morphine_dep],
-    c_args : c_args + [ '-D_XOPEN_SOURCE=700'],
+    c_args : c_args + [ '-D_DEFAULT_SOURCE'],
     link_args : link_args,
     c_shared_args : c_shared_flags,
     install : true,

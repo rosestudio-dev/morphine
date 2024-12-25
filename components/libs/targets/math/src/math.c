@@ -9,9 +9,6 @@
 #define RAND_DATA_TYPE    ("math-rand-data")
 #define RAND_INITIAL_SEED (159357)
 
-#define PI_CONST 3.14159265358979323846
-#define E_CONST  2.7182818284590452354
-
 struct rand_data {
     ml_size s0;
     ml_size s1;
@@ -250,7 +247,7 @@ static void math_rad(morphine_coroutine_t U) {
             ml_decimal a = mapi_get_decimal(U);
             mapi_pop(U, 1);
 
-            mapi_push_decimal(U, a * PI_CONST / 180);
+            mapi_push_decimal(U, a * M_PI / 180);
             maux_nb_return();
     maux_nb_end
 }
@@ -265,7 +262,7 @@ static void math_deg(morphine_coroutine_t U) {
             ml_decimal a = mapi_get_decimal(U);
             mapi_pop(U, 1);
 
-            mapi_push_decimal(U, a * 180 / PI_CONST);
+            mapi_push_decimal(U, a * 180 / M_PI);
             maux_nb_return();
     maux_nb_end
 }
@@ -490,8 +487,8 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("seed", math_seed),
     MAUX_CONSTRUCT_FUNCTION("rand", math_rand),
 
-    MAUX_CONSTRUCT_DECIMAL("constants.pi", PI_CONST),
-    MAUX_CONSTRUCT_DECIMAL("constants.e", E_CONST),
+    MAUX_CONSTRUCT_DECIMAL("pi", M_PI),
+    MAUX_CONSTRUCT_DECIMAL("e", M_E),
     MAUX_CONSTRUCT_END
 };
 

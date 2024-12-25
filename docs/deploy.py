@@ -75,7 +75,7 @@ def prepare():
          [meson, "setup", "docs/wasm/buildmorphine", "-Dprefix=" + cwd + "/wasm/deps",
           "-Dbuild_misc=disabled",
           "-Dbuild_libs=enabled",
-          "-Dlibs=bigint",
+          "-Dlibs=math,bigint",
           "-Doptimization=2",
           "-Dbuildtype=release",
           "-Ddefault_library=static",
