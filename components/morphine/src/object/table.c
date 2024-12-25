@@ -14,30 +14,66 @@
 #define NIL_LEAF(tree) (&(tree)->nil_leaf)
 #define FIRST(tree) ((tree)->root.left)
 
+static inline ml_size sabs(ml_size a, ml_size b) {
+    return a > b ? a - b : b - a;
+}
+
 static inline size_t hash2index(ml_hash hash, size_t size) {
     return (size_t) (hash % size);
 }
 
 // linked list of buckets
 
-static inline void insert_bucket(struct table *table, struct bucket *bucket) {
-    struct bucket **head = &table->hashmap.buckets.head;
-
-    if ((*head) == NULL) {
-        bucket->ll.prev = NULL;
-        bucket->ll.next = NULL;
-
-        table->hashmap.buckets.tail = bucket;
-    } else {
-        (*head)->ll.next = bucket;
-        bucket->ll.prev = (*head);
-        bucket->ll.next = NULL;
+static inline struct bucket *insert_bucket(morphine_instance_t I, struct table *table) {
+    overflow_add(table->hashmap.buckets.count, 1, MLIMIT_SIZE_MAX) {
+        throwI_error(I, "table size limit has been exceeded");
     }
 
-    (*head) = bucket;
+    struct bucket *bucket = allocI_uni(I, NULL, sizeof(struct bucket));
+    bucket->ll.index = table->hashmap.buckets.count;
+    table->hashmap.buckets.count++;
+
+    {
+        struct bucket **head = &table->hashmap.buckets.head;
+
+        if ((*head) == NULL) {
+            bucket->ll.prev = NULL;
+            bucket->ll.next = NULL;
+
+            table->hashmap.buckets.tail = bucket;
+        } else {
+            (*head)->ll.next = bucket;
+            bucket->ll.prev = (*head);
+            bucket->ll.next = NULL;
+        }
+
+        (*head) = bucket;
+    }
+
+    return bucket;
 }
 
-static inline void remove_bucket(struct table *table, struct bucket *bucket) {
+static inline void remove_bucket(morphine_instance_t I, struct table *table, struct bucket *bucket) {
+    overflow_sub(table->hashmap.buckets.count, 1, 0) {
+        throwI_error(I, "corrupted table buckets count");
+    }
+
+    {
+        struct bucket *current = bucket->ll.next;
+        while (current != NULL) {
+            current->ll.index--;
+            current = current->ll.next;
+        }
+    }
+
+    if (table->hashmap.buckets.access == bucket) {
+        if (bucket->ll.next != NULL) {
+            table->hashmap.buckets.access = bucket->ll.next;
+        } else {
+            table->hashmap.buckets.access = bucket->ll.prev;
+        }
+    }
+
     if (bucket->ll.next != NULL) {
         bucket->ll.next->ll.prev = bucket->ll.prev;
     } else {
@@ -51,6 +87,41 @@ static inline void remove_bucket(struct table *table, struct bucket *bucket) {
     if (bucket->ll.prev != NULL) {
         bucket->ll.prev->ll.next = bucket->ll.next;
     }
+
+    table->hashmap.buckets.count--;
+    allocI_free(I, bucket);
+}
+
+static inline struct bucket *get_bucket_by_index(struct hashmap *hashmap, ml_size index) {
+    ml_size abs_access = hashmap->buckets.access == NULL ? MLIMIT_SIZE_MAX :
+                         sabs(hashmap->buckets.access->ll.index, index);
+    ml_size abs_head = hashmap->buckets.head == NULL ? MLIMIT_SIZE_MAX :
+                       sabs(hashmap->buckets.head->ll.index, index);
+
+    struct bucket *current = NULL;
+    if (hashmap->buckets.access != NULL && abs_access < abs_head && abs_access < index) {
+        bool next = hashmap->buckets.access->ll.index < index;
+        current = hashmap->buckets.access;
+        for (ml_size i = 0; i < abs_access && current != NULL; i++) {
+            if (next) {
+                current = current->ll.next;
+            } else {
+                current = current->ll.prev;
+            }
+        }
+    } else if (abs_head < abs_access && abs_head < index) {
+        current = hashmap->buckets.head;
+        for (ml_size i = 0; i < abs_head && current != NULL; i++) {
+            current = current->ll.prev;
+        }
+    } else {
+        current = hashmap->buckets.tail;
+        for (ml_size i = 0; i < index && current != NULL; i++) {
+            current = current->ll.next;
+        }
+    }
+
+    return current;
 }
 
 // red-black tree
@@ -473,6 +544,7 @@ struct table *tableI_create(morphine_instance_t I) {
         .mode.metatable_locked = false,
         .mode.locked = false,
 
+        .hashmap.buckets.access = NULL,
         .hashmap.buckets.head = NULL,
         .hashmap.buckets.tail = NULL,
         .hashmap.buckets.count = 0,
@@ -605,13 +677,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
         throwI_error(I, "table is fixed");
     }
 
-    overflow_add(hashmap->buckets.count, 1, MLIMIT_SIZE_MAX) {
-        throwI_error(I, "table size limit has been exceeded");
-    }
-
-    current = allocI_uni(I, NULL, sizeof(struct bucket));
-    insert_bucket(table, current);
-    hashmap->buckets.count++;
+    current = insert_bucket(I, table);
 
     bool first = redblacktree_insert_second(
         I,
@@ -667,20 +733,15 @@ void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, s
         throwI_error(I, "table is immutable");
     }
 
-    struct hashmap *hashmap = &table->hashmap;
-
     if (index >= table->hashmap.buckets.count) {
         throwI_error(I, "table index out of bounce");
     }
 
-    struct bucket *current = hashmap->buckets.tail;
-    for (ml_size i = 0; i < index && current != NULL; i++) {
-        current = current->ll.next;
+    struct bucket *current = get_bucket_by_index(&table->hashmap, index);
+    if (current == NULL || current->ll.index != index) {
+        throwI_error(I, "corrupted table buckets");
     }
-
-    if (current == NULL) {
-        throwI_error(I, "table buckets corrupted");
-    }
+    table->hashmap.buckets.access = current;
 
     gcI_barrier(I, table, value);
     current->pair.value = value;
@@ -695,8 +756,6 @@ struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size i
         throwI_error(I, "table is inaccessible");
     }
 
-    struct hashmap *hashmap = &table->hashmap;
-
     if (index >= table->hashmap.buckets.count) {
         if (has != NULL) {
             (*has) = false;
@@ -705,14 +764,11 @@ struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size i
         return valueI_pair(valueI_nil, valueI_nil);
     }
 
-    struct bucket *current = hashmap->buckets.tail;
-    for (ml_size i = 0; i < index && current != NULL; i++) {
-        current = current->ll.next;
+    struct bucket *current = get_bucket_by_index(&table->hashmap, index);
+    if (current == NULL || current->ll.index != index) {
+        throwI_error(I, "corrupted table buckets");
     }
-
-    if (current == NULL) {
-        throwI_error(I, "table buckets corrupted");
-    }
+    table->hashmap.buckets.access = current;
 
     if (has != NULL) {
         (*has) = true;
@@ -750,9 +806,7 @@ struct value tableI_remove(morphine_instance_t I, struct table *table, struct va
     }
 
     struct value value = bucket->pair.value;
-    remove_bucket(table, bucket);
-    allocI_free(I, bucket);
-    hashmap->buckets.count--;
+    remove_bucket(I, table, bucket);
 
     if (has != NULL) {
         *has = true;

@@ -46,6 +46,7 @@ static void idxget(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
+            mapi_pop(U, 1);
 
             mapi_table_idx_get(U, index);
             maux_nb_return();
@@ -62,6 +63,7 @@ static void idxkey(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
+            mapi_pop(U, 1);
 
             mapi_table_idx_key(U, index);
             maux_nb_return();
@@ -78,6 +80,7 @@ static void idxset(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
+            mapi_pop(U, 1);
 
             mapi_push_arg(U, 2);
 

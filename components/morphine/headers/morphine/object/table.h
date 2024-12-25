@@ -14,6 +14,7 @@ enum bucket_color {
 
 struct bucket {
     struct {
+        ml_size index;
         struct bucket *prev;
         struct bucket *next;
     } ll;
@@ -32,6 +33,7 @@ struct tree {
 
 struct hashmap {
     struct {
+        struct bucket *access;
         struct bucket *head;
         struct bucket *tail;
         ml_size count;
