@@ -149,80 +149,37 @@ static void isempty(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void isblankstr(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
+#define isctype(n) \
+    static void lib_is##n(morphine_coroutine_t U) { \
+        maux_nb_function(U) \
+            maux_nb_init \
+                maux_expect_args(U, 1); \
+                mapi_push_arg(U, 0); \
+                maux_expect(U, "string"); \
+                const char *string = mapi_get_string(U); \
+                size_t len = mapi_string_len(U); \
+                mapi_pop(U, 1); \
+                bool result = true; \
+                for (size_t i = 0; i < len; i++) { \
+                    if (!morphine_is##n(string[i])) { result = false; } \
+                } \
+                mapi_push_boolean(U, result); \
+                maux_nb_return(); \
+        maux_nb_end \
+    }
 
-            mapi_push_arg(U, 0);
-            maux_expect(U, "string");
-            const char *string = mapi_get_string(U);
-            size_t len = mapi_string_len(U);
-
-            mapi_pop(U, 1);
-
-            bool isblank = true;
-
-            for (size_t i = 0; i < len; i++) {
-                if (!morphine_isblank(string[i])) {
-                    isblank = false;
-                }
-            }
-
-            mapi_push_boolean(U, isblank);
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void isdigitstr(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-
-            mapi_push_arg(U, 0);
-            maux_expect(U, "string");
-            const char *string = mapi_get_string(U);
-            size_t len = mapi_string_len(U);
-
-            mapi_pop(U, 1);
-
-            bool isdigit = true;
-
-            for (size_t i = 0; i < len; i++) {
-                if (!morphine_isdigit(string[i])) {
-                    isdigit = false;
-                }
-            }
-
-            mapi_push_boolean(U, isdigit);
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void isalphastr(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-
-            mapi_push_arg(U, 0);
-            maux_expect(U, "string");
-            const char *string = mapi_get_string(U);
-            size_t len = mapi_string_len(U);
-
-            mapi_pop(U, 1);
-
-            bool isalpha = true;
-
-            for (size_t i = 0; i < len; i++) {
-                if (!morphine_isalpha(string[i])) {
-                    isalpha = false;
-                }
-            }
-
-            mapi_push_boolean(U, isalpha);
-            maux_nb_return();
-    maux_nb_end
-}
+isctype(cntrl)
+isctype(print)
+isctype(space)
+isctype(blank)
+isctype(graph)
+isctype(punct)
+isctype(alnum)
+isctype(alpha)
+isctype(upper)
+isctype(lower)
+isctype(digit)
+isctype(xdigit)
 
 static void repeat(morphine_coroutine_t U) {
     maux_nb_function(U)
@@ -537,7 +494,7 @@ static void trim(morphine_coroutine_t U) {
 
             for (size_t i = 0; i < strlen; i++) {
                 char c = string[i];
-                if (morphine_isblank(c)) {
+                if (morphine_isspace(c)) {
                     start++;
                 } else {
                     break;
@@ -546,7 +503,7 @@ static void trim(morphine_coroutine_t U) {
 
             for (size_t i = 0; i < strlen; i++) {
                 char c = string[strlen - i - 1];
-                if (morphine_isblank(c)) {
+                if (morphine_isspace(c)) {
                     end--;
                 } else {
                     break;
@@ -579,7 +536,7 @@ static void trimstart(morphine_coroutine_t U) {
 
             for (size_t i = 0; i < strlen; i++) {
                 char c = string[i];
-                if (morphine_isblank(c)) {
+                if (morphine_isspace(c)) {
                     start++;
                 } else {
                     break;
@@ -612,7 +569,7 @@ static void trimend(morphine_coroutine_t U) {
 
             for (size_t i = 0; i < strlen; i++) {
                 char c = string[strlen - i - 1];
-                if (morphine_isblank(c)) {
+                if (morphine_isspace(c)) {
                     end--;
                 } else {
                     break;
@@ -991,9 +948,18 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("endswith", endswith),
 
     MAUX_CONSTRUCT_FUNCTION("isempty", isempty),
-    MAUX_CONSTRUCT_FUNCTION("isblank", isblankstr),
-    MAUX_CONSTRUCT_FUNCTION("isdigit", isdigitstr),
-    MAUX_CONSTRUCT_FUNCTION("isalpha", isalphastr),
+    MAUX_CONSTRUCT_FUNCTION("iscntrl", lib_iscntrl),
+    MAUX_CONSTRUCT_FUNCTION("isprint", lib_isprint),
+    MAUX_CONSTRUCT_FUNCTION("isspace", lib_isspace),
+    MAUX_CONSTRUCT_FUNCTION("isblank", lib_isblank),
+    MAUX_CONSTRUCT_FUNCTION("isgraph", lib_isgraph),
+    MAUX_CONSTRUCT_FUNCTION("ispunct", lib_ispunct),
+    MAUX_CONSTRUCT_FUNCTION("isalnum", lib_isalnum),
+    MAUX_CONSTRUCT_FUNCTION("isalpha", lib_isalpha),
+    MAUX_CONSTRUCT_FUNCTION("isupper", lib_isupper),
+    MAUX_CONSTRUCT_FUNCTION("islower", lib_islower),
+    MAUX_CONSTRUCT_FUNCTION("isdigit", lib_isdigit),
+    MAUX_CONSTRUCT_FUNCTION("isxdigit", lib_isxdigit),
     MAUX_CONSTRUCT_END
 };
 

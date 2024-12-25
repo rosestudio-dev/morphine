@@ -756,7 +756,7 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
     while (true) {
         if (isnewline(current)) {
             skip_newline(L);
-        } else if (morphine_isspace(current)) {
+        } else if (morphine_isblank(current)) {
             next(L);
         } else {
             break;
