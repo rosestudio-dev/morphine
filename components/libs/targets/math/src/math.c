@@ -4,64 +4,39 @@
 
 #include <math.h>
 #include "morphinel/math.h"
+#include "mtrand.h"
 
-#define SHAREDKEY         ("math")
-#define RAND_DATA_TYPE    ("math-rand-data")
-#define RAND_INITIAL_SEED (159357)
+#define SHAREDKEY ("math")
+#define RAND_TYPE ("math-rand")
 
-struct rand_data {
-    ml_size s0;
-    ml_size s1;
-    ml_size s2;
-    ml_size next;
-};
+#define INITIAL_SEED (7953)
 
-static void rand_data_constructor(morphine_instance_t I, void *data) {
-    (void) I;
-    struct rand_data *D = data;
-    (*D) = (struct rand_data) {
-        .s0 = 0,
-        .s1 = 0,
-        .s2 = 0,
-        .next = 0
-    };
-}
-
-static struct rand_data *push_rand_data(morphine_coroutine_t U, ml_size s0) {
+static mtrand *push_rand(morphine_coroutine_t U) {
     mapi_type_declare(
         mapi_instance(U),
-        RAND_DATA_TYPE,
-        sizeof(struct rand_data),
+        RAND_TYPE,
+        sizeof(mtrand),
         false,
-        rand_data_constructor,
+        NULL,
         NULL,
         NULL,
         NULL
     );
 
-    struct rand_data *D = mapi_push_userdata(U, RAND_DATA_TYPE);
-    (*D) = (struct rand_data) {
-        .s0 = s0,
-        .s1 = 216862,
-        .s2 = 8,
-        .next = 8
-    };
+    mtrand *rand = mapi_push_userdata(U, RAND_TYPE);
+    *rand = mtrand_get(INITIAL_SEED);
 
-    return D;
+    return rand;
 }
 
-// https://github.com/diego-santiago/Itamaraca
-static uint8_t itamaraca(struct rand_data *D) {
-    const ml_decimal SR39 = 1.97484;
+static void rand_seed(morphine_coroutine_t U, ml_size seed) {
+    mtrand *rand = mapi_userdata_pointer(U, RAND_TYPE);
+    *rand = mtrand_get(seed);
+}
 
-    ml_size pn = D->s0 - D->next;
-    ml_decimal temp = ((ml_decimal) MLIMIT_SIZE_MAX) - (SR39 * pn);
-    ml_size frns = (ml_size) round(fabs(temp));
-
-    D->s0 = frns;
-    D->next = (D->next == D->s2) ? D->s1 : D->s2;
-
-    return (uint8_t) (frns % 256);
+static ml_size rand_gen(morphine_coroutine_t U) {
+    mtrand *rand = mapi_userdata_pointer(U, RAND_TYPE);
+    return mtrand_rand(rand);
 }
 
 #define math_func_1(name) \
@@ -403,10 +378,10 @@ static void math_seed(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            ml_size seed = mapi_get_size(U, NULL);
+            ml_size seed = mapi_get_size(U, "seed");
 
-            push_rand_data(U, seed);
-            maux_sharedstorage_set(U, SHAREDKEY, "rand-data");
+            maux_sharedstorage_get(U, SHAREDKEY, "rand-data");
+            rand_seed(U, seed);
             maux_nb_leave();
     maux_nb_end
 }
@@ -415,15 +390,8 @@ static void math_rand(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 0);
-
             maux_sharedstorage_get(U, SHAREDKEY, "rand-data");
-            struct rand_data *data = mapi_userdata_pointer(U, RAND_DATA_TYPE);
-
-            ml_integer result = 0;
-            for (size_t i = 0; i < sizeof(ml_integer); i++) {
-                result |= ((ml_integer) itamaraca(data)) << (i * 8);
-            }
-            mapi_push_integer(U, result < 0 ? -result : result);
+            mapi_push_size(U, rand_gen(U), "rand");
             maux_nb_return();
     maux_nb_end
 }
@@ -493,7 +461,7 @@ static maux_construct_element_t elements[] = {
 };
 
 static void library_init(morphine_coroutine_t U) {
-    push_rand_data(U, RAND_INITIAL_SEED);
+    push_rand(U);
     maux_sharedstorage_set(U, SHAREDKEY, "rand-data");
     maux_construct(U, elements);
 }

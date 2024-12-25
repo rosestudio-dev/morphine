@@ -2,6 +2,7 @@
 cc = meson.get_compiler('c')
 m_dep = cc.find_library('m', required : true)
 
+headers = include_directories('headers')
 include = include_directories('include')
 
 sources = run_command(
@@ -11,7 +12,7 @@ sources = run_command(
 
 morphinelmath = library(
     'morphinelmath', sources,
-    include_directories : [include],
+    include_directories : [include, headers],
     dependencies : [morphine_dep, m_dep],
     c_args : c_args + [ '-D_DEFAULT_SOURCE'],
     link_args : link_args,
