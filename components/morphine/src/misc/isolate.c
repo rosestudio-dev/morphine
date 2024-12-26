@@ -446,8 +446,6 @@ struct value isolateI_call(
 ) {
     gcI_safe_enter(I);
 
-    struct value result = valueI_nil;
-
     struct sio *bridge;
     struct isolate *isolate;
     {
@@ -469,36 +467,35 @@ struct value isolateI_call(
         bridge = gcI_safe_obj(I, sio, create_bridge_sio(I, isolate, userdata));
     }
 
+    struct value result;
     if (setjmp(isolate->jump) == 1) {
         result = valueI_nil;
-        goto exit;
-    }
+    } else {
+        {
+            gcI_safe_enter(I);
+            overflow_add(size, 1, MLIMIT_SIZE_MAX) {
+                throwI_error(I, "arguments overflow");
+            }
 
-    {
-        gcI_safe_enter(I);
-        overflow_add(size, 1, MLIMIT_SIZE_MAX) {
-            throwI_error(I, "arguments overflow");
+            struct vector *vector = gcI_safe_obj(I, vector, vectorI_create(I, size + 1));
+            vectorI_set(I, vector, 0, value);
+            for (ml_size i = 0; i < size; i++) {
+                vectorI_set(I, vector, i + 1, args[i]);
+            }
+
+            packerI_to(I, bridge, valueI_object(vector));
+            bridge_reset(isolate);
+            gcI_safe_exit(I);
         }
 
-        struct vector *vector = gcI_safe_obj(I, vector, vectorI_create(I, size + 1));
-        vectorI_set(I, vector, 0, value);
-        for (ml_size i = 0; i < size; i++) {
-            vectorI_set(I, vector, i + 1, args[i]);
-        }
+        isolate->isolate_instance = instanceI_open(isolate_platform, I->settings, isolate);
+        isolate_run(isolate);
+        isolate_close(isolate);
 
-        packerI_to(I, bridge, valueI_object(vector));
         bridge_reset(isolate);
-        gcI_safe_exit(I);
+        result = packerI_from(I, bridge);
     }
 
-    isolate->isolate_instance = instanceI_open(isolate_platform, I->settings, isolate);
-    isolate_run(isolate);
-    isolate_close(isolate);
-
-    bridge_reset(isolate);
-    result = packerI_from(I, bridge);
-
-exit:
     gcI_safe_exit(I);
     return result;
 }

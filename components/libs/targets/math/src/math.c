@@ -11,11 +11,11 @@
 
 #define INITIAL_SEED (7953)
 
-static mtrand *push_rand(morphine_coroutine_t U) {
+static mtrand_t *push_rand(morphine_coroutine_t U) {
     mapi_type_declare(
         mapi_instance(U),
         RAND_TYPE,
-        sizeof(mtrand),
+        sizeof(mtrand_t),
         false,
         NULL,
         NULL,
@@ -23,19 +23,19 @@ static mtrand *push_rand(morphine_coroutine_t U) {
         NULL
     );
 
-    mtrand *rand = mapi_push_userdata(U, RAND_TYPE);
+    mtrand_t *rand = mapi_push_userdata(U, RAND_TYPE);
     *rand = mtrand_get(INITIAL_SEED);
 
     return rand;
 }
 
 static void rand_seed(morphine_coroutine_t U, ml_size seed) {
-    mtrand *rand = mapi_userdata_pointer(U, RAND_TYPE);
+    mtrand_t *rand = mapi_userdata_pointer(U, RAND_TYPE);
     *rand = mtrand_get(seed);
 }
 
 static ml_size rand_gen(morphine_coroutine_t U) {
-    mtrand *rand = mapi_userdata_pointer(U, RAND_TYPE);
+    mtrand_t *rand = mapi_userdata_pointer(U, RAND_TYPE);
     return mtrand_rand(rand);
 }
 

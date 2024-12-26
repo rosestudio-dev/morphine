@@ -12,7 +12,7 @@
 #define FFCTR (1812433253)
 #define DSEED (5489)
 
-static inline void gen_state(mtrand *mtrand, uint32_t seed) {
+static inline void gen_state(mtrand_t *mtrand, uint32_t seed) {
     mtrand->state[0] = seed;
     for (mtrand->index = 1; mtrand->index < STATE_N; mtrand->index++) {
         seed = FFCTR * (seed ^ (seed >> 30)) + (uint32_t) mtrand->index;
@@ -20,13 +20,13 @@ static inline void gen_state(mtrand *mtrand, uint32_t seed) {
     }
 }
 
-mtrand mtrand_get(uint32_t seed) {
-    mtrand result;
+mtrand_t mtrand_get(uint32_t seed) {
+    mtrand_t result;
     gen_state(&result, seed);
     return result;
 }
 
-uint32_t mtrand_rand(mtrand *mtrand) {
+uint32_t mtrand_rand(mtrand_t *mtrand) {
     uint32_t mag[2] = { 0x0, AMTRX };
 
     if (mtrand->index >= STATE_N) {

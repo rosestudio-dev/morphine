@@ -15,7 +15,7 @@
 typedef struct {
     uint32_t state[STATE_N];
     size_t index;
-} mtrand;
+} mtrand_t;
 
-mtrand mtrand_get(uint32_t);
-uint32_t mtrand_rand(mtrand *);
+mtrand_t mtrand_get(uint32_t);
+uint32_t mtrand_rand(mtrand_t *);
