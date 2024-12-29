@@ -1,5 +1,5 @@
 project(
-    'morphine', 'c', 'java',
+    'morphine', 'c',
     version : '0.1-1dev',
     license : 'MIT',
     license_files : ['LICENSE'],

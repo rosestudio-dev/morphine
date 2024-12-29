@@ -8,8 +8,7 @@ import java.io.OutputStream
 class Morphine(
     private val settings: Settings = Settings(),
     private val bridge: Bridge = Bridge(),
-    private val sendStream: OutputStream = MockOutputStream(),
-    private val receiveStream: InputStream = MockInputStream()
+    private val callable: Callable? = null
 ) {
     companion object {
         init {
@@ -19,31 +18,22 @@ class Morphine(
 
     fun compile(text: String): ByteArray {
         val outputStream = ByteArrayOutputStream()
-        if (compiler(outputStream, text)) {
-            throw RuntimeException()
-        }
-
+        compiler(outputStream, text)
         return outputStream.toByteArray()
     }
 
     fun execute(text: String) {
         val outputStream = ByteArrayOutputStream()
-        if (compiler(outputStream, text)) {
-            throw RuntimeException()
-        }
-
+        compiler(outputStream, text)
         execute(outputStream.toByteArray())
     }
 
     fun execute(binary: ByteArray) {
-        val inputStream = ByteArrayInputStream(binary)
-        if (interpreter(inputStream)) {
-            throw RuntimeException()
-        }
+        interpreter(ByteArrayInputStream(binary))
     }
 
-    private external fun compiler(out: OutputStream, text: String): Boolean
-    private external fun interpreter(input: InputStream): Boolean
+    private external fun compiler(out: OutputStream, text: String)
+    private external fun interpreter(input: InputStream)
 
     data class Settings(
         @JvmField val gcLimit: Int = 8 * 1024 * 1024,
@@ -61,11 +51,7 @@ class Morphine(
         @JvmField val errorStream: OutputStream = System.err
     )
 
-    private class MockOutputStream : OutputStream() {
-        override fun write(b: Int) = Unit
-    }
-
-    private class MockInputStream : InputStream() {
-        override fun read() = -1
+    fun interface Callable {
+        fun call(method: String, args: Array<MorphineValue>): MorphineValue
     }
 }

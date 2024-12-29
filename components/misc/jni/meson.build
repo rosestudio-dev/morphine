@@ -13,14 +13,35 @@ kts_sources = run_command(
     check : true
 ).stdout().strip().split('\n')
 
-jni_dep = dependency('jni')
+javahome_res = run_command(python, '-c', 'import os; print(os.environ["JAVA_HOME"], end="")').stdout()
+jvm_cpu_family = target_machine.cpu()
+jvm_cpu_family_alias = { 'x86_64' : 'amd64' }
+if jvm_cpu_family in jvm_cpu_family_alias
+    jvm_cpu_family = jvm_cpu_family_alias[jvm_cpu_family]
+endif
+
+cc = meson.get_compiler('c')
+jni_dep = declare_dependency(
+    include_directories : [
+        javahome_res / 'include',
+        javahome_res / 'include' / target_machine.system(),
+    ],
+    dependencies : cc.find_library(
+        'jvm',
+        dirs : [
+            javahome_res / 'jre' / 'lib' / jvm_cpu_family / 'server',
+            javahome_res / 'jre' / 'lib' / jvm_cpu_family
+        ],
+        required : true
+    )
+)
 
 gradle = find_program('gradle', required : true)
 
 custom_target(
     'morphinejni-jar',
     output : 'morphinejni.jar',
-    console: true,
+    console : true,
     command : [
         gradle,
         '--no-daemon',

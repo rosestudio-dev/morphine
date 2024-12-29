@@ -53,11 +53,11 @@ static struct jnisio_data *push_jnisio_data(
         mapi_instance(U),
         USERDATA_TYPE,
         sizeof(struct jnisio_data),
+        false,
         jnisio_data_init,
         jnisio_data_free,
         NULL,
-        NULL,
-        false
+        NULL
     );
 
     struct jnisio_data *D = mapi_push_userdata(U, USERDATA_TYPE);
@@ -69,6 +69,8 @@ static struct jnisio_data *push_jnisio_data(
 
     if (input != NULL) {
         jclass input_class = J(jnienv, GetObjectClass, input);
+        jniutils_check_exception(mapi_instance(U), jnienv);
+
         read_id = J(jnienv, GetMethodID, input_class, "read", "()I");
         available_id = J(jnienv, GetMethodID, input_class, "available", "()I");
         J(jnienv, DeleteLocalRef, input_class);
@@ -76,6 +78,8 @@ static struct jnisio_data *push_jnisio_data(
 
     if (output != NULL) {
         jclass output_class = J(jnienv, GetObjectClass, output);
+        jniutils_check_exception(mapi_instance(U), jnienv);
+
         write_id = J(jnienv, GetMethodID, output_class, "write", "(I)V");
         flush_id = J(jnienv, GetMethodID, output_class, "flush", "()V");
         J(jnienv, DeleteLocalRef, output_class);
@@ -101,8 +105,7 @@ static size_t buf_read(morphine_instance_t I, void *data, uint8_t *buffer, size_
     size_t success = 0;
     for (size_t i = 0; i < size; i++) {
         jint result = J(D->jnienv, CallIntMethod, D->input, D->read_id);
-
-        if (result < 0) {
+        if (jniutils_ignore_exception(D->jnienv) || result < 0) {
             break;
         }
 
@@ -118,6 +121,7 @@ static bool buf_eos(morphine_instance_t I, void *data) {
     struct jnisio_data *D = data;
 
     jint result = J(D->jnienv, CallIntMethod, D->input, D->available_id);
+    jniutils_check_exception(I, D->jnienv);
 
     return result == 0;
 }
@@ -128,6 +132,10 @@ static size_t buf_write(morphine_instance_t I, void *data, const uint8_t *buffer
 
     for (size_t i = 0; i < size; i++) {
         J(D->jnienv, CallVoidMethod, D->output, D->write_id, (jint) buffer[i]);
+
+        if (jniutils_ignore_exception(D->jnienv)) {
+            return i;
+        }
     }
 
     return size;
@@ -138,6 +146,7 @@ static void buf_flush(morphine_instance_t I, void *data) {
     struct jnisio_data *D = data;
 
     J(D->jnienv, CallVoidMethod, D->output, D->flush_id);
+    jniutils_check_exception(I, D->jnienv);
 }
 
 void push_jnisio(morphine_coroutine_t U, JNIEnv *jnienv, jobject input, jobject output) {

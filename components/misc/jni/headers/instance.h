@@ -9,13 +9,13 @@
 /*
  * Class:     ru_why_morphine_jni_Morphine
  * Method:    compiler
- * Signature: (Ljava/io/OutputStream;Ljava/lang/String;)Z
+ * Signature: (Ljava/io/OutputStream;Ljava/lang/String;)V
  */
-JNIEXPORT jboolean JNICALL Java_ru_why_morphine_jni_Morphine_compiler(JNIEnv *, jobject, jobject, jstring);
+JNIEXPORT void JNICALL Java_ru_why_morphine_jni_Morphine_compiler(JNIEnv *, jobject, jobject, jstring);
 
 /*
  * Class:     ru_why_morphine_jni_Morphine
  * Method:    interpreter
- * Signature: (Ljava/io/InputStream;)Z
+ * Signature: (Ljava/io/InputStream;)V
  */
-JNIEXPORT jboolean JNICALL Java_ru_why_morphine_jni_Morphine_interpreter(JNIEnv *, jobject, jobject);
+JNIEXPORT void JNICALL Java_ru_why_morphine_jni_Morphine_interpreter(JNIEnv *, jobject, jobject);
