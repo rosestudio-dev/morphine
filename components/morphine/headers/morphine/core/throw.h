@@ -8,6 +8,7 @@
 #include "morphine/core/value.h"
 
 typedef enum {
+    THROW_TYPE_UNDEF,
     THROW_TYPE_VALUE,
     THROW_TYPE_MESSAGE,
     THROW_TYPE_OFM,
@@ -42,7 +43,7 @@ struct throw throwI_prototype(void);
 void throwI_special(morphine_instance_t);
 
 void throwI_handler(morphine_instance_t);
-void throwI_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void *, void *);
+void throwI_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void *, void *, bool);
 
 morphine_noret void throwI_error(morphine_instance_t, const char *);
 morphine_noret void throwI_errorv(morphine_instance_t, struct value);
@@ -52,6 +53,9 @@ morphine_noret void throwI_panicv(morphine_instance_t, struct value);
 morphine_noret void throwI_panicf(morphine_instance_t, const char *, ...);
 morphine_noret void throwI_ofm(morphine_instance_t);
 morphine_noret void throwI_af(morphine_instance_t);
+morphine_noret void throwI_undef(morphine_instance_t);
+
+morphine_noret void throwI_provide_error(morphine_coroutine_t);
 
 void throwI_danger_enter(morphine_instance_t);
 void throwI_danger_exit(morphine_instance_t);
@@ -63,4 +67,4 @@ void throwI_catchable(morphine_coroutine_t, size_t callstate);
 void throwI_crashable(morphine_coroutine_t);
 void throwI_uncatch(morphine_coroutine_t);
 
-struct value throwI_thrown(morphine_coroutine_t);
+struct exception *throwI_exception(morphine_coroutine_t);

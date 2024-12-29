@@ -17,8 +17,9 @@
 #define SIGNAL_RECURSION (1024)
 #define DANGER_RECURSION (1024)
 
-#define OFM_MESSAGE ("out of memory")
-#define AF_MESSAGE  ("allocation fault")
+#define OFM_MESSAGE   ("out of memory")
+#define AF_MESSAGE    ("allocation fault")
+#define UNDEF_MESSAGE ("undefined thrown")
 
 morphine_noret static void csignal(morphine_instance_t I, bool is_panic) {
     struct throw *throw = &I->throw;
@@ -55,7 +56,7 @@ struct throw throwI_prototype(void) {
         .signal_entered = 0,
         .danger_entered = 0,
         .protect.entered = false,
-        .type = THROW_TYPE_VALUE,
+        .type = THROW_TYPE_UNDEF,
         .error.value = valueI_nil,
         .special.ofm = NULL,
         .special.af = NULL,
@@ -108,6 +109,12 @@ void throwI_handler(morphine_instance_t I) {
     gcI_safe_enter(I);
     struct exception *exception = NULL;
     switch (throw->type) {
+        case THROW_TYPE_UNDEF: {
+            struct value value = gcI_safe(I, valueI_object(stringI_create(I, UNDEF_MESSAGE)));
+            exception = gcI_safe_obj(I, exception, exceptionI_create(I, value));
+            exceptionI_stacktrace_record(I, exception, coroutine);
+            break;
+        }
         case THROW_TYPE_VALUE: {
             exception = gcI_safe_obj(I, exception, exceptionI_create(I, throw->error.value));
             exceptionI_stacktrace_record(I, exception, coroutine);
@@ -152,7 +159,8 @@ void throwI_handler(morphine_instance_t I) {
         }
 
         // set error value
-        coroutine->thrown = valueI_object(exception);
+        coroutine->thrown.type = throw->type;
+        coroutine->thrown.exception = exception;
 
         size_t stack_size = stackI_space(coroutine);
         stackI_pop(coroutine, stack_size);
@@ -235,6 +243,34 @@ morphine_noret void throwI_af(morphine_instance_t I) {
     error(I);
 }
 
+morphine_noret void throwI_undef(morphine_instance_t I) {
+    struct throw *throw = &I->throw;
+
+    throw->type = THROW_TYPE_UNDEF;
+    error(I);
+}
+
+morphine_noret void throwI_provide_error(morphine_coroutine_t U) {
+    throw_type_t type = U->thrown.type;
+    struct exception *exception = throwI_exception(U);
+    switch (type) {
+        case THROW_TYPE_VALUE:
+        case THROW_TYPE_MESSAGE:
+            if (exception != NULL) {
+                throwI_errorv(U->I, exception->value);
+            }
+            break;
+        case THROW_TYPE_OFM:
+            throwI_ofm(U->I);
+        case THROW_TYPE_AF:
+            throwI_af(U->I);
+        case THROW_TYPE_UNDEF:
+            break;
+    }
+
+    throwI_undef(U->I);
+}
+
 void throwI_danger_enter(morphine_instance_t I) {
     if (I->throw.danger_entered >= DANGER_RECURSION) {
         throwI_panic(I, "danger section recursion detected");
@@ -256,7 +292,8 @@ void throwI_protect(
     morphine_try_t try,
     morphine_catch_t catch,
     void *try_data,
-    void *catch_data
+    void *catch_data,
+    bool catch_provide
 ) {
     struct throw *throw = &I->throw;
 
@@ -268,6 +305,10 @@ void throwI_protect(
         memcpy(&throw->protect, &previous, sizeof(struct protect_frame));
         gcI_safe_reset(I, safe_level);
         catch(catch_data);
+
+        if (catch_provide) {
+            error(I);
+        }
     } else {
         throw->protect.entered = true;
         try(try_data);
@@ -298,6 +339,9 @@ const char *throwI_message(morphine_instance_t I) {
         }
         case THROW_TYPE_AF: {
             return AF_MESSAGE;
+        }
+        case THROW_TYPE_UNDEF: {
+            return UNDEF_MESSAGE;
         }
     }
 
@@ -332,8 +376,9 @@ void throwI_uncatch(morphine_coroutine_t U) {
     callinfo->catch.state = 0;
 }
 
-struct value throwI_thrown(morphine_coroutine_t U) {
-    struct value result = U->thrown;
-    U->thrown = valueI_nil;
+struct exception *throwI_exception(morphine_coroutine_t U) {
+    struct exception *result = U->thrown.exception;
+    U->thrown.type = THROW_TYPE_UNDEF;
+    U->thrown.exception = NULL;
     return result;
 }

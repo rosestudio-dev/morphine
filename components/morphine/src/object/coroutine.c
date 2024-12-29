@@ -80,7 +80,8 @@ morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *nam
         .callstack = callstackI_prototype(),
         .env = env,
         .result = valueI_nil,
-        .thrown = valueI_nil,
+        .thrown.type = THROW_TYPE_UNDEF,
+        .thrown.exception = NULL,
         .prev = NULL,
         .I = I
     };

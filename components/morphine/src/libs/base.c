@@ -108,7 +108,7 @@ static void pcall(morphine_coroutine_t U) {
             mapi_push_result(U);
             maux_nb_return();
         maux_nb_state(2)
-            mapi_push_thrown(U);
+            mapi_exception(U);
             maux_nb_return();
     maux_nb_end
 }

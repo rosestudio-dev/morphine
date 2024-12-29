@@ -95,7 +95,11 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             mark_object(I, objectI_cast(coroutine->name));
             mark_value(I, coroutine->env);
             mark_value(I, coroutine->result);
-            mark_value(I, coroutine->thrown);
+
+            if (coroutine->thrown.exception != NULL) {
+                mark_object(I, objectI_cast(coroutine->thrown.exception));
+            }
+
             for (size_t i = 0; i < coroutine->stack.array.top; i++) {
                 mark_value(I, coroutine->stack.array.allocated[i]);
             }

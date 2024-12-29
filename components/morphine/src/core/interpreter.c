@@ -608,7 +608,7 @@ void interpreterI_run(morphine_instance_t I) {
     };
 
     while (data.result) {
-        throwI_protect(I, wrapper_execute, wrapper_handler, &data, I);
+        throwI_protect(I, wrapper_execute, wrapper_handler, &data, I, false);
     }
 }
 
@@ -618,7 +618,7 @@ bool interpreterI_step(morphine_instance_t I) {
         .result = true
     };
 
-    throwI_protect(I, wrapper_execute_step, wrapper_handler, &data, I);
+    throwI_protect(I, wrapper_execute_step, wrapper_handler, &data, I, false);
 
     return data.result;
 }

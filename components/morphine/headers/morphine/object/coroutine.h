@@ -6,6 +6,7 @@
 
 #include "morphine/core/stack.h"
 #include "morphine/core/value.h"
+#include "morphine/core/throw.h"
 
 enum coroutine_status {
     COROUTINE_STATUS_CREATED,
@@ -25,7 +26,11 @@ struct coroutine {
     struct callstack callstack;
     struct value env;
     struct value result;
-    struct value thrown;
+
+    struct {
+        throw_type_t type;
+        struct exception *exception;
+    } thrown;
 
     morphine_coroutine_t prev;
     morphine_instance_t I;

@@ -39,6 +39,10 @@ MORPHINE_API morphine_noret void mapi_ierror(morphine_instance_t I, const char *
     throwI_error(I, message);
 }
 
+MORPHINE_API morphine_noret void mapi_provide_error(morphine_coroutine_t U) {
+    throwI_provide_error(U);
+}
+
 MORPHINE_API void mapi_catchable(morphine_coroutine_t U, size_t callstate) {
     throwI_catchable(U, callstate);
 }
@@ -51,12 +55,23 @@ MORPHINE_API void mapi_uncatch(morphine_coroutine_t U) {
     throwI_uncatch(U);
 }
 
-MORPHINE_API void mapi_protect(morphine_coroutine_t U, morphine_try_t try, morphine_catch_t catch, void *data) {
-    throwI_protect(U->I, try, catch, data, data);
+MORPHINE_API void mapi_protect(
+    morphine_coroutine_t U,
+    morphine_try_t try,
+    morphine_catch_t catch,
+    void *data,
+    bool catch_provide
+) {
+    throwI_protect(U->I, try, catch, data, data, catch_provide);
 }
 
-MORPHINE_API void mapi_push_thrown(morphine_coroutine_t U) {
-    stackI_push(U, throwI_thrown(U));
+MORPHINE_API void mapi_exception(morphine_coroutine_t U) {
+    struct exception *exception = throwI_exception(U);
+    if (exception == NULL) {
+        stackI_push(U, valueI_nil);
+    } else {
+        stackI_push(U, valueI_object(exception));
+    }
 }
 
 MORPHINE_API const char *mapi_signal_message(morphine_instance_t I) {
