@@ -1,10 +1,15 @@
 
 # Defines
 
-c_warning_flags = [
+if get_option('warning_as_error').enabled()
+    warning_as_error_flag = [ '-Werror' ]
+else
+    warning_as_error_flag = [ ]
+endif
+
+c_warning_flags = warning_as_error_flag + [
     '-Wall',
     '-Wextra',
-    '-Werror',
     '-Wno-error=conversion',
     '-Wno-error=cast-align',
     '-Wno-error=pointer-to-int-cast',
@@ -24,6 +29,7 @@ c_warning_flags = [
 ]
 
 c_common_flags = [
+    '-fvisibility=hidden',
     '-fno-common',
     '-fwrapv'
 ]
@@ -42,7 +48,6 @@ script_data = script_path / 'data.py'
 python = find_program('python', required : true)
 
 c_args = c_warning_flags + c_common_flags
-link_args = []
 
 # Subdirs
 

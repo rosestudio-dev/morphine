@@ -12,8 +12,6 @@ morphinec = library(
     include_directories : [headers, include],
     dependencies : [morphine_dep],
     c_args : c_args,
-    link_args : link_args,
-    c_shared_args : c_shared_flags,
     install : true
 )
 

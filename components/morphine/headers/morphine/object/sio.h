@@ -37,5 +37,5 @@ size_t sioI_tell(morphine_instance_t, struct sio *);
 bool sioI_eos(morphine_instance_t, struct sio *);
 
 size_t sioI_print(morphine_instance_t, struct sio *, const char *);
-size_t sioI_printf(morphine_instance_t, struct sio *, const char *, ...);
+morphine_printf(3, 4) size_t sioI_printf(morphine_instance_t, struct sio *, const char *, ...);
 size_t sioI_vprintf(morphine_instance_t, struct sio *, const char *, va_list args);

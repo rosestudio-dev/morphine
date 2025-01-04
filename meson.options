@@ -1,11 +1,19 @@
 option('build_misc', type : 'feature', value : 'enabled')
-option('build_compiler', type : 'feature', value : 'enabled')
 option('build_libs', type : 'feature', value : 'enabled')
+option('build_compiler', type : 'feature', value : 'enabled')
 
+# Subdirs connection
 option('libs', type : 'array', value : ['system', 'fs', 'math', 'bigint', 'termios'])
 option('misc', type : 'array', value : ['app', 'jni'])
 
+# Common
+option('warning_as_error', type : 'feature', value : 'enabled')
+
+# Morphine
 option('morphine_module_jumptable', type : 'feature', value : 'enabled')
 option('morphine_module_sso', type : 'feature', value : 'enabled')
 option('morphine_module_distributed_gc', type : 'feature', value : 'enabled')
 option('morphine_module_debug', type : 'feature', value : 'disabled')
+
+# JNI
+option('jni_jar', type : 'feature', value : 'disabled')

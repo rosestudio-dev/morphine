@@ -47,10 +47,10 @@ void throwI_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void 
 
 morphine_noret void throwI_error(morphine_instance_t, const char *);
 morphine_noret void throwI_errorv(morphine_instance_t, struct value);
-morphine_noret void throwI_errorf(morphine_instance_t, const char *, ...);
+morphine_noret morphine_printf(2, 3) void throwI_errorf(morphine_instance_t, const char *, ...);
 morphine_noret void throwI_panic(morphine_instance_t, const char *);
 morphine_noret void throwI_panicv(morphine_instance_t, struct value);
-morphine_noret void throwI_panicf(morphine_instance_t, const char *, ...);
+morphine_noret morphine_printf(2, 3) void throwI_panicf(morphine_instance_t, const char *, ...);
 morphine_noret void throwI_ofm(morphine_instance_t);
 morphine_noret void throwI_af(morphine_instance_t);
 morphine_noret void throwI_undef(morphine_instance_t);

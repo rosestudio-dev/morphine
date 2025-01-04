@@ -42,7 +42,7 @@ executable(
         readline_dep
     ],
     c_args : c_args + addition_args,
-    link_args : [link_args, '-flto'],
+    link_args : ['-flto'],
     build_by_default : true,
     install : true
 )

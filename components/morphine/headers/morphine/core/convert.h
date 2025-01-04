@@ -21,27 +21,27 @@ static inline struct string *convertI_to_string(morphine_instance_t I, struct va
         case VALUE_TYPE_STRING:
             return valueI_as_string(value);
         case VALUE_TYPE_USERDATA:
-            return stringI_createf(I, "[object:userdata:%"PRIxPTR"]", value.object.userdata);
+            return stringI_createf(I, "[object:userdata:%"PRIxPTR"]", (uintptr_t) value.object.userdata);
         case VALUE_TYPE_TABLE:
-            return stringI_createf(I, "[object:table:%"PRIxPTR"]", value.object.table);
+            return stringI_createf(I, "[object:table:%"PRIxPTR"]", (uintptr_t) value.object.table);
         case VALUE_TYPE_VECTOR:
-            return stringI_createf(I, "[object:vector:%"PRIxPTR"]", value.object.vector);
+            return stringI_createf(I, "[object:vector:%"PRIxPTR"]", (uintptr_t) value.object.vector);
         case VALUE_TYPE_ITERATOR:
-            return stringI_createf(I, "[object:iterator:%"PRIxPTR"]", value.object.iterator);
+            return stringI_createf(I, "[object:iterator:%"PRIxPTR"]", (uintptr_t) value.object.iterator);
         case VALUE_TYPE_CLOSURE:
-            return stringI_createf(I, "[object:closure:%"PRIxPTR"]", value.object.closure);
+            return stringI_createf(I, "[object:closure:%"PRIxPTR"]", (uintptr_t) value.object.closure);
         case VALUE_TYPE_COROUTINE:
-            return stringI_createf(I, "[object:coroutine:%"PRIxPTR"]", value.object.coroutine);
+            return stringI_createf(I, "[object:coroutine:%"PRIxPTR"]", (uintptr_t) value.object.coroutine);
         case VALUE_TYPE_REFERENCE:
-            return stringI_createf(I, "[object:reference:%"PRIxPTR"]", value.object.reference);
+            return stringI_createf(I, "[object:reference:%"PRIxPTR"]", (uintptr_t) value.object.reference);
         case VALUE_TYPE_EXCEPTION:
-            return stringI_createf(I, "[object:exception:%"PRIxPTR"]", value.object.exception);
+            return stringI_createf(I, "[object:exception:%"PRIxPTR"]", (uintptr_t) value.object.exception);
         case VALUE_TYPE_FUNCTION:
-            return stringI_createf(I, "[object:function:%"PRIxPTR"]", value.object.function);
+            return stringI_createf(I, "[object:function:%"PRIxPTR"]", (uintptr_t) value.object.function);
         case VALUE_TYPE_NATIVE:
-            return stringI_createf(I, "[object:native:%"PRIxPTR"]", value.object.native);
+            return stringI_createf(I, "[object:native:%"PRIxPTR"]", (uintptr_t) value.object.native);
         case VALUE_TYPE_SIO:
-            return stringI_createf(I, "[object:sio:%"PRIxPTR"]", value.object.native);
+            return stringI_createf(I, "[object:sio:%"PRIxPTR"]", (uintptr_t) value.object.native);
         case VALUE_TYPE_RAW:
             return stringI_createf(I, "[raw:%"PRIxPTR"]", value.raw);
     }

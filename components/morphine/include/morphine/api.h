@@ -51,10 +51,10 @@ MORPHINE_API void mapi_push_self(morphine_coroutine_t);
 
 // error
 
-MORPHINE_API morphine_noret void mapi_errorf(morphine_coroutine_t, const char *, ...);
 MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t, const char *);
-MORPHINE_API morphine_noret void mapi_ierrorf(morphine_instance_t, const char *, ...);
 MORPHINE_API morphine_noret void mapi_ierror(morphine_instance_t, const char *);
+MORPHINE_API morphine_noret morphine_printf(2, 3) void mapi_errorf(morphine_coroutine_t, const char *, ...);
+MORPHINE_API morphine_noret morphine_printf(2, 3) void mapi_ierrorf(morphine_instance_t, const char *, ...);
 MORPHINE_API morphine_noret void mapi_provide_error(morphine_coroutine_t);
 MORPHINE_API void mapi_catchable(morphine_coroutine_t, size_t callstate);
 MORPHINE_API void mapi_crashable(morphine_coroutine_t);
@@ -120,7 +120,7 @@ MORPHINE_API bool mapi_is_size(morphine_coroutine_t);
 
 MORPHINE_API void mapi_push_string(morphine_coroutine_t, const char *);
 MORPHINE_API void mapi_push_stringn(morphine_coroutine_t, const char *, size_t);
-MORPHINE_API void mapi_push_stringf(morphine_coroutine_t, const char *str, ...);
+MORPHINE_API morphine_printf(2, 3) void mapi_push_stringf(morphine_coroutine_t, const char *str, ...);
 MORPHINE_API void mapi_push_stringv(morphine_coroutine_t, const char *str, va_list);
 MORPHINE_API const char *mapi_get_string(morphine_coroutine_t);
 MORPHINE_API const char *mapi_get_cstr(morphine_coroutine_t);
@@ -371,7 +371,7 @@ MORPHINE_API bool mapi_sio_seek_end(morphine_coroutine_t, size_t);
 MORPHINE_API size_t mapi_sio_tell(morphine_coroutine_t);
 MORPHINE_API bool mapi_sio_eos(morphine_coroutine_t);
 MORPHINE_API size_t mapi_sio_print(morphine_coroutine_t, const char *);
-MORPHINE_API size_t mapi_sio_printf(morphine_coroutine_t, const char *, ...);
+MORPHINE_API morphine_printf(2, 3) size_t mapi_sio_printf(morphine_coroutine_t, const char *, ...);
 
 // exception
 

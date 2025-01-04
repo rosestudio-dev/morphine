@@ -1,4 +1,3 @@
-
 include = include_directories('include')
 
 sources = run_command(
@@ -10,9 +9,7 @@ morphinelfs = library(
     'morphinelfs', sources,
     include_directories : [include],
     dependencies : [morphine_dep],
-    c_args : c_args + [ '-D_DEFAULT_SOURCE'],
-    link_args : link_args,
-    c_shared_args : c_shared_flags,
+    c_args : c_args + ['-D_DEFAULT_SOURCE'],
     install : true,
 )
 

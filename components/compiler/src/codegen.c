@@ -666,7 +666,7 @@ morphine_noret void codegen_errorf(struct codegen_controller *C, const char *str
             mapi_get_string(C->U)
         );
     } else {
-        mapi_errorf(C->U, mapi_get_string(C->U));
+        mapi_error(C->U, mapi_get_string(C->U));
     }
 }
 

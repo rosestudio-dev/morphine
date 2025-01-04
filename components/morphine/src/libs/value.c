@@ -142,7 +142,7 @@ static void hash(morphine_coroutine_t U) {
                 }
             } else {
                 ml_hash hash = mapi_hash(U);
-                mapi_push_stringf(U, "%0*"MLIMIT_HASH_PR, sizeof(ml_hash) * 2, hash);
+                mapi_push_stringf(U, "%0*"MLIMIT_HASH_PR, (int) sizeof(ml_hash) * 2, hash);
                 maux_nb_return();
             }
         maux_nb_state(1)

@@ -15,6 +15,8 @@ struct jnisio_data {
     jmethodID write_id;
     jmethodID flush_id;
     jmethodID available_id;
+
+    bool remove_local_ref;
 };
 
 static void jnisio_data_init(morphine_instance_t I, void *data) {
@@ -23,7 +25,8 @@ static void jnisio_data_init(morphine_instance_t I, void *data) {
     (*D) = (struct jnisio_data) {
         .jnienv = NULL,
         .input = NULL,
-        .output = NULL
+        .output = NULL,
+        .remove_local_ref = false
     };
 }
 
@@ -34,11 +37,11 @@ static void jnisio_data_free(morphine_instance_t I, void *data) {
         return;
     }
 
-    if (D->input != NULL) {
+    if (D->remove_local_ref && D->input != NULL) {
         J(D->jnienv, DeleteLocalRef, D->input);
     }
 
-    if (D->output != NULL) {
+    if (D->remove_local_ref && D->output != NULL) {
         J(D->jnienv, DeleteLocalRef, D->output);
     }
 }
@@ -47,7 +50,8 @@ static struct jnisio_data *push_jnisio_data(
     morphine_coroutine_t U,
     JNIEnv *jnienv,
     jobject input,
-    jobject output
+    jobject output,
+    bool remove_local_ref
 ) {
     mapi_type_declare(
         mapi_instance(U),
@@ -92,7 +96,8 @@ static struct jnisio_data *push_jnisio_data(
         .read_id = read_id,
         .write_id = write_id,
         .flush_id = flush_id,
-        .available_id = available_id
+        .available_id = available_id,
+        .remove_local_ref = remove_local_ref
     };
 
     return D;
@@ -149,7 +154,7 @@ static void buf_flush(morphine_instance_t I, void *data) {
     jniutils_check_exception(I, D->jnienv);
 }
 
-void push_jnisio(morphine_coroutine_t U, JNIEnv *jnienv, jobject input, jobject output) {
+void push_jnisio(morphine_coroutine_t U, JNIEnv *jnienv, jobject input, jobject output, bool remove_local_ref) {
     morphine_sio_interface_t interface = {
         .open = NULL,
         .close = NULL,
@@ -161,7 +166,7 @@ void push_jnisio(morphine_coroutine_t U, JNIEnv *jnienv, jobject input, jobject 
         .seek = NULL
     };
 
-    struct jnisio_data *D = push_jnisio_data(U, jnienv, input, output);
+    struct jnisio_data *D = push_jnisio_data(U, jnienv, input, output, remove_local_ref);
 
     mapi_push_sio(U, interface);
     mapi_rotate(U, 2);
