@@ -171,23 +171,41 @@ static void write(morphine_coroutine_t U) {
 static void buffer(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            if (mapi_args(U) != 4) {
-                maux_expect_args(U, 3);
-            }
+            ml_size factor;
+            bool read;
+            bool write;
 
-            mapi_push_arg(U, 0);
-            ml_size factor = mapi_get_size(U, NULL);
+            if (mapi_args(U) == 0) {
+                factor = 32;
+                read = true;
+                write = true;
 
-            mapi_push_arg(U, 1);
-            bool read = mapi_get_boolean(U);
-
-            mapi_push_arg(U, 2);
-            bool write = mapi_get_boolean(U);
-
-            if (mapi_args(U) == 4) {
-                mapi_push_arg(U, 3);
-            } else {
                 mapi_push_string(U, "");
+            } else if (mapi_args(U) == 1) {
+                factor = 0;
+                read = true;
+                write = false;
+
+                mapi_push_arg(U, 0);
+            } else {
+                if (mapi_args(U) != 3) {
+                    maux_expect_args(U, 4);
+                }
+
+                mapi_push_arg(U, 0);
+                factor = mapi_get_size(U, NULL);
+
+                mapi_push_arg(U, 1);
+                read = mapi_get_boolean(U);
+
+                mapi_push_arg(U, 2);
+                write = mapi_get_boolean(U);
+
+                if (mapi_args(U) == 3) {
+                    mapi_push_string(U, "");
+                } else {
+                    mapi_push_arg(U, 3);
+                }
             }
 
             maux_push_sio_buffer(U, factor, read, write);

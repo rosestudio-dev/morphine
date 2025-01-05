@@ -31,6 +31,7 @@ static morphine_library_t (*builtins[])(void) = {
     mlib_builtin_sharedstorage,
     mlib_builtin_iterator,
     mlib_builtin_assertion,
+    mlib_builtin_algorithm,
 };
 
 static void lib(morphine_coroutine_t U) {
