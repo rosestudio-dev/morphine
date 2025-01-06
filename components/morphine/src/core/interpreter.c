@@ -85,7 +85,8 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
 
         sp_fetch();
 
-        sp_dispatch (instruction.opcode) {
+        sp_dispatch (instruction.opcode)
+        {
 sp_case(MORPHINE_OPCODE_YIELD)
             {
                 sp_next();
@@ -593,7 +594,15 @@ static void wrapper_execute_step(void *pointer) {
 
 static void wrapper_execute(void *pointer) {
     struct wrapper_execute_data *data = pointer;
-    while (execute_step(data->I)) { }
+#ifdef MORPHINE_ENABLE_INTERPRETER_YIELD
+    morphine_yield_t yield = data->I->platform.yield;
+    do {
+        if (yield != NULL) {
+            yield(data->I->data);
+        }
+    }
+#endif
+    while (execute_step(data->I));
     data->result = false;
 }
 

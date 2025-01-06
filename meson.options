@@ -13,6 +13,7 @@ option('warning_as_error', type : 'feature', value : 'enabled')
 option('morphine_module_jumptable', type : 'feature', value : 'enabled')
 option('morphine_module_sso', type : 'feature', value : 'enabled')
 option('morphine_module_distributed_gc', type : 'feature', value : 'enabled')
+option('morphine_module_interpreter_yield', type : 'feature', value : 'disabled')
 option('morphine_module_debug', type : 'feature', value : 'disabled')
 
 # JNI

@@ -16,6 +16,12 @@ typedef uint32_t ml_version;
 typedef struct coroutine *morphine_coroutine_t;
 typedef struct instance *morphine_instance_t;
 
+// yield
+
+#ifdef MORPHINE_ENABLE_INTERPRETER_YIELD
+typedef void (*morphine_yield_t)(void *);
+#endif
+
 // throw
 
 typedef void (*morphine_try_t)(void *);
@@ -83,6 +89,10 @@ typedef struct {
     morphine_signal_t signal;
     morphine_platform_memory_t memory;
     morphine_platform_sio_t sio;
+
+#ifdef MORPHINE_ENABLE_INTERPRETER_YIELD
+    morphine_yield_t yield;
+#endif
 } morphine_platform_t;
 
 // settings
