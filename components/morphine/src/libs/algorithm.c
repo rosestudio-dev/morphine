@@ -15,7 +15,7 @@ static inline char byte2scheme(char value, char const *scheme, size_t size) {
     return scheme[(size_t) value % size];
 }
 
-static inline char scheme2byte(char value, char const *scheme, size_t size) {
+static inline int scheme2byte(char value, char const *scheme, size_t size) {
     for (size_t i = 0; i < size; i++) {
         if (value == scheme[i]) {
             return (char) i;
@@ -64,8 +64,8 @@ static void lib_base16_decode(morphine_coroutine_t U) {
 
             mapi_push_string(U, "");
             for (ml_size i = 0; i < size / 2; i++) {
-                char comp1 = scheme2byte(morphine_tolower(string[i * 2]), BASE16_SCHEME, 16);
-                char comp2 = scheme2byte(morphine_tolower(string[i * 2 + 1]), BASE16_SCHEME, 16);
+                int comp1 = scheme2byte(morphine_tolower(string[i * 2]), BASE16_SCHEME, 16);
+                int comp2 = scheme2byte(morphine_tolower(string[i * 2 + 1]), BASE16_SCHEME, 16);
 
                 if (comp1 < 0 || comp2 < 0) {
                     goto error;
@@ -152,7 +152,7 @@ static void lib_base32_decode(morphine_coroutine_t U) {
                 }
 
                 {
-                    char byte = scheme2byte(morphine_tolower(value), BASE32_SCHEME, 32);
+                    int byte = scheme2byte(morphine_tolower(value), BASE32_SCHEME, 32);
                     if (byte < 0) {
                         goto error;
                     }
@@ -246,7 +246,7 @@ static void lib_base64_decode(morphine_coroutine_t U) {
                 }
 
                 {
-                    char byte = scheme2byte(value, BASE64_SCHEME, 64);
+                    int byte = scheme2byte(value, BASE64_SCHEME, 64);
                     if (byte < 0) {
                         goto error;
                     }
