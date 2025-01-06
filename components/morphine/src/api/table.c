@@ -17,6 +17,14 @@ MORPHINE_API void mapi_table_copy(morphine_coroutine_t U) {
     stackI_push(U, valueI_object(tableI_copy(U->I, table)));
 }
 
+MORPHINE_API void mapi_table_concat(morphine_coroutine_t U) {
+    struct table *a = valueI_as_table_or_error(U->I, stackI_peek(U, 1));
+    struct table *b = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+    struct table *result = tableI_concat(U->I, a, b);
+    stackI_replace(U, 1, valueI_object(result));
+    stackI_pop(U, 1);
+}
+
 MORPHINE_API void mapi_table_clear(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
     tableI_clear(U->I, table);

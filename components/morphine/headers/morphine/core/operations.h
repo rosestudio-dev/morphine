@@ -607,9 +607,15 @@ static inline op_result_t interpreter_fun_concat(
 
         (*result) = mt_field;
         return NORMAL;
+    } else if (valueI_is_table(a) && valueI_is_table(b)) {
+        struct table *a_table = valueI_as_table(a);
+        struct table *b_table = valueI_as_table(b);
+        (*result) = valueI_object(tableI_concat(U->I, a_table, b_table));
+
+        return NORMAL;
     }
 
-    throwI_error(U->I, "concat supports only string or vector");
+    throwI_error(U->I, "concat supports only string, vector or table");
 }
 
 static inline op_result_t interpreter_fun_type(

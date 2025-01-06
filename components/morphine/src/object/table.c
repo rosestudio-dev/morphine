@@ -855,6 +855,40 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
     };
 }
 
+struct table *tableI_concat(morphine_instance_t I, struct table *a, struct table *b) {
+    if (a == NULL || b == NULL) {
+        throwI_error(I, "table is null");
+    }
+
+    gcI_safe_enter(I);
+
+    struct table *result = gcI_safe_obj(I, table, tableI_create(I));
+    gcI_safe(I, valueI_object(a));
+    gcI_safe(I, valueI_object(b));
+
+    for (ml_size i = 0; i < a->hashmap.buckets.count; i++) {
+        bool has = false;
+        struct pair pair = tableI_idx_get(I, a, i, &has);
+
+        if (has) {
+            tableI_set(I, result, pair.key, pair.value);
+        }
+    }
+
+    for (ml_size i = 0; i < b->hashmap.buckets.count; i++) {
+        bool has = false;
+        struct pair pair = tableI_idx_get(I, b, i, &has);
+
+        if (has) {
+            tableI_set(I, result, pair.key, pair.value);
+        }
+    }
+
+    gcI_safe_exit(I);
+
+    return result;
+}
+
 struct table *tableI_copy(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_error(I, "table is null");

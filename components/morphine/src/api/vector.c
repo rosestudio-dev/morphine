@@ -32,6 +32,14 @@ MORPHINE_API void mapi_vector_sort(morphine_coroutine_t U) {
     vectorI_sort(U->I, vector);
 }
 
+MORPHINE_API void mapi_vector_concat(morphine_coroutine_t U) {
+    struct vector *a = valueI_as_vector_or_error(U->I, stackI_peek(U, 1));
+    struct vector *b = valueI_as_vector_or_error(U->I, stackI_peek(U, 0));
+    struct vector *result = vectorI_concat(U->I, a, b);
+    stackI_replace(U, 1, valueI_object(result));
+    stackI_pop(U, 1);
+}
+
 MORPHINE_API void mapi_vector_mode_mutable(morphine_coroutine_t U, bool is_mutable) {
     struct vector *vector = valueI_as_vector_or_error(U->I, stackI_peek(U, 0));
     vectorI_mode_mutable(U->I, vector, is_mutable);
