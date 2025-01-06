@@ -54,7 +54,7 @@ static void chars(morphine_coroutine_t U) {
             mapi_push_vector(U, len);
 
             for (ml_size i = 0; i < len; i++) {
-                mapi_push_stringf(U, "%c", string[i]);
+                mapi_push_stringn(U, string + i, 1);
                 mapi_vector_set(U, i);
             }
 
@@ -76,7 +76,7 @@ static void codes(morphine_coroutine_t U) {
             mapi_push_vector(U, len);
 
             for (ml_size i = 0; i < len; i++) {
-                mapi_push_size(U, (size_t) ((unsigned char) string[i]), "code");
+                mapi_push_integer(U, (ml_integer) string[i]);
                 mapi_vector_set(U, i);
             }
 
