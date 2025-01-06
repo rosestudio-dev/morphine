@@ -126,6 +126,10 @@ static inline struct bucket *get_bucket_by_index(struct hashmap *hashmap, ml_siz
 
 // red-black tree
 
+static inline bool redblacktree_is_empty(struct tree *tree) {
+    return FIRST(tree) == NIL_LEAF(tree);
+}
+
 static inline struct bucket *redblacktree_find(morphine_instance_t I, struct tree *tree, struct value key) {
     struct bucket *current = FIRST(tree);
     while (current != NIL_LEAF(tree)) {
@@ -805,6 +809,14 @@ struct value tableI_remove(morphine_instance_t I, struct table *table, struct va
         goto notfound;
     }
 
+    if (redblacktree_is_empty(tree)) {
+        if (hashmap->hashing.used == 0) {
+            throwI_panic(I, "broken table");
+        }
+
+        hashmap->hashing.used--;
+    }
+
     struct value value = bucket->pair.value;
     remove_bucket(I, table, bucket);
 
@@ -849,6 +861,7 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
         .hashing.used = 0,
         .hashing.size = 0,
 
+        .buckets.access = NULL,
         .buckets.head = NULL,
         .buckets.tail = NULL,
         .buckets.count = 0
