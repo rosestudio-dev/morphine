@@ -5,6 +5,7 @@
 #include "library.h"
 #include "env.h"
 #include "scripts.h"
+#include <string.h>
 
 #ifdef USE_READLINE
 

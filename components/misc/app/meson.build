@@ -1,4 +1,3 @@
-
 sources = run_command(
     python, script_walker, '-p', 'src/**/*.c',
     check : true
@@ -24,7 +23,7 @@ morphine_scripts = custom_target(
 )
 
 cc = meson.get_compiler('c')
-readline_dep = cc.find_library('readline')
+readline_dep = cc.find_library('readline', required : false)
 
 addition_args = []
 
