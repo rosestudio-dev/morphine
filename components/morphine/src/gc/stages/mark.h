@@ -4,8 +4,8 @@
 
 #pragma once
 
-#include "size.h"
 #include "morphine/gc/pools.h"
+#include "size.h"
 
 static inline bool mark_object(morphine_instance_t I, struct object *object) {
     if (object->color == OBJ_COLOR_WHITE) {
@@ -135,15 +135,13 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             return size_exception(exception);
         }
-        case OBJ_TYPE_SIO: {
-            struct sio *sio = cast(struct sio *, obj);
-            mark_value(I, sio->hold_value);
-            return size_sio(sio);
-        }
         case OBJ_TYPE_NATIVE: {
             struct native *native = cast(struct native *, obj);
             mark_object(I, objectI_cast(native->name));
             return size_native(native);
+        }
+        case OBJ_TYPE_SIO: {
+            return size_sio(cast(struct sio *, obj));
         }
         case OBJ_TYPE_STRING: {
             return size_string(cast(struct string *, obj));

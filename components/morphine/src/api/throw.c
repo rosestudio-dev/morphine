@@ -56,13 +56,13 @@ MORPHINE_API void mapi_uncatch(morphine_coroutine_t U) {
 }
 
 MORPHINE_API void mapi_protect(
-    morphine_coroutine_t U,
+    morphine_instance_t I,
     morphine_try_t try,
     morphine_catch_t catch,
     void *data,
     bool catch_provide
 ) {
-    throwI_protect(U->I, try, catch, data, data, catch_provide);
+    throwI_protect(I, try, catch, data, data, catch_provide);
 }
 
 MORPHINE_API void mapi_exception(morphine_coroutine_t U) {

@@ -33,12 +33,12 @@ val pattern = {
 }
 
 fun errln<auto>(error) {
-    sio.flush(sio.stream.io)
+    sio.flush(sio.io)
     if (typeof error == "exception") {
-        exception.error.print(error, sio.stream.err)
+        exception.error.print(error, sio.err)
     } else {
-        sio.write(sio.stream.err, tostr(error) .. "\n")
-        sio.flush(sio.stream.err)
+        sio.write(sio.err, tostr(error) .. "\n")
+        sio.flush(sio.err)
     }
 }
 

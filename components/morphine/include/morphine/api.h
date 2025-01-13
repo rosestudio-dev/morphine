@@ -59,7 +59,7 @@ MORPHINE_API morphine_noret void mapi_provide_error(morphine_coroutine_t);
 MORPHINE_API void mapi_catchable(morphine_coroutine_t, size_t callstate);
 MORPHINE_API void mapi_crashable(morphine_coroutine_t);
 MORPHINE_API void mapi_uncatch(morphine_coroutine_t);
-MORPHINE_API void mapi_protect(morphine_coroutine_t, morphine_try_t, morphine_catch_t, void *, bool catch_provide);
+MORPHINE_API void mapi_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void *, bool catch_provide);
 MORPHINE_API void mapi_exception(morphine_coroutine_t);
 MORPHINE_API const char *mapi_signal_message(morphine_instance_t);
 MORPHINE_API bool mapi_is_nested_signal(morphine_instance_t);
@@ -358,10 +358,8 @@ MORPHINE_API void mapi_sharedstorage_clear(morphine_coroutine_t, const char *sha
 
 MORPHINE_API void mapi_push_sio_io(morphine_coroutine_t);
 MORPHINE_API void mapi_push_sio_err(morphine_coroutine_t);
-MORPHINE_API void mapi_push_sio(morphine_coroutine_t, morphine_sio_interface_t);
-MORPHINE_API void mapi_sio_hold(morphine_coroutine_t);
-MORPHINE_API void mapi_sio_open(morphine_coroutine_t, void *);
-MORPHINE_API bool mapi_sio_is_opened(morphine_coroutine_t);
+
+MORPHINE_API void mapi_push_sio(morphine_coroutine_t, morphine_sio_interface_t, void *args);
 MORPHINE_API void mapi_sio_close(morphine_coroutine_t, bool force);
 MORPHINE_API size_t mapi_sio_read(morphine_coroutine_t, uint8_t *, size_t);
 MORPHINE_API size_t mapi_sio_write(morphine_coroutine_t, const uint8_t *, size_t);
@@ -372,6 +370,7 @@ MORPHINE_API bool mapi_sio_seek_prv(morphine_coroutine_t, size_t);
 MORPHINE_API bool mapi_sio_seek_end(morphine_coroutine_t, size_t);
 MORPHINE_API size_t mapi_sio_tell(morphine_coroutine_t);
 MORPHINE_API bool mapi_sio_eos(morphine_coroutine_t);
+
 MORPHINE_API size_t mapi_sio_print(morphine_coroutine_t, const char *);
 MORPHINE_API morphine_printf(2, 3) size_t mapi_sio_printf(morphine_coroutine_t, const char *, ...);
 

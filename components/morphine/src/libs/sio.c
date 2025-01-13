@@ -6,16 +6,6 @@
 #include <memory.h>
 #include "morphine/libs/builtin.h"
 
-static void isopened(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
-            mapi_push_boolean(U, mapi_sio_is_opened(U));
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void close(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -168,51 +158,6 @@ static void write(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void buffer(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            ml_size factor;
-            bool read;
-            bool write;
-
-            if (mapi_args(U) == 0) {
-                factor = 32;
-                read = true;
-                write = true;
-
-                mapi_push_string(U, "");
-            } else if (mapi_args(U) == 1) {
-                factor = 0;
-                read = true;
-                write = false;
-
-                mapi_push_arg(U, 0);
-            } else {
-                if (mapi_args(U) != 3) {
-                    maux_expect_args(U, 4);
-                }
-
-                mapi_push_arg(U, 0);
-                factor = mapi_get_size(U, NULL);
-
-                mapi_push_arg(U, 1);
-                read = mapi_get_boolean(U);
-
-                mapi_push_arg(U, 2);
-                write = mapi_get_boolean(U);
-
-                if (mapi_args(U) == 3) {
-                    mapi_push_string(U, "");
-                } else {
-                    mapi_push_arg(U, 3);
-                }
-            }
-
-            maux_push_sio_buffer(U, factor, read, write);
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void readall(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -249,8 +194,47 @@ static void readline(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void buffer(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            ml_size factor = 32;
+            if (mapi_args(U) != 0) {
+                maux_expect_args(U, 1);
+
+                mapi_push_arg(U, 0);
+                factor = mapi_get_size(U, NULL);
+            }
+
+            maux_push_sio_buffer(U, factor);
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void empty(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            bool read;
+            bool write;
+
+            if (mapi_args(U) == 0) {
+                read = true;
+                write = true;
+            } else {
+                maux_expect_args(U, 2);
+
+                mapi_push_arg(U, 0);
+                read = mapi_get_boolean(U);
+
+                mapi_push_arg(U, 1);
+                write = mapi_get_boolean(U);
+            }
+
+            maux_push_sio_empty(U, read, write);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static maux_construct_element_t elements[] = {
-    MAUX_CONSTRUCT_FUNCTION("isopened", isopened),
     MAUX_CONSTRUCT_FUNCTION("close", close),
     MAUX_CONSTRUCT_FUNCTION("flush", flush),
     MAUX_CONSTRUCT_FUNCTION("read", read),
@@ -261,25 +245,23 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("seekend", seekend),
     MAUX_CONSTRUCT_FUNCTION("tell", tell),
     MAUX_CONSTRUCT_FUNCTION("eos", eos),
-    MAUX_CONSTRUCT_FUNCTION("buffer", buffer),
+
     MAUX_CONSTRUCT_FUNCTION("readall", readall),
     MAUX_CONSTRUCT_FUNCTION("readto", readto),
     MAUX_CONSTRUCT_FUNCTION("readline", readline),
+
+    MAUX_CONSTRUCT_FUNCTION("buffer", buffer),
+    MAUX_CONSTRUCT_FUNCTION("eof", empty),
     MAUX_CONSTRUCT_END
 };
 
 static void library_init(morphine_coroutine_t U) {
     maux_construct(U, elements);
 
-    mapi_push_table(U);
-
     mapi_push_sio_io(U);
     maux_table_set(U, "io");
-
     mapi_push_sio_err(U);
     maux_table_set(U, "err");
-
-    maux_table_set(U, "stream");
 }
 
 MORPHINE_LIB morphine_library_t mlib_builtin_sio(void) {

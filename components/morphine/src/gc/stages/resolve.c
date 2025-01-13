@@ -75,41 +75,16 @@ static inline void attach_black_coroutines(morphine_instance_t I) {
     }
 }
 
-static inline bool simple_finalize_sio(morphine_instance_t I, struct sio *sio) {
-    if (valueI_safe_as_sio(sio->hold_value, NULL) == sio) {
-        return false;
-    }
-
-    return mark_value(I, sio->hold_value);
-}
-
-static inline bool simple_finalize(morphine_instance_t I, struct object *object) {
-    if (object->type == OBJ_TYPE_SIO) {
-        return simple_finalize_sio(I, cast(struct sio *, object));
-    }
-
-    return false;
-}
-
 static inline bool finalize(morphine_instance_t I) {
-    struct object *current = I->G.pools.allocated;
-
-    bool has_simple_finalized = false;
-    while (current != NULL) {
-        if (simple_finalize(I, current)) {
-            has_simple_finalized = true;
-        }
-
-        current = current->prev;
-    }
-
-    current = I->G.pools.allocated;
     bool has_to_be_finalize = false;
+    struct object *current = I->G.pools.allocated;
     while (current != NULL) {
         struct object *prev = current->prev;
 
-        if (unlikely(!current->flags.finalized &&
-                     metatableI_builtin_test(I, valueI_object(current), MORPHINE_METAFIELD_GC, NULL))) {
+        if (unlikely(
+                !current->flags.finalized
+                && metatableI_builtin_test(I, valueI_object(current), MORPHINE_METAFIELD_GC, NULL)
+            )) {
             current->color = OBJ_COLOR_RED;
             gcI_pools_remove(current, &I->G.pools.allocated);
             gcI_pools_insert(current, &I->G.pools.finalize);
@@ -120,7 +95,7 @@ static inline bool finalize(morphine_instance_t I) {
         current = prev;
     }
 
-    return has_to_be_finalize || has_simple_finalized;
+    return has_to_be_finalize;
 }
 
 static inline bool mark_sso(morphine_instance_t I) {
@@ -159,8 +134,7 @@ static inline bool mark_sio(morphine_instance_t I) {
 static inline bool mark_metatable(morphine_instance_t I) {
     bool marked = false;
 
-    for (morphine_metatable_field_t mf = MORPHINE_METATABLE_FIELDS_START;
-         mf < MORPHINE_METATABLE_FIELDS_COUNT; mf++) {
+    for (morphine_metatable_field_t mf = MORPHINE_METATABLE_FIELDS_START; mf < MORPHINE_METATABLE_FIELDS_COUNT; mf++) {
         if (mark_object(I, objectI_cast(I->metatable.names[mf]))) {
             marked = true;
         }
@@ -223,12 +197,7 @@ static inline bool mark(morphine_instance_t I) {
     bool throw_marked = mark_throw(I);
     bool gc_marked = mark_gc(I);
 
-    return sso_marked ||
-           sio_marked ||
-           metatable_marked ||
-           libraries_marked ||
-           throw_marked ||
-           gc_marked;
+    return sso_marked || sio_marked || metatable_marked || libraries_marked || throw_marked || gc_marked;
 }
 
 void gcstageI_resolve(morphine_instance_t I, bool emergency) {

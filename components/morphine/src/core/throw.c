@@ -39,7 +39,7 @@ morphine_noret static void csignal(morphine_instance_t I, bool is_panic) {
 morphine_noret static void error(morphine_instance_t I) {
     struct throw *throw = &I->throw;
 
-    if (throw->danger_entered > 0) {
+    if (throw->protect.danger_entered > 0) {
         csignal(I, true);
     }
 
@@ -54,8 +54,8 @@ struct throw throwI_prototype(void) {
     return (struct throw) {
         .context = NULL,
         .signal_entered = 0,
-        .danger_entered = 0,
         .protect.entered = false,
+        .protect.danger_entered = 0,
         .type = THROW_TYPE_UNDEF,
         .error.value = valueI_nil,
         .special.ofm = NULL,
@@ -272,18 +272,18 @@ morphine_noret void throwI_provide_error(morphine_coroutine_t U) {
 }
 
 void throwI_danger_enter(morphine_instance_t I) {
-    if (I->throw.danger_entered >= DANGER_RECURSION) {
+    if (I->throw.protect.danger_entered >= DANGER_RECURSION) {
         throwI_panic(I, "danger section recursion detected");
     } else {
-        I->throw.danger_entered++;
+        I->throw.protect.danger_entered++;
     }
 }
 
 void throwI_danger_exit(morphine_instance_t I) {
-    if (I->throw.danger_entered == 0) {
+    if (I->throw.protect.danger_entered == 0) {
         throwI_panic(I, "danger section corrupted");
     } else {
-        I->throw.danger_entered--;
+        I->throw.protect.danger_entered--;
     }
 }
 
@@ -311,6 +311,7 @@ void throwI_protect(
         }
     } else {
         throw->protect.entered = true;
+        throw->protect.danger_entered = 0;
         try(try_data);
 
         memcpy(&throw->protect, &previous, sizeof(struct protect_frame));

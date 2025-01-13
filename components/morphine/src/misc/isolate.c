@@ -3,14 +3,14 @@
 //
 
 #include "morphine/misc/isolate.h"
-#include "morphine/misc/packer.h"
-#include "morphine/object/sio.h"
-#include "morphine/object/vector.h"
-#include "morphine/object/coroutine.h"
-#include "morphine/object/userdata.h"
+#include "morphine/core/instance.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
-#include "morphine/core/instance.h"
+#include "morphine/misc/packer.h"
+#include "morphine/object/coroutine.h"
+#include "morphine/object/sio.h"
+#include "morphine/object/userdata.h"
+#include "morphine/object/vector.h"
 #include "morphine/utils/overflow.h"
 #include <setjmp.h>
 
@@ -35,9 +35,19 @@ struct isolate {
 
 // sio bridge functions
 
+struct bridge_data {
+    struct isolate *isolate;
+};
+
+static void bridge_open(morphine_instance_t I, void *data, void *args) {
+    (void) I;
+    struct bridge_data *bridge_data = data;
+    bridge_data->isolate = args;
+}
+
 static size_t bridge_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
     (void) I;
-    struct isolate *isolate = data;
+    struct isolate *isolate = ((struct bridge_data *) data)->isolate;
 
     size_t read = 0;
     for (size_t i = 0; i < size; i++) {
@@ -54,7 +64,7 @@ static size_t bridge_read(morphine_instance_t I, void *data, uint8_t *buffer, si
 }
 
 static size_t bridge_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
-    struct isolate *isolate = data;
+    struct isolate *isolate = ((struct bridge_data *) data)->isolate;
 
     for (size_t i = 0; i < size; i++) {
         if (isolate->bridge.pointer >= isolate->bridge.size) {
@@ -82,6 +92,22 @@ static size_t bridge_write(morphine_instance_t I, void *data, const uint8_t *buf
     return size;
 }
 
+static struct sio *create_bridge_sio(morphine_instance_t I, struct isolate *isolate) {
+    morphine_sio_interface_t interface = {
+        .data_size = sizeof(struct bridge_data),
+        .open = bridge_open,
+        .close = NULL,
+        .read = bridge_read,
+        .write = bridge_write,
+        .flush = NULL,
+        .seek = NULL,
+        .tell = NULL,
+        .eos = NULL,
+    };
+
+    return sioI_create(I, interface, isolate);
+}
+
 static void bridge_reset(struct isolate *isolate) {
     isolate->bridge.pointer = 0;
 }
@@ -95,42 +121,13 @@ static void bridge_clear(struct isolate *isolate) {
     isolate->bridge.pointer = 0;
 }
 
-static struct sio *create_bridge_sio(morphine_instance_t I, struct isolate *isolate, struct userdata *userdata) {
-    morphine_sio_interface_t interface = {
-        .open = NULL,
-        .read = bridge_read,
-        .write = bridge_write,
-        .flush = NULL,
-        .seek = NULL,
-        .tell = NULL,
-        .eos = NULL,
-        .close = NULL
-    };
-
-    gcI_safe_enter(I);
-    struct sio *sio = gcI_safe_obj(I, sio, sioI_create(I, interface));
-    if (userdata != NULL) {
-        sioI_hold(I, sio, valueI_object(userdata));
-    }
-
-    sioI_open(I, sio, isolate);
-    gcI_safe_exit(I);
-
-    return sio;
-}
-
 // instance functions
 
 static size_t isolate_io_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
     (void) I;
     struct isolate *isolate = data;
     if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.io.read(
-            isolate->original_instance,
-            isolate->config.custom.data,
-            buffer,
-            size
-        );
+        return isolate->config.custom.sio.io.read(isolate->original_instance, isolate->config.custom.data, buffer, size);
     } else {
         return sioI_read(isolate->original_instance, isolate->original_instance->sio.io, buffer, size);
     }
@@ -140,12 +137,8 @@ static size_t isolate_io_write(morphine_instance_t I, void *data, const uint8_t 
     (void) I;
     struct isolate *isolate = data;
     if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.io.write(
-            isolate->original_instance,
-            isolate->config.custom.data,
-            buffer,
-            size
-        );
+        return isolate->config.custom.sio.io
+            .write(isolate->original_instance, isolate->config.custom.data, buffer, size);
     } else {
         return sioI_write(isolate->original_instance, isolate->original_instance->sio.io, buffer, size);
     }
@@ -165,12 +158,7 @@ static bool isolate_io_seek(morphine_instance_t I, void *data, size_t offset, mo
     (void) I;
     struct isolate *isolate = data;
     if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.io.seek(
-            isolate->original_instance,
-            isolate->config.custom.data,
-            offset,
-            mode
-        );
+        return isolate->config.custom.sio.io.seek(isolate->original_instance, isolate->config.custom.data, offset, mode);
     } else {
         switch (mode) {
             case MORPHINE_SIO_SEEK_MODE_SET:
@@ -211,12 +199,8 @@ static size_t isolate_err_read(morphine_instance_t I, void *data, uint8_t *buffe
     (void) I;
     struct isolate *isolate = data;
     if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.err.read(
-            isolate->original_instance,
-            isolate->config.custom.data,
-            buffer,
-            size
-        );
+        return isolate->config.custom.sio.err
+            .read(isolate->original_instance, isolate->config.custom.data, buffer, size);
     } else {
         return sioI_read(isolate->original_instance, isolate->original_instance->sio.err, buffer, size);
     }
@@ -226,12 +210,8 @@ static size_t isolate_err_write(morphine_instance_t I, void *data, const uint8_t
     (void) I;
     struct isolate *isolate = data;
     if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.err.write(
-            isolate->original_instance,
-            isolate->config.custom.data,
-            buffer,
-            size
-        );
+        return isolate->config.custom.sio.err
+            .write(isolate->original_instance, isolate->config.custom.data, buffer, size);
     } else {
         return sioI_write(isolate->original_instance, isolate->original_instance->sio.err, buffer, size);
     }
@@ -251,12 +231,8 @@ static bool isolate_err_seek(morphine_instance_t I, void *data, size_t offset, m
     (void) I;
     struct isolate *isolate = data;
     if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.err.seek(
-            isolate->original_instance,
-            isolate->config.custom.data,
-            offset,
-            mode
-        );
+        return isolate->config.custom.sio.err
+            .seek(isolate->original_instance, isolate->config.custom.data, offset, mode);
     } else {
         switch (mode) {
             case MORPHINE_SIO_SEEK_MODE_SET:
@@ -352,7 +328,7 @@ static const morphine_sio_interface_t isolate_io_interface = {
     .flush = isolate_io_flush,
     .seek = isolate_io_seek,
     .tell = isolate_io_tell,
-    .eos = isolate_io_eos
+    .eos = isolate_io_eos,
 };
 
 static const morphine_sio_interface_t isolate_error_interface = {
@@ -363,7 +339,7 @@ static const morphine_sio_interface_t isolate_error_interface = {
     .flush = isolate_err_flush,
     .seek = isolate_err_seek,
     .tell = isolate_err_tell,
-    .eos = isolate_err_eos
+    .eos = isolate_err_eos,
 };
 
 static const morphine_platform_t isolate_platform = {
@@ -372,7 +348,7 @@ static const morphine_platform_t isolate_platform = {
     .memory.realloc = isolate_realloc,
     .memory.free = isolate_free,
     .sio.io = isolate_io_interface,
-    .sio.err = isolate_error_interface
+    .sio.err = isolate_error_interface,
 };
 
 // isolate
@@ -390,7 +366,7 @@ static void isolate_run(struct isolate *isolate) {
     struct string *name = gcI_safe_obj(I, string, stringI_create(I, "isolate"));
     morphine_coroutine_t U = gcI_safe_obj(I, coroutine, coroutineI_create(I, name, env));
 
-    struct sio *bridge_sio = gcI_safe_obj(I, sio, create_bridge_sio(I, isolate, NULL));
+    struct sio *bridge_sio = gcI_safe_obj(I, sio, create_bridge_sio(I, isolate));
 
     ml_size size;
     {
@@ -446,7 +422,6 @@ struct value isolateI_call(
 ) {
     gcI_safe_enter(I);
 
-    struct sio *bridge;
     struct isolate *isolate;
     {
         struct userdata *userdata = gcI_safe_obj(I, userdata, userdataI_create(I, sizeof(struct isolate)));
@@ -463,14 +438,14 @@ struct value isolateI_call(
         };
 
         userdataI_set_destructor(I, userdata, isolate_destructor);
-
-        bridge = gcI_safe_obj(I, sio, create_bridge_sio(I, isolate, userdata));
     }
 
     struct value result;
     if (setjmp(isolate->jump) == 1) {
         result = valueI_nil;
     } else {
+        struct sio *bridge = gcI_safe_obj(I, sio, create_bridge_sio(I, isolate));
+
         {
             gcI_safe_enter(I);
             overflow_add(size, 1, MLIMIT_SIZE_MAX) {

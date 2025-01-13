@@ -2,18 +2,20 @@
 // Created by why-iskra on 18.05.2024.
 //
 
-#include <string.h>
 #include "morphine/object/sio.h"
 #include "morphine/core/throw.h"
-#include "morphine/object/string.h"
 #include "morphine/gc/allocator.h"
-#include "morphine/gc/safe.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/gc/safe.h"
+#include "morphine/object/string.h"
+#include <string.h>
 
-struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interface) {
+struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interface, void *args) {
     if (interface.write == NULL && interface.read == NULL) {
         throwI_error(I, "sio interface hasn't read/write functions");
     }
+
+    gcI_safe_enter(I);
 
     // create
     struct sio *result = allocI_uni(I, NULL, sizeof(struct sio));
@@ -21,10 +23,21 @@ struct sio *sioI_create(morphine_instance_t I, morphine_sio_interface_t interfac
         .interface = interface,
         .opened = false,
         .data = NULL,
-        .hold_value = valueI_nil
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_SIO);
+
+    // config
+    gcI_safe(I, valueI_object(result));
+
+    result->data = allocI_uni(I, NULL, interface.data_size);
+    if (interface.open != NULL) {
+        interface.open(I, result->data, args);
+    }
+
+    result->opened = true;
+
+    gcI_safe_exit(I);
 
     return result;
 }
@@ -34,54 +47,19 @@ static inline void close(morphine_instance_t I, struct sio *sio, bool force) {
         throwI_error(I, "sio already closed");
     }
 
-    if (sio->opened && sio->interface.close != NULL) {
+    if (sio->opened) {
         sio->opened = false;
-        sio->interface.close(I, sio->data);
+
+        if (sio->interface.close != NULL) {
+            sio->interface.close(I, sio->data);
+        }
     }
 }
 
 void sioI_free(morphine_instance_t I, struct sio *sio) {
     close(I, sio, true);
+    allocI_free(I, sio->data);
     allocI_free(I, sio);
-}
-
-void sioI_hold(morphine_instance_t I, struct sio *sio, struct value value) {
-    if (sio == NULL) {
-        throwI_error(I, "sio is null");
-    }
-
-    if (!valueI_is_nil(sio->hold_value)) {
-        throwI_error(I, "sio is already holding value");
-    }
-
-    gcI_barrier(I, sio, value);
-    sio->hold_value = value;
-}
-
-void sioI_open(morphine_instance_t I, struct sio *sio, void *arg) {
-    if (sio == NULL) {
-        throwI_error(I, "sio is null");
-    }
-
-    if (sio->opened) {
-        throwI_error(I, "sio is already opened");
-    }
-
-    if (sio->interface.open == NULL) {
-        sio->data = arg;
-    } else {
-        sio->data = sio->interface.open(I, arg);
-    }
-
-    sio->opened = true;
-}
-
-bool sioI_is_opened(morphine_instance_t I, struct sio *sio) {
-    if (sio == NULL) {
-        throwI_error(I, "sio is null");
-    }
-
-    return sio->opened;
 }
 
 void sioI_close(morphine_instance_t I, struct sio *sio, bool force) {
@@ -130,12 +108,7 @@ void sioI_flush(morphine_instance_t I, struct sio *sio) {
     }
 }
 
-static inline bool sio_seek(
-    morphine_instance_t I,
-    struct sio *sio,
-    size_t offset,
-    morphine_sio_seek_mode_t mode
-) {
+static inline bool sio_seek(morphine_instance_t I, struct sio *sio, size_t offset, morphine_sio_seek_mode_t mode) {
     checks(I, sio);
 
     if (sio->interface.seek == NULL) {

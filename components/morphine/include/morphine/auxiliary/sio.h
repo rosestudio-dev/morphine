@@ -6,7 +6,9 @@
 
 #include "morphine/platform.h"
 
-MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t, size_t factor, bool read, bool write);
+MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t, size_t factor);
+MORPHINE_AUX void maux_push_sio_empty(morphine_coroutine_t, bool read_eof, bool write_eof);
+
 MORPHINE_AUX void maux_sio_read_all(morphine_coroutine_t);
 MORPHINE_AUX bool maux_sio_read_to(morphine_coroutine_t, const char *exit, bool eof);
 MORPHINE_AUX bool maux_sio_read_line(morphine_coroutine_t);

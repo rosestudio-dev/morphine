@@ -47,14 +47,8 @@ static void lib(morphine_coroutine_t U) {
 }
 
 static void init_sio(morphine_instance_t I) {
-    I->sio.io = sioI_create(I, I->platform.sio.io);
-    I->sio.err = sioI_create(I, I->platform.sio.err);
-
-    sioI_hold(I, I->sio.io, valueI_raw(0));
-    sioI_hold(I, I->sio.err, valueI_raw(0));
-
-    sioI_open(I, I->sio.io, I->data);
-    sioI_open(I, I->sio.err, I->data);
+    I->sio.err = sioI_create(I, I->platform.sio.err, I->data);
+    I->sio.io = sioI_create(I, I->platform.sio.io, I->data);
 }
 
 static void init_throw(morphine_instance_t I) {

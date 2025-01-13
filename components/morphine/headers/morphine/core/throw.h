@@ -18,12 +18,12 @@ typedef enum {
 struct protect_frame {
     bool entered;
     jmp_buf handler;
+    size_t danger_entered;
 };
 
 struct throw {
     morphine_coroutine_t context;
     size_t signal_entered;
-    size_t danger_entered;
 
     struct protect_frame protect;
 

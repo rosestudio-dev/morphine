@@ -2,14 +2,14 @@
 // Created by why-iskra on 13.06.2024.
 //
 
-#include <string.h>
 #include "morphine/auxiliary/sio.h"
 #include "morphine/api.h"
 #include "morphine/utils/overflow.h"
+#include <string.h>
+
+// buffer
 
 struct buffer_data {
-    bool closed;
-
     size_t allocated;
     size_t factor;
 
@@ -18,31 +18,33 @@ struct buffer_data {
     uint8_t *vector;
 };
 
-static inline void check_close(morphine_instance_t I, struct buffer_data *B) {
-    if (B->closed) {
-        mapi_ierror(I, "buffer closed");
-    }
-}
+struct buffer_args {
+    size_t factor;
+};
 
-static void *buffer_open(morphine_instance_t I, void *data) {
+static void buffer_open(morphine_instance_t I, void *data, void *args) {
     (void) I;
+    struct buffer_args *buffer_args = args;
+    struct buffer_data *buffer_data = data;
 
-    struct buffer_data *B = data;
-    B->closed = false;
-
-    return B;
+    *buffer_data = (struct buffer_data) {
+        .allocated = 0,
+        .factor = buffer_args->factor,
+        .size = 0,
+        .pointer = 0,
+        .vector = NULL
+    };
 }
 
 static void buffer_close(morphine_instance_t I, void *data) {
     (void) I;
-
-    struct buffer_data *B = data;
-    B->closed = true;
+    struct buffer_data *buffer_data = data;
+    mapi_allocator_free(I, buffer_data->vector);
 }
 
 static size_t buffer_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
+    (void) I;
     struct buffer_data *B = data;
-    check_close(I, B);
 
     size_t read = 0;
     for (size_t i = 0; i < size; i++) {
@@ -60,7 +62,6 @@ static size_t buffer_read(morphine_instance_t I, void *data, uint8_t *buffer, si
 
 static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
     struct buffer_data *B = data;
-    check_close(I, B);
 
     for (size_t i = 0; i < size; i++) {
         if (B->pointer >= B->size) {
@@ -88,14 +89,9 @@ static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buf
     return size;
 }
 
-static bool buffer_seek(
-    morphine_instance_t I,
-    void *data,
-    size_t offset,
-    morphine_sio_seek_mode_t mode
-) {
+static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphine_sio_seek_mode_t mode) {
+    (void) I;
     struct buffer_data *B = data;
-    check_close(I, B);
 
     switch (mode) {
         case MORPHINE_SIO_SEEK_MODE_SET: {
@@ -144,8 +140,8 @@ static bool buffer_seek(
 }
 
 static size_t buffer_tell(morphine_instance_t I, void *data) {
+    (void) I;
     struct buffer_data *B = data;
-    check_close(I, B);
 
     if (B->pointer > B->size) {
         return B->size;
@@ -155,73 +151,95 @@ static size_t buffer_tell(morphine_instance_t I, void *data) {
 }
 
 static bool buffer_eos(morphine_instance_t I, void *data) {
+    (void) I;
     struct buffer_data *B = data;
-    check_close(I, B);
-
     return B->pointer >= B->size;
 }
 
-static void buffer_destructor(morphine_instance_t I, void *data) {
-    struct buffer_data *B = data;
-    mapi_allocator_free(I, B->vector);
-}
-
-MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t U, size_t factor, bool read, bool write) {
-    if (write && factor == 0) {
+MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t U, size_t factor) {
+    if (factor == 0) {
         mapi_error(U, "sio buffer extension factor is zero");
     }
 
-    if (!read && !write) {
-        mapi_error(U, "sio buffer must be readable or writable");
-    }
-
-    const char *str = mapi_get_string(U);
-    ml_size str_len = mapi_string_len(U);
-
-    struct buffer_data *data = mapi_push_userdata_uni(U, sizeof(struct buffer_data));
-
-    *data = (struct buffer_data) {
-        .closed = true,
-        .allocated = 0,
-        .factor = factor,
-        .size = 0,
-        .pointer = 0,
-        .vector = NULL
-    };
-
-    mapi_userdata_set_destructor(U, buffer_destructor);
-
-    data->vector = mapi_allocator_vec(mapi_instance(U), NULL, str_len, sizeof(char));
-    data->allocated = ((size_t) str_len) * sizeof(char);
-    data->size = str_len;
-    memcpy(data->vector, str, data->allocated);
-
     morphine_sio_interface_t interface = {
+        .data_size = sizeof(struct buffer_data),
         .open = buffer_open,
         .close = buffer_close,
-        .read = NULL,
-        .write = NULL,
+        .read = buffer_read,
+        .write = buffer_write,
         .flush = NULL,
         .eos = buffer_eos,
         .tell = buffer_tell,
-        .seek = buffer_seek
+        .seek = buffer_seek,
     };
 
-    if (read) {
-        interface.read = buffer_read;
-    }
+    struct buffer_args args = {
+        .factor = factor,
+    };
 
-    if (write) {
-        interface.write = buffer_write;
-    }
-
-    mapi_push_sio(U, interface);
-
-    mapi_rotate(U, 2);
-    mapi_sio_hold(U);
-
-    mapi_sio_open(U, data);
+    mapi_push_sio(U, interface, &args);
 }
+
+// empty
+
+static size_t empty_eof_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
+    (void) I;
+    (void) data;
+    memset(buffer, 0, size);
+    return size;
+}
+
+static size_t empty_zero_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
+    (void) I;
+    (void) data;
+    memset(buffer, 0, size);
+    return 0;
+}
+
+static size_t empty_eof_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
+    (void) I;
+    (void) data;
+    (void) buffer;
+    return size;
+}
+
+static size_t empty_zero_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
+    (void) I;
+    (void) data;
+    (void) buffer;
+    (void) size;
+    return 0;
+}
+
+static bool empty_eof_eos(morphine_instance_t I, void *data) {
+    (void) I;
+    (void) data;
+    return false;
+}
+
+static bool empty_zero_eos(morphine_instance_t I, void *data) {
+    (void) I;
+    (void) data;
+    return true;
+}
+
+MORPHINE_AUX void maux_push_sio_empty(morphine_coroutine_t U, bool read_eof, bool write_eof) {
+    morphine_sio_interface_t interface = {
+        .data_size = 0,
+        .open = NULL,
+        .close = NULL,
+        .read = read_eof ? empty_eof_read : empty_zero_read,
+        .write = write_eof ? empty_eof_write : empty_zero_write,
+        .eos = read_eof ? empty_eof_eos : empty_zero_eos,
+        .flush = NULL,
+        .tell = NULL,
+        .seek = NULL,
+    };
+
+    mapi_push_sio(U, interface, NULL);
+}
+
+// other stuff
 
 MORPHINE_AUX void maux_sio_read_all(morphine_coroutine_t U) {
     if (!mapi_sio_seek_end(U, 0)) {
@@ -283,6 +301,7 @@ MORPHINE_AUX morphine_sio_interface_t maux_sio_interface_srwf(
     morphine_sio_flush_t flush
 ) {
     return (morphine_sio_interface_t) {
+        .data_size = 0,
         .write = write,
         .read = read,
         .flush = flush,

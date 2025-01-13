@@ -47,24 +47,25 @@ typedef enum {
     MORPHINE_SIO_SEEK_MODE_END,
 } morphine_sio_seek_mode_t;
 
-typedef void *(*morphine_sio_open_t)(morphine_instance_t, void *args);
+typedef void (*morphine_sio_open_t)(morphine_instance_t, void *data, void *args);
+typedef void (*morphine_sio_close_t)(morphine_instance_t, void *data);
 typedef size_t (*morphine_sio_read_t)(morphine_instance_t, void *data, uint8_t *buffer, size_t size);
 typedef size_t (*morphine_sio_write_t)(morphine_instance_t, void *data, const uint8_t *buffer, size_t size);
 typedef void (*morphine_sio_flush_t)(morphine_instance_t, void *data);
 typedef bool (*morphine_sio_seek_t)(morphine_instance_t, void *data, size_t, morphine_sio_seek_mode_t);
 typedef size_t (*morphine_sio_tell_t)(morphine_instance_t, void *data);
 typedef bool (*morphine_sio_eos_t)(morphine_instance_t, void *data);
-typedef void (*morphine_sio_close_t)(morphine_instance_t, void *data);
 
 typedef struct {
+    size_t data_size;
     morphine_sio_open_t open;
+    morphine_sio_close_t close;
     morphine_sio_read_t read;
     morphine_sio_write_t write;
     morphine_sio_flush_t flush;
     morphine_sio_seek_t seek;
     morphine_sio_tell_t tell;
     morphine_sio_eos_t eos;
-    morphine_sio_close_t close;
 } morphine_sio_interface_t;
 
 // platform
