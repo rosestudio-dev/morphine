@@ -354,25 +354,25 @@ MORPHINE_API bool mapi_sharedstorage_remove(morphine_coroutine_t, const char *sh
 MORPHINE_API void mapi_sharedstorage_removeoe(morphine_coroutine_t, const char *sharedkey);
 MORPHINE_API void mapi_sharedstorage_clear(morphine_coroutine_t, const char *sharedkey);
 
-// sio
+// stream
 
-MORPHINE_API void mapi_push_sio_io(morphine_coroutine_t);
-MORPHINE_API void mapi_push_sio_err(morphine_coroutine_t);
+MORPHINE_API void mapi_push_stream_io(morphine_coroutine_t);
+MORPHINE_API void mapi_push_stream_err(morphine_coroutine_t);
 
-MORPHINE_API void mapi_push_sio(morphine_coroutine_t, morphine_sio_interface_t, void *args);
-MORPHINE_API void mapi_sio_close(morphine_coroutine_t, bool force);
-MORPHINE_API size_t mapi_sio_read(morphine_coroutine_t, uint8_t *, size_t);
-MORPHINE_API size_t mapi_sio_write(morphine_coroutine_t, const uint8_t *, size_t);
-MORPHINE_API void mapi_sio_flush(morphine_coroutine_t);
-MORPHINE_API bool mapi_sio_seek_set(morphine_coroutine_t, size_t);
-MORPHINE_API bool mapi_sio_seek_cur(morphine_coroutine_t, size_t);
-MORPHINE_API bool mapi_sio_seek_prv(morphine_coroutine_t, size_t);
-MORPHINE_API bool mapi_sio_seek_end(morphine_coroutine_t, size_t);
-MORPHINE_API size_t mapi_sio_tell(morphine_coroutine_t);
-MORPHINE_API bool mapi_sio_eos(morphine_coroutine_t);
+MORPHINE_API void mapi_push_stream(morphine_coroutine_t, morphine_stream_interface_t, void *args);
+MORPHINE_API void mapi_stream_close(morphine_coroutine_t, bool force);
+MORPHINE_API size_t mapi_stream_read(morphine_coroutine_t, uint8_t *, size_t);
+MORPHINE_API size_t mapi_stream_write(morphine_coroutine_t, const uint8_t *, size_t);
+MORPHINE_API void mapi_stream_flush(morphine_coroutine_t);
+MORPHINE_API bool mapi_stream_seek_set(morphine_coroutine_t, size_t);
+MORPHINE_API bool mapi_stream_seek_cur(morphine_coroutine_t, size_t);
+MORPHINE_API bool mapi_stream_seek_prv(morphine_coroutine_t, size_t);
+MORPHINE_API bool mapi_stream_seek_end(morphine_coroutine_t, size_t);
+MORPHINE_API size_t mapi_stream_tell(morphine_coroutine_t);
+MORPHINE_API bool mapi_stream_eos(morphine_coroutine_t);
 
-MORPHINE_API size_t mapi_sio_print(morphine_coroutine_t, const char *);
-MORPHINE_API morphine_printf(2, 3) size_t mapi_sio_printf(morphine_coroutine_t, const char *, ...);
+MORPHINE_API size_t mapi_stream_print(morphine_coroutine_t, const char *);
+MORPHINE_API morphine_printf(2, 3) size_t mapi_stream_printf(morphine_coroutine_t, const char *, ...);
 
 // exception
 

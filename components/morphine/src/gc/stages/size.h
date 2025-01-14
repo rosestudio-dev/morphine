@@ -12,7 +12,7 @@
 #include "morphine/object/iterator.h"
 #include "morphine/object/native.h"
 #include "morphine/object/reference.h"
-#include "morphine/object/sio.h"
+#include "morphine/object/stream.h"
 #include "morphine/object/string.h"
 #include "morphine/object/table.h"
 #include "morphine/object/userdata.h"
@@ -66,8 +66,8 @@ static inline size_t size_reference(morphine_unused struct reference *reference)
     return sizeof(struct reference);
 }
 
-static inline size_t size_sio(struct sio *sio) {
-    return sizeof(struct sio) + sio->interface.data_size;
+static inline size_t size_stream(struct stream *stream) {
+    return sizeof(struct stream) + stream->interface.data_size;
 }
 
 static inline size_t size_obj(morphine_instance_t I, struct object *obj) {
@@ -105,8 +105,8 @@ static inline size_t size_obj(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_REFERENCE: {
             return size_reference(cast(struct reference *, obj));
         }
-        case OBJ_TYPE_SIO: {
-            return size_sio(cast(struct sio *, obj));
+        case OBJ_TYPE_STREAM: {
+            return size_stream(cast(struct stream *, obj));
         }
     }
 

@@ -13,7 +13,7 @@ mspec_type_object(7,  NATIVE,    native)
 mspec_type_object(8,  REFERENCE, reference)
 mspec_type_object(9,  EXCEPTION, exception)
 mspec_type_object(10, ITERATOR,  iterator)
-mspec_type_object(11, SIO,       sio)
+mspec_type_object(11, STREAM,    stream)
 
 mspec_type_value(12,  NIL,       nil)
 mspec_type_value(13,  INTEGER,   integer)

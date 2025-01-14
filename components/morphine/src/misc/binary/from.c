@@ -16,7 +16,7 @@
 
 struct data {
     morphine_instance_t I;
-    struct sio *sio;
+    struct stream *stream;
     struct vector *vector;
     struct crc32_buf crc;
 
@@ -32,7 +32,7 @@ struct packer_read {
 
 static inline uint8_t get_byte(struct data *D) {
     uint8_t byte = 0;
-    size_t read_count = sioI_read(D->I, D->sio, &byte, 1);
+    size_t read_count = streamI_read(D->I, D->stream, &byte, 1);
 
     if (read_count != 1) {
         throwI_error(D->I, "corrupted packed data");
@@ -292,13 +292,13 @@ static void read_tail(struct data *D) {
     }
 }
 
-struct value packerI_from(morphine_instance_t I, struct sio *sio) {
+struct value packerI_from(morphine_instance_t I, struct stream *stream) {
     gcI_safe_enter(I);
-    gcI_safe(I, valueI_object(sio));
+    gcI_safe(I, valueI_object(stream));
 
     struct data data = {
         .I = I,
-        .sio = sio,
+        .stream = stream,
         .vector = NULL,
         .crc = crc32_init(),
         .size = 0,

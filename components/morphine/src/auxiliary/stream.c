@@ -2,7 +2,7 @@
 // Created by why-iskra on 13.06.2024.
 //
 
-#include "morphine/auxiliary/sio.h"
+#include "morphine/auxiliary/stream.h"
 #include "morphine/api.h"
 #include "morphine/utils/overflow.h"
 #include <string.h>
@@ -66,7 +66,7 @@ static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buf
     for (size_t i = 0; i < size; i++) {
         if (B->pointer >= B->size) {
             overflow_add(B->size, 1, SIZE_MAX) {
-                mapi_ierror(I, "sio buffer overflow");
+                mapi_ierror(I, "stream buffer overflow");
             }
 
             B->size++;
@@ -74,7 +74,7 @@ static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buf
 
         if (B->size >= B->allocated) {
             overflow_add(B->allocated, B->factor, SIZE_MAX) {
-                mapi_ierror(I, "sio buffer overflow");
+                mapi_ierror(I, "stream buffer overflow");
             }
 
             size_t new_size = B->allocated + B->factor;
@@ -89,12 +89,12 @@ static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buf
     return size;
 }
 
-static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphine_sio_seek_mode_t mode) {
+static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphine_stream_seek_mode_t mode) {
     (void) I;
     struct buffer_data *B = data;
 
     switch (mode) {
-        case MORPHINE_SIO_SEEK_MODE_SET: {
+        case MORPHINE_STREAM_SEEK_MODE_SET: {
             if (offset > B->size) {
                 return false;
             } else {
@@ -102,7 +102,7 @@ static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphi
                 return true;
             }
         }
-        case MORPHINE_SIO_SEEK_MODE_CUR: {
+        case MORPHINE_STREAM_SEEK_MODE_CUR: {
             if (B->pointer > B->size) {
                 B->pointer = B->size;
             }
@@ -114,7 +114,7 @@ static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphi
                 return true;
             }
         }
-        case MORPHINE_SIO_SEEK_MODE_PRV: {
+        case MORPHINE_STREAM_SEEK_MODE_PRV: {
             if (B->pointer > B->size) {
                 B->pointer = B->size;
             }
@@ -126,7 +126,7 @@ static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphi
                 return true;
             }
         }
-        case MORPHINE_SIO_SEEK_MODE_END: {
+        case MORPHINE_STREAM_SEEK_MODE_END: {
             if (offset > B->size) {
                 return false;
             } else {
@@ -156,12 +156,12 @@ static bool buffer_eos(morphine_instance_t I, void *data) {
     return B->pointer >= B->size;
 }
 
-MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t U, size_t factor) {
+MORPHINE_AUX void maux_push_stream_buffer(morphine_coroutine_t U, size_t factor) {
     if (factor == 0) {
-        mapi_error(U, "sio buffer extension factor is zero");
+        mapi_error(U, "stream buffer extension factor is zero");
     }
 
-    morphine_sio_interface_t interface = {
+    morphine_stream_interface_t interface = {
         .data_size = sizeof(struct buffer_data),
         .open = buffer_open,
         .close = buffer_close,
@@ -177,7 +177,7 @@ MORPHINE_AUX void maux_push_sio_buffer(morphine_coroutine_t U, size_t factor) {
         .factor = factor,
     };
 
-    mapi_push_sio(U, interface, &args);
+    mapi_push_stream(U, interface, &args);
 }
 
 // empty
@@ -223,8 +223,8 @@ static bool empty_zero_eos(morphine_instance_t I, void *data) {
     return true;
 }
 
-MORPHINE_AUX void maux_push_sio_empty(morphine_coroutine_t U, bool read_eof, bool write_eof) {
-    morphine_sio_interface_t interface = {
+MORPHINE_AUX void maux_push_stream_empty(morphine_coroutine_t U, bool read_eof, bool write_eof) {
+    morphine_stream_interface_t interface = {
         .data_size = 0,
         .open = NULL,
         .close = NULL,
@@ -236,19 +236,19 @@ MORPHINE_AUX void maux_push_sio_empty(morphine_coroutine_t U, bool read_eof, boo
         .seek = NULL,
     };
 
-    mapi_push_sio(U, interface, NULL);
+    mapi_push_stream(U, interface, NULL);
 }
 
 // other stuff
 
-MORPHINE_AUX void maux_sio_read_all(morphine_coroutine_t U) {
-    if (!mapi_sio_seek_end(U, 0)) {
+MORPHINE_AUX void maux_stream_read_all(morphine_coroutine_t U) {
+    if (!mapi_stream_seek_end(U, 0)) {
         mapi_error(U, "cannot read all");
     }
 
-    size_t size = mapi_sio_tell(U);
+    size_t size = mapi_stream_tell(U);
 
-    if (!mapi_sio_seek_set(U, 0)) {
+    if (!mapi_stream_seek_set(U, 0)) {
         mapi_error(U, "cannot read all");
     }
 
@@ -256,7 +256,7 @@ MORPHINE_AUX void maux_sio_read_all(morphine_coroutine_t U) {
 
     mapi_rotate(U, 2);
 
-    size_t result = mapi_sio_read(U, (uint8_t *) buffer, size * sizeof(char));
+    size_t result = mapi_stream_read(U, (uint8_t *) buffer, size * sizeof(char));
     if (result != size * sizeof(char)) {
         mapi_error(U, "cannot read all");
     }
@@ -267,13 +267,13 @@ MORPHINE_AUX void maux_sio_read_all(morphine_coroutine_t U) {
     mapi_pop(U, 1);
 }
 
-MORPHINE_AUX bool maux_sio_read_to(morphine_coroutine_t U, const char *exit, bool eof) {
+MORPHINE_AUX bool maux_stream_read_to(morphine_coroutine_t U, const char *exit, bool eof) {
     mapi_push_string(U, "");
     while (true) {
         char read = 0;
 
         mapi_rotate(U, 2);
-        size_t read_count = mapi_sio_read(U, (uint8_t *) &read, sizeof(char));
+        size_t read_count = mapi_stream_read(U, (uint8_t *) &read, sizeof(char));
         mapi_rotate(U, 2);
 
         if (read_count != sizeof(char)) {
@@ -291,16 +291,16 @@ MORPHINE_AUX bool maux_sio_read_to(morphine_coroutine_t U, const char *exit, boo
     return true;
 }
 
-MORPHINE_AUX bool maux_sio_read_line(morphine_coroutine_t U) {
-    return maux_sio_read_to(U, "\n", true);
+MORPHINE_AUX bool maux_stream_read_line(morphine_coroutine_t U) {
+    return maux_stream_read_to(U, "\n", true);
 }
 
-MORPHINE_AUX morphine_sio_interface_t maux_sio_interface_srwf(
-    morphine_sio_read_t read,
-    morphine_sio_write_t write,
-    morphine_sio_flush_t flush
+MORPHINE_AUX morphine_stream_interface_t maux_stream_interface_srwf(
+    morphine_stream_read_t read,
+    morphine_stream_write_t write,
+    morphine_stream_flush_t flush
 ) {
-    return (morphine_sio_interface_t) {
+    return (morphine_stream_interface_t) {
         .data_size = 0,
         .write = write,
         .read = read,

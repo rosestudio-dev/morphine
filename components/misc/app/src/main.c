@@ -106,8 +106,8 @@ static int launcher(struct env *env, int argc, char **argv) {
         .memory.alloc = vmalloc,
         .memory.realloc = vmrealloc,
         .memory.free = vmfree,
-        .sio.io = maux_sio_interface_srwf(io_read, io_write, io_flush),
-        .sio.err = maux_sio_interface_swf(io_error_write, io_error_flush),
+        .stream.io = maux_stream_interface_srwf(io_read, io_write, io_flush),
+        .stream.err = maux_stream_interface_swf(io_error_write, io_error_flush),
     };
 
     morphine_instance_t I = mapi_open(instance_platform, settings, env);

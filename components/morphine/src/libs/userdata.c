@@ -10,7 +10,7 @@ static void destructorislocked(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "userdata");
+            maux_expect(U, MTYPE_USERDATA);
 
             bool value = mapi_userdata_mode_destructor_is_locked(U);
             mapi_push_boolean(U, value);
@@ -23,7 +23,7 @@ static void metatableislocked(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "userdata");
+            maux_expect(U, MTYPE_USERDATA);
 
             bool value = mapi_userdata_mode_metatable_is_locked(U);
             mapi_push_boolean(U, value);
@@ -36,7 +36,7 @@ static void sizeislocked(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "userdata");
+            maux_expect(U, MTYPE_USERDATA);
 
             bool value = mapi_userdata_mode_size_is_locked(U);
             mapi_push_boolean(U, value);
@@ -49,7 +49,7 @@ static void istyped(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "userdata");
+            maux_expect(U, MTYPE_USERDATA);
 
             bool value = mapi_userdata_is_typed(U);
             mapi_push_boolean(U, value);

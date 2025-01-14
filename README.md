@@ -48,7 +48,7 @@ val format = env.lib("string.format")
 val coroutine = env.lib("coroutine")
 val vector = env.lib("vector")
 val exception = env.lib("exception")
-val sio = env.lib("sio")
+val stream = env.lib("stream")
 
 fun dump<println>() { println(self) }
 
@@ -121,7 +121,7 @@ fun pcalltest<error>(throw) = throw or error("hello world!")
 do {
     var pcallres = pcall(pcalltest, nil)
     println(exception.value(pcallres))
-    exception.print(pcallres, sio.stream.io)
+    exception.print(pcallres, stream.io)
 }
 
 do {

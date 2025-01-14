@@ -8,7 +8,7 @@
 #include "morphine/gc/safe.h"
 #include "morphine/misc/packer.h"
 #include "morphine/object/coroutine.h"
-#include "morphine/object/sio.h"
+#include "morphine/object/stream.h"
 #include "morphine/object/userdata.h"
 #include "morphine/object/vector.h"
 #include "morphine/utils/overflow.h"
@@ -33,7 +33,7 @@ struct isolate {
     } bridge;
 };
 
-// sio bridge functions
+// stream bridge functions
 
 struct bridge_data {
     struct isolate *isolate;
@@ -92,8 +92,8 @@ static size_t bridge_write(morphine_instance_t I, void *data, const uint8_t *buf
     return size;
 }
 
-static struct sio *create_bridge_sio(morphine_instance_t I, struct isolate *isolate) {
-    morphine_sio_interface_t interface = {
+static struct stream *create_bridge_stream(morphine_instance_t I, struct isolate *isolate) {
+    morphine_stream_interface_t interface = {
         .data_size = sizeof(struct bridge_data),
         .open = bridge_open,
         .close = NULL,
@@ -105,7 +105,7 @@ static struct sio *create_bridge_sio(morphine_instance_t I, struct isolate *isol
         .eos = NULL,
     };
 
-    return sioI_create(I, interface, isolate);
+    return streamI_create(I, interface, isolate);
 }
 
 static void bridge_reset(struct isolate *isolate) {
@@ -126,49 +126,49 @@ static void bridge_clear(struct isolate *isolate) {
 static size_t isolate_io_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.io.read(isolate->original_instance, isolate->config.custom.data, buffer, size);
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.io.read(isolate->original_instance, isolate->config.custom.data, buffer, size);
     } else {
-        return sioI_read(isolate->original_instance, isolate->original_instance->sio.io, buffer, size);
+        return streamI_read(isolate->original_instance, isolate->original_instance->stream.io, buffer, size);
     }
 }
 
 static size_t isolate_io_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.io
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.io
             .write(isolate->original_instance, isolate->config.custom.data, buffer, size);
     } else {
-        return sioI_write(isolate->original_instance, isolate->original_instance->sio.io, buffer, size);
+        return streamI_write(isolate->original_instance, isolate->original_instance->stream.io, buffer, size);
     }
 }
 
 static void isolate_io_flush(morphine_instance_t I, void *data) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        isolate->config.custom.sio.io.flush(isolate->original_instance, isolate->config.custom.data);
+    if (isolate->config.custom.flags.stream) {
+        isolate->config.custom.stream.io.flush(isolate->original_instance, isolate->config.custom.data);
     } else {
-        sioI_flush(isolate->original_instance, isolate->original_instance->sio.io);
+        streamI_flush(isolate->original_instance, isolate->original_instance->stream.io);
     }
 }
 
-static bool isolate_io_seek(morphine_instance_t I, void *data, size_t offset, morphine_sio_seek_mode_t mode) {
+static bool isolate_io_seek(morphine_instance_t I, void *data, size_t offset, morphine_stream_seek_mode_t mode) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.io.seek(isolate->original_instance, isolate->config.custom.data, offset, mode);
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.io.seek(isolate->original_instance, isolate->config.custom.data, offset, mode);
     } else {
         switch (mode) {
-            case MORPHINE_SIO_SEEK_MODE_SET:
-                return sioI_seek_set(isolate->original_instance, isolate->original_instance->sio.io, offset);
-            case MORPHINE_SIO_SEEK_MODE_CUR:
-                return sioI_seek_cur(isolate->original_instance, isolate->original_instance->sio.io, offset);
-            case MORPHINE_SIO_SEEK_MODE_PRV:
-                return sioI_seek_prv(isolate->original_instance, isolate->original_instance->sio.io, offset);
-            case MORPHINE_SIO_SEEK_MODE_END:
-                return sioI_seek_end(isolate->original_instance, isolate->original_instance->sio.io, offset);
+            case MORPHINE_STREAM_SEEK_MODE_SET:
+                return streamI_seek_set(isolate->original_instance, isolate->original_instance->stream.io, offset);
+            case MORPHINE_STREAM_SEEK_MODE_CUR:
+                return streamI_seek_cur(isolate->original_instance, isolate->original_instance->stream.io, offset);
+            case MORPHINE_STREAM_SEEK_MODE_PRV:
+                return streamI_seek_prv(isolate->original_instance, isolate->original_instance->stream.io, offset);
+            case MORPHINE_STREAM_SEEK_MODE_END:
+                return streamI_seek_end(isolate->original_instance, isolate->original_instance->stream.io, offset);
         }
 
         return false;
@@ -178,71 +178,71 @@ static bool isolate_io_seek(morphine_instance_t I, void *data, size_t offset, mo
 static size_t isolate_io_tell(morphine_instance_t I, void *data) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.io.tell(isolate->original_instance, isolate->config.custom.data);
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.io.tell(isolate->original_instance, isolate->config.custom.data);
     } else {
-        return sioI_tell(isolate->original_instance, isolate->original_instance->sio.io);
+        return streamI_tell(isolate->original_instance, isolate->original_instance->stream.io);
     }
 }
 
 static bool isolate_io_eos(morphine_instance_t I, void *data) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.io.eos(isolate->original_instance, isolate->config.custom.data);
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.io.eos(isolate->original_instance, isolate->config.custom.data);
     } else {
-        return sioI_eos(isolate->original_instance, isolate->original_instance->sio.io);
+        return streamI_eos(isolate->original_instance, isolate->original_instance->stream.io);
     }
 }
 
 static size_t isolate_err_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.err
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.err
             .read(isolate->original_instance, isolate->config.custom.data, buffer, size);
     } else {
-        return sioI_read(isolate->original_instance, isolate->original_instance->sio.err, buffer, size);
+        return streamI_read(isolate->original_instance, isolate->original_instance->stream.err, buffer, size);
     }
 }
 
 static size_t isolate_err_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.err
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.err
             .write(isolate->original_instance, isolate->config.custom.data, buffer, size);
     } else {
-        return sioI_write(isolate->original_instance, isolate->original_instance->sio.err, buffer, size);
+        return streamI_write(isolate->original_instance, isolate->original_instance->stream.err, buffer, size);
     }
 }
 
 static void isolate_err_flush(morphine_instance_t I, void *data) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        isolate->config.custom.sio.err.flush(isolate->original_instance, isolate->config.custom.data);
+    if (isolate->config.custom.flags.stream) {
+        isolate->config.custom.stream.err.flush(isolate->original_instance, isolate->config.custom.data);
     } else {
-        sioI_flush(isolate->original_instance, isolate->original_instance->sio.err);
+        streamI_flush(isolate->original_instance, isolate->original_instance->stream.err);
     }
 }
 
-static bool isolate_err_seek(morphine_instance_t I, void *data, size_t offset, morphine_sio_seek_mode_t mode) {
+static bool isolate_err_seek(morphine_instance_t I, void *data, size_t offset, morphine_stream_seek_mode_t mode) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.err
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.err
             .seek(isolate->original_instance, isolate->config.custom.data, offset, mode);
     } else {
         switch (mode) {
-            case MORPHINE_SIO_SEEK_MODE_SET:
-                return sioI_seek_set(isolate->original_instance, isolate->original_instance->sio.err, offset);
-            case MORPHINE_SIO_SEEK_MODE_CUR:
-                return sioI_seek_cur(isolate->original_instance, isolate->original_instance->sio.err, offset);
-            case MORPHINE_SIO_SEEK_MODE_PRV:
-                return sioI_seek_prv(isolate->original_instance, isolate->original_instance->sio.err, offset);
-            case MORPHINE_SIO_SEEK_MODE_END:
-                return sioI_seek_end(isolate->original_instance, isolate->original_instance->sio.err, offset);
+            case MORPHINE_STREAM_SEEK_MODE_SET:
+                return streamI_seek_set(isolate->original_instance, isolate->original_instance->stream.err, offset);
+            case MORPHINE_STREAM_SEEK_MODE_CUR:
+                return streamI_seek_cur(isolate->original_instance, isolate->original_instance->stream.err, offset);
+            case MORPHINE_STREAM_SEEK_MODE_PRV:
+                return streamI_seek_prv(isolate->original_instance, isolate->original_instance->stream.err, offset);
+            case MORPHINE_STREAM_SEEK_MODE_END:
+                return streamI_seek_end(isolate->original_instance, isolate->original_instance->stream.err, offset);
         }
 
         return false;
@@ -252,20 +252,20 @@ static bool isolate_err_seek(morphine_instance_t I, void *data, size_t offset, m
 static size_t isolate_err_tell(morphine_instance_t I, void *data) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.err.tell(isolate->original_instance, isolate->config.custom.data);
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.err.tell(isolate->original_instance, isolate->config.custom.data);
     } else {
-        return sioI_tell(isolate->original_instance, isolate->original_instance->sio.err);
+        return streamI_tell(isolate->original_instance, isolate->original_instance->stream.err);
     }
 }
 
 static bool isolate_err_eos(morphine_instance_t I, void *data) {
     (void) I;
     struct isolate *isolate = data;
-    if (isolate->config.custom.flags.sio) {
-        return isolate->config.custom.sio.err.eos(isolate->original_instance, isolate->config.custom.data);
+    if (isolate->config.custom.flags.stream) {
+        return isolate->config.custom.stream.err.eos(isolate->original_instance, isolate->config.custom.data);
     } else {
-        return sioI_eos(isolate->original_instance, isolate->original_instance->sio.err);
+        return streamI_eos(isolate->original_instance, isolate->original_instance->stream.err);
     }
 }
 
@@ -309,9 +309,9 @@ morphine_noret static void isolate_signal(morphine_instance_t I, void *data, boo
     if (isolate->config.error_propagation) {
         throwI_error(isolate->original_instance, throwI_message(I));
     } else {
-        sioI_printf(
+        streamI_printf(
             isolate->original_instance,
-            isolate->original_instance->sio.err,
+            isolate->original_instance->stream.err,
             "morphine isolate error: %s\n",
             throwI_message(I)
         );
@@ -320,7 +320,7 @@ morphine_noret static void isolate_signal(morphine_instance_t I, void *data, boo
     }
 }
 
-static const morphine_sio_interface_t isolate_io_interface = {
+static const morphine_stream_interface_t isolate_io_interface = {
     .open = NULL,
     .close = NULL,
     .read = isolate_io_read,
@@ -331,7 +331,7 @@ static const morphine_sio_interface_t isolate_io_interface = {
     .eos = isolate_io_eos,
 };
 
-static const morphine_sio_interface_t isolate_error_interface = {
+static const morphine_stream_interface_t isolate_error_interface = {
     .open = NULL,
     .close = NULL,
     .read = isolate_err_read,
@@ -347,8 +347,8 @@ static const morphine_platform_t isolate_platform = {
     .memory.alloc = isolate_alloc,
     .memory.realloc = isolate_realloc,
     .memory.free = isolate_free,
-    .sio.io = isolate_io_interface,
-    .sio.err = isolate_error_interface,
+    .stream.io = isolate_io_interface,
+    .stream.err = isolate_error_interface,
 };
 
 // isolate
@@ -366,12 +366,12 @@ static void isolate_run(struct isolate *isolate) {
     struct string *name = gcI_safe_obj(I, string, stringI_create(I, "isolate"));
     morphine_coroutine_t U = gcI_safe_obj(I, coroutine, coroutineI_create(I, name, env));
 
-    struct sio *bridge_sio = gcI_safe_obj(I, sio, create_bridge_sio(I, isolate));
+    struct stream *bridge_stream = gcI_safe_obj(I, stream, create_bridge_stream(I, isolate));
 
     ml_size size;
     {
         gcI_safe_enter(I);
-        struct value value_vector = gcI_safe(I, packerI_from(I, bridge_sio));
+        struct value value_vector = gcI_safe(I, packerI_from(I, bridge_stream));
         struct vector *vector = valueI_as_vector_or_error(I, value_vector);
         size = vectorI_size(I, vector);
         for (ml_size i = 0; i < size; i++) {
@@ -394,7 +394,7 @@ static void isolate_run(struct isolate *isolate) {
     interpreterI_run(I);
 
     struct value result = gcI_safe(I, callstackI_result(U));
-    packerI_to(I, bridge_sio, result);
+    packerI_to(I, bridge_stream, result);
 
     gcI_safe_exit(I);
 }
@@ -444,7 +444,7 @@ struct value isolateI_call(
     if (setjmp(isolate->jump) == 1) {
         result = valueI_nil;
     } else {
-        struct sio *bridge = gcI_safe_obj(I, sio, create_bridge_sio(I, isolate));
+        struct stream *bridge = gcI_safe_obj(I, stream, create_bridge_stream(I, isolate));
 
         {
             gcI_safe_enter(I);

@@ -5,7 +5,7 @@ val { pack, unpack } = env.lib("packer")
 val exception = env.lib("exception")
 val compiler = env.lib("compiler")
 val vector = env.lib("vector")
-val sio = env.lib("sio")
+val stream = env.lib("stream")
 val fs = env.lib("fs")
 val gc = env.lib("gc")
 
@@ -33,12 +33,12 @@ val pattern = {
 }
 
 fun errln<auto>(error) {
-    sio.flush(sio.io)
+    stream.flush(stream.io)
     if (typeof error == "exception") {
-        exception.error.print(error, sio.err)
+        exception.error.print(error, stream.err)
     } else {
-        sio.write(sio.err, tostr(error) .. "\n")
-        sio.flush(sio.err)
+        stream.write(stream.err, tostr(error) .. "\n")
+        stream.flush(stream.err)
     }
 }
 
@@ -65,7 +65,7 @@ gc.settings.setlimit(config.memory)
 val content = pcall <- fun<auto>() = if (config.packed) {
     val file = fs.open(config.program, "rb")
     val result = unpack(file)
-    sio.close(file)
+    stream.close(file)
 
     result
 } else {
@@ -73,8 +73,8 @@ val content = pcall <- fun<auto>() = if (config.packed) {
         "return do { " .. config.program .. " }"
     } else {
         val file = fs.open(config.program, "rb")
-        val text = sio.readall(file)
-        sio.close(file)
+        val text = stream.readall(file)
+        stream.close(file)
 
         text
     }
@@ -97,7 +97,7 @@ if (config.disassembly) {
 if (config.export != nil) {
     val file = fs.open(config.export, "wb")
     pack(file, content)
-    sio.close(file)
+    stream.close(file)
 }
 
 if (config.run) {

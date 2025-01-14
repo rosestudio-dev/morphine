@@ -117,14 +117,14 @@ static inline bool mark_sso(morphine_instance_t I) {
     return marked;
 }
 
-static inline bool mark_sio(morphine_instance_t I) {
+static inline bool mark_stream(morphine_instance_t I) {
     bool marked = false;
 
-    if (mark_object(I, objectI_cast(I->sio.io))) {
+    if (mark_object(I, objectI_cast(I->stream.io))) {
         marked = true;
     }
 
-    if (mark_object(I, objectI_cast(I->sio.err))) {
+    if (mark_object(I, objectI_cast(I->stream.err))) {
         marked = true;
     }
 
@@ -191,13 +191,13 @@ static inline bool mark_gc(morphine_instance_t I) {
 
 static inline bool mark(morphine_instance_t I) {
     bool sso_marked = mark_sso(I);
-    bool sio_marked = mark_sio(I);
+    bool stream_marked = mark_stream(I);
     bool metatable_marked = mark_metatable(I);
     bool libraries_marked = mark_libraries(I);
     bool throw_marked = mark_throw(I);
     bool gc_marked = mark_gc(I);
 
-    return sso_marked || sio_marked || metatable_marked || libraries_marked || throw_marked || gc_marked;
+    return sso_marked || stream_marked || metatable_marked || libraries_marked || throw_marked || gc_marked;
 }
 
 void gcstageI_resolve(morphine_instance_t I, bool emergency) {

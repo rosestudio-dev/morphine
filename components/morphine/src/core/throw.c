@@ -2,17 +2,17 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include <setjmp.h>
-#include <memory.h>
-#include "morphine/object/coroutine.h"
-#include "morphine/object/function.h"
-#include "morphine/object/native.h"
-#include "morphine/object/string.h"
-#include "morphine/object/exception.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
 #include "morphine/gc/safe.h"
-#include "morphine/object/sio.h"
+#include "morphine/object/coroutine.h"
+#include "morphine/object/exception.h"
+#include "morphine/object/function.h"
+#include "morphine/object/native.h"
+#include "morphine/object/stream.h"
+#include "morphine/object/string.h"
+#include <memory.h>
+#include <setjmp.h>
 
 #define SIGNAL_RECURSION (1024)
 #define DANGER_RECURSION (1024)
@@ -165,8 +165,8 @@ void throwI_handler(morphine_instance_t I) {
         size_t stack_size = stackI_space(coroutine);
         stackI_pop(coroutine, stack_size);
     } else {
-        exceptionI_error_print(I, exception, I->sio.err);
-        exceptionI_stacktrace_print(I, exception, I->sio.err, MPARAM_TRACESTACK_COUNT);
+        exceptionI_error_print(I, exception, I->stream.err);
+        exceptionI_stacktrace_print(I, exception, I->stream.err, MPARAM_TRACESTACK_COUNT);
 
         while (callstackI_info(coroutine) != NULL) {
             callstackI_pop(coroutine);

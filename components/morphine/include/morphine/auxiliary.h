@@ -4,14 +4,14 @@
 
 #pragma once
 
-#include "auxiliary/nativebuilder.h"
-#include "auxiliary/expect.h"
-#include "auxiliary/sio.h"
-#include "auxiliary/localstorage.h"
-#include "auxiliary/sharedstorage.h"
-#include "auxiliary/table.h"
-#include "auxiliary/native.h"
 #include "auxiliary/construct.h"
+#include "auxiliary/expect.h"
 #include "auxiliary/library.h"
+#include "auxiliary/localstorage.h"
 #include "auxiliary/metafield.h"
+#include "auxiliary/native.h"
+#include "auxiliary/nativebuilder.h"
 #include "auxiliary/opcode.h"
+#include "auxiliary/sharedstorage.h"
+#include "auxiliary/stream.h"
+#include "auxiliary/table.h"

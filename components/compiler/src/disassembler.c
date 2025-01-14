@@ -5,8 +5,8 @@
 #include <string.h>
 #include "morphinec/disassembler.h"
 
-#define printn(str, s) do { mapi_peek(U, 1); mapi_sio_write(U, (const uint8_t *) (str), (s)); mapi_pop(U, 1); } while(false)
-#define printf(args...) do { mapi_peek(U, 1); mapi_sio_printf(U, args); mapi_pop(U, 1); } while(false)
+#define printn(str, s) do { mapi_peek(U, 1); mapi_stream_write(U, (const uint8_t *) (str), (s)); mapi_pop(U, 1); } while(false)
+#define printf(args...) do { mapi_peek(U, 1); mapi_stream_printf(U, args); mapi_pop(U, 1); } while(false)
 
 
 static const char *opcode2str(morphine_opcode_t opcode) {

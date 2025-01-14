@@ -40,7 +40,7 @@ int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_REFERENCE:
         case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_ITERATOR:
-        case VALUE_TYPE_SIO:
+        case VALUE_TYPE_STREAM:
             return smpcmp(a.object.header, b.object.header);
     }
 
@@ -80,7 +80,7 @@ ml_hash valueI_hash(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_REFERENCE:
         case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_ITERATOR:
-        case VALUE_TYPE_SIO:
+        case VALUE_TYPE_STREAM:
             return ptr2hash(valueI_as_object(value));
     }
 

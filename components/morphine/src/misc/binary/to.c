@@ -14,7 +14,7 @@
 
 struct data {
     morphine_instance_t I;
-    struct sio *sio;
+    struct stream *stream;
     struct table *table;
     struct value value;
     struct crc32_buf crc;
@@ -45,7 +45,7 @@ static void vectorize_append(struct data *D, struct value value) {
 static inline void write_data(struct data *D, const uint8_t *data, size_t size) {
     for (size_t i = 0; i < size; i++) {
         uint8_t byte = data[i];
-        size_t write_count = sioI_write(D->I, D->sio, &byte, sizeof(uint8_t));
+        size_t write_count = streamI_write(D->I, D->stream, &byte, sizeof(uint8_t));
 
         if (write_count != sizeof(uint8_t)) {
             throwI_error(D->I, "write error");
@@ -305,14 +305,14 @@ static void write_tail(struct data *D) {
     write_uint32(D, crc32_result(&D->crc));
 }
 
-void packerI_to(morphine_instance_t I, struct sio *sio, struct value value) {
+void packerI_to(morphine_instance_t I, struct stream *stream, struct value value) {
     gcI_safe_enter(I);
     gcI_safe(I, value);
-    gcI_safe(I, valueI_object(sio));
+    gcI_safe(I, valueI_object(stream));
 
     struct data data = {
         .I = I,
-        .sio = sio,
+        .stream = stream,
         .table = NULL,
         .value = value,
         .crc = crc32_init(),
@@ -326,7 +326,7 @@ void packerI_to(morphine_instance_t I, struct sio *sio, struct value value) {
     write_objects(&data);
     write_tail(&data);
 
-    sioI_flush(I, sio);
+    streamI_flush(I, stream);
 
     gcI_safe_exit(I);
 }

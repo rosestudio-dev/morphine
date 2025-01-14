@@ -4,9 +4,9 @@
 
 #pragma once
 
+#include "morphine/gc/object.h"
 #include "morphine/platform.h"
 #include "morphine/utils/likely.h"
-#include "morphine/gc/object.h"
 
 // create
 
@@ -39,7 +39,7 @@
 #define valueI_is_reference(x) valueI_is(REFERENCE, x)
 #define valueI_is_exception(x) valueI_is(EXCEPTION, x)
 #define valueI_is_iterator(x)  valueI_is(ITERATOR, x)
-#define valueI_is_sio(x)       valueI_is(SIO, x)
+#define valueI_is_stream(x)    valueI_is(STREAM, x)
 
 #define valueI_is_object(x)   (typeI_isobj((x).type))
 #define valueI_is_metatype(x) ({struct value _a = (x); (valueI_is_table(_a) || valueI_is_userdata(_a));})
@@ -66,7 +66,7 @@
 #define valueI_as_reference(x) valueI_as(object.reference, x)
 #define valueI_as_exception(x) valueI_as(object.exception, x)
 #define valueI_as_iterator(x)  valueI_as(object.iterator, x)
-#define valueI_as_sio(x)       valueI_as(object.sio, x)
+#define valueI_as_stream(x)    valueI_as(object.stream, x)
 #define valueI_as_object(x)    valueI_as(object.header, x)
 
 // safe as
@@ -89,7 +89,7 @@
 #define valueI_safe_as_reference(x, o) valueI_safe_as(reference, x, o)
 #define valueI_safe_as_exception(x, o) valueI_safe_as(exception, x, o)
 #define valueI_safe_as_iterator(x, o)  valueI_safe_as(iterator, x, o)
-#define valueI_safe_as_sio(x, o)       valueI_safe_as(sio, x, o)
+#define valueI_safe_as_stream(x, o)    valueI_safe_as(stream, x, o)
 #define valueI_safe_as_object(x, o)    valueI_safe_as(object, x, o)
 
 // as or error
@@ -112,7 +112,7 @@
 #define valueI_as_reference_or_error(I, x) valueI_as_or_error(I, reference, x)
 #define valueI_as_exception_or_error(I, x) valueI_as_or_error(I, exception, x)
 #define valueI_as_iterator_or_error(I, x)  valueI_as_or_error(I, iterator, x)
-#define valueI_as_sio_or_error(I, x)       valueI_as_or_error(I, sio, x)
+#define valueI_as_stream_or_error(I, x)    valueI_as_or_error(I, stream, x)
 #define valueI_as_object_or_error(I, x)    valueI_as_or_error(I, object, x)
 
 // size
@@ -158,7 +158,7 @@ struct value {
             struct vector *vector;
             struct userdata *userdata;
             struct iterator *iterator;
-            struct sio *sio;
+            struct stream *stream;
         } object;
     };
 };

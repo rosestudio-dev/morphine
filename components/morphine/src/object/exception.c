@@ -3,14 +3,14 @@
 //
 
 #include "morphine/object/exception.h"
+#include "morphine/core/convert.h"
+#include "morphine/gc/allocator.h"
+#include "morphine/gc/barrier.h"
+#include "morphine/gc/safe.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/native.h"
-#include "morphine/object/sio.h"
-#include "morphine/core/convert.h"
-#include "morphine/gc/safe.h"
-#include "morphine/gc/allocator.h"
-#include "morphine/gc/barrier.h"
+#include "morphine/object/stream.h"
 #include "morphine/utils/overflow.h"
 
 #define plural_suffix(n) ((n) == 1 ? "" : "s")
@@ -63,25 +63,25 @@ struct string *exceptionI_message(morphine_instance_t I, struct exception *excep
     return string;
 }
 
-static void print_string(morphine_instance_t I, struct sio *sio, struct string *string) {
+static void print_string(morphine_instance_t I, struct stream *stream, struct string *string) {
     if (string->size > MLIMIT_STACKTRACE_STRING) {
-        sioI_write(I, sio, (const uint8_t *) (string->chars), MLIMIT_STACKTRACE_STRING * sizeof(char));
-        sioI_print(I, sio, "...");
+        streamI_write(I, stream, (const uint8_t *) (string->chars), MLIMIT_STACKTRACE_STRING * sizeof(char));
+        streamI_print(I, stream, "...");
     } else {
-        sioI_write(I, sio, (const uint8_t *) (string->chars), string->size * sizeof(char));
+        streamI_write(I, stream, (const uint8_t *) (string->chars), string->size * sizeof(char));
     }
 }
 
-void exceptionI_error_print(morphine_instance_t I, struct exception *exception, struct sio *sio) {
+void exceptionI_error_print(morphine_instance_t I, struct exception *exception, struct stream *stream) {
     gcI_safe_enter(I);
 
     gcI_safe(I, valueI_object(exception));
-    gcI_safe(I, valueI_object(sio));
+    gcI_safe(I, valueI_object(stream));
     struct string *string = gcI_safe_obj(I, string, exceptionI_message(I, exception));
 
-    sioI_print(I, sio, "morphine error: ");
-    print_string(I, sio, string);
-    sioI_print(I, sio, "\n");
+    streamI_print(I, stream, "morphine error: ");
+    print_string(I, stream, string);
+    streamI_print(I, stream, "\n");
 
     gcI_safe_exit(I);
 }
@@ -89,7 +89,7 @@ void exceptionI_error_print(morphine_instance_t I, struct exception *exception, 
 void exceptionI_stacktrace_print(
     morphine_instance_t I,
     struct exception *exception,
-    struct sio *sio,
+    struct stream *stream,
     ml_size count
 ) {
     if (exception == NULL) {
@@ -97,7 +97,7 @@ void exceptionI_stacktrace_print(
     }
 
     if (!exception->stacktrace.recorded) {
-        sioI_print(I, sio, "stacktrace wasn't recorded");
+        streamI_print(I, stream, "stacktrace wasn't recorded");
         return;
     }
 
@@ -108,15 +108,15 @@ void exceptionI_stacktrace_print(
     ml_size size = exception->stacktrace.size;
 
     if (exception->stacktrace.name != NULL) {
-        sioI_printf(
-            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, for coroutine '",
+        streamI_printf(
+            I, stream, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, for coroutine '",
             size, plural_suffix(size)
         );
-        print_string(I, sio, exception->stacktrace.name);
-        sioI_print(I, sio, "'):\n");
+        print_string(I, stream, exception->stacktrace.name);
+        streamI_print(I, stream, "'):\n");
     } else {
-        sioI_printf(
-            I, sio, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, unnamed coroutine):\n",
+        streamI_printf(
+            I, stream, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, unnamed coroutine):\n",
             size, plural_suffix(size)
         );
     }
@@ -131,8 +131,8 @@ void exceptionI_stacktrace_print(
 
             if (reversed == count_before) {
                 ml_size skipped = size - count;
-                sioI_printf(
-                    I, sio, "    (skipped %"MLIMIT_SIZE_PR" element%s)\n",
+                streamI_printf(
+                    I, stream, "    (skipped %"MLIMIT_SIZE_PR" element%s)\n",
                     skipped, plural_suffix(skipped)
                 );
             }
@@ -142,7 +142,7 @@ void exceptionI_stacktrace_print(
             }
         }
 
-        sioI_print(I, sio, "    ");
+        streamI_print(I, stream, "    ");
         if (valueI_is_function(element.callable)) {
             struct function *function = valueI_as_function(element.callable);
 
@@ -154,22 +154,22 @@ void exceptionI_stacktrace_print(
                     line = function->instructions[function->instructions_count - 1].line;
                 }
 
-                sioI_printf(I, sio, "[line: %"MLIMIT_LINE_PR"]", line);
+                streamI_printf(I, stream, "[line: %"MLIMIT_LINE_PR"]", line);
             } else {
-                sioI_print(I, sio, "[line: undefined]");
+                streamI_print(I, stream, "[line: undefined]");
             }
 
-            sioI_print(I, sio, " function '");
-            print_string(I, sio, function->name);
-            sioI_printf(I, sio, "' (declared in %"MLIMIT_LINE_PR" line)\n", function->line);
+            streamI_print(I, stream, " function '");
+            print_string(I, stream, function->name);
+            streamI_printf(I, stream, "' (declared in %"MLIMIT_LINE_PR" line)\n", function->line);
         } else if (valueI_is_native(element.callable)) {
             struct native *native = valueI_as_native(element.callable);
 
-            sioI_printf(I, sio, "[state: %zu] native '", element.pc.state);
-            print_string(I, sio, native->name);
-            sioI_printf(I, sio, "'\n");
+            streamI_printf(I, stream, "[state: %zu] native '", element.pc.state);
+            print_string(I, stream, native->name);
+            streamI_printf(I, stream, "'\n");
         } else {
-            sioI_printf(I, sio, "(unsupported callstack element)\n");
+            streamI_printf(I, stream, "(unsupported callstack element)\n");
         }
     }
 }

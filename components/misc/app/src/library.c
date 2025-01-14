@@ -30,11 +30,11 @@ static void api_readline(morphine_coroutine_t U, const char *promt) {
 #define api_initreadline(I) ((void) I)
 
 static void api_readline(morphine_coroutine_t U, const char *promt) {
-    mapi_push_sio_io(U);
-    mapi_sio_print(U, promt);
-    mapi_sio_flush(U);
+    mapi_push_stream_io(U);
+    mapi_stream_print(U, promt);
+    mapi_stream_flush(U);
 
-    maux_sio_read_line(U);
+    maux_stream_read_line(U);
 }
 #endif
 

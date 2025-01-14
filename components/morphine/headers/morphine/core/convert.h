@@ -40,8 +40,8 @@ static inline struct string *convertI_to_string(morphine_instance_t I, struct va
             return stringI_createf(I, "[object:function:%"PRIxPTR"]", (uintptr_t) value.object.function);
         case VALUE_TYPE_NATIVE:
             return stringI_createf(I, "[object:native:%"PRIxPTR"]", (uintptr_t) value.object.native);
-        case VALUE_TYPE_SIO:
-            return stringI_createf(I, "[object:sio:%"PRIxPTR"]", (uintptr_t) value.object.native);
+        case VALUE_TYPE_STREAM:
+            return stringI_createf(I, "[object:stream:%"PRIxPTR"]", (uintptr_t) value.object.stream);
         case VALUE_TYPE_RAW:
             return stringI_createf(I, "[raw:%"PRIxPTR"]", value.raw);
     }

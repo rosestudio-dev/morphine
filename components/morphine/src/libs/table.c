@@ -11,7 +11,7 @@ static void rawget(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_push_arg(U, 1);
 
@@ -26,7 +26,7 @@ static void rawset(morphine_coroutine_t U) {
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_push_arg(U, 1);
             mapi_push_arg(U, 2);
@@ -42,7 +42,7 @@ static void idxget(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
@@ -59,7 +59,7 @@ static void idxkey(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
@@ -76,7 +76,7 @@ static void idxset(morphine_coroutine_t U) {
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
@@ -94,7 +94,7 @@ static void clear(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_table_clear(U);
             maux_nb_return();
@@ -106,7 +106,7 @@ static void copy(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_table_copy(U);
             maux_nb_return();
@@ -119,7 +119,7 @@ static void has(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_push_arg(U, 1);
 
@@ -134,7 +134,7 @@ static void remove_(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
             mapi_push_arg(U, 1);
 
             mapi_table_remove(U);
@@ -150,17 +150,17 @@ static void mutable(morphine_coroutine_t U) {
                 mapi_push_table(U);
             } else if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             } else {
                 maux_expect_args(U, 2);
 
                 mapi_push_arg(U, 1);
-                maux_expect(U, "boolean");
+                maux_expect(U, MTYPE_BOOLEAN);
                 value = mapi_get_boolean(U);
                 mapi_pop(U, 1);
 
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             }
 
             mapi_table_mode_mutable(U, value);
@@ -176,7 +176,7 @@ static void immutable(morphine_coroutine_t U) {
             } else {
                 maux_expect_args(U, 1);
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             }
 
             mapi_table_mode_mutable(U, false);
@@ -192,17 +192,17 @@ static void fixed(morphine_coroutine_t U) {
                 mapi_push_table(U);
             } else if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             } else {
                 maux_expect_args(U, 2);
 
                 mapi_push_arg(U, 1);
-                maux_expect(U, "boolean");
+                maux_expect(U, MTYPE_BOOLEAN);
                 value = mapi_get_boolean(U);
                 mapi_pop(U, 1);
 
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             }
 
             mapi_table_mode_fixed(U, value);
@@ -218,7 +218,7 @@ static void unfixed(morphine_coroutine_t U) {
             } else {
                 maux_expect_args(U, 1);
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             }
 
             mapi_table_mode_fixed(U, false);
@@ -234,17 +234,17 @@ static void accessible(morphine_coroutine_t U) {
                 mapi_push_table(U);
             } else if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             } else {
                 maux_expect_args(U, 2);
 
                 mapi_push_arg(U, 1);
-                maux_expect(U, "boolean");
+                maux_expect(U, MTYPE_BOOLEAN);
                 value = mapi_get_boolean(U);
                 mapi_pop(U, 1);
 
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             }
 
             mapi_table_mode_accessible(U, value);
@@ -260,7 +260,7 @@ static void inaccessible(morphine_coroutine_t U) {
             } else {
                 maux_expect_args(U, 1);
                 mapi_push_arg(U, 0);
-                maux_expect(U, "table");
+                maux_expect(U, MTYPE_TABLE);
             }
 
             mapi_table_mode_accessible(U, false);
@@ -273,7 +273,7 @@ static void lockmetatable(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_table_mode_lock_metatable(U);
             maux_nb_return();
@@ -285,7 +285,7 @@ static void lock(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             mapi_table_mode_lock(U);
             maux_nb_return();
@@ -297,7 +297,7 @@ static void ismutable(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             bool value = mapi_table_mode_is_mutable(U);
             mapi_push_boolean(U, value);
@@ -310,7 +310,7 @@ static void isfixed(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             bool value = mapi_table_mode_is_fixed(U);
             mapi_push_boolean(U, value);
@@ -323,7 +323,7 @@ static void isaccessible(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             bool value = mapi_table_mode_is_accessible(U);
             mapi_push_boolean(U, value);
@@ -336,7 +336,7 @@ static void metatableislocked(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             bool value = mapi_table_mode_metatable_is_locked(U);
             mapi_push_boolean(U, value);
@@ -349,7 +349,7 @@ static void islocked(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, "table");
+            maux_expect(U, MTYPE_TABLE);
 
             bool value = mapi_table_mode_is_locked(U);
             mapi_push_boolean(U, value);

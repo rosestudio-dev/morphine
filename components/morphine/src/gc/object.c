@@ -3,21 +3,21 @@
 //
 
 #include "morphine/gc/object.h"
-#include "morphine/object/coroutine.h"
-#include "morphine/object/table.h"
-#include "morphine/object/string.h"
-#include "morphine/object/userdata.h"
-#include "morphine/object/closure.h"
-#include "morphine/object/function.h"
-#include "morphine/object/reference.h"
-#include "morphine/object/native.h"
-#include "morphine/object/exception.h"
-#include "morphine/object/iterator.h"
-#include "morphine/object/vector.h"
-#include "morphine/object/sio.h"
-#include "morphine/core/throw.h"
 #include "morphine/core/instance.h"
+#include "morphine/core/throw.h"
 #include "morphine/gc/pools.h"
+#include "morphine/object/closure.h"
+#include "morphine/object/coroutine.h"
+#include "morphine/object/exception.h"
+#include "morphine/object/function.h"
+#include "morphine/object/iterator.h"
+#include "morphine/object/native.h"
+#include "morphine/object/reference.h"
+#include "morphine/object/stream.h"
+#include "morphine/object/string.h"
+#include "morphine/object/table.h"
+#include "morphine/object/userdata.h"
+#include "morphine/object/vector.h"
 
 static inline void destruct(morphine_instance_t I, struct object *object) {
     switch (object->type) {
@@ -54,8 +54,8 @@ static inline void destruct(morphine_instance_t I, struct object *object) {
         case OBJ_TYPE_ITERATOR:
             iteratorI_free(I, cast(struct iterator *, object));
             return;
-        case OBJ_TYPE_SIO:
-            sioI_free(I, cast(struct sio *, object));
+        case OBJ_TYPE_STREAM:
+            streamI_free(I, cast(struct stream *, object));
             return;
     }
 

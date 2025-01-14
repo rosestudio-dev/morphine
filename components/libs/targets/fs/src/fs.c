@@ -253,20 +253,20 @@ static void copy_file(morphine_coroutine_t U, const char *src, const char *dest)
     uint8_t buffer[32];
     while (true) {
         mapi_rotate(U, 2);
-        size_t size = mapi_sio_read(U, buffer, sizeof(buffer));
+        size_t size = mapi_stream_read(U, buffer, sizeof(buffer));
         mapi_rotate(U, 2);
 
         if (size == 0) {
             break;
         }
 
-        if (mapi_sio_write(U, buffer, size) != size) {
+        if (mapi_stream_write(U, buffer, size) != size) {
             mapi_error(U, "copy failed");
         }
     }
 
-    mapi_sio_close(U, false);
-    mapi_sio_close(U, false);
+    mapi_stream_close(U, false);
+    mapi_stream_close(U, false);
 }
 
 static void construct_stat(morphine_coroutine_t U, struct stat st) {

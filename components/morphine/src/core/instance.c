@@ -3,15 +3,15 @@
 //
 
 #include "morphine/core/instance.h"
-#include "morphine/object/table.h"
-#include "morphine/object/sio.h"
-#include "morphine/object/native.h"
-#include "morphine/object/coroutine.h"
-#include "morphine/gc/finalizer.h"
-#include "morphine/gc/control.h"
 #include "morphine/api.h"
 #include "morphine/auxiliary.h"
+#include "morphine/gc/control.h"
+#include "morphine/gc/finalizer.h"
 #include "morphine/libs/builtin.h"
+#include "morphine/object/coroutine.h"
+#include "morphine/object/native.h"
+#include "morphine/object/stream.h"
+#include "morphine/object/table.h"
 
 static morphine_library_t (*builtins[])(void) = {
     mlib_builtin_base,
@@ -22,7 +22,7 @@ static morphine_library_t (*builtins[])(void) = {
     mlib_builtin_table,
     mlib_builtin_userdata,
     mlib_builtin_vector,
-    mlib_builtin_sio,
+    mlib_builtin_stream,
     mlib_builtin_packer,
     mlib_builtin_bitwise,
     mlib_builtin_function,
@@ -46,9 +46,9 @@ static void lib(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void init_sio(morphine_instance_t I) {
-    I->sio.err = sioI_create(I, I->platform.sio.err, I->data);
-    I->sio.io = sioI_create(I, I->platform.sio.io, I->data);
+static void init_stream(morphine_instance_t I) {
+    I->stream.err = streamI_create(I, I->platform.stream.err, I->data);
+    I->stream.io = streamI_create(I, I->platform.stream.io, I->data);
 }
 
 static void init_throw(morphine_instance_t I) {
@@ -95,7 +95,7 @@ static void init_main_coroutine(morphine_instance_t I) {
 }
 
 static void init(morphine_instance_t I) {
-    init_sio(I);
+    init_stream(I);
     init_throw(I);
     init_metatables(I);
     init_env(I);
@@ -144,12 +144,12 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
 
 void instanceI_close(morphine_instance_t I) {
     throwI_danger_enter(I);
-    if (I->sio.io != NULL) {
-        sioI_close(I, I->sio.io, true);
+    if (I->stream.io != NULL) {
+        streamI_close(I, I->stream.io, true);
     }
 
-    if (I->sio.err != NULL) {
-        sioI_close(I, I->sio.err, true);
+    if (I->stream.err != NULL) {
+        streamI_close(I, I->stream.err, true);
     }
 
     gcI_destruct(I, I->G);

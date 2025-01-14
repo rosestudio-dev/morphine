@@ -39,9 +39,9 @@ struct instance {
     } metatable;
 
     struct {
-        struct sio *io;
-        struct sio *err;
-    } sio;
+        struct stream *io;
+        struct stream *err;
+    } stream;
 };
 
 morphine_instance_t instanceI_open(morphine_platform_t, morphine_settings_t, void *data);

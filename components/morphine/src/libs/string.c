@@ -13,7 +13,7 @@ static void substring(morphine_coroutine_t U) {
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t len = mapi_string_len(U);
 
@@ -46,7 +46,7 @@ static void chars(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
 
             const char *string = mapi_get_string(U);
             ml_size len = mapi_string_len(U);
@@ -68,7 +68,7 @@ static void codes(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
 
             const char *string = mapi_get_string(U);
             ml_size len = mapi_string_len(U);
@@ -139,7 +139,7 @@ static void isempty(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             size_t len = mapi_string_len(U);
 
             mapi_pop(U, 1);
@@ -155,7 +155,7 @@ static void isempty(morphine_coroutine_t U) {
             maux_nb_init \
                 maux_expect_args(U, 1); \
                 mapi_push_arg(U, 0); \
-                maux_expect(U, "string"); \
+                maux_expect(U, MTYPE_STRING); \
                 const char *string = mapi_get_string(U); \
                 size_t len = mapi_string_len(U); \
                 mapi_pop(U, 1); \
@@ -187,7 +187,7 @@ static void repeat(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
 
             mapi_push_arg(U, 1);
             size_t count = mapi_get_size(U, "count");
@@ -211,12 +211,12 @@ static void startswith(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *prefix = mapi_get_string(U);
             size_t plen = mapi_string_len(U);
 
@@ -235,12 +235,12 @@ static void endswith(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *suffix = mapi_get_string(U);
             size_t slen = mapi_string_len(U);
 
@@ -260,7 +260,7 @@ static void tolowercase(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t len = mapi_string_len(U);
 
@@ -288,7 +288,7 @@ static void touppercase(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t len = mapi_string_len(U);
 
@@ -316,12 +316,12 @@ static void split(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *separator = mapi_get_string(U);
             size_t seplen = mapi_string_len(U);
 
@@ -375,12 +375,12 @@ static void contains(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *find = mapi_get_string(U);
             size_t findlen = mapi_string_len(U);
 
@@ -407,12 +407,12 @@ static void indexof(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *find = mapi_get_string(U);
             size_t findlen = mapi_string_len(U);
 
@@ -445,12 +445,12 @@ static void lastindexof(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *find = mapi_get_string(U);
             size_t findlen = mapi_string_len(U);
 
@@ -483,7 +483,7 @@ static void trim(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
@@ -526,7 +526,7 @@ static void trimstart(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
@@ -559,7 +559,7 @@ static void trimend(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
@@ -592,19 +592,19 @@ static void replacefirst(morphine_coroutine_t U) {
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *find = mapi_get_string(U);
             size_t findlen = mapi_string_len(U);
 
             mapi_pop(U, 1);
 
             mapi_push_arg(U, 2);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
 
             if (findlen > strlen) {
                 mapi_pop(U, 1);
@@ -640,19 +640,19 @@ static void replacelast(morphine_coroutine_t U) {
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *find = mapi_get_string(U);
             size_t findlen = mapi_string_len(U);
 
             mapi_pop(U, 1);
 
             mapi_push_arg(U, 2);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
 
             if (findlen > strlen) {
                 mapi_pop(U, 1);
@@ -694,19 +694,19 @@ static void replace(morphine_coroutine_t U) {
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *string = mapi_get_string(U);
             size_t strlen = mapi_string_len(U);
 
             mapi_push_arg(U, 1);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             const char *find = mapi_get_string(U);
             size_t findlen = mapi_string_len(U);
 
             mapi_pop(U, 1);
 
             mapi_push_arg(U, 2);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
 
             if (findlen > strlen) {
                 mapi_pop(U, 1);
@@ -831,7 +831,7 @@ static void format(morphine_coroutine_t U) {
             save_format_vars(U, vars);
 
             mapi_push_arg(U, 0);
-            maux_expect(U, "string");
+            maux_expect(U, MTYPE_STRING);
             mapi_pop(U, 1);
 
             mapi_push_string(U, "");

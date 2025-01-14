@@ -51,7 +51,7 @@ static void control_enable(morphine_coroutine_t U) {
                 maux_expect_args(U, 1);
 
                 mapi_push_arg(U, 0);
-                maux_expect(U, "boolean");
+                maux_expect(U, MTYPE_BOOLEAN);
 
                 value = mapi_get_boolean(U);
             }

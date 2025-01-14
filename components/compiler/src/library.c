@@ -129,16 +129,16 @@ static void compile(morphine_coroutine_t U) {
 static void dis(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            bool sio_io = false;
+            bool stream_io = false;
             if (mapi_args(U) == 2) {
-                sio_io = true;
+                stream_io = true;
             } else {
                 maux_expect_args(U, 1);
             }
 
             mapi_push_table(U);
 
-            mapi_push_arg(U, sio_io ? 1 : 0);
+            mapi_push_arg(U, stream_io ? 1 : 0);
             mapi_extract_callable(U);
             mapi_rotate(U, 2);
             mapi_pop(U, 1);
@@ -161,10 +161,10 @@ static void dis(morphine_coroutine_t U) {
                     mapi_pop(U, 1);
                 }
 
-                if (sio_io) {
+                if (stream_io) {
                     mapi_push_arg(U, 0);
                 } else {
-                    mapi_push_sio_io(U);
+                    mapi_push_stream_io(U);
                 }
 
                 mapi_rotate(U, 2);
@@ -172,13 +172,13 @@ static void dis(morphine_coroutine_t U) {
                 mcapi_disassembly(U);
 
                 if (index != mapi_table_len(U) - 1) {
-                    if (sio_io) {
+                    if (stream_io) {
                         mapi_push_arg(U, 0);
                     } else {
-                        mapi_push_sio_io(U);
+                        mapi_push_stream_io(U);
                     }
 
-                    mapi_sio_print(U, "\n");
+                    mapi_stream_print(U, "\n");
                     mapi_pop(U, 1);
                 }
             }

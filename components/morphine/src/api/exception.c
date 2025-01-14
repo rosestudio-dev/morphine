@@ -28,15 +28,15 @@ MORPHINE_API void mapi_exception_message(morphine_coroutine_t U) {
 }
 
 MORPHINE_API void mapi_exception_error_print(morphine_coroutine_t U) {
-    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 1));
+    struct stream *stream = valueI_as_stream_or_error(U->I, stackI_peek(U, 1));
     struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
-    exceptionI_error_print(U->I, exception, sio);
+    exceptionI_error_print(U->I, exception, stream);
 }
 
 MORPHINE_API void mapi_exception_stacktrace_print(morphine_coroutine_t U, ml_size count) {
-    struct sio *sio = valueI_as_sio_or_error(U->I, stackI_peek(U, 1));
+    struct stream *stream = valueI_as_stream_or_error(U->I, stackI_peek(U, 1));
     struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
-    exceptionI_stacktrace_print(U->I, exception, sio, count);
+    exceptionI_stacktrace_print(U->I, exception, stream, count);
 }
 
 MORPHINE_API void mapi_exception_stacktrace_record(morphine_coroutine_t U, morphine_coroutine_t coroutine) {
