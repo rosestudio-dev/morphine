@@ -238,8 +238,8 @@ morphine_platform_t env_platform(void) {
         .memory.alloc = platform_alloc,
         .memory.realloc = platform_realloc,
         .memory.free = platform_free,
-        .sio.io = maux_sio_interface_srwf(platform_io_read, platform_io_write, platform_io_flush),
-        .sio.err = maux_sio_interface_swf(platform_io_error_write, platform_io_error_flush),
+        .stream.io = maux_stream_interface_srwf(platform_io_read, platform_io_write, platform_io_flush),
+        .stream.err = maux_stream_interface_swf(platform_io_error_write, platform_io_error_flush),
     };
 }
 

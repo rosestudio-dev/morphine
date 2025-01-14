@@ -6,7 +6,7 @@
 #include "jniutils.h"
 #include "lib.h"
 #include "env.h"
-#include "jnisio.h"
+#include "jnistream.h"
 #include <morphinec.h>
 #include <morphinel.h>
 #include <setjmp.h>
@@ -59,7 +59,7 @@ JNIEXPORT void JNICALL Java_ru_why_morphine_jni_Morphine_compiler(
 
     morphine_coroutine_t U = mapi_coroutine(I);
 
-    push_jnisio(U, jnienv, NULL, output, false);
+    push_jnistream(U, jnienv, NULL, output, false);
     jniutils_jstring2mlstring(U, jnienv, text, NULL);
     mcapi_compile(U, "jnimain", false);
     mapi_pack(U);
@@ -87,7 +87,7 @@ JNIEXPORT void JNICALL Java_ru_why_morphine_jni_Morphine_interpreter(
 
     morphine_coroutine_t U = mapi_coroutine(I);
 
-    push_jnisio(U, jnienv, input, NULL, false);
+    push_jnistream(U, jnienv, input, NULL, false);
     mapi_unpack(U);
     mapi_rotate(U, 2);
     mapi_pop(U, 1);
