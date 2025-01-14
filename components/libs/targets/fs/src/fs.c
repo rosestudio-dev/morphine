@@ -366,6 +366,15 @@ static void lib_open(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void lib_temp(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 0);
+            mlapi_fs_temp(U);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void lib_info(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -658,6 +667,7 @@ static void lib_symlink(morphine_coroutine_t U) {
 
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("open", lib_open),
+    MAUX_CONSTRUCT_FUNCTION("temp", lib_temp),
     MAUX_CONSTRUCT_FUNCTION("info", lib_info),
     MAUX_CONSTRUCT_FUNCTION("symlinkinfo", lib_symlinkinfo),
     MAUX_CONSTRUCT_FUNCTION("pwd", lib_pwd),

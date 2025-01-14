@@ -7,3 +7,4 @@
 #include <morphine.h>
 
 MORPHINE_API void mlapi_fs_file(morphine_coroutine_t, bool read, bool write, bool binary);
+MORPHINE_API void mlapi_fs_temp(morphine_coroutine_t);

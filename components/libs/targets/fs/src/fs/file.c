@@ -29,6 +29,20 @@ static void file_open(morphine_instance_t I, void *data, void *args) {
     }
 }
 
+static void file_temp_open(morphine_instance_t I, void *data, void *args) {
+    (void) args;
+    struct file_data *file_data = data;
+
+    file_data->file = tmpfile();
+    if (file_data->file == NULL) {
+        mapi_ierror(I, "failed to open temp file");
+    }
+
+    if (ferror(file_data->file)) {
+        mapi_ierror(I, "file error");
+    }
+}
+
 static void file_close(morphine_instance_t I, void *data) {
     (void) I;
     struct file_data *file_data = data;
@@ -127,7 +141,9 @@ MORPHINE_API void mlapi_fs_file(morphine_coroutine_t U, bool read, bool write, b
 
     size_t binary_offset;
     if (read && write) {
-        mapi_error(U, "file cannot be writable and readable at the same time");
+        args.mode[0] = 'a';
+        args.mode[1] = '+';
+        binary_offset = 2;
     } else if (read) {
         args.mode[0] = 'r';
         binary_offset = 1;
@@ -160,4 +176,20 @@ MORPHINE_API void mlapi_fs_file(morphine_coroutine_t U, bool read, bool write, b
 
     mapi_rotate(U, 2);
     mapi_pop(U, 1);
+}
+
+MORPHINE_API void mlapi_fs_temp(morphine_coroutine_t U) {
+    morphine_stream_interface_t interface = {
+        .data_size = sizeof(struct file_data),
+        .open = file_temp_open,
+        .close = file_close,
+        .read = file_read,
+        .write = file_write,
+        .flush = file_flush,
+        .eos = file_eos,
+        .tell = file_tell,
+        .seek = file_seek,
+    };
+
+    mapi_push_stream(U, interface, false, NULL);
 }
