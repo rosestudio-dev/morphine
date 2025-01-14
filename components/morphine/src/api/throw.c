@@ -43,7 +43,7 @@ MORPHINE_API morphine_noret void mapi_provide_error(morphine_coroutine_t U) {
     throwI_provide_error(U);
 }
 
-MORPHINE_API void mapi_catchable(morphine_coroutine_t U, size_t callstate) {
+MORPHINE_API void mapi_catchable(morphine_coroutine_t U, ml_callstate callstate) {
     throwI_catchable(U, callstate);
 }
 

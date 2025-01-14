@@ -11,8 +11,6 @@
 
 // common
 
-typedef uint32_t ml_version;
-
 typedef struct coroutine *morphine_coroutine_t;
 typedef struct instance *morphine_instance_t;
 

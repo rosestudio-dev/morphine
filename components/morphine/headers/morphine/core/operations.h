@@ -21,7 +21,7 @@ typedef enum {
 
 static inline op_result_t interpreter_fun_iterator(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value container,
     struct value *result,
     size_t pop_size,
@@ -50,7 +50,7 @@ static inline op_result_t interpreter_fun_iterator(
 
 static inline op_result_t interpreter_fun_iterator_init(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value iterator,
     struct value key_name,
     struct value value_name,
@@ -77,7 +77,7 @@ static inline op_result_t interpreter_fun_iterator_init(
 
 static inline op_result_t interpreter_fun_iterator_has(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value iterator,
     struct value *result,
     size_t pop_size,
@@ -109,7 +109,7 @@ static inline op_result_t interpreter_fun_iterator_has(
 
 static inline op_result_t interpreter_fun_iterator_next(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value iterator,
     struct value *result,
     size_t pop_size,
@@ -140,7 +140,7 @@ static inline op_result_t interpreter_fun_iterator_next(
 
 static inline op_result_t interpreter_fun_get(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value container,
     struct value key,
     struct value *result,
@@ -181,7 +181,7 @@ static inline op_result_t interpreter_fun_get(
 
 static inline op_result_t interpreter_fun_set(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value container,
     struct value key,
     struct value value,
@@ -212,7 +212,7 @@ static inline op_result_t interpreter_fun_set(
 
 static inline op_result_t interpreter_fun_add(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -252,7 +252,7 @@ static inline op_result_t interpreter_fun_add(
 
 static inline op_result_t interpreter_fun_sub(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -292,7 +292,7 @@ static inline op_result_t interpreter_fun_sub(
 
 static inline op_result_t interpreter_fun_mul(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -332,7 +332,7 @@ static inline op_result_t interpreter_fun_mul(
 
 static inline op_result_t interpreter_fun_div(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -384,7 +384,7 @@ static inline op_result_t interpreter_fun_div(
 
 static inline op_result_t interpreter_fun_mod(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -425,7 +425,7 @@ static inline op_result_t interpreter_fun_mod(
 
 static inline op_result_t interpreter_fun_equal(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -456,7 +456,7 @@ static inline op_result_t interpreter_fun_equal(
 
 static inline op_result_t interpreter_fun_less(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -496,7 +496,7 @@ static inline op_result_t interpreter_fun_less(
 
 static inline op_result_t interpreter_fun_and(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -532,7 +532,7 @@ static inline op_result_t interpreter_fun_and(
 
 static inline op_result_t interpreter_fun_or(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -568,7 +568,7 @@ static inline op_result_t interpreter_fun_or(
 
 static inline op_result_t interpreter_fun_concat(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value b,
     struct value *result,
@@ -620,7 +620,7 @@ static inline op_result_t interpreter_fun_concat(
 
 static inline op_result_t interpreter_fun_type(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value *result,
     size_t pop_size,
@@ -649,7 +649,7 @@ static inline op_result_t interpreter_fun_type(
 
 static inline op_result_t interpreter_fun_negative(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value *result,
     size_t pop_size,
@@ -687,7 +687,7 @@ static inline op_result_t interpreter_fun_negative(
 
 static inline op_result_t interpreter_fun_not(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value *result,
     size_t pop_size,
@@ -716,7 +716,7 @@ static inline op_result_t interpreter_fun_not(
 
 static inline op_result_t interpreter_fun_ref(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value *result,
     size_t pop_size,
@@ -745,7 +745,7 @@ static inline op_result_t interpreter_fun_ref(
 
 static inline op_result_t interpreter_fun_deref(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value *result,
     size_t pop_size,
@@ -778,7 +778,7 @@ static inline op_result_t interpreter_fun_deref(
 
 static inline op_result_t interpreter_fun_length(
     morphine_coroutine_t U,
-    size_t callstate,
+    ml_callstate callstate,
     struct value a,
     struct value *result,
     size_t pop_size,

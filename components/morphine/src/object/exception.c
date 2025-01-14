@@ -165,7 +165,7 @@ void exceptionI_stacktrace_print(
         } else if (valueI_is_native(element.callable)) {
             struct native *native = valueI_as_native(element.callable);
 
-            streamI_printf(I, stream, "[state: %zu] native '", element.pc.state);
+            streamI_printf(I, stream, "[state: %"MLIMIT_CALLSTATE_PR"] native '", element.pc.state);
             print_string(I, stream, native->name);
             streamI_printf(I, stream, "'\n");
         } else {

@@ -168,7 +168,7 @@ MORPHINE_API void mapi_leave(morphine_coroutine_t U) {
  * ## mapi_continue
  * ### Prototype
  * ```c
- * void mapi_continue(morphine_coroutine_t U, size_t callstate)
+ * void mapi_continue(morphine_coroutine_t U, ml_callstate callstate)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -177,7 +177,7 @@ MORPHINE_API void mapi_leave(morphine_coroutine_t U) {
  * Set callstate
  * {{end}}
  */
-MORPHINE_API void mapi_continue(morphine_coroutine_t U, size_t callstate) {
+MORPHINE_API void mapi_continue(morphine_coroutine_t U, ml_callstate callstate) {
     callstackI_continue(U, callstate);
 }
 
@@ -187,7 +187,7 @@ MORPHINE_API void mapi_continue(morphine_coroutine_t U, size_t callstate) {
  * ## mapi_callstate
  * ### Prototype
  * ```c
- * size_t mapi_callstate(morphine_coroutine_t U)
+ * ml_callstate mapi_callstate(morphine_coroutine_t U)
  * ```
  * ### Parameters
  * * `U` - coroutine
@@ -197,7 +197,7 @@ MORPHINE_API void mapi_continue(morphine_coroutine_t U, size_t callstate) {
  * Gets callstate
  * {{end}}
  */
-MORPHINE_API size_t mapi_callstate(morphine_coroutine_t U) {
+MORPHINE_API ml_callstate mapi_callstate(morphine_coroutine_t U) {
     return callstackI_state(U);
 }
 

@@ -29,6 +29,14 @@ typedef ml_size ml_hash;
 #define MLIMIT_HASH_PR  MLIMIT_SIZE_PR
 #define MLIMIT_HASH_MAX MLIMIT_SIZE_MAX
 
+typedef uint32_t ml_version;
+#define MLIMIT_VERSION_PR  PRIu32
+#define MLIMIT_VERSION_MAX UINT32_MAX
+
+typedef uint32_t ml_callstate;
+#define MLIMIT_CALLSTATE_PR  PRIu32
+#define MLIMIT_CALLSTATE_MAX UINT32_MAX
+
 // instruction
 
 typedef uint16_t ml_argument;

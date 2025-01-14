@@ -10,14 +10,14 @@ struct stacktrace_parsed_element {
     const char *type;
     struct string *name;
     ml_line line;
-    size_t state;
+    ml_callstate state;
 };
 
 struct stacktrace_element {
     struct value callable;
     struct {
         size_t position;
-        size_t state;
+        ml_callstate state;
     } pc;
 };
 

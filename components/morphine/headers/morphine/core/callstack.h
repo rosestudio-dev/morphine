@@ -35,13 +35,13 @@ struct callinfo {
 
     struct {
         size_t position;
-        size_t state;
+        ml_callstate state;
     } pc;
 
     struct {
         bool enable;
         bool crash;
-        size_t state;
+        ml_callstate state;
     } catch;
 
     bool exit;
@@ -67,8 +67,8 @@ struct value callstackI_extract_callable(morphine_instance_t, struct value calla
 struct value callstackI_result(morphine_coroutine_t);
 void callstackI_set_result(morphine_coroutine_t, struct value);
 void callstackI_return(morphine_coroutine_t, struct value);
-void callstackI_continue(morphine_coroutine_t, size_t state);
-size_t callstackI_state(morphine_coroutine_t);
+void callstackI_continue(morphine_coroutine_t, ml_callstate);
+ml_callstate callstackI_state(morphine_coroutine_t);
 
 void callstackI_call_unsafe(
     morphine_coroutine_t U,

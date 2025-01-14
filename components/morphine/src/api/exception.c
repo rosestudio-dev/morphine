@@ -80,7 +80,7 @@ MORPHINE_API ml_line mapi_exception_stacktrace_line(morphine_coroutine_t U, ml_s
 
 }
 
-MORPHINE_API size_t mapi_exception_stacktrace_state(morphine_coroutine_t U, ml_size index) {
+MORPHINE_API ml_callstate mapi_exception_stacktrace_state(morphine_coroutine_t U, ml_size index) {
     struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
     return exceptionI_stacktrace_element(U->I, exception, index).state;
 }

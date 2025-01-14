@@ -252,13 +252,13 @@ void callstackI_return(morphine_coroutine_t U, struct value value) {
     callinfo->exit = true;
 }
 
-void callstackI_continue(morphine_coroutine_t U, size_t state) {
+void callstackI_continue(morphine_coroutine_t U, ml_callstate state) {
     struct callinfo *callinfo = callstackI_info_or_error(U);
     callinfo->pc.state = state;
     callinfo->exit = false;
 }
 
-size_t callstackI_state(morphine_coroutine_t U) {
+ml_callstate callstackI_state(morphine_coroutine_t U) {
     return callstackI_info_or_error(U)->pc.state;
 }
 

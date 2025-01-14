@@ -353,7 +353,7 @@ bool throwI_is_nested_signal(morphine_instance_t I) {
     return I->throw.signal_entered > 1;
 }
 
-void throwI_catchable(morphine_coroutine_t U, size_t callstate) {
+void throwI_catchable(morphine_coroutine_t U, ml_callstate callstate) {
     struct callinfo *callinfo = callstackI_info(U);
 
     callinfo->catch.enable = true;

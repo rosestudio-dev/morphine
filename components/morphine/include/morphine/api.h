@@ -42,8 +42,8 @@ MORPHINE_API void mapi_push_result(morphine_coroutine_t);
 MORPHINE_API void mapi_result(morphine_coroutine_t);
 MORPHINE_API void mapi_return(morphine_coroutine_t);
 MORPHINE_API void mapi_leave(morphine_coroutine_t);
-MORPHINE_API void mapi_continue(morphine_coroutine_t, size_t callstate);
-MORPHINE_API size_t mapi_callstate(morphine_coroutine_t);
+MORPHINE_API void mapi_continue(morphine_coroutine_t, ml_callstate);
+MORPHINE_API ml_callstate mapi_callstate(morphine_coroutine_t);
 MORPHINE_API ml_size mapi_args(morphine_coroutine_t);
 MORPHINE_API void mapi_push_arg(morphine_coroutine_t, ml_size index);
 MORPHINE_API void mapi_push_env(morphine_coroutine_t);
@@ -56,7 +56,7 @@ MORPHINE_API morphine_noret void mapi_ierror(morphine_instance_t, const char *);
 MORPHINE_API morphine_noret morphine_printf(2, 3) void mapi_errorf(morphine_coroutine_t, const char *, ...);
 MORPHINE_API morphine_noret morphine_printf(2, 3) void mapi_ierrorf(morphine_instance_t, const char *, ...);
 MORPHINE_API morphine_noret void mapi_provide_error(morphine_coroutine_t);
-MORPHINE_API void mapi_catchable(morphine_coroutine_t, size_t callstate);
+MORPHINE_API void mapi_catchable(morphine_coroutine_t, ml_callstate);
 MORPHINE_API void mapi_crashable(morphine_coroutine_t);
 MORPHINE_API void mapi_uncatch(morphine_coroutine_t);
 MORPHINE_API void mapi_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void *, bool catch_provide);
@@ -387,7 +387,7 @@ MORPHINE_API ml_size mapi_exception_stacktrace_size(morphine_coroutine_t);
 MORPHINE_API const char *mapi_exception_stacktrace_type(morphine_coroutine_t, ml_size);
 MORPHINE_API void mapi_exception_stacktrace_callable(morphine_coroutine_t, ml_size);
 MORPHINE_API ml_line mapi_exception_stacktrace_line(morphine_coroutine_t, ml_size);
-MORPHINE_API size_t mapi_exception_stacktrace_state(morphine_coroutine_t, ml_size);
+MORPHINE_API ml_callstate mapi_exception_stacktrace_state(morphine_coroutine_t, ml_size);
 
 // operations
 
