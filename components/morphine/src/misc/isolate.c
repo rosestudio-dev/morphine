@@ -105,7 +105,7 @@ static struct stream *create_bridge_stream(morphine_instance_t I, struct isolate
         .eos = NULL,
     };
 
-    return streamI_create(I, interface, isolate);
+    return streamI_create(I, interface, valueI_nil, isolate);
 }
 
 static void bridge_reset(struct isolate *isolate) {

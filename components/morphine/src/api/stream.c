@@ -16,8 +16,19 @@ MORPHINE_API void mapi_push_stream_err(morphine_coroutine_t U) {
     stackI_push(U, valueI_object(U->I->stream.err));
 }
 
-MORPHINE_API void mapi_push_stream(morphine_coroutine_t U, morphine_stream_interface_t interface, void *args) {
-    stackI_push(U, valueI_object(streamI_create(U->I, interface, args)));
+MORPHINE_API void mapi_push_stream(morphine_coroutine_t U, morphine_stream_interface_t interface, bool hold, void *args) {
+    struct value value = valueI_nil;
+    if (hold) {
+        value = stackI_peek(U, 0);
+    }
+
+    struct value stream = valueI_object(streamI_create(U->I, interface, value, args));
+
+    if (hold) {
+        stackI_replace(U, 0, stream);
+    } else {
+        stackI_push(U, stream);
+    }
 }
 
 MORPHINE_API void mapi_stream_close(morphine_coroutine_t U, bool force) {

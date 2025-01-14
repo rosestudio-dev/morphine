@@ -141,7 +141,9 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             return size_native(native);
         }
         case OBJ_TYPE_STREAM: {
-            return size_stream(cast(struct stream *, obj));
+            struct stream *stream = cast(struct stream *, obj);
+            mark_value(I, stream->hold);
+            return size_stream(stream);
         }
         case OBJ_TYPE_STRING: {
             return size_string(cast(struct string *, obj));

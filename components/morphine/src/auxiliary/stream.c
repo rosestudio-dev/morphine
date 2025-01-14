@@ -177,7 +177,7 @@ MORPHINE_AUX void maux_push_stream_buffer(morphine_coroutine_t U, size_t factor)
         .factor = factor,
     };
 
-    mapi_push_stream(U, interface, &args);
+    mapi_push_stream(U, interface, false, &args);
 }
 
 // empty
@@ -236,7 +236,7 @@ MORPHINE_AUX void maux_push_stream_empty(morphine_coroutine_t U, bool read_eof, 
         .seek = NULL,
     };
 
-    mapi_push_stream(U, interface, NULL);
+    mapi_push_stream(U, interface, false, NULL);
 }
 
 // other stuff

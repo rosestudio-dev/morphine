@@ -10,12 +10,18 @@
 #include "morphine/object/string.h"
 #include <string.h>
 
-struct stream *streamI_create(morphine_instance_t I, morphine_stream_interface_t interface, void *args) {
+struct stream *streamI_create(
+    morphine_instance_t I,
+    morphine_stream_interface_t interface,
+    struct value hold,
+    void *args
+) {
     if (interface.write == NULL && interface.read == NULL) {
         throwI_error(I, "stream interface hasn't read/write functions");
     }
 
     gcI_safe_enter(I);
+    gcI_safe(I, hold);
 
     // create
     struct stream *result = allocI_uni(I, NULL, sizeof(struct stream));
@@ -23,6 +29,7 @@ struct stream *streamI_create(morphine_instance_t I, morphine_stream_interface_t
         .interface = interface,
         .opened = false,
         .data = NULL,
+        .hold = hold
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_STREAM);

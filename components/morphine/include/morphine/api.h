@@ -359,7 +359,7 @@ MORPHINE_API void mapi_sharedstorage_clear(morphine_coroutine_t, const char *sha
 MORPHINE_API void mapi_push_stream_io(morphine_coroutine_t);
 MORPHINE_API void mapi_push_stream_err(morphine_coroutine_t);
 
-MORPHINE_API void mapi_push_stream(morphine_coroutine_t, morphine_stream_interface_t, void *args);
+MORPHINE_API void mapi_push_stream(morphine_coroutine_t, morphine_stream_interface_t, bool hold, void *args);
 MORPHINE_API void mapi_stream_close(morphine_coroutine_t, bool force);
 MORPHINE_API size_t mapi_stream_read(morphine_coroutine_t, uint8_t *, size_t);
 MORPHINE_API size_t mapi_stream_write(morphine_coroutine_t, const uint8_t *, size_t);

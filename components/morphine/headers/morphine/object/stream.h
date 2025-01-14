@@ -13,9 +13,10 @@ struct stream {
     morphine_stream_interface_t interface;
     bool opened;
     void *data;
+    struct value hold;
 };
 
-struct stream *streamI_create(morphine_instance_t, morphine_stream_interface_t, void *args);
+struct stream *streamI_create(morphine_instance_t, morphine_stream_interface_t, struct value, void *args);
 void streamI_free(morphine_instance_t, struct stream *);
 
 void streamI_close(morphine_instance_t, struct stream *, bool force);

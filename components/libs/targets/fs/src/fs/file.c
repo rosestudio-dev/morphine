@@ -156,7 +156,7 @@ MORPHINE_API void mlapi_fs_file(morphine_coroutine_t U, bool read, bool write, b
         .seek = file_seek,
     };
 
-    mapi_push_stream(U, interface, &args);
+    mapi_push_stream(U, interface, false, &args);
 
     mapi_rotate(U, 2);
     mapi_pop(U, 1);

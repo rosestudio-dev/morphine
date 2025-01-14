@@ -136,5 +136,5 @@ void push_jnistream(morphine_coroutine_t U, JNIEnv *jnienv, jobject input, jobje
         .remove_local_ref = remove_local_ref,
     };
 
-    mapi_push_stream(U, interface, &args);
+    mapi_push_stream(U, interface, false, &args);
 }

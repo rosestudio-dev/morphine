@@ -47,8 +47,8 @@ static void lib(morphine_coroutine_t U) {
 }
 
 static void init_stream(morphine_instance_t I) {
-    I->stream.err = streamI_create(I, I->platform.stream.err, I->data);
-    I->stream.io = streamI_create(I, I->platform.stream.io, I->data);
+    I->stream.err = streamI_create(I, I->platform.stream.err, valueI_nil, I->data);
+    I->stream.io = streamI_create(I, I->platform.stream.io, valueI_nil, I->data);
 }
 
 static void init_throw(morphine_instance_t I) {
