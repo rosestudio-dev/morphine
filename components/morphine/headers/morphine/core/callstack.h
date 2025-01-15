@@ -7,7 +7,7 @@
 #include "morphine/platform.h"
 
 #define callstackI_info(U) ((U)->callstack.callinfo)
-#define callstackI_info_or_error(U) ({ morphine_coroutine_t _U = (U); struct callinfo *c = callstackI_info(_U); if(unlikely(c == NULL)) throwI_error(_U->I, "require callable"); c; })
+#define callstackI_info_or_error(U) ({ morphine_coroutine_t _U = (U); struct callinfo *c = callstackI_info(_U); if(mm_unlikely(c == NULL)) throwI_error(_U->I, "require callable"); c; })
 
 struct callinfo {
     struct {

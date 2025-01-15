@@ -36,7 +36,7 @@ static struct string *create(morphine_instance_t I, size_t size, char **buffer) 
 
     memset(str_p, 0, raw_size);
 
-    if (unlikely(buffer != NULL)) {
+    if (mm_unlikely(buffer != NULL)) {
         (*buffer) = str_p;
     }
 
@@ -203,7 +203,7 @@ ml_hash stringI_hash(morphine_instance_t I, struct string *string) {
         throwI_error(I, "string is null");
     }
 
-    if (likely(string->hash.calculated)) {
+    if (mm_likely(string->hash.calculated)) {
         return string->hash.value;
     }
 

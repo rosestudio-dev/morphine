@@ -101,7 +101,7 @@ bool gcstageI_increment(morphine_instance_t I, size_t debt) {
 
             current = prev;
 
-            if (unlikely(debt < checked)) {
+            if (mm_unlikely(debt < checked)) {
                 break;
             }
         }

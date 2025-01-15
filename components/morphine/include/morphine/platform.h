@@ -7,6 +7,7 @@
 #include <stdbool.h>
 #include <stddef.h>
 #include "config.h"
+#include "attrs.h"
 #include "limits.h"
 
 // common

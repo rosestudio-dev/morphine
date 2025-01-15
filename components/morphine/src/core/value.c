@@ -12,7 +12,7 @@
 #include "morphine/algorithm/hash.h"
 
 int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
-    if (likely(a.type != b.type)) {
+    if (mm_likely(a.type != b.type)) {
         return smpcmp(a.type, b.type);
     }
 

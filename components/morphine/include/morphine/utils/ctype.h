@@ -7,7 +7,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 #include <limits.h>
-#include "morphine/config.h"
+#include "morphine/attrs.h"
 
 #define MBIT_CNTRL  0
 #define MBIT_SPACE  1

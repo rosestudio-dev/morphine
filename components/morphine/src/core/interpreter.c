@@ -18,7 +18,7 @@
 
 #define sp_fetch() \
     semicolon_blk( \
-        if (unlikely(*position >= instructions_count)) { \
+        if (mm_unlikely(*position >= instructions_count)) { \
             callstackI_return(U, valueI_nil); \
             sp_yield(); \
         } \
@@ -38,7 +38,7 @@
 #define complex_fun(name, s, ...) \
     semicolon_blk( \
         op_result_t operation_result = name(U, s, __VA_ARGS__, 0, true); \
-        if(unlikely(operation_result != NORMAL)) { \
+        if(mm_unlikely(operation_result != NORMAL)) { \
             if (operation_result == CALLED) { \
                 sp_yield(); \
             } else if(operation_result == CALLED_COMPLETE) { \
@@ -518,7 +518,7 @@ static inline void step(morphine_coroutine_t U) {
     morphine_instance_t I = U->I;
     struct callinfo *callinfo = callstackI_info(U);
 
-    if (unlikely(callinfo == NULL)) {
+    if (mm_unlikely(callinfo == NULL)) {
         coroutineI_kill(U);
         return;
     }
@@ -527,7 +527,7 @@ static inline void step(morphine_coroutine_t U) {
 
     I->throw.context = U;
 
-    if (likely(valueI_is_function(source))) {
+    if (mm_likely(valueI_is_function(source))) {
         callinfo->exit = false;
         step_function(U, valueI_as_function(source));
     } else if (valueI_is_native(source)) {
@@ -540,7 +540,7 @@ static inline void step(morphine_coroutine_t U) {
 
     I->throw.context = NULL;
 
-    if (unlikely(callinfo->exit && callinfo == callstackI_info(U))) {
+    if (mm_unlikely(callinfo->exit && callinfo == callstackI_info(U))) {
         callstackI_pop(U);
     }
 }
@@ -548,11 +548,11 @@ static inline void step(morphine_coroutine_t U) {
 static inline bool execute_step(morphine_instance_t I) {
     struct interpreter *interpreter = &I->interpreter;
 
-    if (unlikely(gcI_finalize_need(I))) {
+    if (mm_unlikely(gcI_finalize_need(I))) {
         gcI_finalize(I);
     }
 
-    if (unlikely(interpreter->coroutines == NULL)) {
+    if (mm_unlikely(interpreter->coroutines == NULL)) {
         interpreter->running = NULL;
         interpreter->next = NULL;
         gcI_full(I, 0);
@@ -560,7 +560,7 @@ static inline bool execute_step(morphine_instance_t I) {
         return gcI_finalize_need(I);
     }
 
-    if (likely(interpreter->running == NULL)) {
+    if (mm_likely(interpreter->running == NULL)) {
         interpreter->running = interpreter->coroutines;
         interpreter->next = interpreter->running->prev;
         interpreter->circle++;
@@ -572,7 +572,7 @@ static inline bool execute_step(morphine_instance_t I) {
 
     bool is_current_circle = (interpreter->circle % coroutine->priority) == 0;
 
-    if (likely(is_current_circle && (coroutine->status == COROUTINE_STATUS_RUNNING))) {
+    if (mm_likely(is_current_circle && (coroutine->status == COROUTINE_STATUS_RUNNING))) {
         step(coroutine);
     }
 

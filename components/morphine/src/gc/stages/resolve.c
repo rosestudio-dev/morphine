@@ -81,7 +81,7 @@ static inline bool finalize(morphine_instance_t I) {
     while (current != NULL) {
         struct object *prev = current->prev;
 
-        if (unlikely(
+        if (mm_unlikely(
                 !current->flags.finalized
                 && metatableI_builtin_test(I, valueI_object(current), MORPHINE_METAFIELD_GC, NULL)
             )) {

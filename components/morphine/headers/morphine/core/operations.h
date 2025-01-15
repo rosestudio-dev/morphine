@@ -27,7 +27,7 @@ static inline op_result_t interpreter_fun_iterator(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -57,7 +57,7 @@ static inline op_result_t interpreter_fun_iterator_init(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         return CALLED_COMPLETE;
     }
 
@@ -83,7 +83,7 @@ static inline op_result_t interpreter_fun_iterator_has(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -115,13 +115,13 @@ static inline op_result_t interpreter_fun_iterator_next(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
 
     struct value mt_field;
-    if (likely(valueI_is_iterator(iterator))) {
+    if (mm_likely(valueI_is_iterator(iterator))) {
         (*result) = valueI_object(iteratorI_next_table(U->I, valueI_as_iterator(iterator)));
         return NORMAL;
     } else if (metatableI_builtin_test(U->I, iterator, MORPHINE_METAFIELD_ITERATOR_NEXT, &mt_field)) {
@@ -147,7 +147,7 @@ static inline op_result_t interpreter_fun_get(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -188,7 +188,7 @@ static inline op_result_t interpreter_fun_set(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         return CALLED_COMPLETE;
     }
 
@@ -219,7 +219,7 @@ static inline op_result_t interpreter_fun_add(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -259,7 +259,7 @@ static inline op_result_t interpreter_fun_sub(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -299,7 +299,7 @@ static inline op_result_t interpreter_fun_mul(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -339,14 +339,14 @@ static inline op_result_t interpreter_fun_div(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
 
     if (valueI_is_integer(a)) {
         ml_integer b_value = convertI_to_integer(U->I, b);
-        if (unlikely(b_value == 0)) {
+        if (mm_unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
 
@@ -357,7 +357,7 @@ static inline op_result_t interpreter_fun_div(
 
     if (valueI_is_decimal(a)) {
         ml_decimal b_value = convertI_to_decimal(U->I, b);
-        if (unlikely(b_value == 0)) {
+        if (mm_unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
 
@@ -391,14 +391,14 @@ static inline op_result_t interpreter_fun_mod(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
 
     if (valueI_is_integer(a)) {
         ml_integer b_value = convertI_to_integer(U->I, b);
-        if (unlikely(b_value == 0)) {
+        if (mm_unlikely(b_value == 0)) {
             throwI_error(U->I, "attempt to divide by zero");
         }
 
@@ -432,7 +432,7 @@ static inline op_result_t interpreter_fun_equal(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -463,7 +463,7 @@ static inline op_result_t interpreter_fun_less(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -503,7 +503,7 @@ static inline op_result_t interpreter_fun_and(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -539,7 +539,7 @@ static inline op_result_t interpreter_fun_or(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -575,7 +575,7 @@ static inline op_result_t interpreter_fun_concat(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -626,7 +626,7 @@ static inline op_result_t interpreter_fun_type(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -655,7 +655,7 @@ static inline op_result_t interpreter_fun_negative(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -693,7 +693,7 @@ static inline op_result_t interpreter_fun_not(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -722,7 +722,7 @@ static inline op_result_t interpreter_fun_ref(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -751,7 +751,7 @@ static inline op_result_t interpreter_fun_deref(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }
@@ -784,7 +784,7 @@ static inline op_result_t interpreter_fun_length(
     size_t pop_size,
     bool need_return
 ) {
-    if (unlikely(need_return && (callstackI_state(U) == callstate))) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
         (*result) = callstackI_result(U);
         return CALLED_COMPLETE;
     }

@@ -480,7 +480,7 @@ static void redblacktree_init(struct tree *tree) {
 static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
     bool need = hashmap->hashing.size > 0 &&
                 ((hashmap->hashing.used * 10) / hashmap->hashing.size) < (MPARAM_TABLE_GROW_PERCENTAGE / 10);
-    if (likely(need || hashmap->hashing.size >= MLIMIT_TABLE_TREES)) {
+    if (mm_likely(need || hashmap->hashing.size >= MLIMIT_TABLE_TREES)) {
         return;
     }
 
@@ -672,7 +672,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
     struct bucket *current;
     struct bucket *parent;
 
-    if (unlikely(redblacktree_insert_first(I, tree, key, &current, &parent))) {
+    if (mm_unlikely(redblacktree_insert_first(I, tree, key, &current, &parent))) {
         current->pair.value = value;
         return;
     }
@@ -691,7 +691,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
         parent
     );
 
-    if (likely(first)) {
+    if (mm_likely(first)) {
         hashmap->hashing.used++;
     }
 }
@@ -721,7 +721,7 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
         (*has) = (found != NULL);
     }
 
-    if (unlikely(found == NULL)) {
+    if (mm_unlikely(found == NULL)) {
         return valueI_nil;
     } else {
         return found->pair.value;

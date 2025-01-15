@@ -275,7 +275,7 @@ void callstackI_call_unsafe(
     }
 
     struct value mt_field;
-    if (unlikely(metatableI_builtin_test(U->I, callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
+    if (mm_unlikely(metatableI_builtin_test(U->I, callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
         gcI_safe_enter(U->I);
         struct vector *vector = gcI_safe_obj(U->I, vector, vectorI_create(U->I, argc));
 
@@ -372,7 +372,7 @@ void callstackI_call_from_api(
     struct callinfo *callinfo = callstackI_info(U);
     struct value callable = stackI_peek(U, callable_offset);
     struct value mt_field;
-    if (unlikely(metatableI_builtin_test(U->I, callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
+    if (mm_unlikely(metatableI_builtin_test(U->I, callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
         gcI_safe_enter(U->I);
         struct vector *vector = gcI_safe_obj(U->I, vector, vectorI_create(U->I, argc));
 
@@ -457,7 +457,7 @@ void callstackI_call_from_interpreter(
     }
 
     struct value mt_field;
-    if (unlikely(metatableI_builtin_test(U->I, *callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
+    if (mm_unlikely(metatableI_builtin_test(U->I, *callable, MORPHINE_METAFIELD_CALL, &mt_field))) {
         gcI_safe_enter(U->I);
         struct vector *vector = gcI_safe_obj(U->I, vector, vectorI_create(U->I, argc));
 

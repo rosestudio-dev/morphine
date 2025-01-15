@@ -34,7 +34,7 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
     }
 
     uintmax_t percent_b = (uintmax_t) I->G.stats.prev_allocated;
-    if (unlikely(percent_b == 0)) {
+    if (mm_unlikely(percent_b == 0)) {
         percent_b = 1;
     }
 
@@ -44,7 +44,7 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
 }
 
 static inline bool pause(morphine_instance_t I) {
-    if (likely(I->G.stats.allocated > I->G.stats.prev_allocated)) {
+    if (mm_likely(I->G.stats.allocated > I->G.stats.prev_allocated)) {
         size_t debt = I->G.stats.allocated - I->G.stats.prev_allocated;
 
         overflow_add(debt, I->G.stats.debt, SIZE_MAX) {
@@ -61,7 +61,7 @@ static inline bool pause(morphine_instance_t I) {
 
 static inline size_t debt_calc(morphine_instance_t I) {
     size_t conv = I->G.stats.debt;
-    if (unlikely(conv == 0)) {
+    if (mm_unlikely(conv == 0)) {
         conv = 1;
     }
 
@@ -93,12 +93,12 @@ static inline void step(morphine_instance_t I, size_t reserved) {
             break;
         }
         case GC_STATUS_INCREMENT: {
-            if (likely(pause(I))) {
+            if (mm_likely(pause(I))) {
                 break;
             }
 
             size_t debt = debt_calc(I);
-            if (likely(gcstageI_increment(I, debt))) {
+            if (mm_likely(gcstageI_increment(I, debt))) {
                 break;
             }
 
@@ -112,12 +112,12 @@ resolve:
             break;
         }
         case GC_STATUS_SWEEP: {
-            if (likely(pause(I))) {
+            if (mm_likely(pause(I))) {
                 break;
             }
 
             size_t debt = debt_calc(I);
-            if (unlikely(!gcstageI_sweep(I, debt))) {
+            if (mm_unlikely(!gcstageI_sweep(I, debt))) {
                 I->G.status = GC_STATUS_IDLE;
             }
             break;

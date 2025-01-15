@@ -57,7 +57,7 @@ void *allocI_vec(morphine_instance_t I, void *p, size_t n, size_t size) {
 }
 
 void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
-    if (likely(nsize == 0)) {
+    if (mm_likely(nsize == 0)) {
         allocI_free(I, p);
         return NULL;
     }
@@ -85,7 +85,7 @@ void *allocI_uni(morphine_instance_t I, void *p, size_t nsize) {
         result = I->platform.memory.realloc(I->data, metadata, nsize);
     }
 
-    if (unlikely(result == NULL)) {
+    if (mm_unlikely(result == NULL)) {
         throwI_af(I);
     }
 
