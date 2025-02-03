@@ -3,9 +3,9 @@
 //
 
 #include "morphine/gc/structure.h"
-#include "morphine/gc/control.h"
 #include "morphine/core/instance.h"
-#include "morphine/core/callstack.h"
+#include "morphine/gc/control.h"
+#include "morphine/utils/array_size.h"
 
 static void free_objects(morphine_instance_t I, struct object *pool) {
     struct object *current = pool;
@@ -32,7 +32,6 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
         .settings.grow = 0,
         .settings.deal = 0,
         .settings.pause = 0,
-        .settings.cache.callinfo = 0,
 
         .pools.allocated = NULL,
         .pools.grey = NULL,
@@ -48,23 +47,14 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
 
         .safe.values.occupied = 0,
         .safe.rollback.occupied = 0,
-
-        .cache.callinfo.pool = NULL,
-        .cache.callinfo.size = 0,
     };
 
-    {
-        size_t size = sizeof(I->G.safe.values.stack) / sizeof(I->G.safe.values.stack[0]);
-        for (size_t i = 0; i < size; i++) {
-            I->G.safe.values.stack[i] = valueI_nil;
-        }
+    for (size_t i = 0; i < array_size(I->G.safe.values.stack); i++) {
+        I->G.safe.values.stack[i] = valueI_nil;
     }
 
-    {
-        size_t size = sizeof(I->G.safe.rollback.stack) / sizeof(I->G.safe.rollback.stack[0]);
-        for (size_t i = 0; i < size; i++) {
-            I->G.safe.rollback.stack[i] = 0;
-        }
+    for (size_t i = 0; i < array_size(I->G.safe.rollback.stack); i++) {
+        I->G.safe.rollback.stack[i] = 0;
     }
 
     gcI_set_limit(I, I->settings.gc.limit);
@@ -72,7 +62,6 @@ void gcI_prototype(morphine_instance_t I, size_t inited_bytes) {
     gcI_set_grow(I, I->settings.gc.grow);
     gcI_set_deal(I, I->settings.gc.deal);
     gcI_set_pause(I, I->settings.gc.pause);
-    gcI_set_cache_callinfo(I, I->settings.gc.cache.callinfo);
 }
 
 void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {
@@ -85,13 +74,5 @@ void gcI_destruct(morphine_instance_t I, struct garbage_collector G) {
 
     if (G.finalizer.candidate != NULL) {
         objectI_free(I, G.finalizer.candidate);
-    }
-
-    struct callinfo *current = G.cache.callinfo.pool;
-    while (current != NULL) {
-        struct callinfo *prev = current->prev;
-        callstackI_callinfo_free(I, current);
-
-        current = prev;
     }
 }

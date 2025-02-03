@@ -2,10 +2,9 @@
 // Created by whyiskra on 25.12.23.
 //
 
-#include <string.h>
 #include "morphine/api.h"
-#include "morphine/object/coroutine.h"
 #include "morphine/core/convert.h"
+#include "morphine/object/coroutine.h"
 
 MORPHINE_API void mapi_push_nil(morphine_coroutine_t U) {
     stackI_push(U, valueI_nil);
@@ -13,17 +12,6 @@ MORPHINE_API void mapi_push_nil(morphine_coroutine_t U) {
 
 MORPHINE_API void mapi_push_integer(morphine_coroutine_t U, ml_integer value) {
     stackI_push(U, valueI_integer(value));
-}
-
-MORPHINE_API void mapi_push_size(morphine_coroutine_t U, size_t value, const char *name) {
-    ml_size size;
-    if (name == NULL) {
-        size = valueI_csize2size(U->I, value);
-    } else {
-        size = valueI_csize2namedsize(U->I, value, name);
-    }
-
-    stackI_push(U, valueI_size(size));
 }
 
 MORPHINE_API void mapi_push_decimal(morphine_coroutine_t U, ml_decimal value) {
@@ -38,21 +26,8 @@ MORPHINE_API void mapi_push_raw(morphine_coroutine_t U, void *value) {
     stackI_push(U, valueI_raw(value));
 }
 
-MORPHINE_API void mapi_push_hash(morphine_coroutine_t U, ml_hash hash) {
-    stackI_push(U, valueI_hash2value(hash));
-}
-
 MORPHINE_API ml_integer mapi_get_integer(morphine_coroutine_t U) {
     return valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
-}
-
-MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t U, const char *name) {
-    ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
-    if (name == NULL) {
-        return valueI_integer2size(U->I, integer);
-    } else {
-        return valueI_integer2namedsize(U->I, integer, name);
-    }
 }
 
 MORPHINE_API ml_decimal mapi_get_decimal(morphine_coroutine_t U) {
@@ -67,32 +42,15 @@ MORPHINE_API uintptr_t mapi_get_raw(morphine_coroutine_t U) {
     return valueI_as_raw_or_error(U->I, stackI_peek(U, 0));
 }
 
-MORPHINE_API ml_hash mapi_get_hash(morphine_coroutine_t U) {
-    ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
-    return valueI_integer2hash(U->I, integer);
-}
-
 MORPHINE_API void mapi_to_integer(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
     struct value result = valueI_integer(convertI_to_integer(U->I, value));
     stackI_replace(U, 0, result);
 }
 
-MORPHINE_API void mapi_to_size(morphine_coroutine_t U, const char *name) {
-    struct value value = stackI_peek(U, 0);
-    struct value result = valueI_size(convertI_to_size(U->I, value, name));
-    stackI_replace(U, 0, result);
-}
-
 MORPHINE_API void mapi_to_based_integer(morphine_coroutine_t U, ml_size base) {
     struct value value = stackI_peek(U, 0);
     struct value result = valueI_integer(convertI_to_basedinteger(U->I, value, base));
-    stackI_replace(U, 0, result);
-}
-
-MORPHINE_API void mapi_to_based_size(morphine_coroutine_t U, ml_size base, const char *name) {
-    struct value value = stackI_peek(U, 0);
-    struct value result = valueI_size(convertI_to_basedsize(U->I, value, base, name));
     stackI_replace(U, 0, result);
 }
 
@@ -130,10 +88,39 @@ MORPHINE_API bool mapi_equal(morphine_coroutine_t U) {
     return valueI_equal(U->I, a, b);
 }
 
+MORPHINE_API void mapi_push_csize(morphine_coroutine_t U, size_t value, const char *name) {
+    if (name == NULL) {
+        name = "size";
+    }
+
+    ml_integer integer =
+        mm_overflow_opc_ucast(ml_integer, value, throwI_errorf(U->I, "cannot convert %s to integer", name));
+
+    stackI_push(U, valueI_integer(integer));
+}
+
+MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t U, const char *name) {
+    if (name == NULL) {
+        name = "size";
+    }
+
+    ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
+    return mm_overflow_opc_ucast(ml_size, integer, throwI_errorf(U->I, "cannot convert integer to %s", name));
+}
+
+MORPHINE_API size_t mapi_get_csize(morphine_coroutine_t U, const char *name) {
+    if (name == NULL) {
+        name = "size";
+    }
+
+    ml_integer integer = valueI_as_integer_or_error(U->I, stackI_peek(U, 0));
+    return mm_overflow_opc_ucast(size_t, integer, throwI_errorf(U->I, "cannot convert integer to %s", name));
+}
+
 MORPHINE_API ml_size mapi_csize2size(morphine_coroutine_t U, size_t value, const char *name) {
     if (name == NULL) {
-        return valueI_csize2size(U->I, value);
-    } else {
-        return valueI_csize2namedsize(U->I, value, name);
+        name = "size";
     }
+
+    return mm_overflow_opc_ucast(ml_size, value, throwI_errorf(U->I, "cannot convert csize to %s", name));
 }

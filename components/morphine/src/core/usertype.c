@@ -72,7 +72,7 @@ void usertypeI_declare(
 
     size_t name_len = strlen(name);
 
-    if (name_len > MLIMIT_USERTYPE_NAME) {
+    if (name_len > MPARAM_USERTYPE_NAME_LIMIT) {
         throwI_error(I, "name of type too big");
     }
 

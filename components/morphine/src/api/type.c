@@ -50,10 +50,6 @@ MORPHINE_API bool mapi_is(morphine_coroutine_t U, const char *type) {
         return mapi_is_iterable(U);
     }
 
-    if (strcmp(type, "size") == 0) {
-        return mapi_is_size(U);
-    }
-
     return mapi_is_type(U, type);
 }
 
@@ -74,9 +70,4 @@ MORPHINE_API bool mapi_is_metatype(morphine_coroutine_t U) {
 MORPHINE_API bool mapi_is_iterable(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
     return valueI_is_iterable(value);
-}
-
-MORPHINE_API bool mapi_is_size(morphine_coroutine_t U) {
-    struct value value = stackI_peek(U, 0);
-    return valueI_is_size(value);
 }

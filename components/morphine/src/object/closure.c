@@ -3,11 +3,11 @@
 //
 
 #include "morphine/object/closure.h"
-#include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
+#include "morphine/object/coroutine.h"
 
 static inline struct closure *create_closure(morphine_instance_t I, struct value callable, ml_size size) {
     gcI_safe_enter(I);
@@ -18,7 +18,7 @@ static inline struct closure *create_closure(morphine_instance_t I, struct value
     (*result) = (struct closure) {
         .size = 0,
         .callable = callable,
-        .values = NULL
+        .values = NULL,
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_CLOSURE);
@@ -96,7 +96,7 @@ struct closure *closureI_packer_read_info(morphine_instance_t I, struct packer_r
 }
 
 void closureI_packer_read_data(morphine_instance_t I, struct closure *closure, struct packer_read *R) {
-    struct value callable = packerI_read_value(R);
+    struct value callable = callstackI_extract_callable(I, packerI_read_value(R));
     gcI_barrier(I, closure, callable);
     closure->callable = callable;
 

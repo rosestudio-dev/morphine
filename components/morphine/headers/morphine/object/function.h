@@ -4,38 +4,37 @@
 
 #pragma once
 
-#include <stddef.h>
 #include "morphine/core/value.h"
-#include "morphine/misc/packer.h"
 #include "morphine/misc/instruction/type.h"
+#include "morphine/misc/packer.h"
+#include <stddef.h>
 
 struct function {
     struct object header;
+
     struct string *name;
-
-    bool complete;
     ml_line line;
-
     ml_size instructions_count;
     ml_size constants_count;
-    ml_size arguments_count;
-    ml_size slots_count;
     ml_size statics_count;
+    ml_size slots_count;
     ml_size params_count;
 
     morphine_instruction_t *instructions;
     struct value *constants;
     struct value *statics;
+
+    ml_size stack_size;
+    bool complete;
 };
 
 struct function *functionI_create(
     morphine_instance_t,
     struct string *name,
     ml_line line,
-    ml_size constants_count,
     ml_size instructions_count,
+    ml_size constants_count,
     ml_size statics_count,
-    ml_size arguments_count,
     ml_size slots_count,
     ml_size params_count
 );

@@ -36,7 +36,7 @@ void librariesI_load(morphine_instance_t I, morphine_library_t library) {
     }
 
     if (mm_unlikely(I->libraries.allocated == I->libraries.size)) {
-        overflow_add(I->libraries.allocated, MPARAM_LIBRARIES_GROW, SIZE_MAX) {
+        mm_overflow_add(I->libraries.allocated, MPARAM_LIBRARIES_GROW) {
             throwI_error(I, "library limit exceeded");
         }
 

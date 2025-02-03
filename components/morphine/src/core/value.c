@@ -47,7 +47,7 @@ int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
     throwI_panic(I, "unsupported type");
 }
 
-#define declare_hash(t, n) static inline ml_hash n##2hash(t value) { return calchash(sizeof(value), (const uint8_t *) &value); }
+#define declare_hash(t, n) static inline ml_hash n##2hash(t value) { return calchash((const uint8_t *) &value, sizeof(value)); }
 
 declare_hash(void *, ptr)
 declare_hash(ml_integer, integer)

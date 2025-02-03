@@ -4,8 +4,7 @@
 
 #include "morphine/gc/safe.h"
 #include "morphine/core/instance.h"
-
-#define array_size(x) (sizeof((x)) / sizeof((x)[0]))
+#include "morphine/utils/array_size.h"
 
 struct value gcI_safe(morphine_instance_t I, struct value value) {
     if (I->G.safe.values.occupied >= array_size(I->G.safe.values.stack)) {

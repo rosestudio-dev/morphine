@@ -4,6 +4,7 @@
 
 #include "impl.h"
 #include "mark.h"
+#include "morphine/core/throw.h"
 #include "morphine/utils/overflow.h"
 
 static inline void record(morphine_instance_t I) {
@@ -22,8 +23,20 @@ static inline void record(morphine_instance_t I) {
             mark_object(I, objectI_cast(I->interpreter.next));
         }
 
-        if (I->throw.context != NULL) {
-            mark_object(I, objectI_cast(I->throw.context));
+        if (I->interpreter.context != NULL) {
+            mark_object(I, objectI_cast(I->interpreter.context));
+        }
+
+        if (I->interpreter.context != NULL) {
+            mark_object(I, objectI_cast(I->interpreter.context));
+        }
+
+        if (I->throw.fix.stack != NULL) {
+            mark_object(I, objectI_cast(I->throw.fix.stack));
+        }
+
+        if (I->throw.fix.callstack != NULL) {
+            mark_object(I, objectI_cast(I->throw.fix.callstack));
         }
 
         if (I->G.finalizer.coroutine != NULL) {
@@ -53,10 +66,6 @@ static inline void record(morphine_instance_t I) {
         if (I->G.finalizer.candidate != NULL) {
             mark_internal(I, I->G.finalizer.candidate);
         }
-    }
-
-    if (I->env != NULL) {
-        mark_object(I, objectI_cast(I->env));
     }
 
     if (I->localstorage != NULL) {
@@ -93,11 +102,7 @@ bool gcstageI_increment(morphine_instance_t I, size_t debt) {
             }
 
             size_t size = mark_internal(I, current);
-            overflow_add(size, checked, SIZE_MAX) {
-                checked = SIZE_MAX;
-            } else {
-                checked += size;
-            }
+            checked = mm_overflow_opd_add(size, checked, SIZE_MAX);
 
             current = prev;
 

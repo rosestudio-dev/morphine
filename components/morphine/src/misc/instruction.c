@@ -34,10 +34,7 @@ ml_size instructionI_opcode_args(morphine_opcode_t opcode, bool *valid) {
     return 0;
 }
 
-bool instructionI_validate(
-    morphine_instruction_t instruction,
-    struct function *function
-) {
+bool instructionI_validate(morphine_instruction_t instruction, struct function *function) {
     if (function == NULL) {
         goto error;
     }
@@ -48,6 +45,7 @@ bool instructionI_validate(
 #define arg_undefined(a)
 #define arg_position(a)
 #define arg_size(a)
+#define arg_argument_index(a)
 
 #define arg_closure_index(a)
 #define arg_static_index(a)
@@ -56,9 +54,7 @@ bool instructionI_validate(
 #define arg_dslot(a)          arg_type_index(a, function->slots_count)
 #define arg_constant_index(a) arg_type_index(a, function->constants_count)
 #define arg_param_index(a)    arg_type_index(a, function->params_count)
-#define arg_argument_index(a) arg_type_index(a, function->arguments_count)
 #define arg_params_count(a)   arg_type_size(a, function->params_count)
-
 
     switch (instruction.opcode) {
 #define mspec_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: arg_undefined(1); arg_undefined(2); arg_undefined(3); return true;

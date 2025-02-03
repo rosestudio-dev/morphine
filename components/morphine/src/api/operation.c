@@ -2,11 +2,11 @@
 // Created by whyiskra on 1/16/24.
 //
 
-#include <string.h>
 #include "morphine/api.h"
 #include "morphine/core/operations.h"
-#include "morphine/core/stack.h"
 #include "morphine/core/throw.h"
+#include "morphine/utils/array_size.h"
+#include <string.h>
 
 struct op_func {
     const char *name;
@@ -429,8 +429,7 @@ static struct op_func ops[] = {
 };
 
 MORPHINE_API bool mapi_op(morphine_coroutine_t U, const char *op) {
-    size_t size = sizeof(ops) / sizeof(struct op_func);
-    for (size_t i = 0; i < size; i++) {
+    for (size_t i = 0; i < array_size(ops); i++) {
         if (strcmp(ops[i].name, op) == 0) {
             return ops[i].function(U);
         }

@@ -7,4 +7,4 @@
 #include <stddef.h>
 #include "morphine/limits.h"
 
-ml_hash calchash(size_t, const uint8_t *);
+ml_hash calchash(const uint8_t *, size_t);

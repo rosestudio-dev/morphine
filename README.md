@@ -44,21 +44,26 @@ val {
 
 val tostr = env.lib("value.tostr")
 val allocated = env.lib("gc.stat.memory.current")
+val allocpeak = env.lib("gc.stat.memory.peak")
 val format = env.lib("string.format")
 val coroutine = env.lib("coroutine")
 val vector = env.lib("vector")
 val exception = env.lib("exception")
 val stream = env.lib("stream")
 
-fun dump<println>() { println(self) }
+fun dump<println>(self) { println(self) }
 
 fun getobject<auto>() = setmetatable({ index = 0, dump }) {
-     fun _mf_gc<println, format>() {
-        println(format("collected (index: ${index})!", self))
+    fun _mf_gc<println, format, allocated, allocpeak>(self) {
+        val gcinfo = format("gc (current: ${c} kB; peak: ${p} kB)") {
+            c = allocated() / 1024,
+            p = allocpeak() / 1024,
+        }
+        println <- format("collected (index: ${index})!", self) .. " | " .. gcinfo
         leave
         println("Unreached ...")
     },
-    fun _mf_add(value) {
+    fun _mf_add(self, value) {
         self.index += value or return "oh no..."
     }
 }
@@ -68,8 +73,8 @@ fun worker<auto>() {
     val name = coroutine.name(current)
     println("Coroutine " .. name .. " started")
 
-    fun recursive getting(value) = if(value > 0) {
-        invoked(value - 1)
+    fun recursive getting(self, value) = if(value > 0) {
+        invoked(self, value - 1)
     } else {
         self
     }
@@ -95,12 +100,12 @@ fun worker<auto>() {
 do {
     val coroutines = vector.unfixed()
     for(var i = 0; i < 100; i++) {
-        val created = coroutine.create("worker" .. tostr(i), worker)
+        val created = coroutine.create("worker" .. tostr(i))
         vector.push(coroutines, created)
     }
 
     iterator({ key, value } in coroutines) {
-        coroutine.launch(value)
+        coroutine.launch(value, worker)
         coroutines[key] = nil
     }
 }

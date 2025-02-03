@@ -10,6 +10,7 @@
 #include "morphine/core/interpreter.h"
 #include "morphine/core/libraries.h"
 #include "morphine/core/usertype.h"
+#include "morphine/core/throw.h"
 #include "morphine/core/sso.h"
 #include "morphine/misc/metatable.h"
 
@@ -30,7 +31,6 @@ struct instance {
 #endif
 
     struct coroutine *main;
-    struct table *env;
     struct table *localstorage;
     struct table *sharedstorage;
 

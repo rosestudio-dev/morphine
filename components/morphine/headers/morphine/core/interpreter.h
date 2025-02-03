@@ -5,14 +5,14 @@
 #pragma once
 
 #include "morphine/platform.h"
-#include "morphine/core/throw.h"
 
 struct interpreter {
+    bool entered;
+    morphine_coroutine_t context;
+
     morphine_coroutine_t coroutines;
     morphine_coroutine_t running;
     morphine_coroutine_t next;
-
-    ml_size circle;
 };
 
 struct interpreter interpreterI_prototype(void);

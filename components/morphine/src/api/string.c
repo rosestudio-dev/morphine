@@ -24,7 +24,7 @@ MORPHINE_API void mapi_push_string(morphine_coroutine_t U, const char *str) {
 }
 
 MORPHINE_API void mapi_push_stringn(morphine_coroutine_t U, const char *str, size_t size) {
-    struct string *result = stringI_createn(U->I, size, str);
+    struct string *result = stringI_createn(U->I, str, size);
     stackI_push(U, valueI_object(result));
 }
 

@@ -23,7 +23,7 @@ static void size(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             ml_size size = mapi_closure_size(U);
-            mapi_push_size(U, size, NULL);
+            mapi_push_integer(U, size);
             maux_nb_return();
     maux_nb_end
 }

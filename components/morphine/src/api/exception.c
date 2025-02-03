@@ -12,8 +12,13 @@
 
 MORPHINE_API void mapi_push_exception(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    struct exception *exception = exceptionI_create(U->I, value);
+    struct exception *exception = exceptionI_create(U->I, value, EXCEPTION_KIND_USER);
     stackI_push(U, valueI_object(exception));
+}
+
+MORPHINE_API const char *mapi_exception_kind(morphine_coroutine_t U) {
+    struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
+    return exceptionI_kind2str(U->I, exception->kind);
 }
 
 MORPHINE_API void mapi_exception_value(morphine_coroutine_t U) {
@@ -80,7 +85,7 @@ MORPHINE_API ml_line mapi_exception_stacktrace_line(morphine_coroutine_t U, ml_s
 
 }
 
-MORPHINE_API ml_callstate mapi_exception_stacktrace_state(morphine_coroutine_t U, ml_size index) {
+MORPHINE_API ml_size mapi_exception_stacktrace_state(morphine_coroutine_t U, ml_size index) {
     struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
     return exceptionI_stacktrace_element(U->I, exception, index).state;
 }

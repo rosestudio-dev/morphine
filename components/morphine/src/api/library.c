@@ -7,21 +7,6 @@
 #include "morphine/core/instance.h"
 #include "morphine/object/coroutine.h"
 
-/*
- * {{docs body}}
- * path:architecture/api-instance
- * ## mapi_library_load
- * ### Prototype
- * ```c
- * void mapi_library_load(morphine_instance_t I, morphine_library_t library)
- * ```
- * ### Parameters
- * * `I` - instance
- * * `library` - library
- * ### Description
- * Load library
- * {{end}}
- */
 MORPHINE_API void mapi_library_load(morphine_instance_t I, morphine_library_t library) {
     librariesI_load(I, library);
 }

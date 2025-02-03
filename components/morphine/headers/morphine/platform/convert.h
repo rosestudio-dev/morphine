@@ -7,5 +7,4 @@
 #include "morphine/platform.h"
 
 bool platformI_string2integer(const char *string, ml_integer *container, ml_size base);
-bool platformI_string2size(const char *string, ml_size *container, ml_size base);
 bool platformI_string2decimal(const char *string, ml_decimal *container);

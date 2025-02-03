@@ -2,13 +2,13 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include <string.h>
 #include "morphine/object/table.h"
-#include "morphine/utils/overflow.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
 #include "morphine/params.h"
+#include "morphine/utils/overflow.h"
+#include <string.h>
 
 #define ROOT(tree) (&(tree)->root)
 #define NIL_LEAF(tree) (&(tree)->nil_leaf)
@@ -25,7 +25,7 @@ static inline size_t hash2index(ml_hash hash, size_t size) {
 // linked list of buckets
 
 static inline struct bucket *insert_bucket(morphine_instance_t I, struct table *table) {
-    overflow_add(table->hashmap.buckets.count, 1, MLIMIT_SIZE_MAX) {
+    mm_overflow_add(table->hashmap.buckets.count, 1) {
         throwI_error(I, "table size limit has been exceeded");
     }
 
@@ -54,8 +54,8 @@ static inline struct bucket *insert_bucket(morphine_instance_t I, struct table *
 }
 
 static inline void remove_bucket(morphine_instance_t I, struct table *table, struct bucket *bucket) {
-    overflow_sub(table->hashmap.buckets.count, 1, 0) {
-        throwI_error(I, "corrupted table buckets count");
+    if (table->hashmap.buckets.count == 0) {
+        throwI_panic(I, "corrupted table buckets count");
     }
 
     {
@@ -93,10 +93,14 @@ static inline void remove_bucket(morphine_instance_t I, struct table *table, str
 }
 
 static inline struct bucket *get_bucket_by_index(struct hashmap *hashmap, ml_size index) {
-    ml_size abs_access = hashmap->buckets.access == NULL ? MLIMIT_SIZE_MAX :
-                         sabs(hashmap->buckets.access->ll.index, index);
-    ml_size abs_head = hashmap->buckets.head == NULL ? MLIMIT_SIZE_MAX :
-                       sabs(hashmap->buckets.head->ll.index, index);
+    if (index >= hashmap->buckets.count) {
+        return NULL;
+    }
+
+    ml_size abs_access =
+        hashmap->buckets.access == NULL ? mm_typemax(ml_size) : sabs(hashmap->buckets.access->ll.index, index);
+    ml_size abs_head =
+        hashmap->buckets.head == NULL ? mm_typemax(ml_size) : sabs(hashmap->buckets.head->ll.index, index);
 
     struct bucket *current = NULL;
     if (hashmap->buckets.access != NULL && abs_access < abs_head && abs_access < index) {
@@ -478,9 +482,10 @@ static void redblacktree_init(struct tree *tree) {
 // table
 
 static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
-    bool need = hashmap->hashing.size > 0 &&
-                ((hashmap->hashing.used * 10) / hashmap->hashing.size) < (MPARAM_TABLE_GROW_PERCENTAGE / 10);
-    if (mm_likely(need || hashmap->hashing.size >= MLIMIT_TABLE_TREES)) {
+    bool need = hashmap->hashing.size > 0
+                && ((hashmap->hashing.used * 10) / hashmap->hashing.size) < (MPARAM_TABLE_GROW_PERCENT / 10);
+
+    if (mm_likely(need || hashmap->hashing.size >= MPARAM_TABLE_TREES)) {
         return;
     }
 
@@ -489,10 +494,7 @@ static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
         new_size = hashmap->hashing.size + hashmap->hashing.size / 2;
     }
 
-    hashmap->hashing.trees = allocI_vec(
-        I, hashmap->hashing.trees, new_size, sizeof(struct tree)
-    );
-
+    hashmap->hashing.trees = allocI_vec(I, hashmap->hashing.trees, new_size, sizeof(struct tree));
     hashmap->hashing.size = new_size;
 
     for (size_t i = 0; i < new_size; i++) {
@@ -512,13 +514,7 @@ static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
         if (redblacktree_insert_first(I, tree, current->pair.key, &tree_current, &tree_parent)) {
             throwI_error(I, "duplicate while resizing");
         } else {
-            redblacktree_insert_second(
-                I,
-                tree,
-                current->pair,
-                current,
-                tree_parent
-            );
+            redblacktree_insert_second(I, tree, current->pair, current, tree_parent);
         }
 
         current = current->ll.prev;
@@ -683,13 +679,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
 
     current = insert_bucket(I, table);
 
-    bool first = redblacktree_insert_second(
-        I,
-        tree,
-        valueI_pair(key, value),
-        current,
-        parent
-    );
+    bool first = redblacktree_insert_second(I, tree, valueI_pair(key, value), current, parent);
 
     if (mm_likely(first)) {
         hashmap->hashing.used++;
@@ -864,7 +854,7 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
         .buckets.access = NULL,
         .buckets.head = NULL,
         .buckets.tail = NULL,
-        .buckets.count = 0
+        .buckets.count = 0,
     };
 }
 

@@ -15,19 +15,20 @@
 
 #define plural_suffix(n) ((n) == 1 ? "" : "s")
 
-struct exception *exceptionI_create(morphine_instance_t I, struct value value) {
+struct exception *exceptionI_create(morphine_instance_t I, struct value value, exception_kind_t kind) {
     gcI_safe_enter(I);
     gcI_safe(I, value);
 
     // create
     struct exception *result = allocI_uni(I, NULL, sizeof(struct exception));
     (*result) = (struct exception) {
+        .kind = kind,
         .value = value,
         .stacktrace.recorded = false,
         .stacktrace.printable = false,
         .stacktrace.size = 0,
         .stacktrace.name = NULL,
-        .stacktrace.elements = NULL
+        .stacktrace.elements = NULL,
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_EXCEPTION);
@@ -40,6 +41,17 @@ struct exception *exceptionI_create(morphine_instance_t I, struct value value) {
 void exceptionI_free(morphine_instance_t I, struct exception *exception) {
     allocI_free(I, exception->stacktrace.elements);
     allocI_free(I, exception);
+}
+
+const char *exceptionI_kind2str(morphine_instance_t I, exception_kind_t kind) {
+    switch (kind) {
+        case EXCEPTION_KIND_USER: return "user";
+        case EXCEPTION_KIND_OFM: return "ofm";
+        case EXCEPTION_KIND_AF: return "af";
+        case EXCEPTION_KIND_UNDEF: return "undef";
+    }
+
+    throwI_panic(I, "unsupported exception kind");
 }
 
 struct string *exceptionI_message(morphine_instance_t I, struct exception *exception) {
@@ -64,11 +76,11 @@ struct string *exceptionI_message(morphine_instance_t I, struct exception *excep
 }
 
 static void print_string(morphine_instance_t I, struct stream *stream, struct string *string) {
-    if (string->size > MLIMIT_STACKTRACE_STRING) {
-        streamI_write(I, stream, (const uint8_t *) (string->chars), MLIMIT_STACKTRACE_STRING * sizeof(char));
+    if (string->size > MPARAM_STACKTRACE_LINE_LEN) {
+        streamI_write(I, stream, (const uint8_t *) (string->chars), MPARAM_STACKTRACE_LINE_LEN * sizeof(char));
         streamI_print(I, stream, "...");
     } else {
-        streamI_write(I, stream, (const uint8_t *) (string->chars), string->size * sizeof(char));
+        streamI_write(I, stream, (const uint8_t *) (string->chars), (size_t) string->size * sizeof(char));
     }
 }
 
@@ -109,15 +121,21 @@ void exceptionI_stacktrace_print(
 
     if (exception->stacktrace.name != NULL) {
         streamI_printf(
-            I, stream, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, for coroutine '",
-            size, plural_suffix(size)
+            I,
+            stream,
+            "tracing callstack (%" MLIMIT_SIZE_PR " element%s, for coroutine '",
+            size,
+            plural_suffix(size)
         );
         print_string(I, stream, exception->stacktrace.name);
         streamI_print(I, stream, "'):\n");
     } else {
         streamI_printf(
-            I, stream, "tracing callstack (%"MLIMIT_SIZE_PR" element%s, unnamed coroutine):\n",
-            size, plural_suffix(size)
+            I,
+            stream,
+            "tracing callstack (%" MLIMIT_SIZE_PR " element%s, unnamed coroutine):\n",
+            size,
+            plural_suffix(size)
         );
     }
 
@@ -132,8 +150,11 @@ void exceptionI_stacktrace_print(
             if (reversed == count_before) {
                 ml_size skipped = size - count;
                 streamI_printf(
-                    I, stream, "    (skipped %"MLIMIT_SIZE_PR" element%s)\n",
-                    skipped, plural_suffix(skipped)
+                    I,
+                    stream,
+                    "    (skipped %" MLIMIT_SIZE_PR " element%s)\n",
+                    skipped,
+                    plural_suffix(skipped)
                 );
             }
 
@@ -154,18 +175,18 @@ void exceptionI_stacktrace_print(
                     line = function->instructions[function->instructions_count - 1].line;
                 }
 
-                streamI_printf(I, stream, "[line: %"MLIMIT_LINE_PR"]", line);
+                streamI_printf(I, stream, "[line: %" MLIMIT_LINE_PR "]", line);
             } else {
                 streamI_print(I, stream, "[line: undefined]");
             }
 
             streamI_print(I, stream, " function '");
             print_string(I, stream, function->name);
-            streamI_printf(I, stream, "' (declared in %"MLIMIT_LINE_PR" line)\n", function->line);
+            streamI_printf(I, stream, "' (declared in %" MLIMIT_LINE_PR " line)\n", function->line);
         } else if (valueI_is_native(element.callable)) {
             struct native *native = valueI_as_native(element.callable);
 
-            streamI_printf(I, stream, "[state: %"MLIMIT_CALLSTATE_PR"] native '", element.pc.state);
+            streamI_printf(I, stream, "[state: %" MLIMIT_SIZE_PR "] native '", element.pc.state);
             print_string(I, stream, native->name);
             streamI_printf(I, stream, "'\n");
         } else {
@@ -196,7 +217,7 @@ struct stacktrace_parsed_element exceptionI_stacktrace_element(
         .type = valueI_type(I, element.callable, false),
         .name = NULL,
         .line = 0,
-        .state = 0
+        .state = 0,
     };
 
     if (valueI_is_function(element.callable)) {
@@ -219,11 +240,7 @@ struct stacktrace_parsed_element exceptionI_stacktrace_element(
     return result;
 }
 
-void exceptionI_stacktrace_record(
-    morphine_instance_t I,
-    struct exception *exception,
-    morphine_coroutine_t coroutine
-) {
+void exceptionI_stacktrace_record(morphine_instance_t I, struct exception *exception, morphine_coroutine_t coroutine) {
     if (exception == NULL) {
         throwI_error(I, "exception is null");
     }
@@ -235,14 +252,10 @@ void exceptionI_stacktrace_record(
     ml_size size = 0;
 
     {
-        struct callinfo *callinfo = coroutine->callstack.callinfo;
-        while (callinfo != NULL) {
-            overflow_add(size, 1, MLIMIT_SIZE_MAX) {
-                throwI_error(I, "stacktrace overflow");
-            }
-
-            size++;
-            callinfo = callinfo->prev;
+        struct callframe *frame = coroutine->callstack.frame;
+        while (frame != NULL) {
+            size = mm_overflow_opc_add(size, 1, throwI_error(I, "stacktrace overflow"));
+            frame = frame->prev;
         }
     }
 
@@ -254,27 +267,27 @@ void exceptionI_stacktrace_record(
         exception->stacktrace.elements[i] = (struct stacktrace_element) {
             .callable = valueI_nil,
             .pc.position = 0,
-            .pc.state = 0
+            .pc.state = 0,
         };
     }
 
     exception->stacktrace.name = coroutine->name;
     gcI_objbarrier(I, exception, coroutine->name);
 
-    struct callinfo *callinfo = coroutine->callstack.callinfo;
+    struct callframe *frame = coroutine->callstack.frame;
     for (ml_size i = 0; i < size; i++) {
         struct stacktrace_element *element = exception->stacktrace.elements + i;
-        if (callinfo == NULL) {
+        if (frame == NULL) {
             break;
         } else {
             *element = (struct stacktrace_element) {
-                .callable = *callinfo->s.stack.source,
-                .pc.position = callinfo->pc.position,
-                .pc.state = callinfo->pc.state
+                .callable = callstackI_extract_callable(I, *frame->s.direct.callable),
+                .pc.position = frame->pc.position,
+                .pc.state = frame->pc.state,
             };
             gcI_barrier(I, exception, element->callable);
 
-            callinfo = callinfo->prev;
+            frame = frame->prev;
         }
     }
 }

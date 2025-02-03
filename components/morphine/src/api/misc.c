@@ -5,6 +5,6 @@
 #include "morphine/api.h"
 #include "morphine/algorithm/hash.h"
 
-MORPHINE_API ml_hash mapi_misc_hash(size_t size, const uint8_t *data) {
-    return calchash(size, data);
+MORPHINE_API ml_hash mapi_misc_hash(const uint8_t *data, size_t size) {
+    return calchash(data, size);
 }

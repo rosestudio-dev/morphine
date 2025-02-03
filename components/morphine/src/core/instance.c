@@ -32,6 +32,7 @@ static morphine_library_t (*builtins[])(void) = {
     mlib_builtin_iterator,
     mlib_builtin_assertion,
     mlib_builtin_algorithm,
+    NULL
 };
 
 static void lib(morphine_coroutine_t U) {
@@ -55,11 +56,6 @@ static void init_throw(morphine_instance_t I) {
     throwI_special(I);
 }
 
-static void init_env(morphine_instance_t I) {
-    I->env = tableI_create(I);
-    tableI_mode_lock(I, I->env);
-}
-
 static void init_localstorage(morphine_instance_t I) {
     I->localstorage = tableI_create(I);
     tableI_mode_lock(I, I->localstorage);
@@ -79,26 +75,32 @@ static void init_metatables(morphine_instance_t I) {
 }
 
 static void init_libraries(morphine_instance_t I) {
-    size_t size = sizeof(builtins) / sizeof(builtins[0]);
-    for (size_t i = 0; i < size; i++) {
-        librariesI_load(I, builtins[i]());
+    for (morphine_library_t (**builtin)(void) = builtins; *builtin != NULL; builtin ++) {
+        librariesI_load(I, (*builtin)());
     }
+}
+
+static struct table *build_env(morphine_instance_t I) {
+    struct table *env = tableI_create(I);
+    tableI_mode_lock(I, env);
 
     struct string *name = stringI_create(I, "lib");
     struct value native = valueI_object(nativeI_create(I, name, lib));
-    tableI_set(I, I->env, valueI_object(name), native);
+    tableI_set(I, env, valueI_object(name), native);
+
+    return env;
 }
 
 static void init_main_coroutine(morphine_instance_t I) {
     struct string *name = stringI_create(I, MPARAM_MAIN_COROUTINE_NAME);
-    I->main = coroutineI_create(I, name, valueI_object(I->env));
+    struct table *env = build_env(I);
+    I->main = coroutineI_create(I, name, valueI_object(env));
 }
 
 static void init(morphine_instance_t I) {
     init_stream(I);
     init_throw(I);
     init_metatables(I);
-    init_env(I);
     init_localstorage(I);
     init_sharedstorage(I);
     init_main_coroutine(I);
@@ -125,7 +127,6 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
         .usertypes = usertypeI_prototype(),
         .data = data,
         .main = NULL,
-        .env = NULL,
         .localstorage = NULL,
         .sharedstorage = NULL,
 
@@ -144,6 +145,8 @@ morphine_instance_t instanceI_open(morphine_platform_t platform, morphine_settin
 
 void instanceI_close(morphine_instance_t I) {
     throwI_danger_enter(I);
+    throwI_destruct(I);
+
     if (I->stream.io != NULL) {
         streamI_close(I, I->stream.io, true);
     }

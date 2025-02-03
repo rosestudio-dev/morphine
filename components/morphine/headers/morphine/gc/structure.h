@@ -20,22 +20,18 @@ struct garbage_collector {
     bool enabled;
 
     struct {
-        size_t debt;
         size_t allocated;
-        size_t prev_allocated;
         size_t max_allocated;
+        size_t prev_allocated;
+        size_t debt;
     } stats;
 
     struct {
         size_t limit;
         size_t threshold;
-        uint16_t grow;
-        uint16_t deal;
         size_t pause;
-
-        struct {
-            size_t callinfo;
-        } cache;
+        size_t grow;
+        size_t deal;
     } settings;
 
     struct {
@@ -66,13 +62,6 @@ struct garbage_collector {
             size_t stack[16];
         } rollback;
     } safe;
-
-    struct {
-        struct {
-            size_t size;
-            struct callinfo *pool;
-        } callinfo;
-    } cache;
 };
 
 void gcI_prototype(morphine_instance_t, size_t inited_bytes);

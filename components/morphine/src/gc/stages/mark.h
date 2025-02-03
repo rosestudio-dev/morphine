@@ -49,7 +49,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_VECTOR: {
             struct vector *vector = cast(struct vector *, obj);
 
-            for (size_t i = 0; i < vector->size.accessible; i++) {
+            for (ml_size i = 0; i < vector->size.accessible; i++) {
                 mark_value(I, vector->values[i]);
             }
 
@@ -59,7 +59,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             struct closure *closure = cast(struct closure *, obj);
 
             mark_value(I, closure->callable);
-            for (size_t i = 0; i < closure->size; i++) {
+            for (ml_size i = 0; i < closure->size; i++) {
                 mark_value(I, closure->values[i]);
             }
 
@@ -70,11 +70,11 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             mark_object(I, objectI_cast(function->name));
 
-            for (size_t i = 0; i < function->constants_count; i++) {
+            for (ml_size i = 0; i < function->constants_count; i++) {
                 mark_value(I, function->constants[i]);
             }
 
-            for (size_t i = 0; i < function->statics_count; i++) {
+            for (ml_size i = 0; i < function->statics_count; i++) {
                 mark_value(I, function->statics[i]);
             }
 
@@ -94,14 +94,15 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             mark_object(I, objectI_cast(coroutine->name));
             mark_value(I, coroutine->env);
-            mark_value(I, coroutine->result);
 
-            if (coroutine->thrown.exception != NULL) {
-                mark_object(I, objectI_cast(coroutine->thrown.exception));
+            if (coroutine->exception != NULL) {
+                mark_object(I, objectI_cast(coroutine->exception));
             }
 
-            for (size_t i = 0; i < coroutine->stack.array.top; i++) {
-                mark_value(I, coroutine->stack.array.allocated[i]);
+            mark_value(I, coroutine->callstack.result);
+
+            for (ml_size i = 0; i < coroutine->stack.top; i++) {
+                mark_value(I, coroutine->stack.allocated[i]);
             }
 
             return size_coroutine(coroutine);
@@ -129,7 +130,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
                 mark_object(I, objectI_cast(exception->stacktrace.name));
             }
 
-            for (size_t i = 0; i < exception->stacktrace.size; i++) {
+            for (ml_size i = 0; i < exception->stacktrace.size; i++) {
                 mark_value(I, exception->stacktrace.elements[i].callable);
             }
 

@@ -9,10 +9,6 @@ MORPHINE_API bool mapi_platform_str2int(const char *string, ml_integer *containe
     return platformI_string2integer(string, container, base);
 }
 
-MORPHINE_API bool mapi_platform_str2size(const char *string, ml_size *container, ml_size base) {
-    return platformI_string2size(string, container, base);
-}
-
 MORPHINE_API bool mapi_platform_str2dec(const char *string, ml_decimal *container) {
     return platformI_string2decimal(string, container);
 }

@@ -42,8 +42,8 @@ static inline size_t size_userdata(morphine_unused struct userdata *userdata) {
 }
 
 static inline size_t size_coroutine(struct coroutine *coroutine) {
-    return sizeof(struct coroutine) + coroutine->stack.array.size * sizeof(struct value)
-           + coroutine->callstack.size * sizeof(struct callstack);
+    return sizeof(struct coroutine) + ((size_t) coroutine->stack.size) * sizeof(struct value)
+           + ((size_t) coroutine->callstack.size) * sizeof(struct callframe);
 }
 
 static inline size_t size_native(morphine_unused struct native *native) {
@@ -55,7 +55,7 @@ static inline size_t size_iterator(morphine_unused struct iterator *iterator) {
 }
 
 static inline size_t size_exception(struct exception *exception) {
-    return sizeof(struct exception) + ((size_t) exception->stacktrace.elements) * sizeof(struct stacktrace_element);
+    return sizeof(struct exception) + ((size_t) exception->stacktrace.size) * sizeof(struct stacktrace_element);
 }
 
 static inline size_t size_string(struct string *string) {

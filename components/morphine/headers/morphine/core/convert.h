@@ -74,35 +74,6 @@ static inline ml_integer convertI_to_integer(morphine_instance_t I, struct value
     throwI_errorf(I, "cannot convert %s to integer", valueI_type(I, value, false));
 }
 
-static inline ml_size convertI_to_size(morphine_instance_t I, struct value value, const char *name) {
-    if (name == NULL) {
-        name = "size";
-    }
-
-    if (valueI_is_integer(value)) {
-        return valueI_integer2namedsize(I, valueI_as_integer(value), name);
-    } else if (valueI_is_decimal(value)) {
-        return valueI_integer2namedsize(I, (ml_integer) valueI_as_decimal(value), name);
-    } else if (valueI_is_boolean(value)) {
-        if (valueI_as_boolean(value)) {
-            return 1;
-        } else {
-            return 0;
-        }
-    }
-
-    struct string *str = valueI_safe_as_string(value, NULL);
-    if (str != NULL) {
-        ml_size size;
-        bool compatible = stringI_is_cstr_compatible(I, str);
-        if (compatible && platformI_string2size(str->chars, &size, 10)) {
-            return size;
-        }
-    }
-
-    throwI_errorf(I, "cannot convert %s to %s", valueI_type(I, value, false), name);
-}
-
 static inline ml_integer convertI_to_basedinteger(morphine_instance_t I, struct value value, ml_size base) {
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
@@ -114,28 +85,6 @@ static inline ml_integer convertI_to_basedinteger(morphine_instance_t I, struct 
     }
 
     throwI_errorf(I, "cannot convert %s to based integer", valueI_type(I, value, false));
-}
-
-static inline ml_size convertI_to_basedsize(
-    morphine_instance_t I,
-    struct value value,
-    ml_size base,
-    const char *name
-) {
-    if (name == NULL) {
-        name = "size";
-    }
-
-    struct string *str = valueI_safe_as_string(value, NULL);
-    if (str != NULL) {
-        ml_size size;
-        bool compatible = stringI_is_cstr_compatible(I, str);
-        if (compatible && platformI_string2size(str->chars, &size, base)) {
-            return size;
-        }
-    }
-
-    throwI_errorf(I, "cannot convert %s to based %s", valueI_type(I, value, false), name);
 }
 
 static inline ml_decimal convertI_to_decimal(morphine_instance_t I, struct value value) {

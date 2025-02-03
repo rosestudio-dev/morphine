@@ -19,50 +19,34 @@ static inline void invalidate_ref(struct reference *reference) {
     }
 }
 
-static inline void invalidate_coroutine(struct coroutine *coroutine) {
-    stackI_shrink(coroutine);
+static inline void invalidate_coroutine(struct coroutine *coroutine, bool emergency) {
+    stackI_reduce_stack(coroutine, emergency);
+    stackI_reduce_cache(coroutine, emergency);
 }
 
-static inline void invalidate(struct object *object) {
+static inline void invalidate(struct object *object, bool emergency) {
     if (object->type == OBJ_TYPE_REFERENCE) {
         invalidate_ref(cast(struct reference *, object));
     } else if (object->type == OBJ_TYPE_COROUTINE) {
-        invalidate_coroutine(cast(struct coroutine *, object));
+        invalidate_coroutine(cast(struct coroutine *, object), emergency);
     }
 }
 
-static inline void invalidate_pool(struct object *pool) {
+static inline void invalidate_pool(struct object *pool, bool emergency) {
     struct object *current = pool;
     while (current != NULL) {
-        invalidate(current);
+        invalidate(current, emergency);
         current = current->prev;
     }
 }
 
-static inline void resolve_pools(morphine_instance_t I) {
-    invalidate_pool(I->G.pools.black);
-    invalidate_pool(I->G.pools.finalize);
+static inline void resolve_pools(morphine_instance_t I, bool emergency) {
+    invalidate_pool(I->G.pools.black, emergency);
+    invalidate_pool(I->G.pools.finalize, emergency);
 
     if (I->G.finalizer.candidate != NULL) {
-        invalidate(I->G.finalizer.candidate);
+        invalidate(I->G.finalizer.candidate, emergency);
     }
-}
-
-static inline void resolve_cache(morphine_instance_t I, bool emergency) {
-    struct callinfo *current = I->G.cache.callinfo.pool;
-    while (current != NULL) {
-        if (!emergency && I->G.cache.callinfo.size < I->G.settings.cache.callinfo) {
-            break;
-        }
-
-        struct callinfo *prev = current->prev;
-        callstackI_callinfo_free(I, current);
-        I->G.cache.callinfo.size--;
-
-        current = prev;
-    }
-
-    I->G.cache.callinfo.pool = current;
 }
 
 static inline void attach_black_coroutines(morphine_instance_t I) {
@@ -211,8 +195,7 @@ void gcstageI_resolve(morphine_instance_t I, bool emergency) {
 
     attach_black_coroutines(I);
 
-    resolve_pools(I);
-    resolve_cache(I, emergency);
+    resolve_pools(I, emergency);
 
     gcI_pools_merge(&I->G.pools.allocated, &I->G.pools.sweep);
     I->G.pools.allocated = I->G.pools.black;

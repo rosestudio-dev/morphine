@@ -64,5 +64,6 @@ MORPHINE_API void mapi_localstorage_removeoe(morphine_coroutine_t U) {
 }
 
 MORPHINE_API void mapi_localstorage_clear(morphine_coroutine_t U) {
-    localstorageI_clear(U);
+    callstackI_check_access(U);
+    localstorageI_clear(U->I, U->callstack.frame);
 }

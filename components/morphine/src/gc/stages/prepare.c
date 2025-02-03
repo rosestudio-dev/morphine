@@ -6,9 +6,7 @@
 #include "morphine/core/instance.h"
 
 void gcstageI_prepare(morphine_instance_t I) {
-    if (mm_unlikely(I->G.pools.grey != NULL ||
-                 I->G.pools.black != NULL ||
-                 I->G.pools.black_coroutines != NULL)) {
+    if (mm_unlikely(I->G.pools.grey != NULL || I->G.pools.black != NULL || I->G.pools.black_coroutines != NULL)) {
         throwI_panic(I, "corrupted gc pools");
     }
 

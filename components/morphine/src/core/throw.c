@@ -21,6 +21,15 @@
 #define AF_MESSAGE    ("allocation fault")
 #define UNDEF_MESSAGE ("undefined thrown")
 
+#define SPECIAL(t) t##_MESSAGE, EXCEPTION_KIND_##t
+
+static inline void fix(morphine_instance_t I) {
+#define fix_coroutine(I, t) do { morphine_coroutine_t coroutine = (I)->throw.fix.t; if (coroutine != NULL) { throwI_danger_enter((I)); coroutineI_fix_##t(coroutine); throwI_danger_exit((I)); } (I)->throw.fix.t = NULL; } while (0)
+    fix_coroutine(I, stack);
+    fix_coroutine(I, callstack);
+#undef fix_coroutine
+}
+
 morphine_noret static void csignal(morphine_instance_t I, bool is_panic) {
     struct throw *throw = &I->throw;
 
@@ -43,6 +52,14 @@ morphine_noret static void error(morphine_instance_t I) {
         csignal(I, true);
     }
 
+    {
+        fix(I);
+
+        throwI_danger_enter(I);
+        gcI_safe_reset(I, throw->protect.safe_level);
+        throwI_danger_exit(I);
+    }
+
     if (throw->protect.entered) {
         longjmp(throw->protect.handler, 1);
     }
@@ -52,21 +69,27 @@ morphine_noret static void error(morphine_instance_t I) {
 
 struct throw throwI_prototype(void) {
     return (struct throw) {
-        .context = NULL,
         .signal_entered = 0,
         .protect.entered = false,
         .protect.danger_entered = 0,
+        .protect.safe_level = 0,
         .type = THROW_TYPE_UNDEF,
         .error.value = valueI_nil,
         .special.ofm = NULL,
         .special.af = NULL,
+        .fix.stack = NULL,
+        .fix.callstack = NULL,
     };
 }
 
-static struct exception *create_special(morphine_instance_t I, const char *msg) {
+void throwI_destruct(morphine_instance_t I) {
+    fix(I);
+}
+
+static struct exception *create_special(morphine_instance_t I, const char *msg, exception_kind_t kind) {
     gcI_safe_enter(I);
     struct value text = gcI_safe(I, valueI_object(stringI_create(I, msg)));
-    struct exception *exception = gcI_safe_obj(I, exception, exceptionI_create(I, text));
+    struct exception *exception = gcI_safe_obj(I, exception, exceptionI_create(I, text, kind));
     exceptionI_stacktrace_stub(I, exception);
     gcI_safe_exit(I);
 
@@ -74,61 +97,56 @@ static struct exception *create_special(morphine_instance_t I, const char *msg) 
 }
 
 void throwI_special(morphine_instance_t I) {
-    I->throw.special.ofm = create_special(I, OFM_MESSAGE);
-    I->throw.special.af = create_special(I, AF_MESSAGE);
+    I->throw.special.ofm = create_special(I, SPECIAL(OFM));
+    I->throw.special.af = create_special(I, SPECIAL(AF));
 }
 
 void throwI_handler(morphine_instance_t I) {
     struct throw *throw = &I->throw;
-
-    morphine_coroutine_t coroutine = throw->context;
+    morphine_coroutine_t coroutine = I->interpreter.context;
 
     if (coroutine == NULL) {
         error(I);
     }
 
-    struct callinfo *callinfo = callstackI_info(coroutine);
-
+    struct callframe *frame = coroutine->callstack.frame;
     {
-        while (callinfo != NULL) {
-            if (callinfo->catch.enable) {
+        while (frame != NULL) {
+            if (frame->params.catch_enabled) {
+                if (frame->params.catch_crash) {
+                    csignal(I, false);
+                }
+
                 break;
             }
 
-            callinfo = callinfo->prev;
+            frame = frame->prev;
         }
     }
-
-    if (callinfo != NULL && callinfo->catch.crash) {
-        csignal(I, false);
-    }
-
-    stackI_throw_fix(coroutine);
-    callstackI_throw_fix(coroutine);
 
     gcI_safe_enter(I);
     struct exception *exception = NULL;
     switch (throw->type) {
         case THROW_TYPE_UNDEF: {
             struct value value = gcI_safe(I, valueI_object(stringI_create(I, UNDEF_MESSAGE)));
-            exception = gcI_safe_obj(I, exception, exceptionI_create(I, value));
+            exception = gcI_safe_obj(I, exception, exceptionI_create(I, value, EXCEPTION_KIND_UNDEF));
             exceptionI_stacktrace_record(I, exception, coroutine);
             break;
         }
         case THROW_TYPE_VALUE: {
-            exception = gcI_safe_obj(I, exception, exceptionI_create(I, throw->error.value));
+            exception = gcI_safe_obj(I, exception, exceptionI_create(I, throw->error.value, EXCEPTION_KIND_USER));
             exceptionI_stacktrace_record(I, exception, coroutine);
             break;
         }
         case THROW_TYPE_MESSAGE: {
             struct value value = gcI_safe(I, valueI_object(stringI_create(I, throw->error.message)));
-            exception = gcI_safe_obj(I, exception, exceptionI_create(I, value));
+            exception = gcI_safe_obj(I, exception, exceptionI_create(I, value, EXCEPTION_KIND_USER));
             exceptionI_stacktrace_record(I, exception, coroutine);
             break;
         }
         case THROW_TYPE_OFM: {
             if (I->throw.special.ofm == NULL) {
-                exception = create_special(I, OFM_MESSAGE);
+                exception = create_special(I, SPECIAL(OFM));
             } else {
                 exception = I->throw.special.ofm;
             }
@@ -136,7 +154,7 @@ void throwI_handler(morphine_instance_t I) {
         }
         case THROW_TYPE_AF: {
             if (I->throw.special.af == NULL) {
-                exception = create_special(I, AF_MESSAGE);
+                exception = create_special(I, SPECIAL(AF));
             } else {
                 exception = I->throw.special.af;
             }
@@ -148,34 +166,23 @@ void throwI_handler(morphine_instance_t I) {
         throwI_panic(I, "unsupported throw type");
     }
 
-    if (callinfo != NULL) {
+    if (frame != NULL) {
         // set state
-        callinfo->pc.state = callinfo->catch.state;
-        callinfo->catch.enable = false;
+        frame->pc.state = frame->params.catch_state;
+        frame->params.catch_enabled = false;
 
         // pop while catch
-        while (callstackI_info(coroutine) != callinfo) {
-            callstackI_pop(coroutine);
-        }
-
-        // set error value
-        coroutine->thrown.type = throw->type;
-        coroutine->thrown.exception = exception;
-
-        size_t stack_size = stackI_space(coroutine);
-        stackI_pop(coroutine, stack_size);
+        callstackI_drop(coroutine, frame);
     } else {
         exceptionI_error_print(I, exception, I->stream.err);
-        exceptionI_stacktrace_print(I, exception, I->stream.err, MPARAM_TRACESTACK_COUNT);
-
-        while (callstackI_info(coroutine) != NULL) {
-            callstackI_pop(coroutine);
-        }
-
+        exceptionI_stacktrace_print(I, exception, I->stream.err, MPARAM_STACKTRACE_COUNT);
         coroutineI_kill(coroutine);
     }
 
-    throw->context = NULL;
+    // set error value
+    coroutine->exception = exception;
+
+    I->interpreter.context = NULL;
     gcI_safe_exit(I);
 }
 
@@ -251,21 +258,14 @@ morphine_noret void throwI_undef(morphine_instance_t I) {
 }
 
 morphine_noret void throwI_provide_error(morphine_coroutine_t U) {
-    throw_type_t type = U->thrown.type;
-    struct exception *exception = throwI_exception(U);
-    switch (type) {
-        case THROW_TYPE_VALUE:
-        case THROW_TYPE_MESSAGE:
-            if (exception != NULL) {
-                throwI_errorv(U->I, exception->value);
-            }
-            break;
-        case THROW_TYPE_OFM:
-            throwI_ofm(U->I);
-        case THROW_TYPE_AF:
-            throwI_af(U->I);
-        case THROW_TYPE_UNDEF:
-            break;
+    struct exception *exception = coroutineI_exception(U);
+    if(exception != NULL) {
+        switch (exception->kind) {
+            case EXCEPTION_KIND_USER: throwI_errorv(U->I, exception->value);
+            case EXCEPTION_KIND_OFM: throwI_ofm(U->I);
+            case EXCEPTION_KIND_AF: throwI_af(U->I);
+            case EXCEPTION_KIND_UNDEF: throwI_undef(U->I);
+        }
     }
 
     throwI_undef(U->I);
@@ -297,21 +297,20 @@ void throwI_protect(
 ) {
     struct throw *throw = &I->throw;
 
-    size_t safe_level = gcI_safe_level(I);
     struct protect_frame previous;
     memcpy(&previous, &throw->protect, sizeof(struct protect_frame));
 
     if (setjmp(throw->protect.handler) != 0) {
         memcpy(&throw->protect, &previous, sizeof(struct protect_frame));
-        gcI_safe_reset(I, safe_level);
         catch(catch_data);
 
         if (catch_provide) {
             error(I);
         }
     } else {
-        throw->protect.entered = true;
+        throw->protect.safe_level = gcI_safe_level(I);
         throw->protect.danger_entered = 0;
+        throw->protect.entered = true;
         try(try_data);
 
         memcpy(&throw->protect, &previous, sizeof(struct protect_frame));
@@ -351,35 +350,4 @@ const char *throwI_message(morphine_instance_t I) {
 
 bool throwI_is_nested_signal(morphine_instance_t I) {
     return I->throw.signal_entered > 1;
-}
-
-void throwI_catchable(morphine_coroutine_t U, ml_callstate callstate) {
-    struct callinfo *callinfo = callstackI_info(U);
-
-    callinfo->catch.enable = true;
-    callinfo->catch.crash = false;
-    callinfo->catch.state = callstate;
-}
-
-void throwI_crashable(morphine_coroutine_t U) {
-    struct callinfo *callinfo = callstackI_info(U);
-
-    callinfo->catch.enable = true;
-    callinfo->catch.crash = true;
-    callinfo->catch.state = 0;
-}
-
-void throwI_uncatch(morphine_coroutine_t U) {
-    struct callinfo *callinfo = callstackI_info(U);
-
-    callinfo->catch.enable = false;
-    callinfo->catch.crash = false;
-    callinfo->catch.state = 0;
-}
-
-struct exception *throwI_exception(morphine_coroutine_t U) {
-    struct exception *result = U->thrown.exception;
-    U->thrown.type = THROW_TYPE_UNDEF;
-    U->thrown.exception = NULL;
-    return result;
 }

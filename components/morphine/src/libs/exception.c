@@ -17,6 +17,18 @@ static void create(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void kind(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+
+            const char *kind = mapi_exception_kind(U);
+            mapi_push_string(U, kind);
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void value(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -51,7 +63,7 @@ static void print(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 0);
             mapi_exception_error_print(U);
-            mapi_exception_stacktrace_print(U, MPARAM_TRACESTACK_COUNT);
+            mapi_exception_stacktrace_print(U, MPARAM_STACKTRACE_COUNT);
             maux_nb_leave();
     maux_nb_end
 }
@@ -120,7 +132,7 @@ static void stacktrace_size(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 0);
             ml_size size = mapi_exception_stacktrace_size(U);
-            mapi_push_size(U, size, "size");
+            mapi_push_integer(U, size);
             maux_nb_return();
     maux_nb_end
 }
@@ -135,8 +147,8 @@ static void stacktrace_get(morphine_coroutine_t U) {
 
             mapi_push_arg(U, 0);
             const char *type = mapi_exception_stacktrace_type(U, index);
-            size_t position = mapi_exception_stacktrace_line(U, index);
-            size_t state = mapi_exception_stacktrace_state(U, index);
+            ml_line position = mapi_exception_stacktrace_line(U, index);
+            ml_size state = mapi_exception_stacktrace_state(U, index);
             mapi_pop(U, 1);
 
             mapi_push_table(U);
@@ -153,11 +165,11 @@ static void stacktrace_get(morphine_coroutine_t U) {
             mapi_table_set(U);
 
             mapi_push_string(U, "position");
-            mapi_push_size(U, position, "position");
+            mapi_push_integer(U, position);
             mapi_table_set(U);
 
             mapi_push_string(U, "state");
-            mapi_push_size(U, state, "state");
+            mapi_push_integer(U, state);
             mapi_table_set(U);
 
             maux_nb_return();
@@ -166,6 +178,7 @@ static void stacktrace_get(morphine_coroutine_t U) {
 
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("create", create),
+    MAUX_CONSTRUCT_FUNCTION("kind", kind),
     MAUX_CONSTRUCT_FUNCTION("value", value),
     MAUX_CONSTRUCT_FUNCTION("message", message),
     MAUX_CONSTRUCT_FUNCTION("print", print),

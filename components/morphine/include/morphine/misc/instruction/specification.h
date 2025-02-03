@@ -23,7 +23,6 @@ mspec_instruction_args2(PARAM,         param,   sslot, param_index)          // 
 mspec_instruction_args2(ARG,           arg,     argument_index, dslot)       // [arg, dest]              get from args by (arg) and set to (dest)
 
 mspec_instruction_args1(ENV,           env,     dslot)                       // [dest]                   move env to (dest)
-mspec_instruction_args1(SELF,          self,    dslot)                       // [dest]                   move self to (dest)
 mspec_instruction_args1(INVOKED,       invoked, dslot)                       // [dest]                   move invoked callable to (dest)
 
 mspec_instruction_args2(VECTOR,        vector,  dslot, size)                 // [dest, size]             create vector in (dest) with (size)
@@ -46,7 +45,6 @@ mspec_instruction_args3(SET_CLOSURE,   setcls,  sslot, closure_index, sslot) // 
 
 mspec_instruction_args3(CLOSURE,       closure, sslot, size, dslot)          // [function, size, dest]   create closure for (function) with (size) in (dest)
 mspec_instruction_args2(CALL,          call,    sslot, params_count)         // [function, params]       call (function) with count (params)
-mspec_instruction_args3(SCALL,         scall,   sslot, params_count, sslot)  // [function, params, self] call (function) with count (params) change (self)
 mspec_instruction_args0(LEAVE,         leave)                                //                          leave
 mspec_instruction_args1(RETURN,        ret,     sslot)                       // [return]                 leave with (return)
 mspec_instruction_args1(RESULT,        result,  dslot)                       // [dest]                   set result value to (dest)

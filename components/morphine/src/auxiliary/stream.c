@@ -65,7 +65,7 @@ static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buf
 
     for (size_t i = 0; i < size; i++) {
         if (B->pointer >= B->size) {
-            overflow_add(B->size, 1, SIZE_MAX) {
+            mm_overflow_add(B->size, 1) {
                 mapi_ierror(I, "stream buffer overflow");
             }
 
@@ -73,7 +73,7 @@ static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buf
         }
 
         if (B->size >= B->allocated) {
-            overflow_add(B->allocated, B->factor, SIZE_MAX) {
+            mm_overflow_add(B->allocated, B->factor) {
                 mapi_ierror(I, "stream buffer overflow");
             }
 

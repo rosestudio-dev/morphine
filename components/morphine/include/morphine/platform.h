@@ -100,18 +100,14 @@ typedef struct {
 typedef struct {
     size_t limit;     // bytes
     size_t threshold; // bytes
-    uint16_t grow;    // percentage / 10
-    uint16_t deal;    // percentage / 10
-    uint8_t pause;    // 2^n bytes
-
-    struct {
-        size_t callinfo;
-    } cache;
+    size_t pause;     // 2^n bytes
+    size_t grow;      // percentage
+    size_t deal;      // percentage
 } morphine_settings_gc_t;
 
 typedef struct {
     struct {
-        size_t limit;
+        ml_size limit;
     } stack;
 } morphine_settings_coroutines_t;
 
@@ -129,23 +125,3 @@ typedef struct {
     const char *sharedkey;
     morphine_library_init_t init;
 } morphine_library_t;
-
-// isolate
-
-typedef void (*morphine_isolate_init_t)(morphine_instance_t);
-
-typedef struct {
-    morphine_isolate_init_t init;
-    bool error_propagation;
-
-    struct {
-        struct {
-            bool memory;
-            bool stream;
-        } flags;
-
-        void *data;
-        morphine_platform_memory_t memory;
-        morphine_platform_stream_t stream;
-    } custom;
-} morphine_isolate_config_t;

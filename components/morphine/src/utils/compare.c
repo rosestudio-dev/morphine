@@ -7,8 +7,8 @@
 #include "morphine/core/throw.h"
 
 int arrcmp(morphine_instance_t I, const void *a, const void *b, size_t a_size, size_t b_size, size_t mul) {
-    a_size = overflow_op_mul(a_size, mul, SIZE_MAX, throwI_error(I, "compare size overflow"));
-    b_size = overflow_op_mul(b_size, mul, SIZE_MAX, throwI_error(I, "compare size overflow"));
+    a_size = mm_overflow_opc_mul(a_size, mul, throwI_error(I, "compare size overflow"));
+    b_size = mm_overflow_opc_mul(b_size, mul, throwI_error(I, "compare size overflow"));
 
     if (a_size != b_size) {
         return smpcmp(a_size, b_size);

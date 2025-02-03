@@ -10,10 +10,9 @@ static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             ml_line line = 0;
-            ml_size constants_count = 0;
             ml_size instructions_count = 0;
+            ml_size constants_count = 0;
             ml_size statics_count = 0;
-            ml_size arguments_count = 0;
             ml_size slots_count = 0;
             ml_size params_count = 0;
 
@@ -26,27 +25,21 @@ static void create(morphine_coroutine_t U) {
                 }
                 mapi_pop(U, 1);
 
-                mapi_push_string(U, "constants");
-                if (mapi_table_get(U)) {
-                    constants_count = mapi_get_size(U, NULL);
-                }
-                mapi_pop(U, 1);
-
                 mapi_push_string(U, "instructions");
                 if (mapi_table_get(U)) {
                     instructions_count = mapi_get_size(U, NULL);
                 }
                 mapi_pop(U, 1);
 
-                mapi_push_string(U, "statics");
+                mapi_push_string(U, "constants");
                 if (mapi_table_get(U)) {
-                    statics_count = mapi_get_size(U, NULL);
+                    constants_count = mapi_get_size(U, NULL);
                 }
                 mapi_pop(U, 1);
 
-                mapi_push_string(U, "arguments");
+                mapi_push_string(U, "statics");
                 if (mapi_table_get(U)) {
-                    arguments_count = mapi_get_size(U, NULL);
+                    statics_count = mapi_get_size(U, NULL);
                 }
                 mapi_pop(U, 1);
 
@@ -67,27 +60,24 @@ static void create(morphine_coroutine_t U) {
                     mapi_push_string(U, "anonymous");
                 }
             } else {
-                maux_expect_args(U, 8);
+                maux_expect_args(U, 7);
 
                 mapi_push_arg(U, 1);
                 line = mapi_get_size(U, "line");
 
                 mapi_push_arg(U, 2);
-                constants_count = mapi_get_size(U, NULL);
+                instructions_count = mapi_get_size(U, NULL);
 
                 mapi_push_arg(U, 3);
-                instructions_count = mapi_get_size(U, NULL);
+                constants_count = mapi_get_size(U, NULL);
 
                 mapi_push_arg(U, 4);
                 statics_count = mapi_get_size(U, NULL);
 
                 mapi_push_arg(U, 5);
-                arguments_count = mapi_get_size(U, NULL);
-
-                mapi_push_arg(U, 6);
                 slots_count = mapi_get_size(U, NULL);
 
-                mapi_push_arg(U, 7);
+                mapi_push_arg(U, 6);
                 params_count = mapi_get_size(U, NULL);
 
                 mapi_push_arg(U, 0);
@@ -95,10 +85,9 @@ static void create(morphine_coroutine_t U) {
 
             mapi_push_function(
                 U, line,
-                constants_count,
                 instructions_count,
+                constants_count,
                 statics_count,
-                arguments_count,
                 slots_count,
                 params_count
             );
@@ -131,13 +120,12 @@ static void info(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            mapi_extract_callable(U);
+            mapi_extract_source(U);
 
             ml_line line = mapi_function_line(U);
             ml_size constants_count = mapi_constant_size(U);
             ml_size instructions_count = mapi_instruction_size(U);
             ml_size statics_count = mapi_static_size(U);
-            ml_size arguments_count = mapi_function_arguments(U);
             ml_size slots_count = mapi_function_slots(U);
             ml_size params_count = mapi_function_params(U);
             bool is_complete = mapi_function_is_complete(U);
@@ -152,31 +140,27 @@ static void info(morphine_coroutine_t U) {
             mapi_table_set(U);
 
             mapi_push_string(U, "line");
-            mapi_push_size(U, line, "line");
+            mapi_push_integer(U, line);
             mapi_table_set(U);
 
             mapi_push_string(U, "constants");
-            mapi_push_size(U, constants_count, NULL);
+            mapi_push_integer(U, constants_count);
             mapi_table_set(U);
 
             mapi_push_string(U, "instructions");
-            mapi_push_size(U, instructions_count, NULL);
+            mapi_push_integer(U, instructions_count);
             mapi_table_set(U);
 
             mapi_push_string(U, "statics");
-            mapi_push_size(U, statics_count, NULL);
-            mapi_table_set(U);
-
-            mapi_push_string(U, "arguments");
-            mapi_push_size(U, arguments_count, NULL);
+            mapi_push_integer(U, statics_count);
             mapi_table_set(U);
 
             mapi_push_string(U, "slots");
-            mapi_push_size(U, slots_count, NULL);
+            mapi_push_integer(U, slots_count);
             mapi_table_set(U);
 
             mapi_push_string(U, "params");
-            mapi_push_size(U, params_count, NULL);
+            mapi_push_integer(U, params_count);
             mapi_table_set(U);
 
             mapi_push_string(U, "iscomplete");
@@ -194,7 +178,7 @@ static void getconstant(morphine_coroutine_t U) {
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
             mapi_push_arg(U, 0);
-            mapi_extract_callable(U);
+            mapi_extract_source(U);
             mapi_constant_get(U, index);
             maux_nb_return();
     maux_nb_end
@@ -220,7 +204,7 @@ static void getstatic(morphine_coroutine_t U) {
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
             mapi_push_arg(U, 0);
-            mapi_extract_callable(U);
+            mapi_extract_source(U);
             mapi_static_get(U, index);
             maux_nb_return();
     maux_nb_end
@@ -246,7 +230,7 @@ static void getinstruction(morphine_coroutine_t U) {
             mapi_push_arg(U, 1);
             ml_size index = mapi_get_size(U, "index");
             mapi_push_arg(U, 0);
-            mapi_extract_callable(U);
+            mapi_extract_source(U);
             morphine_instruction_t instruction = mapi_instruction_get(U, index);
 
             mapi_push_table(U);
@@ -256,14 +240,14 @@ static void getinstruction(morphine_coroutine_t U) {
             mapi_table_set(U);
 
             mapi_push_string(U, "line");
-            mapi_push_size(U, instruction.line, "line");
+            mapi_push_integer(U, instruction.line);
             mapi_table_set(U);
 
             size_t count = mapi_opcode(U, instruction.opcode);
             for (size_t i = 0; i < MORPHINE_INSTRUCTION_ARGS_COUNT; i++) {
                 mapi_push_stringf(U, "argument%zu", i);
                 if (i < count) {
-                    mapi_push_size(U, instruction.arguments[i], "argument");
+                    mapi_push_integer(U, instruction.arguments[i]);
                 } else {
                     mapi_push_nil(U);
                 }

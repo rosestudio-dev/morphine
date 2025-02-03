@@ -3,42 +3,21 @@
 //
 
 #include "morphine/gc/control.h"
-#include "morphine/gc/safe.h"
-#include "morphine/gc/pools.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
+#include "morphine/gc/pools.h"
+#include "morphine/gc/safe.h"
+#include "morphine/utils/assert.h"
 #include "morphine/utils/overflow.h"
 #include "stages/impl.h"
 
-static inline bool ofm_condition(morphine_instance_t I, size_t reserved) {
-    return overflow_condition_add(reserved, I->G.stats.allocated, SIZE_MAX) ||
-           (reserved + I->G.stats.allocated) > I->G.settings.limit;
-}
-
-static inline void ofm_check(morphine_instance_t I, size_t reserved) {
-    if (ofm_condition(I, reserved)) {
-        throwI_ofm(I);
-    }
-}
-
 static inline bool gc_need(morphine_instance_t I, size_t reserved) {
-    overflow_add(reserved, I->G.stats.allocated, SIZE_MAX) {
-        return true;
-    }
+    size_t alloc_bytes = mm_overflow_opc_add(I->G.stats.allocated, reserved, return true);
 
-    size_t alloc_bytes = I->G.stats.allocated + reserved;
+    uintmax_t percent_a = mm_overflow_opc_mul((uintmax_t) alloc_bytes, 100, return true);
+    uintmax_t percent_b = I->G.stats.prev_allocated == 0 ? 1 : (uintmax_t) I->G.stats.prev_allocated;
+    uintmax_t percent = percent_a / percent_b;
 
-    uintmax_t percent_a = (uintmax_t) alloc_bytes;
-    overflow_mul(percent_a, 10, UINTMAX_MAX) {
-        return true;
-    }
-
-    uintmax_t percent_b = (uintmax_t) I->G.stats.prev_allocated;
-    if (mm_unlikely(percent_b == 0)) {
-        percent_b = 1;
-    }
-
-    uintmax_t percent = (percent_a * 10) / percent_b;
     bool start = percent >= I->G.settings.grow;
     return start || (alloc_bytes >= I->G.settings.limit);
 }
@@ -46,12 +25,7 @@ static inline bool gc_need(morphine_instance_t I, size_t reserved) {
 static inline bool pause(morphine_instance_t I) {
     if (mm_likely(I->G.stats.allocated > I->G.stats.prev_allocated)) {
         size_t debt = I->G.stats.allocated - I->G.stats.prev_allocated;
-
-        overflow_add(debt, I->G.stats.debt, SIZE_MAX) {
-            I->G.stats.debt = SIZE_MAX;
-        } else {
-            I->G.stats.debt += debt;
-        }
+        I->G.stats.debt = mm_overflow_opd_add(I->G.stats.debt, debt, SIZE_MAX);
     }
 
     I->G.stats.prev_allocated = I->G.stats.allocated;
@@ -60,27 +34,11 @@ static inline bool pause(morphine_instance_t I) {
 }
 
 static inline size_t debt_calc(morphine_instance_t I) {
-    size_t conv = I->G.stats.debt;
-    if (mm_unlikely(conv == 0)) {
-        conv = 1;
-    }
-
-    size_t percent = I->G.settings.deal;
-    overflow_mul(conv, percent, SIZE_MAX) {
-        return SIZE_MAX;
-    }
-
-    return (conv * percent) / 10;
+    return mm_overflow_opc_mul(I->G.stats.debt, I->G.settings.deal, return SIZE_MAX) / 100;
 }
 
-static inline void step(morphine_instance_t I, size_t reserved) {
-    if (ofm_condition(I, reserved)) {
-        gcI_full(I, reserved);
-        return;
-    }
-
-    bool throw_protect_entered = I->throw.protect.entered;
-    I->throw.protect.entered = false;
+static inline void step(morphine_instance_t I) {
+    throwI_danger_enter(I);
 
     switch (I->G.status) {
         case GC_STATUS_IDLE: {
@@ -124,7 +82,7 @@ resolve:
         }
     }
 
-    I->throw.protect.entered = throw_protect_entered;
+    throwI_danger_exit(I);
 }
 
 static inline void recover_pool(morphine_instance_t I, struct object **pool) {
@@ -138,6 +96,10 @@ static void recover_pools(morphine_instance_t I) {
 }
 
 void gcI_set_limit(morphine_instance_t I, size_t value) {
+    if (mm_overflow_cond_cast(ml_integer, value)) {
+        throwI_error(I, "gc limit is too large");
+    }
+
     I->G.settings.limit = value;
 }
 
@@ -145,32 +107,24 @@ void gcI_set_threshold(morphine_instance_t I, size_t value) {
     I->G.settings.threshold = value;
 }
 
-void gcI_set_grow(morphine_instance_t I, uint16_t value) {
+void gcI_set_grow(morphine_instance_t I, size_t value) {
     if (value <= 100) {
         throwI_error(I, "gc grow must be greater than 100");
     }
 
-    I->G.settings.grow = value / 10;
+    I->G.settings.grow = value;
 }
 
-void gcI_set_deal(morphine_instance_t I, uint16_t value) {
+void gcI_set_deal(morphine_instance_t I, size_t value) {
     if (value <= 100) {
         throwI_error(I, "gc deal must be greater than 100");
     }
 
-    I->G.settings.deal = value / 10;
+    I->G.settings.deal = value;
 }
 
-void gcI_set_pause(morphine_instance_t I, uint8_t value) {
-    if (value > 31) {
-        throwI_error(I, "gc pause must be less than 32");
-    }
-
-    I->G.settings.pause = ((size_t) 1) << value;
-}
-
-void gcI_set_cache_callinfo(morphine_instance_t I, size_t value) {
-    I->G.settings.cache.callinfo = value;
+void gcI_set_pause(morphine_instance_t I, size_t value) {
+    I->G.settings.pause = value;
 }
 
 void gcI_enable(morphine_instance_t I) {
@@ -188,28 +142,34 @@ void gcI_force(morphine_instance_t I) {
 }
 
 void gcI_work(morphine_instance_t I, size_t reserved) {
+    size_t allocated = I->G.stats.allocated;
     if (!I->G.enabled) {
-        ofm_check(I, reserved);
-        return;
+        goto exit;
     }
 
 #ifdef MORPHINE_ENABLE_DISTRIBUTED_GC
     if (I->G.status != GC_STATUS_IDLE) {
-        step(I, reserved);
-        return;
+        step(I);
+        goto exit;
     }
 
     if (gc_need(I, reserved)) {
-        step(I, reserved);
+        step(I);
     }
 #else
-    gcI_full(I, reserved);
+    (void) gc_need;
+    (void) step;
+    (void) reserved;
+    gcI_full(I);
 #endif
+exit:
+    mm_assert(I, allocated >= I->G.stats.allocated, "allocation growing after gc work");
 }
 
-void gcI_full(morphine_instance_t I, size_t reserved) {
-    bool throw_protect_entered = I->throw.protect.entered;
-    I->throw.protect.entered = false;
+void gcI_full(morphine_instance_t I) {
+    size_t allocated = I->G.stats.allocated;
+
+    throwI_danger_enter(I);
 
     recover_pools(I);
     gcstageI_prepare(I);
@@ -218,7 +178,7 @@ void gcI_full(morphine_instance_t I, size_t reserved) {
     while (gcstageI_sweep(I, SIZE_MAX)) { }
 
     I->G.status = GC_STATUS_IDLE;
-    I->throw.protect.entered = throw_protect_entered;
+    throwI_danger_exit(I);
 
-    ofm_check(I, reserved);
+    mm_assert(I, allocated >= I->G.stats.allocated, "allocation growing after gc full work");
 }

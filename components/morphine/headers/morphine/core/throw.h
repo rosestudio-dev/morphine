@@ -19,10 +19,10 @@ struct protect_frame {
     bool entered;
     jmp_buf handler;
     size_t danger_entered;
+    size_t safe_level;
 };
 
 struct throw {
-    morphine_coroutine_t context;
     size_t signal_entered;
 
     struct protect_frame protect;
@@ -37,9 +37,15 @@ struct throw {
         struct exception *ofm;
         struct exception *af;
     } special;
+
+    struct {
+        morphine_coroutine_t stack;
+        morphine_coroutine_t callstack;
+    } fix;
 };
 
 struct throw throwI_prototype(void);
+void throwI_destruct(morphine_instance_t);
 void throwI_special(morphine_instance_t);
 
 void throwI_handler(morphine_instance_t);
@@ -62,9 +68,3 @@ void throwI_danger_exit(morphine_instance_t);
 
 const char *throwI_message(morphine_instance_t);
 bool throwI_is_nested_signal(morphine_instance_t);
-
-void throwI_catchable(morphine_coroutine_t, ml_callstate);
-void throwI_crashable(morphine_coroutine_t);
-void throwI_uncatch(morphine_coroutine_t);
-
-struct exception *throwI_exception(morphine_coroutine_t);

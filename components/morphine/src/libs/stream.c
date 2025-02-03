@@ -89,7 +89,7 @@ static void tell(morphine_coroutine_t U) {
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t pos = mapi_stream_tell(U);
-            mapi_push_size(U, pos, "index");
+            mapi_push_csize(U, pos, "index");
             maux_nb_return();
     maux_nb_end
 }
@@ -135,7 +135,7 @@ static void read(morphine_coroutine_t U) {
             mapi_push_stringn(U, (char *) buffer, size);
             mapi_table_set(U);
             mapi_push_string(U, "read");
-            mapi_push_size(U, read, NULL);
+            mapi_push_csize(U, read, NULL);
             mapi_table_set(U);
             maux_nb_return();
     maux_nb_end
@@ -153,7 +153,7 @@ static void write(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
             size_t written = mapi_stream_write(U, (const uint8_t *) buffer, size * sizeof(char));
 
-            mapi_push_size(U, written, NULL);
+            mapi_push_csize(U, written, NULL);
             maux_nb_return();
     maux_nb_end
 }

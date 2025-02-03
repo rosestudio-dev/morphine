@@ -42,6 +42,19 @@ static void status(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void isalive(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_expect(U, MTYPE_COROUTINE);
+            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
+
+            mapi_push_boolean(U, mapi_coroutine_is_alive(coroutine));
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void name(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -55,21 +68,6 @@ static void name(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void priority(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 2);
-            mapi_push_arg(U, 0);
-            maux_expect(U, MTYPE_COROUTINE);
-            morphine_coroutine_t coroutine = mapi_get_coroutine(U);
-
-            mapi_push_arg(U, 1);
-            ml_size priority = mapi_get_size(U, "priority");
-            mapi_coroutine_priority(coroutine, priority);
-            maux_nb_leave();
-    maux_nb_end
-}
-
 static void stack_setlimit(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -79,7 +77,7 @@ static void stack_setlimit(morphine_coroutine_t U) {
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
             mapi_push_arg(U, 1);
-            size_t value = mapi_get_size(U, NULL);
+            ml_size value = mapi_get_size(U, NULL);
 
             mapi_stack_set_limit(coroutine, value);
             maux_nb_leave();
@@ -132,22 +130,24 @@ static void resume(morphine_coroutine_t U) {
 static void launch(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            if (mapi_args(U) < 1) {
-                maux_expect_args(U, 1);
+            if (mapi_args(U) < 2) {
+                maux_expect_args(U, 2);
             }
 
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_COROUTINE);
             morphine_coroutine_t coroutine = mapi_get_coroutine(U);
 
-            for (ml_size i = 1; i < mapi_args(U); i++) {
+            mapi_push_arg(U, 1);
+            maux_expect(U, "callable");
+            mapi_move(U, coroutine);
+
+            for (ml_size i = 2; i < mapi_args(U); i++) {
                 mapi_push_arg(U, i);
                 mapi_move(U, coroutine);
             }
 
-            mapi_scall(coroutine, mapi_args(U) - 1);
-
-            mapi_attach(coroutine);
+            mapi_call(coroutine, mapi_args(U) - 2);
             maux_nb_return();
     maux_nb_end
 }
@@ -155,21 +155,9 @@ static void launch(morphine_coroutine_t U) {
 static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 2);
-
-            mapi_push_arg(U, 1);
-            maux_expect(U, "callable");
-
+            maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            morphine_coroutine_t coroutine = mapi_push_coroutine(U);
-
-            mapi_rotate(U, 2);
-            mapi_copy(U, coroutine, 0);
-            mapi_pop(U, 1);
-
-            mapi_push_self(U);
-            mapi_move(U, coroutine);
-
+            mapi_push_coroutine(U);
             maux_nb_return();
     maux_nb_end
 }
@@ -177,8 +165,8 @@ static void create(morphine_coroutine_t U) {
 static void guardlock(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 0);
-            mapi_push_self(U);
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_TABLE);
 
             mapi_peek(U, 0);
@@ -211,8 +199,8 @@ static void guardlock(morphine_coroutine_t U) {
 static void guardunlock(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 0);
-            mapi_push_self(U);
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_TABLE);
 
             mapi_peek(U, 0);
@@ -271,7 +259,7 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("suspend", suspend),
     MAUX_CONSTRUCT_FUNCTION("kill", kill),
     MAUX_CONSTRUCT_FUNCTION("status", status),
-    MAUX_CONSTRUCT_FUNCTION("priority", priority),
+    MAUX_CONSTRUCT_FUNCTION("isalive", isalive),
     MAUX_CONSTRUCT_FUNCTION("name", name),
     MAUX_CONSTRUCT_FUNCTION("stack.setlimit", stack_setlimit),
     MAUX_CONSTRUCT_FUNCTION("wait", wait),

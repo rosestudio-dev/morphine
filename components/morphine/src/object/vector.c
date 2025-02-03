@@ -2,15 +2,15 @@
 // Created by why-iskra on 22.04.2024.
 //
 
-#include <memory.h>
 #include "morphine/object/vector.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
-#include "morphine/gc/safe.h"
 #include "morphine/gc/barrier.h"
+#include "morphine/gc/safe.h"
+#include "morphine/object/userdata.h"
 #include "morphine/params.h"
 #include "morphine/utils/overflow.h"
-#include "morphine/object/userdata.h"
+#include <memory.h>
 
 #define min(a, b) ((a) > (b) ? (b) : (a))
 
@@ -36,7 +36,7 @@ struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
     result->size.accessible = size;
     result->size.real = size;
 
-    for (size_t i = 0; i < size; i++) {
+    for (ml_size i = 0; i < size; i++) {
         result->values[i] = valueI_nil;
     }
 
@@ -145,16 +145,14 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
         gcI_safe_enter(I);
         gcI_safe(I, valueI_object(vector));
         gcI_safe(I, value);
-        overflow_add(MPARAM_VECTOR_AMORTIZATION, vector->size.real, MLIMIT_SIZE_MAX) {
-            throwI_error(I, "vector size limit has been exceeded");
-        }
 
-        vector->values = allocI_vec(
-            I,
-            vector->values,
-            vector->size.real + MPARAM_VECTOR_AMORTIZATION,
-            sizeof(struct value)
+        ml_size new_size = mm_overflow_opc_add(
+            vector->size.real,
+            MPARAM_VECTOR_AMORTIZATION,
+            throwI_error(I, "vector size limit has been exceeded")
         );
+
+        vector->values = allocI_vec(I, vector->values, new_size, sizeof(struct value));
 
         vector->size.real += MPARAM_VECTOR_AMORTIZATION;
         gcI_safe_exit(I);
@@ -221,7 +219,7 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
 
     struct value value = vector->values[index];
 
-    for (size_t i = index; i < vector->size.accessible - 1; i++) {
+    for (ml_size i = index; i < vector->size.accessible - 1; i++) {
         vector->values[i] = vector->values[i + 1];
     }
 
@@ -231,16 +229,9 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
         gcI_safe_enter(I);
         gcI_safe(I, valueI_object(vector));
         gcI_safe(I, value);
-        if (MPARAM_VECTOR_AMORTIZATION > vector->size.real) {
-            throwI_error(I, "vector size exceeded limit");
-        }
 
-        vector->values = allocI_vec(
-            I,
-            vector->values,
-            vector->size.real - MPARAM_VECTOR_AMORTIZATION,
-            sizeof(struct value)
-        );
+        vector->values =
+            allocI_vec(I, vector->values, vector->size.real - MPARAM_VECTOR_AMORTIZATION, sizeof(struct value));
 
         vector->size.real -= MPARAM_VECTOR_AMORTIZATION;
         gcI_safe_exit(I);
@@ -262,12 +253,7 @@ void vectorI_resize(morphine_instance_t I, struct vector *vector, ml_size size) 
         throwI_error(I, "vector is fixed");
     }
 
-    vector->values = allocI_vec(
-        I,
-        vector->values,
-        size,
-        sizeof(struct value)
-    );
+    vector->values = allocI_vec(I, vector->values, size, sizeof(struct value));
 
     if (size > vector->size.accessible) {
         for (ml_size i = vector->size.accessible; i < size; i++) {
@@ -309,11 +295,8 @@ struct vector *vectorI_concat(morphine_instance_t I, struct vector *a, struct ve
         throwI_error(I, "vector is null");
     }
 
-    overflow_add(a->size.accessible, b->size.accessible, MLIMIT_SIZE_MAX) {
-        throwI_error(I, "too big concat vector length");
-    }
-
-    ml_size size = a->size.accessible + b->size.accessible;
+    ml_size size =
+        mm_overflow_opc_add(a->size.accessible, b->size.accessible, throwI_error(I, "too big concat vector length"));
 
     struct vector *result = vectorI_create(I, size);
     result->mode.mutable = a->mode.mutable;
@@ -321,17 +304,8 @@ struct vector *vectorI_concat(morphine_instance_t I, struct vector *a, struct ve
     result->mode.accessible = a->mode.accessible;
     result->mode.locked = a->mode.locked;
 
-    memcpy(
-        result->values,
-        a->values,
-        ((size_t) a->size.accessible) * sizeof(struct value)
-    );
-
-    memcpy(
-        result->values + a->size.accessible,
-        b->values,
-        ((size_t) b->size.accessible) * sizeof(struct value)
-    );
+    memcpy(result->values, a->values, ((size_t) a->size.accessible) * sizeof(struct value));
+    memcpy(result->values + a->size.accessible, b->values, ((size_t) b->size.accessible) * sizeof(struct value));
 
     for (ml_size i = 0; i < size; i++) {
         gcI_barrier(I, result, result->values[i]);
@@ -432,23 +406,14 @@ void vectorI_sort(morphine_instance_t I, struct vector *vector) {
         insertion_sort(I, vector->values + offset, vec_size % run);
     }
 
-    overflow_mul(vec_size, 2, MLIMIT_SIZE_MAX) {
-        throwI_error(I, "sort vector too big");
-    }
-
     gcI_safe_enter(I);
     gcI_safe(I, valueI_object(vector));
-    struct userdata *userdata = gcI_safe_obj(
-        I, userdata, userdataI_create_vec(I, vec_size * 2, sizeof(struct value))
-    );
+    ml_size mul2size = mm_overflow_opc_mul(vec_size, 2, throwI_error(I, "sort vector too big"));
+    struct userdata *userdata = gcI_safe_obj(I, userdata, userdataI_create_vec(I, mul2size, sizeof(struct value)));
 
     for (ml_size factor = 0; factor < (sizeof(factor) * 8); factor++) {
         ml_size mul = ((ml_size) 1) << factor;
-        overflow_mul(run, mul, MLIMIT_SIZE_MAX) {
-            break;
-        }
-
-        if (run * mul >= vec_size) {
+        if (mm_overflow_cond_mul(run, mul) || run * mul >= vec_size) {
             break;
         }
 
@@ -460,21 +425,17 @@ void vectorI_sort(morphine_instance_t I, struct vector *vector) {
 
             if (middle < right) {
                 merge_sort(
-                    I, vector->values, left, middle, right,
+                    I,
+                    vector->values,
+                    left,
+                    middle,
+                    right,
                     (struct value *) userdata->data,
                     ((struct value *) userdata->data) + vec_size
                 );
             }
 
-            overflow_mul(size, 2, MLIMIT_SIZE_MAX) {
-                break;
-            }
-
-            overflow_add(left, size * 2, MLIMIT_SIZE_MAX) {
-                break;
-            }
-
-            left += size * 2;
+            left = mm_overflow_opc_add(left, mm_overflow_opc_mul(size, 2, break), break);
         }
     }
 
@@ -501,12 +462,7 @@ struct value vectorI_iterator_first(morphine_instance_t I, struct vector *vector
     return valueI_integer(0);
 }
 
-struct pair vectorI_iterator_next(
-    morphine_instance_t I,
-    struct vector *vector,
-    struct value *key,
-    bool *next
-) {
+struct pair vectorI_iterator_next(morphine_instance_t I, struct vector *vector, struct value *key, bool *next) {
     if (vector == NULL) {
         throwI_error(I, "vector is null");
     }
@@ -527,8 +483,7 @@ struct pair vectorI_iterator_next(
         return valueI_pair(valueI_nil, valueI_nil);
     }
 
-    ml_size index = valueI_integer2index(I, valueI_as_integer(*key));
-
+    ml_size index = valueI_as_index_or_error(I, *key);
     if (index >= vector->size.accessible) {
         if (next != NULL) {
             (*next) = false;
@@ -544,7 +499,7 @@ struct pair vectorI_iterator_next(
     }
 
     if (has_next) {
-        (*key) = valueI_size(valueI_csize2index(I, index + 1));
+        (*key) = valueI_size(index + 1);
     } else {
         (*key) = valueI_nil;
     }

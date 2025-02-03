@@ -7,5 +7,5 @@
 #include "morphine/platform.h"
 
 MORPHINE_AUX void maux_expect(morphine_coroutine_t, const char *type);
-MORPHINE_AUX void maux_expect_args(morphine_coroutine_t U, size_t count);
-MORPHINE_AUX void maux_expect_args_minimum(morphine_coroutine_t U, size_t count);
+MORPHINE_AUX void maux_expect_args(morphine_coroutine_t U, ml_size count);
+MORPHINE_AUX void maux_expect_args_minimum(morphine_coroutine_t U, ml_size count);

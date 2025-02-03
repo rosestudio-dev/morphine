@@ -17,7 +17,7 @@ static void print(morphine_coroutine_t U) {
             mapi_push_result(U);
 
             const uint8_t *string = (const uint8_t *) mapi_get_string(U);
-            size_t size = mapi_string_len(U);
+            ml_size size = mapi_string_len(U);
             mapi_push_stream_io(U);
             mapi_stream_write(U, string, size);
 
@@ -29,7 +29,7 @@ static void print(morphine_coroutine_t U) {
 static void println(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
-            size_t args = mapi_args(U);
+            ml_size args = mapi_args(U);
             if (args == 0) {
                 mapi_push_stream_io(U);
                 mapi_stream_write(U, (const uint8_t *) "\n", 1);
@@ -46,7 +46,7 @@ static void println(morphine_coroutine_t U) {
             mapi_push_result(U);
 
             const uint8_t *string = (const uint8_t *) mapi_get_string(U);
-            size_t size = mapi_string_len(U);
+            ml_size size = mapi_string_len(U);
             mapi_push_stream_io(U);
             mapi_stream_write(U, string, size);
             mapi_stream_write(U, (const uint8_t *) "\n", 1);
@@ -108,7 +108,9 @@ static void pcall(morphine_coroutine_t U) {
             mapi_push_result(U);
             maux_nb_return();
         maux_nb_state(2)
-            mapi_exception(U);
+            if (!mapi_exception(U)) {
+                mapi_push_nil(U);
+            }
             maux_nb_return();
     maux_nb_end
 }
@@ -146,30 +148,6 @@ static void error(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void ecall(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            ml_size count = mapi_args(U);
-            if (count < 2) {
-                maux_expect_args(U, 2);
-            }
-
-            mapi_push_arg(U, 1);
-            maux_expect(U, "callable");
-
-            mapi_push_arg(U, 0);
-
-            for (ml_size i = 2; i < count; i++) {
-                mapi_push_arg(U, i);
-            }
-
-            mapi_ecall(U, count - 2);
-        maux_nb_state(1)
-            mapi_push_result(U);
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void vcall(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
@@ -200,8 +178,18 @@ static void callable(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            mapi_extract_callable(U);
+            mapi_extract_source(U);
             maux_nb_return();
+    maux_nb_end
+}
+
+static void chgenv(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mapi_change_env(U);
+            maux_nb_leave();
     maux_nb_end
 }
 
@@ -213,9 +201,9 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("error", error),
     MAUX_CONSTRUCT_FUNCTION("pcall", pcall),
     MAUX_CONSTRUCT_FUNCTION("ucall", ucall),
-    MAUX_CONSTRUCT_FUNCTION("ecall", ecall),
     MAUX_CONSTRUCT_FUNCTION("vcall", vcall),
     MAUX_CONSTRUCT_FUNCTION("callable", callable),
+    MAUX_CONSTRUCT_FUNCTION("chgenv", chgenv),
 
 #define mspec_metatable_field(n, s) MAUX_CONSTRUCT_STRING("metafield."#s, MORPHINE_METATABLE_FIELD_PREFIX#s),
 

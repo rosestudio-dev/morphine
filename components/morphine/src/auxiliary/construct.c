@@ -70,7 +70,7 @@ MORPHINE_AUX void maux_construct(morphine_coroutine_t U, maux_construct_element_
                 mapi_table_set(U);
                 break;
             case MAUX_CONSTRUCT_TYPE_SIZE:
-                mapi_push_size(U, element->value.size.value, element->value.size.name);
+                mapi_push_csize(U, element->value.size.value, element->value.size.name);
                 mapi_table_set(U);
                 break;
             case MAUX_CONSTRUCT_TYPE_NIL:

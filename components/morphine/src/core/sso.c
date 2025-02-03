@@ -2,10 +2,10 @@
 // Created by why-iskra on 17.09.2024.
 //
 
-#include <string.h>
 #include "morphine/core/sso.h"
-#include "morphine/core/instance.h"
 #include "morphine/algorithm/hash.h"
+#include "morphine/core/instance.h"
+#include <string.h>
 
 struct sso ssoI_prototype(void) {
     struct sso result;
@@ -18,13 +18,13 @@ struct sso ssoI_prototype(void) {
     return result;
 }
 
-struct string *ssoI_get(morphine_instance_t I, const char *str, size_t size) {
+struct string *ssoI_get(morphine_instance_t I, const char *str, ml_size size) {
+#ifdef MORPHINE_ENABLE_SSO
     if (size > MPARAM_SSO_MAX_LEN) {
         return NULL;
     }
 
-#ifdef MORPHINE_ENABLE_SSO
-    ml_hash hash = calchash(size, (const uint8_t *) str);
+    ml_hash hash = calchash((const uint8_t *) str, ((size_t) size) * sizeof(char));
 
     struct string **bucket = I->sso.table[hash % MPARAM_SSO_HASHTABLE_ROWS];
     for (size_t i = 0; i < MPARAM_SSO_HASHTABLE_COLS; i++) {
@@ -46,17 +46,18 @@ struct string *ssoI_get(morphine_instance_t I, const char *str, size_t size) {
 #else
     (void) I;
     (void) str;
+    (void) size;
 #endif
 
     return NULL;
 }
 
 void ssoI_rec(morphine_instance_t I, struct string *string) {
+#ifdef MORPHINE_ENABLE_SSO
     if (string->size > MPARAM_SSO_MAX_LEN) {
         return;
     }
 
-#ifdef MORPHINE_ENABLE_SSO
     ml_hash hash = stringI_hash(I, string);
 
     struct string **bucket = I->sso.table[hash % MPARAM_SSO_HASHTABLE_ROWS];
@@ -68,5 +69,6 @@ void ssoI_rec(morphine_instance_t I, struct string *string) {
     bucket[0] = string;
 #else
     (void) I;
+    (void) string;
 #endif
 }

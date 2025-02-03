@@ -3,8 +3,8 @@
 //
 
 #include "morphine/platform/convert.h"
-#include "morphine/utils/overflow.h"
 #include "morphine/utils/ctype.h"
+#include "morphine/utils/overflow.h"
 #include <limits.h>
 #include <stdio.h>
 
@@ -80,74 +80,20 @@ bool platformI_string2integer(const char *string, ml_integer *container, ml_size
         }
 
         ml_integer ibase = (ml_integer) base; // bypass 'type-limit' warning
-        overflow_signed_mul(num, ibase, MLIMIT_INTEGER_MIN, MLIMIT_INTEGER_MAX) {
+        mm_overflow_mul(num, ibase) {
             goto error;
-        } else {
-            num *= ibase;
         }
 
-        bool minus_overflow = negative && overflow_condition_signed_sub(
-            num, n, MLIMIT_INTEGER_MIN, MLIMIT_INTEGER_MAX
-        );
+        num *= ibase;
 
-        bool plus_overflow = !negative && overflow_condition_signed_add(
-            num, n, MLIMIT_INTEGER_MIN, MLIMIT_INTEGER_MAX
-        );
+        bool minus_overflow = negative && mm_overflow_cond_sub(num, n);
+        bool plus_overflow = !negative && mm_overflow_cond_add(num, n);
 
         if (plus_overflow || minus_overflow) {
             goto error;
         }
 
         num += negative ? -n : n;
-    }
-
-error:
-    if (container != NULL) {
-        *container = 0;
-    }
-
-    return false;
-}
-
-bool platformI_string2size(const char *string, ml_size *container, ml_size base) {
-    if (string == NULL || string[0] == '\0') {
-        goto error;
-    }
-
-    ml_size num = 0;
-    for (size_t i = 0; i < SIZE_LOOP_MAX_ITERATIONS; i++) {
-        char ch = string[i];
-
-        if (ch == '\0') {
-            if (i == 0) {
-                goto error;
-            }
-
-            if (container != NULL) {
-                *container = num;
-            }
-
-            return true;
-        }
-
-        ml_integer rn = digit(ch, base);
-        if (rn < 0) {
-            goto error;
-        }
-
-        ml_size n = (ml_size) rn;
-
-        overflow_mul(num, base, MLIMIT_SIZE_MAX) {
-            goto error;
-        } else {
-            num *= base;
-        }
-
-        overflow_add(num, n, MLIMIT_SIZE_MAX) {
-            goto error;
-        } else {
-            num += n;
-        }
     }
 
 error:
@@ -181,7 +127,7 @@ bool platformI_string2decimal(const char *string, ml_decimal *container) {
     }
 
     ml_decimal num = 0;
-    int result = sscanf(string, "%"MLIMIT_DECIMAL_SC, &num);
+    int result = sscanf(string, "%" MLIMIT_DECIMAL_PR, &num);
 
     if (container != NULL) {
         *container = num;

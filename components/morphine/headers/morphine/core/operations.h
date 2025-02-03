@@ -4,14 +4,15 @@
 
 #pragma once
 
-#include "morphine/misc/metatable.h"
-#include "morphine/object/table.h"
-#include "morphine/object/reference.h"
-#include "morphine/object/iterator.h"
-#include "morphine/object/coroutine.h"
-#include "morphine/object/vector.h"
 #include "morphine/core/convert.h"
 #include "morphine/gc/safe.h"
+#include "morphine/misc/metatable.h"
+#include "morphine/object/coroutine.h"
+#include "morphine/object/iterator.h"
+#include "morphine/object/reference.h"
+#include "morphine/object/table.h"
+#include "morphine/object/vector.h"
+#include "morphine/utils/array_size.h"
 
 typedef enum {
     NORMAL,
@@ -21,10 +22,10 @@ typedef enum {
 
 static inline op_result_t interpreter_fun_iterator(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value container,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -35,8 +36,9 @@ static inline op_result_t interpreter_fun_iterator(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, container, MORPHINE_METAFIELD_ITERATOR, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { container };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, container, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -50,11 +52,11 @@ static inline op_result_t interpreter_fun_iterator(
 
 static inline op_result_t interpreter_fun_iterator_init(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value iterator,
     struct value key_name,
     struct value value_name,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -66,9 +68,9 @@ static inline op_result_t interpreter_fun_iterator_init(
         iteratorI_init(U->I, valueI_as_iterator(iterator), key_name, value_name);
         return NORMAL;
     } else if (metatableI_builtin_test(U->I, iterator, MORPHINE_METAFIELD_ITERATOR_INIT, &mt_field)) {
-        struct value new_args[] = { key_name, value_name };
+        struct value new_args[] = { iterator, key_name, value_name };
         callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, iterator, new_args, 2, pop_size);
+        callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
         return CALLED;
     }
 
@@ -77,10 +79,10 @@ static inline op_result_t interpreter_fun_iterator_init(
 
 static inline op_result_t interpreter_fun_iterator_has(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value iterator,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -95,8 +97,9 @@ static inline op_result_t interpreter_fun_iterator_has(
         return NORMAL;
     } else if (metatableI_builtin_test(U->I, iterator, MORPHINE_METAFIELD_ITERATOR_HAS, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { iterator };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -109,10 +112,10 @@ static inline op_result_t interpreter_fun_iterator_has(
 
 static inline op_result_t interpreter_fun_iterator_next(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value iterator,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -126,8 +129,9 @@ static inline op_result_t interpreter_fun_iterator_next(
         return NORMAL;
     } else if (metatableI_builtin_test(U->I, iterator, MORPHINE_METAFIELD_ITERATOR_NEXT, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { iterator };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, iterator, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -140,11 +144,11 @@ static inline op_result_t interpreter_fun_iterator_next(
 
 static inline op_result_t interpreter_fun_get(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value container,
     struct value key,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -154,18 +158,18 @@ static inline op_result_t interpreter_fun_get(
 
     struct value mt_field;
     if (valueI_is_vector(container)) {
-        ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
+        ml_size index = valueI_as_index_or_error(U->I, key);
         (*result) = vectorI_get(U->I, valueI_as_vector(container), index);
         return NORMAL;
     } else if (valueI_is_string(container)) {
-        ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
+        ml_size index = valueI_as_index_or_error(U->I, key);
         (*result) = valueI_object(stringI_get(U->I, valueI_as_string(container), index));
         return NORMAL;
     } else if (metatableI_builtin_test(U->I, container, MORPHINE_METAFIELD_GET, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { key };
+            struct value new_args[] = { container, key };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, container, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -181,11 +185,11 @@ static inline op_result_t interpreter_fun_get(
 
 static inline op_result_t interpreter_fun_set(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value container,
     struct value key,
     struct value value,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -194,13 +198,13 @@ static inline op_result_t interpreter_fun_set(
 
     struct value mt_field;
     if (valueI_is_vector(container)) {
-        ml_size index = valueI_integer2index(U->I, valueI_as_integer_or_error(U->I, key));
+        ml_size index = valueI_as_index_or_error(U->I, key);
         vectorI_set(U->I, valueI_as_vector(container), index, value);
         return NORMAL;
     } else if (metatableI_builtin_test(U->I, container, MORPHINE_METAFIELD_SET, &mt_field)) {
-        struct value new_args[] = { key, value };
+        struct value new_args[] = { container, key, value };
         callstackI_continue(U, callstate);
-        callstackI_call_unsafe(U, mt_field, container, new_args, 2, pop_size);
+        callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
         return CALLED;
     } else if (valueI_is_table(container)) {
         tableI_set(U->I, valueI_as_table_or_error(U->I, container), key, value);
@@ -212,11 +216,11 @@ static inline op_result_t interpreter_fun_set(
 
 static inline op_result_t interpreter_fun_add(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -237,9 +241,9 @@ static inline op_result_t interpreter_fun_add(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_ADD, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -252,11 +256,11 @@ static inline op_result_t interpreter_fun_add(
 
 static inline op_result_t interpreter_fun_sub(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -277,9 +281,9 @@ static inline op_result_t interpreter_fun_sub(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_SUB, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -292,11 +296,11 @@ static inline op_result_t interpreter_fun_sub(
 
 static inline op_result_t interpreter_fun_mul(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -317,9 +321,9 @@ static inline op_result_t interpreter_fun_mul(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_MUL, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -332,11 +336,11 @@ static inline op_result_t interpreter_fun_mul(
 
 static inline op_result_t interpreter_fun_div(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -369,9 +373,9 @@ static inline op_result_t interpreter_fun_div(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_DIV, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -384,11 +388,11 @@ static inline op_result_t interpreter_fun_div(
 
 static inline op_result_t interpreter_fun_mod(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -410,9 +414,9 @@ static inline op_result_t interpreter_fun_mod(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_MOD, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -425,11 +429,11 @@ static inline op_result_t interpreter_fun_mod(
 
 static inline op_result_t interpreter_fun_equal(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -440,9 +444,9 @@ static inline op_result_t interpreter_fun_equal(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_EQUAL, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -456,11 +460,11 @@ static inline op_result_t interpreter_fun_equal(
 
 static inline op_result_t interpreter_fun_less(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -481,9 +485,9 @@ static inline op_result_t interpreter_fun_less(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_LESS, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -496,11 +500,11 @@ static inline op_result_t interpreter_fun_less(
 
 static inline op_result_t interpreter_fun_and(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -511,9 +515,9 @@ static inline op_result_t interpreter_fun_and(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_AND, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -532,11 +536,11 @@ static inline op_result_t interpreter_fun_and(
 
 static inline op_result_t interpreter_fun_or(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -547,9 +551,9 @@ static inline op_result_t interpreter_fun_or(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_OR, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -568,11 +572,11 @@ static inline op_result_t interpreter_fun_or(
 
 static inline op_result_t interpreter_fun_concat(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value b,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -599,9 +603,9 @@ static inline op_result_t interpreter_fun_concat(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_CONCAT, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { b };
+            struct value new_args[] = { a, b };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, new_args, 1, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -620,10 +624,10 @@ static inline op_result_t interpreter_fun_concat(
 
 static inline op_result_t interpreter_fun_type(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -634,8 +638,9 @@ static inline op_result_t interpreter_fun_type(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_TYPE, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { a };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -649,10 +654,10 @@ static inline op_result_t interpreter_fun_type(
 
 static inline op_result_t interpreter_fun_negative(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -673,8 +678,9 @@ static inline op_result_t interpreter_fun_negative(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_NEGATE, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { a };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -687,10 +693,10 @@ static inline op_result_t interpreter_fun_negative(
 
 static inline op_result_t interpreter_fun_not(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -701,8 +707,9 @@ static inline op_result_t interpreter_fun_not(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_NOT, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { a };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -716,10 +723,10 @@ static inline op_result_t interpreter_fun_not(
 
 static inline op_result_t interpreter_fun_ref(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -730,8 +737,9 @@ static inline op_result_t interpreter_fun_ref(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_REF, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { a };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -745,10 +753,10 @@ static inline op_result_t interpreter_fun_ref(
 
 static inline op_result_t interpreter_fun_deref(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -764,8 +772,9 @@ static inline op_result_t interpreter_fun_deref(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_DEREF, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { a };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 
@@ -778,10 +787,10 @@ static inline op_result_t interpreter_fun_deref(
 
 static inline op_result_t interpreter_fun_length(
     morphine_coroutine_t U,
-    ml_callstate callstate,
+    ml_size callstate,
     struct value a,
     struct value *result,
-    size_t pop_size,
+    ml_size pop_size,
     bool need_return
 ) {
     if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
@@ -807,8 +816,9 @@ static inline op_result_t interpreter_fun_length(
     struct value mt_field;
     if (metatableI_builtin_test(U->I, a, MORPHINE_METAFIELD_LENGTH, &mt_field)) {
         if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { a };
             callstackI_continue(U, callstate);
-            callstackI_call_unsafe(U, mt_field, a, NULL, 0, pop_size);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
             return CALLED;
         }
 

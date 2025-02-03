@@ -2,15 +2,15 @@
 // Created by why-iskra on 21.08.2024.
 //
 
-#include "morphine/misc/packer.h"
+#include "morphine/algorithm/crc32.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/safe.h"
-#include "morphine/object/function.h"
+#include "morphine/misc/packer.h"
 #include "morphine/object/closure.h"
-#include "morphine/object/vector.h"
-#include "morphine/object/table.h"
+#include "morphine/object/function.h"
 #include "morphine/object/string.h"
-#include "morphine/algorithm/crc32.h"
+#include "morphine/object/table.h"
+#include "morphine/object/vector.h"
 
 struct data {
     morphine_instance_t I;
@@ -78,18 +78,18 @@ static inline void write_data(struct data *D, const uint8_t *data, size_t size) 
     write_data(D, buffer.raw, sizeof(t) - zeros); \
 }
 
-write_compress_type(ml_size, ml_size)
-write_compress_type(ml_line, ml_line)
-write_compress_type(ml_argument, ml_argument)
-write_compress_type(ml_integer, ml_integer)
-write_compress_type(ml_decimal, ml_decimal)
-write_compress_type(ml_version, ml_version)
-write_compress_type(enum value_type, value_type)
-write_compress_type(morphine_opcode_t, opcode)
-write_type(char, char)
-write_type(bool, bool)
-write_type(uint8_t, uint8)
-write_type(uint32_t, uint32)
+write_compress_type(ml_size, ml_size);
+write_compress_type(ml_line, ml_line);
+write_compress_type(ml_argument, ml_argument);
+write_compress_type(ml_integer, ml_integer);
+write_compress_type(ml_decimal, ml_decimal);
+write_compress_type(ml_version, ml_version);
+write_compress_type(enum value_type, value_type);
+write_compress_type(morphine_opcode_t, opcode);
+write_type(char, char);
+write_type(bool, bool);
+write_type(uint8_t, uint8);
+write_type(uint32_t, uint32);
 
 static void write_object_string(struct data *D, struct string *string) {
     write_ml_size(D, string->size);
@@ -102,11 +102,11 @@ static void write_object_string(struct data *D, struct string *string) {
 
 #define write_wrapper(t, n) void packerI_write_##n(struct packer_write *W, t value) { write_##n(W->D, value); }
 
-write_wrapper(ml_size, ml_size)
-write_wrapper(ml_line, ml_line)
-write_wrapper(ml_argument, ml_argument)
-write_wrapper(morphine_opcode_t, opcode)
-write_wrapper(bool, bool)
+write_wrapper(ml_size, ml_size);
+write_wrapper(ml_line, ml_line);
+write_wrapper(ml_argument, ml_argument);
+write_wrapper(morphine_opcode_t, opcode);
+write_wrapper(bool, bool);
 
 void packerI_write_object_string(struct packer_write *W, struct string *value) {
     write_object_string(W->D, value);
@@ -119,7 +119,7 @@ void packerI_write_value(struct packer_write *W, struct value value) {
         throwI_error(W->D->I, "unrecognized value");
     }
 
-    write_ml_integer(W->D, valueI_as_integer_or_error(W->D->I, key));
+    write_ml_size(W->D, valueI_as_index_or_error(W->D->I, key));
 }
 
 void packerI_vectorize_append(struct packer_vectorize *V, struct value value) {
@@ -154,22 +154,12 @@ static void vectorize(struct data *D) {
             case VALUE_TYPE_INTEGER:
             case VALUE_TYPE_DECIMAL:
             case VALUE_TYPE_BOOLEAN:
-            case VALUE_TYPE_STRING:
-                break;
-            case VALUE_TYPE_TABLE:
-                tableI_packer_vectorize(valueI_as_table(pair.key), &vectorize);
-                break;
-            case VALUE_TYPE_VECTOR:
-                vectorI_packer_vectorize(valueI_as_vector(pair.key), &vectorize);
-                break;
-            case VALUE_TYPE_FUNCTION:
-                functionI_packer_vectorize(valueI_as_function(pair.key), &vectorize);
-                break;
-            case VALUE_TYPE_CLOSURE:
-                closureI_packer_vectorize(valueI_as_closure(pair.key), &vectorize);
-                break;
-            default:
-                throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
+            case VALUE_TYPE_STRING: break;
+            case VALUE_TYPE_TABLE: tableI_packer_vectorize(valueI_as_table(pair.key), &vectorize); break;
+            case VALUE_TYPE_VECTOR: vectorI_packer_vectorize(valueI_as_vector(pair.key), &vectorize); break;
+            case VALUE_TYPE_FUNCTION: functionI_packer_vectorize(valueI_as_function(pair.key), &vectorize); break;
+            case VALUE_TYPE_CLOSURE: closureI_packer_vectorize(valueI_as_closure(pair.key), &vectorize); break;
+            default: throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
         }
     }
 }
@@ -224,37 +214,19 @@ static void write_objects_info(struct data *D) {
             throwI_error(D->I, "vectorize value failed");
         }
 
-        write_ml_integer(D, valueI_as_integer_or_error(D->I, pair.value));
+        write_ml_size(D, valueI_as_index_or_error(D->I, pair.value));
         write_value_type(D, pair.key.type);
         switch (pair.key.type) {
-            case VALUE_TYPE_NIL:
-                break;
-            case VALUE_TYPE_INTEGER:
-                write_ml_integer(D, valueI_as_integer(pair.key));
-                break;
-            case VALUE_TYPE_DECIMAL:
-                write_ml_decimal(D, valueI_as_decimal(pair.key));
-                break;
-            case VALUE_TYPE_BOOLEAN:
-                write_bool(D, valueI_as_boolean(pair.key));
-                break;
-            case VALUE_TYPE_STRING:
-                write_object_string(D, valueI_as_string(pair.key));
-                break;
-            case VALUE_TYPE_TABLE:
-                tableI_packer_write_info(valueI_as_table(pair.key), &write);
-                break;
-            case VALUE_TYPE_VECTOR:
-                vectorI_packer_write_info(valueI_as_vector(pair.key), &write);
-                break;
-            case VALUE_TYPE_FUNCTION:
-                functionI_packer_write_info(valueI_as_function(pair.key), &write);
-                break;
-            case VALUE_TYPE_CLOSURE:
-                closureI_packer_write_info(valueI_as_closure(pair.key), &write);
-                break;
-            default:
-                throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
+            case VALUE_TYPE_NIL: break;
+            case VALUE_TYPE_INTEGER: write_ml_integer(D, valueI_as_integer(pair.key)); break;
+            case VALUE_TYPE_DECIMAL: write_ml_decimal(D, valueI_as_decimal(pair.key)); break;
+            case VALUE_TYPE_BOOLEAN: write_bool(D, valueI_as_boolean(pair.key)); break;
+            case VALUE_TYPE_STRING: write_object_string(D, valueI_as_string(pair.key)); break;
+            case VALUE_TYPE_TABLE: tableI_packer_write_info(valueI_as_table(pair.key), &write); break;
+            case VALUE_TYPE_VECTOR: vectorI_packer_write_info(valueI_as_vector(pair.key), &write); break;
+            case VALUE_TYPE_FUNCTION: functionI_packer_write_info(valueI_as_function(pair.key), &write); break;
+            case VALUE_TYPE_CLOSURE: closureI_packer_write_info(valueI_as_closure(pair.key), &write); break;
+            default: throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
         }
     }
 }
@@ -276,22 +248,12 @@ static void write_objects_data(struct data *D) {
             case VALUE_TYPE_INTEGER:
             case VALUE_TYPE_DECIMAL:
             case VALUE_TYPE_BOOLEAN:
-            case VALUE_TYPE_STRING:
-                break;
-            case VALUE_TYPE_TABLE:
-                tableI_packer_write_data(valueI_as_table(pair.key), &write);
-                break;
-            case VALUE_TYPE_VECTOR:
-                vectorI_packer_write_data(valueI_as_vector(pair.key), &write);
-                break;
-            case VALUE_TYPE_FUNCTION:
-                functionI_packer_write_data(valueI_as_function(pair.key), &write);
-                break;
-            case VALUE_TYPE_CLOSURE:
-                closureI_packer_write_data(valueI_as_closure(pair.key), &write);
-                break;
-            default:
-                throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
+            case VALUE_TYPE_STRING: break;
+            case VALUE_TYPE_TABLE: tableI_packer_write_data(valueI_as_table(pair.key), &write); break;
+            case VALUE_TYPE_VECTOR: vectorI_packer_write_data(valueI_as_vector(pair.key), &write); break;
+            case VALUE_TYPE_FUNCTION: functionI_packer_write_data(valueI_as_function(pair.key), &write); break;
+            case VALUE_TYPE_CLOSURE: closureI_packer_write_data(valueI_as_closure(pair.key), &write); break;
+            default: throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
         }
     }
 }

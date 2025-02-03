@@ -2,14 +2,14 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include <string.h>
 #include "morphine/object/userdata.h"
+#include "morphine/algorithm/hash.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
-#include "morphine/algorithm/hash.h"
 #include "morphine/utils/compare.h"
+#include <string.h>
 
 static struct userdata *create(morphine_instance_t I) {
     struct userdata *result = allocI_uni(I, NULL, sizeof(struct userdata));
@@ -84,9 +84,7 @@ struct userdata *userdataI_create(morphine_instance_t I, size_t size) {
     return userdata;
 }
 
-struct userdata *userdataI_create_vec(
-    morphine_instance_t I, size_t count, size_t size
-) {
+struct userdata *userdataI_create_vec(morphine_instance_t I, size_t count, size_t size) {
     gcI_safe_enter(I);
     struct userdata *userdata = gcI_safe_obj(I, userdata, create(I));
 
@@ -242,11 +240,11 @@ ml_hash userdataI_hash(morphine_instance_t I, struct userdata *userdata) {
         struct usertype_info info = usertypeI_info(I, userdata->typed.usertype);
 
         if (info.hash == NULL) {
-            return calchash(info.allocate, userdata->data);
+            return calchash(userdata->data, info.allocate);
         } else {
             return info.hash(I, userdata->data);
         }
     }
 
-    return calchash(userdata->untyped.size, userdata->data);
+    return calchash(userdata->data, userdata->untyped.size);
 }

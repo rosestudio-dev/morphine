@@ -117,24 +117,16 @@
 
 // size
 
-#define valueI_integer2namedsize(I, x, name) ({ml_integer _i = (x); if(mm_unlikely(_i < 0 || (_i) > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %"MLIMIT_INTEGER_PR" to %s", _i, (name)); ((ml_size) _i);})
-#define valueI_csize2namedsize(I, x, name)   ({size_t _s = (x); if(mm_unlikely(_s > MLIMIT_SIZE_MAX)) throwI_errorf((I), "cannot convert %zu to %s", _s, (name)); ((ml_size) _s);})
-
-#define valueI_size(x)             valueI_integer((ml_integer) (x))
-#define valueI_csize2size(I, x)    valueI_csize2namedsize(I, x, "size")
-#define valueI_csize2index(I, x)   valueI_csize2namedsize(I, x, "index")
-#define valueI_integer2size(I, x)  valueI_integer2namedsize(I, x, "size")
-#define valueI_integer2index(I, x) valueI_integer2namedsize(I, x, "index")
-#define valueI_is_size(x)          ({struct value _temp = (x); (valueI_is_integer(_temp) && ((valueI_as_integer(_temp) >= 0) && (valueI_as_integer(_temp) <= MLIMIT_SIZE_MAX)));})
-
-// hash
-
-#define valueI_hash2value(x)       valueI_size(x)
-#define valueI_integer2hash(I, x) ((ml_hash) valueI_integer2namedsize(I, x, "hash"))
+#define valueI_size(x) valueI_integer((ml_integer) (x))
+#define valueI_as_namesize_or_error(I, x, m) mm_overflow_opc_ucast(ml_size, valueI_as_integer_or_error((I), (x)), throwI_error((I), "cannot convert integer to "m))
+#define valueI_as_size_or_error(I, x)  valueI_as_namesize_or_error(I, x, "size")
+#define valueI_as_index_or_error(I, x) valueI_as_namesize_or_error(I, x, "index")
 
 // other
 
 #define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
+
+// value
 
 struct value {
     enum value_type type;

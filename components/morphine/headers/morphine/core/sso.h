@@ -13,5 +13,5 @@ struct sso {
 
 struct sso ssoI_prototype(void);
 
-struct string *ssoI_get(morphine_instance_t, const char *, size_t);
+struct string *ssoI_get(morphine_instance_t, const char *, ml_size);
 void ssoI_rec(morphine_instance_t, struct string *);

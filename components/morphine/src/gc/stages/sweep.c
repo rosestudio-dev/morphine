@@ -17,11 +17,7 @@ bool gcstageI_sweep(morphine_instance_t I, size_t debt) {
             struct object *prev = current->prev;
 
             size_t size = size_obj(I, current);
-            overflow_add(size, checked, SIZE_MAX) {
-                checked = SIZE_MAX;
-            } else {
-                checked += size;
-            }
+            checked = mm_overflow_opd_add(size, checked, SIZE_MAX);
 
             objectI_free(I, current);
             current = prev;
@@ -34,12 +30,14 @@ bool gcstageI_sweep(morphine_instance_t I, size_t debt) {
     }
 
     if (mm_unlikely(I->G.pools.sweep == NULL)) {
+        size_t allocated;
         if (I->G.stats.allocated > I->G.settings.threshold) {
-            I->G.stats.prev_allocated = I->G.stats.allocated;
+            allocated = I->G.stats.allocated;
         } else {
-            I->G.stats.prev_allocated = I->G.settings.threshold;
+            allocated = I->G.settings.threshold;
         }
 
+        I->G.stats.prev_allocated = allocated;
         return false;
     }
 
