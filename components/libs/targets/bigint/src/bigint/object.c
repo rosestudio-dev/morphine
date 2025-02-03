@@ -93,9 +93,9 @@ static ml_hash bigint_userdata_hash(morphine_instance_t I, void *data) {
     (void) I;
     struct mlib_bigint *bigint = data;
 
-    ml_hash result = mapi_misc_hash(bigint->size, bigint->digits);
-    result ^= mapi_misc_hash(sizeof(bigint->size), (const uint8_t *) &bigint->size);
-    result ^= mapi_misc_hash(sizeof(bigint->is_negative), (const uint8_t *) &bigint->is_negative);
+    ml_hash result = mapi_misc_hash(bigint->digits, bigint->size);
+    result ^= mapi_misc_hash((const uint8_t *) &bigint->size, sizeof(bigint->size));
+    result ^= mapi_misc_hash((const uint8_t *) &bigint->is_negative, sizeof(bigint->is_negative));
 
     return result;
 }
@@ -149,7 +149,7 @@ static void bigint_append(morphine_coroutine_t U, struct mlib_bigint *bigint, di
     }
 
     if (bigint->size == bigint->allocated) {
-        overflow_add(bigint->allocated, BIGINT_AMORTIZATION, SIZE_MAX) {
+        mm_overflow_add(bigint->allocated, BIGINT_AMORTIZATION) {
             mapi_error(U, "bigint overflow");
         }
 

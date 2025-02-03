@@ -75,10 +75,10 @@ static void lib_size(morphine_coroutine_t U) {
             } else {
                 mapi_push_table(U);
 
-                mapi_push_size(U, winsize.ws_row, NULL);
+                mapi_push_integer(U, winsize.ws_row);
                 maux_table_set(U, "row");
 
-                mapi_push_size(U, winsize.ws_col, NULL);
+                mapi_push_integer(U, winsize.ws_col);
                 maux_table_set(U, "col");
             }
 

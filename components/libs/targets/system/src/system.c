@@ -39,7 +39,7 @@ static void lib_millis(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 0);
-            mapi_push_integer(U, (ml_integer) (get_millis() % (uint64_t) MLIMIT_INTEGER_MAX));
+            mapi_push_integer(U, (ml_integer) (get_millis() % (uint64_t) mm_typemax(ml_integer)));
             maux_nb_return();
     maux_nb_end
 }

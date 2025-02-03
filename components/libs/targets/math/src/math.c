@@ -391,7 +391,7 @@ static void math_rand(morphine_coroutine_t U) {
         maux_nb_init
             maux_expect_args(U, 0);
             maux_sharedstorage_get(U, SHAREDKEY, "rand-data");
-            mapi_push_size(U, rand_gen(U), "rand");
+            mapi_push_integer(U, rand_gen(U));
             maux_nb_return();
     maux_nb_end
 }

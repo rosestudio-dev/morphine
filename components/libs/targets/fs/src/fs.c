@@ -474,7 +474,7 @@ static void lib_remove(morphine_coroutine_t U) {
             mapi_push_arg(U, 0);
             const char *path = mapi_get_cstr(U);
             if (isdir(U, path)) {
-                mapi_push_size(U, 0, "index");
+                mapi_push_integer(U, 0);
                 maux_localstorage_set(U, "index");
                 maux_nb_im_continue(1);
             } else {
@@ -504,12 +504,15 @@ static void lib_remove(morphine_coroutine_t U) {
             mapi_rotate(U, 2);
             mapi_string_concat(U);
 
-            mapi_push_size(U, index + 1, "index");
+            mapi_push_integer(U, index + 1);
             maux_localstorage_set(U, "index");
 
             const char *path = mapi_get_cstr(U);
             if (isdir(U, path)) {
-                mapi_push_recursion(U);
+                mapi_push_callable(U);
+                mapi_extract_source(U);
+                mapi_rotate(U, 2);
+                mapi_pop(U, 1);
                 mapi_peek(U, 1);
                 maux_nb_call(1, 4);
             } else {

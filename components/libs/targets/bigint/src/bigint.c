@@ -74,23 +74,23 @@ static inline void binary(
 ) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
+            maux_expect_args(U, 2);
+            mapi_push_arg(U, 1);
             maux_nb_operation("type", 1);
         maux_nb_state(1)
             mapi_push_result(U);
             struct mlib_bigint *bigintB;
             if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
-                mapi_push_arg(U, 0);
+                mapi_push_arg(U, 1);
                 mapi_push_string(U, "instance");
                 mapi_table_get(U);
                 bigintB = mlapi_get_bigint(U);
             } else {
-                mapi_push_arg(U, 0);
+                mapi_push_arg(U, 1);
                 bigintB = bigint_from(U);
             }
 
-            mapi_push_self(U);
+            mapi_push_arg(U, 0);
             mapi_push_string(U, "instance");
             mapi_table_get(U);
             struct mlib_bigint *bigintA = mlapi_get_bigint(U);
@@ -112,19 +112,19 @@ static inline void unary(
 ) {
     maux_nb_function(U)
         maux_nb_init
-            maux_expect_args(U, 0);
-            mapi_push_self(U);
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
             maux_nb_operation("type", 1);
         maux_nb_state(1)
             mapi_push_result(U);
             struct mlib_bigint *bigintA;
             if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
-                mapi_push_self(U);
+                mapi_push_arg(U, 0);
                 mapi_push_string(U, "instance");
                 mapi_table_get(U);
                 bigintA = mlapi_get_bigint(U);
             } else {
-                mapi_push_self(U);
+                mapi_push_arg(U, 0);
                 bigintA = bigint_from(U);
             }
 
@@ -163,7 +163,7 @@ static void op_bigint_compare(
 }
 
 static void op_bigint_hash(morphine_coroutine_t U, struct mlib_bigint *bigint) {
-    mapi_push_hash(U, mlapi_bigint_hash(U, bigint));
+    mapi_push_integer(U, mlapi_bigint_hash(U, bigint));
 }
 
 static void lib_bigint_add(morphine_coroutine_t U) {

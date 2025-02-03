@@ -169,7 +169,7 @@ MORPHINE_API void mlapi_process_spawn(morphine_coroutine_t U, bool env) {
 
         {
             size_t size = len;
-            overflow_add(size, 1, SIZE_MAX) {
+            mm_overflow_add(size, 1) {
                 mapi_error(U, "env array overflow");
             }
 
@@ -188,8 +188,8 @@ MORPHINE_API void mlapi_process_spawn(morphine_coroutine_t U, bool env) {
             mapi_rotate(U, 2);
             mapi_rotate(U, 3);
 
-            size_t str_size = overflow_op_add(key_len, val_len, SIZE_MAX, mapi_error(U, "env element overflow"));
-            str_size = overflow_op_add(str_size, 2, SIZE_MAX, mapi_error(U, "env element overflow"));
+            size_t str_size = mm_overflow_opc_add(key_len, val_len, mapi_error(U, "env element overflow"));
+            str_size = mm_overflow_opc_add(str_size, 2, mapi_error(U, "env element overflow"));
 
             char *elem = mapi_allocator_vec(mapi_instance(U), NULL, str_size, sizeof(char));
             memcpy(elem, key_str, key_len);
