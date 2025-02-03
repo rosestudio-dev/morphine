@@ -32,6 +32,7 @@ struct env {
         struct {
             jclass error;
             jclass panic;
+            jclass other;
         } exception;
 
         struct {

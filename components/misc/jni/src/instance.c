@@ -12,7 +12,7 @@
 #include <setjmp.h>
 #include <malloc.h>
 
-static jint jniint(JNIEnv *jnienv, jobject this, const char *name) {
+static jint get_jint_field(JNIEnv *jnienv, jobject this, const char *name) {
     jclass class = J(jnienv, GetObjectClass, this);
     jfieldID id = J(jnienv, GetFieldID, class, name, "I");
     jint result = J(jnienv, GetIntField, this, id);
@@ -21,18 +21,36 @@ static jint jniint(JNIEnv *jnienv, jobject this, const char *name) {
     return result;
 }
 
-static morphine_settings_t morphine_settings(JNIEnv *jnienv, jobject this) {
+static size_t jint2size(jint value, bool *error) {
+    return mm_overflow_opc_cast(size_t, value, *error = true);
+}
+
+static ml_size jint2mlsize(jint value, bool *error) {
+    return mm_overflow_opc_cast(ml_size, value, *error = true);
+}
+
+static void jstring2mlstring(morphine_coroutine_t U, JNIEnv *jnienv, jstring text) {
+    ml_size size =
+        mm_overflow_opc_cast(ml_size, J(jnienv, GetStringUTFLength, text), mapi_error(U, "too large string"));
+    const char *chars = J(jnienv, GetStringUTFChars, text, NULL);
+
+    mapi_push_stringn(U, chars, size);
+
+    J(jnienv, ReleaseStringUTFChars, text, chars);
+}
+
+static morphine_settings_t morphine_settings(JNIEnv *jnienv, jobject this, const char *name, bool *error) {
     jclass class = J(jnienv, GetObjectClass, this);
-    jfieldID settings_id = J(jnienv, GetFieldID, class, "settings", "Lru/why/morphine/jni/Morphine$Settings;");
+    jfieldID settings_id = J(jnienv, GetFieldID, class, name, "Lru/why/morphine/jni/Morphine$Settings;");
 
     jobject settings = J(jnienv, GetObjectField, this, settings_id);
     morphine_settings_t result = {
-        .gc.limit = jniutils_jint2size(jniint(jnienv, settings, "gcLimit")),
-        .gc.threshold = jniutils_jint2size(jniint(jnienv, settings, "gcThreshold")),
-        .gc.grow = (uint16_t) jniutils_jint2size(jniint(jnienv, settings, "gcGrow")),
-        .gc.deal = (uint16_t) jniutils_jint2size(jniint(jnienv, settings, "gcDeal")),
-        .gc.pause = (uint8_t) jniutils_jint2size(jniint(jnienv, settings, "gcPause")),
-        .coroutines.stack.limit = jniutils_jint2mlsize(jniint(jnienv, settings, "coroutinesStackLimit"))
+        .gc.limit = jint2size(get_jint_field(jnienv, settings, "gcLimit"), error),
+        .gc.threshold = jint2size(get_jint_field(jnienv, settings, "gcThreshold"), error),
+        .gc.grow = jint2size(get_jint_field(jnienv, settings, "gcGrow"), error),
+        .gc.deal = jint2size(get_jint_field(jnienv, settings, "gcDeal"), error),
+        .gc.pause = jint2size(get_jint_field(jnienv, settings, "gcPause"), error),
+        .coroutines.stack.limit = jint2mlsize(get_jint_field(jnienv, settings, "coroutinesStackLimit"), error)
     };
 
     J(jnienv, DeleteLocalRef, class);
@@ -50,7 +68,13 @@ JNIEXPORT void JNICALL Java_ru_why_morphine_jni_Morphine_compiler(
     struct env env = env_init(jnienv, this);
     jmp_env(&env, return, return)
 
-    morphine_settings_t settings = morphine_settings(jnienv, this);
+    bool settings_error = false;
+    morphine_settings_t settings = morphine_settings(jnienv, this, "compilerSettings", &settings_error);
+    if (settings_error) {
+        J(env.jnienv, ThrowNew, env.exception.other, "wrong settings parameter");
+        return;
+    }
+
     morphine_platform_t platform = env_platform();
 
     morphine_instance_t I = mapi_open(platform, settings, &env);
@@ -59,7 +83,7 @@ JNIEXPORT void JNICALL Java_ru_why_morphine_jni_Morphine_compiler(
     morphine_coroutine_t U = mapi_coroutine(I);
 
     push_jnistream(U, jnienv, NULL, output, false);
-    jniutils_jstring2mlstring(U, jnienv, text, NULL);
+    jstring2mlstring(U, jnienv, text);
     mcapi_compile(U, "jnimain", false);
     mapi_pack(U);
 
@@ -74,7 +98,13 @@ JNIEXPORT void JNICALL Java_ru_why_morphine_jni_Morphine_interpreter(
     struct env env = env_init(jnienv, this);
     jmp_env(&env, return, return)
 
-    morphine_settings_t settings = morphine_settings(jnienv, this);
+    bool settings_error = false;
+    morphine_settings_t settings = morphine_settings(jnienv, this, "interpreterSettings", &settings_error);
+    if (settings_error) {
+        J(env.jnienv, ThrowNew, env.exception.other, "wrong settings parameter");
+        return;
+    }
+
     morphine_platform_t platform = env_platform();
 
     morphine_instance_t I = mapi_open(platform, settings, &env);

@@ -141,6 +141,7 @@ struct env env_init(JNIEnv *jnienv, jobject this) {
 
     env.exception.error = J(jnienv, FindClass, "ru/why/morphine/jni/MorphineException$Error");
     env.exception.panic = J(jnienv, FindClass, "ru/why/morphine/jni/MorphineException$Panic");
+    env.exception.other = J(jnienv, FindClass, "ru/why/morphine/jni/MorphineException$Other");
 
     env.value.clazz = J(jnienv, FindClass, "ru/why/morphine/jni/MorphineValue");
 
@@ -242,6 +243,9 @@ morphine_platform_t env_platform(void) {
         .memory.free = platform_free,
         .stream.io = maux_stream_interface_srwf(platform_io_read, platform_io_write, platform_io_flush),
         .stream.err = maux_stream_interface_swf(platform_io_error_write, platform_io_error_flush),
+#ifdef MORPHINE_ENABLE_INTERPRETER_YIELD
+        .yield = NULL,
+#endif
     };
 }
 

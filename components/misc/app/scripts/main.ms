@@ -18,7 +18,7 @@ do {
         return result
     }
 
-    env.private_libs = ["__app", "closure"]
+    env.private_libs = ["__app"]
 }
 
 env.load("launcher")

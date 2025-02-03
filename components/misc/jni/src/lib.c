@@ -6,6 +6,14 @@
 #include "env.h"
 #include "jniutils.h"
 
+static inline jsize mlsize2jsize(morphine_coroutine_t U, ml_size value) {
+    return mm_overflow_opc_cast(jsize, value, mapi_error(U, "unable to convert to jni size"));
+}
+
+static inline ml_size jsize2mlsize(morphine_coroutine_t U, jsize value) {
+    return mm_overflow_opc_cast(ml_size, value, mapi_error(U, "unable to convert to size"));
+}
+
 static jobject mprimitive2jvalue(morphine_coroutine_t U, struct env *env) {
     jobject value;
     if (mapi_is_type(U, "nil")) {
@@ -37,7 +45,7 @@ static jobject mprimitive2jvalue(morphine_coroutine_t U, struct env *env) {
 static jobject mvalue2jvalue(morphine_coroutine_t U, struct env *env) {
     if (mapi_is_type(U, "table")) {
         ml_size table_size = mapi_table_len(U);
-        jsize size = jniutils_mlsize2jsize(U, table_size, NULL);
+        jsize size = mlsize2jsize(U, table_size);
         jobject map = J(env->jnienv, NewObject, env->hash_map.clazz, env->hash_map.constructor_id, size);
         jniutils_check_exception(mapi_instance(U), env->jnienv);
 
@@ -65,7 +73,7 @@ static jobject mvalue2jvalue(morphine_coroutine_t U, struct env *env) {
         return vector;
     } else if (mapi_is_type(U, "vector")) {
         ml_size vector_len = mapi_vector_len(U);
-        jsize size = jniutils_mlsize2jsize(U, vector_len, NULL);
+        jsize size = mlsize2jsize(U, vector_len);
         jobject list = J(env->jnienv, NewObject, env->array_list.clazz, env->array_list.constructor_id, size);
         jniutils_check_exception(mapi_instance(U), env->jnienv);
 
@@ -163,7 +171,7 @@ static void jvalue2mvalue(morphine_coroutine_t U, struct env *env, jobject objec
         jsize size = J(env->jnienv, CallIntMethod, list, env->array_list.size_id);
         jniutils_check_exception(mapi_instance(U), env->jnienv);
 
-        ml_size vector_len = jniutils_jsize2mlsize(U, size, NULL);
+        ml_size vector_len = jsize2mlsize(U, size);
         mapi_push_vector(U, vector_len);
 
         for (ml_size i = 0; i < vector_len; i++) {
@@ -195,7 +203,7 @@ static void lib_call(morphine_coroutine_t U) {
             jobjectArray array;
             {
                 ml_size size = mapi_args(U) - 1;
-                jsize args = jniutils_mlsize2jsize(U, size, NULL);
+                jsize args = mlsize2jsize(U, size);
                 array = J(env->jnienv, NewObjectArray, args, env->value.clazz, NULL);
                 jniutils_check_exception(mapi_instance(U), env->jnienv);
 

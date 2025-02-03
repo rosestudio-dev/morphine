@@ -107,6 +107,9 @@ static int launcher(struct env *env, int argc, char **argv) {
         .memory.free = vmfree,
         .stream.io = maux_stream_interface_srwf(io_read, io_write, io_flush),
         .stream.err = maux_stream_interface_swf(io_error_write, io_error_flush),
+#ifdef MORPHINE_ENABLE_INTERPRETER_YIELD
+        .yield = NULL,
+#endif
     };
 
     morphine_instance_t I = mapi_open(instance_platform, settings, env);

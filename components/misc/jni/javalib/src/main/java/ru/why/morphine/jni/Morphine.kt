@@ -6,9 +6,10 @@ import java.io.InputStream
 import java.io.OutputStream
 
 class Morphine(
-    private val settings: Settings = Settings(),
+    private val interpreterSettings: Settings = Settings(),
+    private val compilerSettings: Settings = interpreterSettings,
     private val bridge: Bridge = Bridge(),
-    private val callable: Callable? = null
+    private val callable: Callable = Callable { _, _ -> MorphineValue.Nil }
 ) {
     companion object {
         init {
