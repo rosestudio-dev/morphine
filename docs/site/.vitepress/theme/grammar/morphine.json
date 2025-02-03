@@ -11,7 +11,7 @@
       "name": "keyword.operator.morphine"
     },
     {
-      "match": "\\b(true|false|nil|env|self|invoked)\\b",
+      "match": "\\b(true|false|nil|env|invoked)\\b",
       "name": "constant.other.morphine"
     },
     {

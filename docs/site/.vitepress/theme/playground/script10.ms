@@ -8,9 +8,9 @@ val format = env.lib("string.format")
 val bigint = env.lib("bigint.wrap")
 
 fun cachable<auto>(function) = base.setmetatable({ function, cache = { } }) {
-    fun _mf_call<base, serialize>(s, arguments) {
-        val key = serialize(arguments) .. serialize(s)
-        val result = self.cache[key] or base.vcall!s(self.function, arguments .. [self])
+    fun _mf_call<base, serialize>(self, arguments) {
+        val key = serialize(arguments)
+        val result = self.cache[key] or base.vcall(self.function, arguments .. [self])
 
         self.cache[key] = result
         return result

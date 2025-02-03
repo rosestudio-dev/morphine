@@ -56,7 +56,6 @@ static void launcher(struct environment *env, const char *text, size_t size) {
         .gc.grow = 150,
         .gc.deal = 200,
         .gc.pause = 13,
-        .gc.cache.callinfo = 16,
         .coroutines.stack.limit = 4096
     };
 
@@ -79,8 +78,6 @@ static void launcher(struct environment *env, const char *text, size_t size) {
     mcapi_compile(U, "main", false);
 
     mapi_call(U, 0);
-    mapi_attach(U);
-
     mapi_interpreter(I);
 
     mapi_close(I);

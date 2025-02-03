@@ -163,6 +163,7 @@ void gcI_work(morphine_instance_t I, size_t reserved) {
     gcI_full(I);
 #endif
 exit:
+    (void) allocated;
     mm_assert(I, allocated >= I->G.stats.allocated, "allocation growing after gc work");
 }
 
@@ -180,5 +181,6 @@ void gcI_full(morphine_instance_t I) {
     I->G.status = GC_STATUS_IDLE;
     throwI_danger_exit(I);
 
+    (void) allocated;
     mm_assert(I, allocated >= I->G.stats.allocated, "allocation growing after gc full work");
 }
