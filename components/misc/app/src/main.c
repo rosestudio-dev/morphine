@@ -97,7 +97,6 @@ static int launcher(struct env *env, int argc, char **argv) {
         .gc.grow = 150,
         .gc.deal = 200,
         .gc.pause = 13,
-        .gc.cache.callinfo = 16,
         .coroutines.stack.limit = 65536
     };
 
@@ -123,8 +122,6 @@ static int launcher(struct env *env, int argc, char **argv) {
     mcapi_compile(U, "app", false);
 
     mapi_call(U, 0);
-
-    mapi_attach(U);
     mapi_interpreter(I);
 
     mapi_close(I);

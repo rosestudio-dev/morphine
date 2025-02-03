@@ -1,4 +1,4 @@
-val { version, pcall, ecall, println } = env.lib("base")
+val { version, pcall, chgenv, println } = env.lib("base")
 val { exit } = env.lib("__app")
 val { tostr } = env.lib("value")
 val { pack, unpack } = env.lib("packer")
@@ -101,12 +101,15 @@ if (config.export != nil) {
 }
 
 if (config.run) {
-    val environment = {
+    val oldenv = env
+    val newenv = {
         lib = fakelib,
         args = vector.copy(config.args)
     }
 
-    val result = ecall(environment, content)
+    chgenv(newenv)
+    val result = content()
+    chgenv(oldenv)
 
     if (config.inline) {
         println(result)

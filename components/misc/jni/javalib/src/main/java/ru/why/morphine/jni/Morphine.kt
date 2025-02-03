@@ -41,7 +41,6 @@ class Morphine(
         @JvmField val gcGrow: Int = 150,
         @JvmField val gcDeal: Int = 200,
         @JvmField val gcPause: Int = 13,
-        @JvmField val gcCacheCallinfo: Int = 64,
         @JvmField val coroutinesStackLimit: Int = 65536
     )
 

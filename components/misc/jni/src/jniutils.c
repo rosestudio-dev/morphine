@@ -11,6 +11,10 @@ size_t jniutils_jint2size(jint value) {
     return value < 0 ? 0 : (size_t) value;
 }
 
+ml_size jniutils_jint2mlsize(jint value) {
+    return value < 0 ? 0 : (ml_size) value;
+}
+
 jsize jniutils_size2jsize(morphine_coroutine_t U, size_t size, bool *error) {
     if (size > INT32_MAX) {
         if (error == NULL) {

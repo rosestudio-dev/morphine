@@ -32,8 +32,7 @@ static morphine_settings_t morphine_settings(JNIEnv *jnienv, jobject this) {
         .gc.grow = (uint16_t) jniutils_jint2size(jniint(jnienv, settings, "gcGrow")),
         .gc.deal = (uint16_t) jniutils_jint2size(jniint(jnienv, settings, "gcDeal")),
         .gc.pause = (uint8_t) jniutils_jint2size(jniint(jnienv, settings, "gcPause")),
-        .gc.cache.callinfo = jniutils_jint2size(jniint(jnienv, settings, "gcCacheCallinfo")),
-        .coroutines.stack.limit = jniutils_jint2size(jniint(jnienv, settings, "coroutinesStackLimit"))
+        .coroutines.stack.limit = jniutils_jint2mlsize(jniint(jnienv, settings, "coroutinesStackLimit"))
     };
 
     J(jnienv, DeleteLocalRef, class);
@@ -93,8 +92,6 @@ JNIEXPORT void JNICALL Java_ru_why_morphine_jni_Morphine_interpreter(
     mapi_pop(U, 1);
 
     mapi_call(U, 0);
-    mapi_attach(U);
-
     mapi_interpreter(I);
     mapi_close(I);
 }

@@ -1,4 +1,4 @@
-val { version, pcall, ecall, println } = env.lib("base")
+val { version, pcall, chgenv, println } = env.lib("base")
 val exception = env.lib("exception")
 val compiler = env.lib("compiler")
 val app = env.lib("__app")
@@ -16,7 +16,12 @@ fun repl<auto>() {
             name = "replfun"
         }
 
-        return ecall(data.environment, compiled)
+        val oldenv = env
+        chgenv(data.environment)
+        val result = pcall(compiled)
+        chgenv(oldenv)
+
+        return result
     }
 
     fun exit<auto>() {

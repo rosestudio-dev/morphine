@@ -8,8 +8,8 @@
 #include "jniutils.h"
 
 static size_t platform_io_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
-    (void) I;
-    struct env *env = data;
+    (void) data;
+    struct env *env = mapi_instance_data(I);
 
     for (size_t i = 0; i < size; i++) {
         J(env->jnienv, CallVoidMethod, env->output.object, env->output.write_id, (jint) buffer[i]);
@@ -23,8 +23,8 @@ static size_t platform_io_write(morphine_instance_t I, void *data, const uint8_t
 }
 
 static size_t platform_io_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
-    (void) I;
-    struct env *env = data;
+    (void) data;
+    struct env *env = mapi_instance_data(I);
 
     size_t success = 0;
     for (size_t i = 0; i < size; i++) {
@@ -41,14 +41,15 @@ static size_t platform_io_read(morphine_instance_t I, void *data, uint8_t *buffe
 }
 
 static void platform_io_flush(morphine_instance_t I, void *data) {
-    struct env *env = data;
+    (void) data;
+    struct env *env = mapi_instance_data(I);
     J(env->jnienv, CallVoidMethod, env->output.object, env->output.flush_id);
     jniutils_check_exception(I, env->jnienv);
 }
 
 static size_t platform_io_error_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
-    (void) I;
-    struct env *env = data;
+    (void) data;
+    struct env *env = mapi_instance_data(I);
 
     for (size_t i = 0; i < size; i++) {
         J(env->jnienv, CallVoidMethod, env->error.object, env->error.write_id, (jint) buffer[i]);
@@ -62,7 +63,8 @@ static size_t platform_io_error_write(morphine_instance_t I, void *data, const u
 }
 
 static void platform_io_error_flush(morphine_instance_t I, void *data) {
-    struct env *env = data;
+    (void) data;
+    struct env *env = mapi_instance_data(I);
     J(env->jnienv, CallVoidMethod, env->error.object, env->error.flush_id);
     jniutils_check_exception(I, env->jnienv);
 }
