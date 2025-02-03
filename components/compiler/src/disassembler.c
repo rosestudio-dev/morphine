@@ -52,9 +52,6 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
         case MORPHINE_OPCODE_ENV:
             printf(SLOT" = env", arg(1));
             return;
-        case MORPHINE_OPCODE_SELF:
-            printf(SLOT" = self", arg(1));
-            return;
         case MORPHINE_OPCODE_INVOKED:
             printf(SLOT" = invoked callable", arg(1));
             return;
@@ -108,9 +105,6 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             return;
         case MORPHINE_OPCODE_CALL:
             printf("call "SLOT" with "APR" args", arg(1), arg(2));
-            return;
-        case MORPHINE_OPCODE_SCALL:
-            printf("call(self "SLOT") "SLOT" with "APR" args", arg(3), arg(1), arg(2));
             return;
         case MORPHINE_OPCODE_LEAVE:
             printf("leave");
@@ -307,14 +301,12 @@ MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
     mapi_pop(U, 1);
 
     ml_line line = mapi_function_line(U);
-    ml_size args = mapi_function_arguments(U);
     ml_size slots = mapi_function_slots(U);
     ml_size params = mapi_function_params(U);
     ml_size statics = mapi_static_size(U);
 
     printf("function(%s) {\n", name);
     printf("    line:    %"MLIMIT_LINE_PR"\n", line);
-    printf("    args:    %"MLIMIT_SIZE_PR"\n", args);
     printf("    slots:   %"MLIMIT_SIZE_PR"\n", slots);
     printf("    params:  %"MLIMIT_SIZE_PR"\n", params);
     printf("    statics: %"MLIMIT_SIZE_PR"\n", statics);

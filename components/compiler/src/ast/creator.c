@@ -27,23 +27,21 @@ ast_standard_impl_stmt(for)
 ast_standard_impl_stmt(iterator)
 
 ast_impl_stmt(assigment, ast_args(size_t count)) {
-    size_t alloc_size_keys = overflow_op_mul(
+    size_t alloc_size_keys = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression *),
         count,
-        SIZE_MAX,
         ast_overflow_error("keys")
     );
 
-    size_t alloc_size_values = overflow_op_mul(
+    size_t alloc_size_values = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression *),
         count,
-        SIZE_MAX,
         ast_overflow_error("values")
     );
 
     size_t alloc_size = sizeof(struct mc_ast_statement_assigment);
-    alloc_size = overflow_op_add(alloc_size, alloc_size_keys, SIZE_MAX, ast_overflow_error("assigment"));
-    alloc_size = overflow_op_add(alloc_size, alloc_size_values, SIZE_MAX, ast_overflow_error("assigment"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_keys, ast_overflow_error("assigment"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_values, ast_overflow_error("assigment"));
 
     struct mc_ast_statement *statement = ast_create_statement(
         U, A, MCSTMTT_assigment, line, from, to, alloc_size
@@ -61,23 +59,21 @@ ast_impl_stmt(assigment, ast_args(size_t count)) {
 }
 
 ast_impl_stmt(declaration, ast_args(size_t count)) {
-    size_t alloc_size_keys = overflow_op_mul(
+    size_t alloc_size_keys = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression_variable *),
         count,
-        SIZE_MAX,
         ast_overflow_error("keys")
     );
 
-    size_t alloc_size_values = overflow_op_mul(
+    size_t alloc_size_values = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression *),
         count,
-        SIZE_MAX,
         ast_overflow_error("values")
     );
 
     size_t alloc_size = sizeof(struct mc_ast_statement_declaration);
-    alloc_size = overflow_op_add(alloc_size, alloc_size_keys, SIZE_MAX, ast_overflow_error("declaration"));
-    alloc_size = overflow_op_add(alloc_size, alloc_size_values, SIZE_MAX, ast_overflow_error("declaration"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_keys, ast_overflow_error("declaration"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_values, ast_overflow_error("declaration"));
 
     struct mc_ast_statement *statement = ast_create_statement(
         U, A, MCSTMTT_declaration, line, from, to, alloc_size
@@ -98,7 +94,8 @@ ast_impl_stmt(declaration, ast_args(size_t count)) {
 
 ast_standard_impl_expr(value)
 ast_standard_impl_expr(function)
-ast_standard_impl_expr(global)
+ast_standard_impl_expr(env)
+ast_standard_impl_expr(invoked)
 ast_standard_impl_expr(leave)
 ast_standard_impl_expr(break)
 ast_standard_impl_expr(continue)
@@ -110,17 +107,15 @@ ast_standard_impl_expr(access)
 ast_standard_impl_expr(if)
 
 ast_impl_expr(vector, ast_args(size_t count)) {
-    size_t alloc_size_values = overflow_op_mul(
+    size_t alloc_size_values = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression *),
         count,
-        SIZE_MAX,
         ast_overflow_error("values")
     );
 
-    size_t alloc_size = overflow_op_add(
+    size_t alloc_size = mm_overflow_opc_add(
         sizeof(struct mc_ast_expression_vector),
         alloc_size_values,
-        SIZE_MAX,
         ast_overflow_error("vector")
     );
 
@@ -138,23 +133,21 @@ ast_impl_expr(vector, ast_args(size_t count)) {
 }
 
 ast_impl_expr(table, ast_args(size_t count)) {
-    size_t alloc_size_keys = overflow_op_mul(
+    size_t alloc_size_keys = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression *),
         count,
-        SIZE_MAX,
         ast_overflow_error("keys")
     );
 
-    size_t alloc_size_values = overflow_op_mul(
+    size_t alloc_size_values = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression *),
         count,
-        SIZE_MAX,
         ast_overflow_error("values")
     );
 
     size_t alloc_size = sizeof(struct mc_ast_expression_table);
-    alloc_size = overflow_op_add(alloc_size, alloc_size_keys, SIZE_MAX, ast_overflow_error("table"));
-    alloc_size = overflow_op_add(alloc_size, alloc_size_values, SIZE_MAX, ast_overflow_error("table"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_keys, ast_overflow_error("table"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_values, ast_overflow_error("table"));
 
     struct mc_ast_expression *expression = ast_create_expression(
         U, A, MCEXPRT_table, line, from, to, alloc_size
@@ -172,17 +165,15 @@ ast_impl_expr(table, ast_args(size_t count)) {
 }
 
 ast_impl_expr(call, ast_args(size_t args_count)) {
-    size_t alloc_size_statements = overflow_op_mul(
+    size_t alloc_size_statements = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression *),
         args_count,
-        SIZE_MAX,
         ast_overflow_error("args")
     );
 
-    size_t alloc_size = overflow_op_add(
+    size_t alloc_size = mm_overflow_opc_add(
         sizeof(struct mc_ast_expression_call),
         alloc_size_statements,
-        SIZE_MAX,
         ast_overflow_error("call")
     );
 
@@ -200,17 +191,15 @@ ast_impl_expr(call, ast_args(size_t args_count)) {
 }
 
 ast_impl_expr(block, ast_args(size_t count)) {
-    size_t alloc_size_statements = overflow_op_mul(
+    size_t alloc_size_statements = mm_overflow_opc_mul(
         sizeof(struct mc_ast_statement *),
         count,
-        SIZE_MAX,
         ast_overflow_error("statements")
     );
 
-    size_t alloc_size = overflow_op_add(
+    size_t alloc_size = mm_overflow_opc_add(
         sizeof(struct mc_ast_expression_block),
         alloc_size_statements,
-        SIZE_MAX,
         ast_overflow_error("block")
     );
 
@@ -229,31 +218,27 @@ ast_impl_expr(block, ast_args(size_t count)) {
 }
 
 ast_impl_expr(when, ast_args(size_t count)) {
-    size_t alloc_size_conditions = overflow_op_mul(
+    size_t alloc_size_conditions = mm_overflow_opc_mul(
         sizeof(struct mc_ast_expression *),
         count,
-        SIZE_MAX,
         ast_overflow_error("expressions")
     );
 
-    size_t alloc_size_statements = overflow_op_mul(
+    size_t alloc_size_statements = mm_overflow_opc_mul(
         sizeof(struct mc_ast_statement *),
         count,
-        SIZE_MAX,
         ast_overflow_error("statements")
     );
 
-    size_t alloc_size = overflow_op_add(
+    size_t alloc_size = mm_overflow_opc_add(
         sizeof(struct mc_ast_expression_when),
         alloc_size_conditions,
-        SIZE_MAX,
         ast_overflow_error("when")
     );
 
-    alloc_size = overflow_op_add(
+    alloc_size = mm_overflow_opc_add(
         alloc_size,
         alloc_size_statements,
-        SIZE_MAX,
         ast_overflow_error("when")
     );
 
@@ -277,39 +262,35 @@ ast_impl_expr(
     asm,
     ast_args(size_t data_count, size_t slots_count, size_t code_count, size_t anchors_count)
 ) {
-    size_t alloc_size_data = overflow_op_mul(
+    size_t alloc_size_data = mm_overflow_opc_mul(
         sizeof(struct mc_asm_data),
         data_count,
-        SIZE_MAX,
         ast_overflow_error("data")
     );
 
-    size_t alloc_size_slots = overflow_op_mul(
+    size_t alloc_size_slots = mm_overflow_opc_mul(
         sizeof(mc_strtable_index_t),
         slots_count,
-        SIZE_MAX,
         ast_overflow_error("slots")
     );
 
-    size_t alloc_size_code = overflow_op_mul(
+    size_t alloc_size_code = mm_overflow_opc_mul(
         sizeof(struct mc_asm_instruction),
         code_count,
-        SIZE_MAX,
         ast_overflow_error("code")
     );
 
-    size_t alloc_size_anchors = overflow_op_mul(
+    size_t alloc_size_anchors = mm_overflow_opc_mul(
         sizeof(struct mc_asm_anchor),
         anchors_count,
-        SIZE_MAX,
         ast_overflow_error("anchors")
     );
 
     size_t alloc_size = sizeof(struct mc_ast_expression_asm);
-    alloc_size = overflow_op_add(alloc_size, alloc_size_data, SIZE_MAX, ast_overflow_error("asm"));
-    alloc_size = overflow_op_add(alloc_size, alloc_size_slots, SIZE_MAX, ast_overflow_error("asm"));
-    alloc_size = overflow_op_add(alloc_size, alloc_size_code, SIZE_MAX, ast_overflow_error("asm"));
-    alloc_size = overflow_op_add(alloc_size, alloc_size_anchors, SIZE_MAX, ast_overflow_error("asm"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_data, ast_overflow_error("asm"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_slots, ast_overflow_error("asm"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_code, ast_overflow_error("asm"));
+    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_anchors, ast_overflow_error("asm"));
 
     struct mc_ast_expression *expression = ast_create_expression(
         U, A, MCEXPRT_asm, line, from, to, alloc_size

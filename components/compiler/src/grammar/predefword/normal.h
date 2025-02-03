@@ -5,7 +5,6 @@
 predef_word(true)
 predef_word(false)
 predef_word(env)
-predef_word(self)
 predef_word(invoked)
 predef_word(nil)
 predef_word(val)

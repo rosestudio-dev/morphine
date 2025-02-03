@@ -5,17 +5,17 @@
 #include <string.h>
 #include "morphinec/codegen.h"
 #include "codegen/controller.h"
-#include "src/codegen/compiler.h"
+#include "codegen/compiler.h"
 
-#define TEMPS_PER_SCOPE_LIMIT MLIMIT_ARGUMENT_MAX
-#define VARIABLES_LIMIT       MLIMIT_ARGUMENT_MAX
+#define TEMPS_PER_SCOPE_LIMIT mm_typemax(ml_argument)
+#define VARIABLES_LIMIT       mm_typemax(ml_argument)
 #define RESULTS_LIMIT         131072
 #define SCOPES_LIMIT          131072
 #define TEMPORARIES_LIMIT     131072
 #define ANCHORS_LIMIT         131072
-#define CLOSURES_LIMIT        MLIMIT_ARGUMENT_MAX
-#define CONSTANTS_LIMIT       MLIMIT_ARGUMENT_MAX
-#define INSTRUCTIONS_LIMIT    MLIMIT_ARGUMENT_MAX
+#define CLOSURES_LIMIT        mm_typemax(ml_argument)
+#define CONSTANTS_LIMIT       mm_typemax(ml_argument)
+#define INSTRUCTIONS_LIMIT    mm_typemax(ml_argument)
 #define EXPANSION_FACTOR      32
 
 #define list_struct(type) struct { size_t allocated; size_t size; type *array; }
@@ -1098,7 +1098,8 @@ static void visitor_function(
                 expr_case(unary)
                 expr_case(increment)
                 expr_case(variable)
-                expr_case(global)
+                expr_case(env)
+                expr_case(invoked)
                 expr_case(leave)
                 expr_case(break)
                 expr_case(continue)
@@ -1303,7 +1304,7 @@ static inline ml_argument argument_normalize(
                 slot = argument.value_slot.temporary_slot + variables;
             }
 
-            if (slot > MLIMIT_ARGUMENT_MAX) {
+            if (slot > mm_typemax(ml_argument)) {
                 mapi_error(U, "slot too big");
             }
 
@@ -1316,44 +1317,44 @@ static inline ml_argument argument_normalize(
 
             size_t position = context->anchors.array[argument.value_position];
 
-            if (position > MLIMIT_ARGUMENT_MAX) {
+            if (position > mm_typemax(ml_argument)) {
                 mapi_error(U, "position too big");
             }
 
             return (ml_argument) position;
         }
         case IAT_size:
-            if (argument.value_size > MLIMIT_ARGUMENT_MAX) {
+            if (argument.value_size > mm_typemax(ml_argument)) {
                 mapi_error(U, "size too big");
             }
             return (ml_argument) argument.value_size;
         case IAT_constant_index:
-            if (argument.value_constant_index > MLIMIT_ARGUMENT_MAX) {
+            if (argument.value_constant_index > mm_typemax(ml_argument)) {
                 mapi_error(U, "constant index too big");
             }
             return (ml_argument) argument.value_constant_index;
         case IAT_param_index:
-            if (argument.value_param_index > MLIMIT_ARGUMENT_MAX) {
+            if (argument.value_param_index > mm_typemax(ml_argument)) {
                 mapi_error(U, "param index too big");
             }
             return (ml_argument) argument.value_param_index;
         case IAT_argument_index:
-            if (argument.value_argument_index > MLIMIT_ARGUMENT_MAX) {
+            if (argument.value_argument_index > mm_typemax(ml_argument)) {
                 mapi_error(U, "argument index too big");
             }
             return (ml_argument) argument.value_argument_index;
         case IAT_static_index:
-            if (argument.value_static_index > MLIMIT_ARGUMENT_MAX) {
+            if (argument.value_static_index > mm_typemax(ml_argument)) {
                 mapi_error(U, "static index too big");
             }
             return (ml_argument) argument.value_static_index;
         case IAT_closure_index:
-            if (argument.value_closure_index > MLIMIT_ARGUMENT_MAX) {
+            if (argument.value_closure_index > mm_typemax(ml_argument)) {
                 mapi_error(U, "closure index too big");
             }
             return (ml_argument) argument.value_closure_index;
         case IAT_params_count:
-            if (argument.value_params_count > MLIMIT_ARGUMENT_MAX) {
+            if (argument.value_params_count > mm_typemax(ml_argument)) {
                 mapi_error(U, "params count too big");
             }
             return (ml_argument) argument.value_params_count;
@@ -1418,10 +1419,9 @@ static inline void fill_vector(
 
         mapi_push_function(
             U, context->function->line,
-            mapi_csize2size(U, context->constants.size, NULL),
             mapi_csize2size(U, context->instructions.size, NULL),
+            mapi_csize2size(U, context->constants.size, NULL),
             mapi_csize2size(U, context->function->statics_size, NULL),
-            mapi_csize2size(U, context->function->args_size, NULL),
             mapi_csize2size(U, variables + temporaries, NULL),
             mapi_csize2size(U, params, NULL)
         );

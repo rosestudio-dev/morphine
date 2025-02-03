@@ -90,32 +90,18 @@ struct mc_ast_node *rule_constant(struct parse_controller *C) {
 
     if (parser_match(C, et_predef_word(env))) {
         ml_size token_to = parser_index(C);
-        struct mc_ast_expression_global *global =
-            mcapi_ast_create_expression_global(parser_U(C), parser_A(C), token_from, token_to, line);
+        struct mc_ast_expression_env *env =
+            mcapi_ast_create_expression_env(parser_U(C), parser_A(C), token_from, token_to, line);
 
-        global->type = MCEXPR_GLOBAL_TYPE_ENV;
-
-        return mcapi_ast_expression_global2node(global);
-    }
-
-    if (parser_match(C, et_predef_word(self))) {
-        ml_size token_to = parser_index(C);
-        struct mc_ast_expression_global *global =
-            mcapi_ast_create_expression_global(parser_U(C), parser_A(C), token_from, token_to, line);
-
-        global->type = MCEXPR_GLOBAL_TYPE_SELF;
-
-        return mcapi_ast_expression_global2node(global);
+        return mcapi_ast_expression_env2node(env);
     }
 
     if (parser_match(C, et_predef_word(invoked))) {
         ml_size token_to = parser_index(C);
-        struct mc_ast_expression_global *global =
-            mcapi_ast_create_expression_global(parser_U(C), parser_A(C), token_from, token_to, line);
+        struct mc_ast_expression_invoked *invoked =
+            mcapi_ast_create_expression_invoked(parser_U(C), parser_A(C), token_from, token_to, line);
 
-        global->type = MCEXPR_GLOBAL_TYPE_INVOKED;
-
-        return mcapi_ast_expression_global2node(global);
+        return mcapi_ast_expression_invoked2node(invoked);
     }
 
     parser_errorf(C, "unexpected token");

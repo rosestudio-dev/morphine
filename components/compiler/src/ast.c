@@ -102,8 +102,10 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "expression_increment";
                 case MCEXPRT_variable:
                     return "expression_variable";
-                case MCEXPRT_global:
-                    return "expression_global";
+                case MCEXPRT_env:
+                    return "expression_env";
+                case MCEXPRT_invoked:
+                    return "expression_invoked";
                 case MCEXPRT_leave:
                     return "expression_leave";
                 case MCEXPRT_break:

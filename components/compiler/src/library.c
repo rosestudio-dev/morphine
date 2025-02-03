@@ -10,7 +10,6 @@
 #include "morphinec/parser.h"
 #include "morphinec/visitor.h"
 #include "morphinec/codegen.h"
-#include "morphinec/serializer.h"
 
 #define DEFAULT_MAIN_NAME "compiled"
 
@@ -139,7 +138,7 @@ static void dis(morphine_coroutine_t U) {
             mapi_push_table(U);
 
             mapi_push_arg(U, stream_io ? 1 : 0);
-            mapi_extract_callable(U);
+            mapi_extract_source(U);
             mapi_rotate(U, 2);
             mapi_pop(U, 1);
 
@@ -273,22 +272,22 @@ static void push_token(
     }
 
     mapi_push_string(U, "line");
-    mapi_push_size(U, token.line, "line");
+    mapi_push_integer(U, token.line);
     mapi_table_set(U);
 
     mapi_push_string(U, "index");
-    mapi_push_size(U, token.index, "index");
+    mapi_push_integer(U, token.index);
     mapi_table_set(U);
 
     mapi_push_string(U, "range");
     mapi_push_table(U);
 
     mapi_push_string(U, "from");
-    mapi_push_size(U, token.range.from, "index");
+    mapi_push_integer(U, token.range.from);
     mapi_table_set(U);
 
     mapi_push_string(U, "to");
-    mapi_push_size(U, token.range.to, "index");
+    mapi_push_integer(U, token.range.to);
     mapi_table_set(U);
 
     mapi_table_set(U);
@@ -358,106 +357,10 @@ static void lex(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void ast(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
-
-            bool yieldable = false;
-            if (mapi_is_type(U, "table")) {
-                mapi_push_string(U, "yieldable");
-                if (mapi_table_get(U)) {
-                    yieldable = mapi_get_boolean(U);
-                }
-                mapi_pop(U, 1);
-
-                mapi_push_string(U, "text");
-                mapi_table_get(U);
-            }
-
-            if (!yieldable) {
-                struct mc_strtable *T = mcapi_push_strtable(U);
-                struct mc_ast *A = mcapi_push_ast(U);
-
-                {
-                    mapi_peek(U, 2);
-                    struct mc_lex *L = mcapi_push_lex(U);
-                    struct mc_parser *P = mcapi_push_parser(U);
-                    while (mcapi_parser_step(U, P, A, L, T)) { }
-                    mapi_pop(U, 3);
-                }
-
-                {
-                    struct mc_visitor *V = mcapi_push_visitor(U);
-                    while (mcapi_serializer_step(U, V, T, A)) { }
-                }
-
-                maux_nb_return();
-            } else {
-                mcapi_push_lex(U);
-                maux_localstorage_set(U, "LV");
-
-                mcapi_push_strtable(U);
-                maux_localstorage_set(U, "T");
-
-                mcapi_push_ast(U);
-                maux_localstorage_set(U, "A");
-
-                mcapi_push_parser(U);
-                maux_localstorage_set(U, "P");
-
-                maux_nb_continue(1);
-            }
-        maux_nb_state(1)
-            maux_localstorage_get(U, "T");
-            struct mc_strtable *T = mcapi_get_strtable(U);
-
-            maux_localstorage_get(U, "A");
-            struct mc_ast *A = mcapi_get_ast(U);
-
-            maux_localstorage_get(U, "LV");
-            struct mc_lex *L = mcapi_get_lex(U);
-
-            maux_localstorage_get(U, "P");
-            struct mc_parser *P = mcapi_get_parser(U);
-
-            bool next = mcapi_parser_step(U, P, A, L, T);
-            mapi_pop(U, 4);
-
-            if (next) {
-                maux_nb_continue(1);
-            } else {
-                mcapi_push_visitor(U);
-                maux_localstorage_set(U, "LV");
-
-                maux_nb_continue(2);
-            }
-        maux_nb_state(2)
-            maux_localstorage_get(U, "T");
-            struct mc_strtable *T = mcapi_get_strtable(U);
-
-            maux_localstorage_get(U, "A");
-            struct mc_ast *A = mcapi_get_ast(U);
-
-            maux_localstorage_get(U, "LV");
-            struct mc_visitor *V = mcapi_get_visitor(U);
-
-            mapi_pop(U, 3);
-
-            if (mcapi_serializer_step(U, V, T, A)) {
-                maux_nb_continue(2);
-            }
-
-            maux_nb_return();
-    maux_nb_end
-}
-
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("compile", compile),
     MAUX_CONSTRUCT_FUNCTION("dis", dis),
     MAUX_CONSTRUCT_FUNCTION("lex", lex),
-    MAUX_CONSTRUCT_FUNCTION("ast", ast),
     MAUX_CONSTRUCT_END
 };
 

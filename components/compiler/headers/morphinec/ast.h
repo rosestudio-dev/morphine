@@ -31,7 +31,8 @@ enum mc_expression_type {
     MCEXPRT_unary,
     MCEXPRT_increment,
     MCEXPRT_variable,
-    MCEXPRT_global,
+    MCEXPRT_env,
+    MCEXPRT_invoked,
     MCEXPRT_leave,
     MCEXPRT_break,
     MCEXPRT_continue,
@@ -139,12 +140,6 @@ enum mc_expression_value_type {
     MCEXPR_VALUE_TYPE_BOOL,
 };
 
-enum mc_expression_global_type {
-    MCEXPR_GLOBAL_TYPE_ENV,
-    MCEXPR_GLOBAL_TYPE_SELF,
-    MCEXPR_GLOBAL_TYPE_INVOKED,
-};
-
 enum mc_expression_binary_type {
     MCEXPR_BINARY_TYPE_ADD,
     MCEXPR_BINARY_TYPE_SUB,
@@ -183,9 +178,9 @@ ast_declare_expr(function, ast_noargs)
     struct mc_ast_function *ref;
 };
 
-ast_declare_expr(global, ast_noargs)
-    enum mc_expression_global_type type;
-};
+ast_declare_expr(env, ast_noargs) };
+
+ast_declare_expr(invoked, ast_noargs) };
 
 ast_declare_expr(leave, ast_noargs)
     struct mc_ast_expression *expression;

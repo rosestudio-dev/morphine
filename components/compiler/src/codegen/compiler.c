@@ -8,7 +8,7 @@
 
 #define ARGS_LIMIT 256
 
-#define decl_data_sized(t, size) struct t##_data *data = codegen_saved(C); do { if (data == NULL) { data = codegen_alloc_saved_uni(C, overflow_op_add(sizeof(struct t##_data), (size), SIZE_MAX, codegen_errorf(C, #t" overflow"))); } } while(0)
+#define decl_data_sized(t, size) struct t##_data *data = codegen_saved(C); do { if (data == NULL) { data = codegen_alloc_saved_uni(C, mm_overflow_opc_add(sizeof(struct t##_data), (size), codegen_errorf(C, #t" overflow"))); } } while(0)
 #define decl_data(t)             decl_data_sized(t, 0)
 
 #define decl_expr(n) void codegen_compile_expression_##n(struct codegen_controller *C, struct mc_ast_expression_##n *expression, size_t state)
@@ -309,25 +309,27 @@ decl_expr(increment) {
     }
 }
 
-decl_expr(global) {
+decl_expr(env) {
+    (void) expression;
     if (state != 0) {
         return;
     }
 
-    switch (expression->type) {
-        case MCEXPR_GLOBAL_TYPE_ENV:
-            codegen_instruction_ENV(C, codegen_result(C));
-            codegen_complete(C);
-        case MCEXPR_GLOBAL_TYPE_SELF:
-            codegen_instruction_SELF(C, codegen_result(C));
-            codegen_complete(C);
-        case MCEXPR_GLOBAL_TYPE_INVOKED:
-            if (codegen_is_recursive(C)) {
-                codegen_instruction_INVOKED(C, codegen_result(C));
-                codegen_complete(C);
-            } else {
-                codegen_errorf(C, "non-recursive function");
-            }
+    codegen_instruction_ENV(C, codegen_result(C));
+    codegen_complete(C);
+}
+
+decl_expr(invoked) {
+    (void) expression;
+    if (state != 0) {
+        return;
+    }
+
+    if (codegen_is_recursive(C)) {
+        codegen_instruction_INVOKED(C, codegen_result(C));
+        codegen_complete(C);
+    } else {
+        codegen_errorf(C, "non-recursive function");
     }
 }
 
@@ -513,12 +515,16 @@ decl_expr(call) {
                 codegen_expression(C, expression->arguments[index], data->slots[index], 3);
             }
         case 4:
+            if (expression->self != NULL) {
+                codegen_instruction_PARAM(C, data->self, 0);
+            }
+
             for (size_t i = 0; i < expression->args_count; i++) {
-                codegen_instruction_PARAM(C, data->slots[i], i);
+                codegen_instruction_PARAM(C, data->slots[i], i + (expression->self != NULL ? 1 : 0));
             }
 
             if (expression->self != NULL) {
-                codegen_instruction_SCALL(C, codegen_result(C), expression->args_count, data->self);
+                codegen_instruction_CALL(C, codegen_result(C), expression->args_count + 1);
             } else {
                 codegen_instruction_CALL(C, codegen_result(C), expression->args_count);
             }
@@ -1039,11 +1045,7 @@ static size_t integer2size(
     ml_line line,
     ml_integer value
 ) {
-    if (value < 0 || value > MLIMIT_SIZE_MAX) {
-        codegen_lined_errorf(C, line, "expected size");
-    }
-
-    return (size_t) value;
+    return mm_overflow_opc_cast(size_t, value, codegen_lined_errorf(C, line, "expected size"));
 }
 
 static anchor_t arg_get_position(
@@ -1265,42 +1267,41 @@ static void add_asm_instruction(
 }
 
 decl_expr(asm) {
-    size_t alloc_size_anchors = overflow_op_mul(
+    size_t sizeof_anchor = sizeof(anchor_t);
+    size_t sizeof_size = sizeof(size_t);
+    size_t sizeof_instruction_slot = sizeof(struct instruction_slot);
+
+    size_t alloc_size_anchors = mm_overflow_opc_mul(
         expression->anchors_count,
-        sizeof(anchor_t),
-        SIZE_MAX,
+        sizeof_anchor,
         codegen_errorf(C, "anchors overflow")
     );
 
-    size_t alloc_size_constants = overflow_op_mul(
+    size_t alloc_size_constants = mm_overflow_opc_mul(
         expression->data_count,
-        sizeof(size_t),
-        SIZE_MAX,
+        sizeof_size,
         codegen_errorf(C, "constants overflow")
     );
 
-    size_t alloc_size_slots = overflow_op_mul(
+    size_t alloc_size_slots = mm_overflow_opc_mul(
         expression->slots_count,
-        sizeof(struct instruction_slot),
-        SIZE_MAX,
+        sizeof_instruction_slot,
         codegen_errorf(C, "slots overflow")
     );
 
-    size_t alloc_size = overflow_op_add(
+    size_t alloc_size = mm_overflow_opc_add(
         alloc_size_constants,
         alloc_size_anchors,
-        SIZE_MAX,
         codegen_errorf(C, "asm overflow")
     );
 
-    alloc_size = overflow_op_add(
+    alloc_size = mm_overflow_opc_add(
         alloc_size,
         alloc_size_slots,
-        SIZE_MAX,
         codegen_errorf(C, "asm overflow")
     );
 
-    overflow_mul(expression->anchors_count, sizeof(anchor_t), SIZE_MAX) {
+    mm_overflow_mul(expression->anchors_count, sizeof_anchor) {
         codegen_errorf(C, "anchors overflow");
     }
 
