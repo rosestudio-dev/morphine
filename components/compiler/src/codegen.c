@@ -208,19 +208,6 @@ static void push_context(struct codegen_controller *C, struct mc_ast_function *f
         }
     }
 
-    for (size_t i = 0; i < function->statics_size; i++) {
-        size_t count = 0;
-        for (size_t index = 0; index < function->statics_size; index++) {
-            if (function->statics[i] == function->statics[index]) {
-                count++;
-            }
-        }
-
-        if (count > 1) {
-            codegen_errorf(C, "static duplicates");
-        }
-    }
-
     if (!function->auto_closure) {
         for (size_t i = 0; i < function->closures_size; i++) {
             size_t count = 0;
@@ -548,16 +535,6 @@ static struct variable_info get_variable(
                 .mutable = variable.mutable,
                 .variable.is_variable = true,
                 .variable.variable_slot = index,
-            };
-        }
-    }
-
-    for (size_t i = 0; i < function->statics_size; i++) {
-        if (function->statics[i] == name) {
-            return (struct variable_info) {
-                .type = VIT_STATIC,
-                .mutable = true,
-                .static_variable = i
             };
         }
     }
@@ -1343,16 +1320,6 @@ static inline ml_argument argument_normalize(
                 mapi_error(U, "argument index too big");
             }
             return (ml_argument) argument.value_argument_index;
-        case IAT_static_index:
-            if (argument.value_static_index > mm_typemax(ml_argument)) {
-                mapi_error(U, "static index too big");
-            }
-            return (ml_argument) argument.value_static_index;
-        case IAT_closure_index:
-            if (argument.value_closure_index > mm_typemax(ml_argument)) {
-                mapi_error(U, "closure index too big");
-            }
-            return (ml_argument) argument.value_closure_index;
         case IAT_params_count:
             if (argument.value_params_count > mm_typemax(ml_argument)) {
                 mapi_error(U, "params count too big");
@@ -1421,7 +1388,6 @@ static inline void fill_vector(
             U, context->function->line,
             mapi_csize2size(U, context->instructions.size, NULL),
             mapi_csize2size(U, context->constants.size, NULL),
-            mapi_csize2size(U, context->function->statics_size, NULL),
             mapi_csize2size(U, variables + temporaries, NULL),
             mapi_csize2size(U, params, NULL)
         );
@@ -1501,10 +1467,7 @@ static inline void build_vector(
     struct context *context = G->compiled;
     for (size_t i = 0; context != NULL; i++) {
         mapi_vector_get(U, mapi_csize2size(U, i, "index"));
-
         load_constants(U, G, T, context);
-
-        mapi_function_complete(U);
         mapi_pop(U, 1);
 
         context = context->prev;

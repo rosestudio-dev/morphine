@@ -6,7 +6,7 @@
 
 static void set_root(struct parse_controller *C, struct mc_ast_statement *body) {
     struct mc_ast_function *function =
-        mcapi_ast_create_function(parser_U(C), parser_A(C), 0, 0, 0);
+        mcapi_ast_create_function(parser_U(C), parser_A(C), 0, 0);
 
     function->line = 1;
     function->anonymous = true;

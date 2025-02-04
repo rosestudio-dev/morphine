@@ -13,8 +13,6 @@
 #define constant_index size_t
 #define param_index    size_t
 #define argument_index size_t
-#define static_index   size_t
-#define closure_index  size_t
 #define params_count   size_t
 
 #define instruction_argument(n)                 , n
@@ -33,8 +31,6 @@
 #undef constant_index
 #undef param_index
 #undef argument_index
-#undef static_index
-#undef closure_index
 #undef params_count
 
 #undef instruction_argument

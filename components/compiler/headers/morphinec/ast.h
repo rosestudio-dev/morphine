@@ -76,11 +76,9 @@ struct mc_ast_function {
     bool auto_closure;
     size_t closures_size;
     size_t args_size;
-    size_t statics_size;
 
     mc_strtable_index_t *closures;
     mc_strtable_index_t *arguments;
-    mc_strtable_index_t *statics;
 
     struct mc_ast_statement *body;
     struct mc_ast_function *prev;
@@ -100,8 +98,7 @@ MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(
     morphine_coroutine_t,
     struct mc_ast *,
     size_t closures,
-    size_t args,
-    size_t statics
+    size_t args
 );
 
 MORPHINE_API void mcapi_ast_set_root_function(struct mc_ast *, struct mc_ast_function *);

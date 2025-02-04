@@ -40,7 +40,6 @@ static void ast_userdata_destructor(morphine_instance_t I, void *data) {
         struct mc_ast_function *prev = function->prev;
         mapi_allocator_free(I, function->closures);
         mapi_allocator_free(I, function->arguments);
-        mapi_allocator_free(I, function->statics);
         mapi_allocator_free(I, function);
         function = prev;
     }
@@ -168,8 +167,7 @@ MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(
     morphine_coroutine_t U,
     struct mc_ast *A,
     size_t closures,
-    size_t args,
-    size_t statics
+    size_t args
 ) {
     struct mc_ast_function *function = mapi_allocator_uni(
         mapi_instance(U), NULL, sizeof(struct mc_ast_function)
@@ -182,10 +180,8 @@ MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(
         .auto_closure = false,
         .closures_size = 0,
         .args_size = 0,
-        .statics_size = 0,
         .closures = NULL,
         .arguments = NULL,
-        .statics = NULL,
         .body = NULL,
         .prev = A->functions
     };
@@ -201,11 +197,6 @@ MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(
         mapi_instance(U), NULL, args, sizeof(mc_strtable_index_t)
     );
     function->args_size = args;
-
-    function->statics = mapi_allocator_vec(
-        mapi_instance(U), NULL, statics, sizeof(mc_strtable_index_t)
-    );
-    function->statics_size = statics;
 
     return function;
 }

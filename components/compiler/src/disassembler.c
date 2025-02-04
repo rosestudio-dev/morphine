@@ -34,6 +34,9 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
 #define SLOT "slot "APR
 #define arg(n) instr.argument##n
     switch (instr.opcode) {
+        case MORPHINE_OPCODE_NO_OPERATION:
+            printf("no operation");
+            return;
         case MORPHINE_OPCODE_YIELD:
             printf("yield");
             return;
@@ -71,10 +74,7 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             printf(SLOT" = iterator from "SLOT, arg(2), arg(1));
             return;
         case MORPHINE_OPCODE_ITERATOR_INIT:
-            printf("init iterator in "SLOT" with name "SLOT" for key and "SLOT" for value",
-                   arg(1),
-                   arg(2),
-                   arg(3));
+            printf("init iterator in "SLOT" with name "SLOT" for key and "SLOT" for value", arg(1), arg(2), arg(3));
             return;
         case MORPHINE_OPCODE_ITERATOR_HAS:
             printf(SLOT" = iterator has in "SLOT, arg(2), arg(1));
@@ -88,32 +88,17 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
         case MORPHINE_OPCODE_JUMP_IF:
             printf("jump if "SLOT" to "APR" else "APR, arg(1), arg(2), arg(3));
             return;
-        case MORPHINE_OPCODE_GET_STATIC:
-            printf(SLOT" = static "APR" from "SLOT, arg(3), arg(2), arg(1));
-            return;
-        case MORPHINE_OPCODE_SET_STATIC:
-            printf("static "APR" from "SLOT" = "SLOT, arg(2), arg(1), arg(3));
-            return;
-        case MORPHINE_OPCODE_GET_CLOSURE:
-            printf(SLOT" = closure "APR" from "SLOT, arg(3), arg(2), arg(1));
-            return;
-        case MORPHINE_OPCODE_SET_CLOSURE:
-            printf("closure "APR" from "SLOT" = "SLOT, arg(2), arg(1), arg(3));
-            return;
         case MORPHINE_OPCODE_CLOSURE:
-            printf(SLOT" = closure from "SLOT" with size "APR, arg(3), arg(1), arg(2));
+            printf(SLOT" = create closure for "SLOT" with "SLOT, arg(3), arg(1), arg(2));
+            return;
+        case MORPHINE_OPCODE_CLOSURE_VALUE:
+            printf(SLOT" = get value from closure "SLOT, arg(2), arg(1));
             return;
         case MORPHINE_OPCODE_CALL:
-            printf("call "SLOT" with "APR" args", arg(1), arg(2));
-            return;
-        case MORPHINE_OPCODE_LEAVE:
-            printf("leave");
+            printf(SLOT" = call "SLOT" with "APR" args", arg(3), arg(1), arg(2));
             return;
         case MORPHINE_OPCODE_RETURN:
             printf("return "SLOT, arg(1));
-            return;
-        case MORPHINE_OPCODE_RESULT:
-            printf(SLOT" = call result", arg(1));
             return;
         case MORPHINE_OPCODE_ADD:
             printf(SLOT" = "SLOT" + "SLOT, arg(3), arg(1), arg(2));
@@ -292,10 +277,6 @@ static void print_constants(morphine_coroutine_t U) {
 }
 
 MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
-    if (!mapi_function_is_complete(U)) {
-        printf("incomplete ");
-    }
-
     mapi_function_name(U);
     const char *name = mapi_get_cstr(U);
     mapi_pop(U, 1);
@@ -303,13 +284,11 @@ MORPHINE_API void mcapi_disassembly(morphine_coroutine_t U) {
     ml_line line = mapi_function_line(U);
     ml_size slots = mapi_function_slots(U);
     ml_size params = mapi_function_params(U);
-    ml_size statics = mapi_static_size(U);
 
     printf("function(%s) {\n", name);
-    printf("    line:    %"MLIMIT_LINE_PR"\n", line);
-    printf("    slots:   %"MLIMIT_SIZE_PR"\n", slots);
-    printf("    params:  %"MLIMIT_SIZE_PR"\n", params);
-    printf("    statics: %"MLIMIT_SIZE_PR"\n", statics);
+    printf("    line:   %"MLIMIT_LINE_PR"\n", line);
+    printf("    slots:  %"MLIMIT_SIZE_PR"\n", slots);
+    printf("    params: %"MLIMIT_SIZE_PR"\n", params);
     print_instructions(U);
     print_constants(U);
     printf("}\n");

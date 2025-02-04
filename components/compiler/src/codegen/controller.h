@@ -18,15 +18,12 @@ enum instruction_argument_type {
     IAT_constant_index,
     IAT_param_index,
     IAT_argument_index,
-    IAT_static_index,
-    IAT_closure_index,
     IAT_params_count,
     IAT_stub,
 };
 
 enum variable_info_type {
     VIT_VARIABLE,
-    VIT_STATIC,
     VIT_ARGUMENT,
     VIT_RECURSIVE,
     VIT_CLOSURE,
@@ -57,8 +54,6 @@ struct instruction_argument {
         size_t value_constant_index;
         size_t value_param_index;
         size_t value_argument_index;
-        size_t value_static_index;
-        size_t value_closure_index;
         size_t value_params_count;
     };
 };
@@ -68,7 +63,6 @@ struct variable_info {
     bool mutable;
     union {
         struct instruction_slot variable;
-        size_t static_variable;
         size_t closure_variable;
         size_t argument;
     };

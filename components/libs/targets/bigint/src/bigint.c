@@ -281,8 +281,8 @@ static void bigint_metatable_wrap(morphine_coroutine_t U) {
 
     mapi_set_metatable(U);
     mapi_table_mode_mutable(U, false);
-    mapi_table_mode_lock_metatable(U);
-    mapi_table_mode_lock(U);
+    mapi_table_lock_metatable(U);
+    mapi_table_lock_mode(U);
 
     mapi_rotate(U, 2);
     mapi_pop(U, 1);

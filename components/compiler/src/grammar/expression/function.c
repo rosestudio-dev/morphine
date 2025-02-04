@@ -8,7 +8,6 @@
 struct mc_ast_node *rule_function(struct parse_controller *C) {
     size_t args;
     size_t closures = 0;
-    size_t statics = 0;
     ml_size token_from = parser_index(C);
     {
         parser_consume(C, et_predef_word(fun));
@@ -41,18 +40,6 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
             args = extra_arguments_finish(C, &A);
         }
 
-        if (parser_match(C, et_predef_word(static))) {
-            struct arguments A = extra_arguments_init_full(
-                C, false, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
-            );
-
-            while (extra_arguments_next(C, &A)) {
-                parser_consume(C, et_word());
-            }
-
-            statics = extra_arguments_finish(C, &A);
-        }
-
         if (parser_match(C, et_operator(EQ))) {
             parser_reduce(C, rule_expression);
         } else {
@@ -64,7 +51,7 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
     parser_reset(C);
 
     struct mc_ast_function *function =
-        mcapi_ast_create_function(parser_U(C), parser_A(C), closures, args, statics);
+        mcapi_ast_create_function(parser_U(C), parser_A(C), closures, args);
 
     ml_line line = parser_get_line(C);
     function->line = line;
@@ -102,18 +89,6 @@ struct mc_ast_node *rule_function(struct parse_controller *C) {
 
         for (size_t i = 0; extra_arguments_next(C, &A); i++) {
             function->arguments[i] = parser_consume(C, et_word()).word;
-        }
-
-        extra_arguments_finish(C, &A);
-    }
-
-    if (parser_match(C, et_predef_word(static))) {
-        struct arguments A = extra_arguments_init_full(
-            C, false, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
-        );
-
-        for (size_t i = 0; extra_arguments_next(C, &A); i++) {
-            function->statics[i] = parser_consume(C, et_word()).word;
         }
 
         extra_arguments_finish(C, &A);
