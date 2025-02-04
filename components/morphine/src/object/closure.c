@@ -9,90 +9,105 @@
 #include "morphine/gc/safe.h"
 #include "morphine/object/coroutine.h"
 
-static inline struct closure *create_closure(morphine_instance_t I, struct value callable, ml_size size) {
+static inline struct closure *create_closure(morphine_instance_t I, struct value callable, struct value value) {
     gcI_safe_enter(I);
     gcI_safe(I, callable);
+    gcI_safe(I, value);
 
     // create
     struct closure *result = allocI_uni(I, NULL, sizeof(struct closure));
     (*result) = (struct closure) {
-        .size = 0,
+        .lock = false,
         .callable = callable,
-        .values = NULL,
+        .value = value,
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_CLOSURE);
-
-    // config
-    gcI_safe(I, valueI_object(result));
-
-    result->values = allocI_vec(I, NULL, size, sizeof(struct value));
-    result->size = size;
-
-    for (ml_size i = 0; i < size; i++) {
-        result->values[i] = valueI_nil;
-    }
 
     gcI_safe_exit(I);
 
     return result;
 }
 
-struct closure *closureI_create(morphine_instance_t I, struct value callable, ml_size size) {
-    return create_closure(I, callstackI_extract_callable(I, callable), size);
+struct closure *closureI_create(morphine_instance_t I, struct value callable, struct value value) {
+    return create_closure(I, callstackI_extract_callable(I, callable), value);
 }
 
 void closureI_free(morphine_instance_t I, struct closure *closure) {
-    allocI_free(I, closure->values);
     allocI_free(I, closure);
 }
 
-struct value closureI_get(morphine_instance_t I, struct closure *closure, ml_size index) {
+void closureI_lock(morphine_instance_t I, struct closure *closure) {
     if (closure == NULL) {
         throwI_error(I, "closure is null");
     }
 
-    if (index >= closure->size) {
-        throwI_error(I, "closure index was out of bounce");
-    }
-
-    return closure->values[index];
+    closure->lock = true;
 }
 
-void closureI_set(morphine_instance_t I, struct closure *closure, ml_size index, struct value value) {
+static bool check_lock(morphine_instance_t I, struct closure *closure) {
+    if (!closure->lock) {
+        return false;
+    }
+
+    struct callframe *frame = callstackI_interpreter_context(I);
+    return frame == NULL || valueI_safe_as_closure(*frame->s.direct.callable, NULL) != closure;
+}
+
+void closureI_unlock(morphine_instance_t I, struct closure *closure) {
     if (closure == NULL) {
         throwI_error(I, "closure is null");
     }
 
-    if (index >= closure->size) {
-        throwI_error(I, "closure index was out of bounce");
+    if (check_lock(I, closure)) {
+        throwI_error(I, "unable to unlock closure");
     }
 
-    gcI_barrier(I, closure, value);
-    closure->values[index] = value;
+    closure->lock = false;
 }
 
-void closureI_packer_vectorize(struct closure *closure, struct packer_vectorize *V) {
+struct value closureI_value(morphine_instance_t I, struct closure *closure) {
+    if (closure == NULL) {
+        throwI_error(I, "closure is null");
+    }
+
+    if (check_lock(I, closure)) {
+        throwI_error(I, "unable to access closure");
+    }
+
+    return closure->value;
+}
+
+void closureI_packer_vectorize(morphine_instance_t I, struct closure *closure, struct packer_vectorize *V) {
+    if (check_lock(I, closure)) {
+        throwI_error(I, "unable to pack closure");
+    }
+
     packerI_vectorize_append(V, closure->callable);
-    for (ml_size i = 0; i < closure->size; i++) {
-        packerI_vectorize_append(V, closure->values[i]);
+    packerI_vectorize_append(V, closure->value);
+}
+
+void closureI_packer_write_info(
+    morphine_instance_t I,
+    morphine_unused struct closure *closure,
+    morphine_unused struct packer_write *W
+) {
+    if (check_lock(I, closure)) {
+        throwI_error(I, "unable to pack closure");
     }
 }
 
-void closureI_packer_write_info(struct closure *closure, struct packer_write *W) {
-    packerI_write_ml_size(W, closure->size);
-}
+void closureI_packer_write_data(morphine_instance_t I, struct closure *closure, struct packer_write *W) {
+    if (check_lock(I, closure)) {
+        throwI_error(I, "unable to pack closure");
+    }
 
-void closureI_packer_write_data(struct closure *closure, struct packer_write *W) {
     packerI_write_value(W, closure->callable);
-    for (ml_size i = 0; i < closure->size; i++) {
-        packerI_write_value(W, closure->values[i]);
-    }
+    packerI_write_value(W, closure->value);
 }
 
-struct closure *closureI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
-    ml_size size = packerI_read_ml_size(R);
-    return create_closure(I, valueI_nil, size);
+struct closure *closureI_packer_read_info(morphine_instance_t I, morphine_unused struct packer_read *R) {
+    return create_closure(I, valueI_nil, valueI_nil);
 }
 
 void closureI_packer_read_data(morphine_instance_t I, struct closure *closure, struct packer_read *R) {
@@ -100,10 +115,7 @@ void closureI_packer_read_data(morphine_instance_t I, struct closure *closure, s
     gcI_barrier(I, closure, callable);
     closure->callable = callable;
 
-    for (ml_size i = 0; i < closure->size; i++) {
-        gcI_safe_enter(I);
-        struct value value = gcI_safe(I, packerI_read_value(R));
-        closureI_set(I, closure, i, value);
-        gcI_safe_exit(I);
-    }
+    struct value value = packerI_read_value(R);
+    gcI_barrier(I, closure, value);
+    closure->value = value;
 }

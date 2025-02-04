@@ -23,10 +23,10 @@ struct userdata {
     };
 
     struct {
-        bool destructor_locked;
-        bool metatable_locked;
-        bool size_locked;
-    } mode;
+        bool destructor;
+        bool metatable;
+        bool size;
+    } lock;
 
     void *data;
 
@@ -40,9 +40,9 @@ void userdataI_free(morphine_instance_t, struct userdata *);
 
 void userdataI_set_destructor(morphine_instance_t, struct userdata *, morphine_userdata_destructor_t);
 
-void userdataI_mode_lock_destructor(morphine_instance_t, struct userdata *);
-void userdataI_mode_lock_metatable(morphine_instance_t, struct userdata *);
-void userdataI_mode_lock_size(morphine_instance_t, struct userdata *);
+void userdataI_lock_destructor(morphine_instance_t, struct userdata *);
+void userdataI_lock_metatable(morphine_instance_t, struct userdata *);
+void userdataI_lock_size(morphine_instance_t, struct userdata *);
 
 void userdataI_resize(morphine_instance_t, struct userdata *, size_t);
 void userdataI_resize_vec(morphine_instance_t, struct userdata *, size_t count, size_t);

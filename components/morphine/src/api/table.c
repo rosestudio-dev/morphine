@@ -45,14 +45,14 @@ MORPHINE_API void mapi_table_mode_accessible(morphine_coroutine_t U, bool is_acc
     tableI_mode_accessible(U->I, table, is_accessible);
 }
 
-MORPHINE_API void mapi_table_mode_lock_metatable(morphine_coroutine_t U) {
+MORPHINE_API void mapi_table_lock_metatable(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
-    tableI_mode_lock_metatable(U->I, table);
+    tableI_lock_metatable(U->I, table);
 }
 
-MORPHINE_API void mapi_table_mode_lock(morphine_coroutine_t U) {
+MORPHINE_API void mapi_table_lock_mode(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
-    tableI_mode_lock(U->I, table);
+    tableI_lock_mode(U->I, table);
 }
 
 MORPHINE_API bool mapi_table_mode_is_mutable(morphine_coroutine_t U) {
@@ -70,14 +70,14 @@ MORPHINE_API bool mapi_table_mode_is_accessible(morphine_coroutine_t U) {
     return table->mode.accessible;
 }
 
-MORPHINE_API bool mapi_table_mode_metatable_is_locked(morphine_coroutine_t U) {
+MORPHINE_API bool mapi_table_metatable_is_locked(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
-    return table->mode.metatable_locked;
+    return table->lock.metatable;
 }
 
 MORPHINE_API bool mapi_table_mode_is_locked(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
-    return table->mode.locked;
+    return table->lock.mode;
 }
 
 MORPHINE_API void mapi_table_set(morphine_coroutine_t U) {

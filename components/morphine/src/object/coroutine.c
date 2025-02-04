@@ -253,6 +253,35 @@ static struct callframe *callframe_get(morphine_coroutine_t U) {
     return frame;
 }
 
+static void callstack_drop(morphine_coroutine_t U, struct callframe *frame) {
+    while (U->callstack.frame != NULL && U->callstack.frame != frame) {
+        struct callframe *current = U->callstack.frame;
+        localstorageI_clear_frame(U->I, current);
+
+        ml_size pop_size = current->params.pop_size;
+        pop_size += current->params.pop_callable ? 1 : 0;
+        pop_size += current->params.pop_args ? current->params.arguments_count : 0;
+
+        stack_reduce(U, stack_space(U));
+        U->callstack.frame = current->prev;
+        U->callstack.size--;
+
+        callframe_dispose(U, current);
+        stack_pop(U, pop_size);
+    }
+}
+
+static struct callframe *callstack_coroutine_context(morphine_coroutine_t U) {
+    bool cond1 = U->status == COROUTINE_STATUS_KILLING;
+    bool cond2 = U->status != COROUTINE_STATUS_DETACHED && U->I->interpreter.context != U;
+    bool cond3 = U->callstack.size != U->callstack.context;
+    if (cond1 || cond2 || cond3) {
+        throwI_error(U->I, "attempt to access outside context");
+    }
+
+    return U->callstack.frame;
+}
+
 static inline struct value extract_callable(
     morphine_instance_t I,
     struct value callable,
@@ -305,7 +334,7 @@ morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *nam
         .stack.top = 0,
         .stack.settings.limit = I->settings.coroutines.stack.limit,
         .stack.settings.allow_reduce_stack = true,
-        .callstack.access = 0,
+        .callstack.context = 0,
         .callstack.size = 0,
         .callstack.frame = NULL,
         .callstack.uninited = NULL,
@@ -376,10 +405,10 @@ void coroutineI_fix_callstack(morphine_coroutine_t U) {
 }
 
 void coroutineI_detach(morphine_coroutine_t U) {
-    callstackI_drop(U, NULL);
+    callstack_drop(U, NULL);
     detach(U);
     U->status = COROUTINE_STATUS_DETACHED;
-    callstackI_update_access(U);
+    callstackI_update_context(U);
 }
 
 void coroutineI_suspend(morphine_coroutine_t U) {
@@ -485,12 +514,12 @@ void stackI_reduce_cache(morphine_coroutine_t U, bool emergency) {
 }
 
 ml_size stackI_space(morphine_coroutine_t U) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     return stack_space(U);
 }
 
 void stackI_push(morphine_coroutine_t U, struct value value) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
 
     gcI_safe_enter(U->I);
     gcI_safe(U->I, value);
@@ -502,22 +531,22 @@ void stackI_push(morphine_coroutine_t U, struct value value) {
 }
 
 void stackI_pop(morphine_coroutine_t U, ml_size count) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     stack_pop(U, count);
 }
 
 struct value stackI_peek(morphine_coroutine_t U, ml_size offset) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     return *stack_vector(U, offset, 1);
 }
 
 void stackI_replace(morphine_coroutine_t U, ml_size offset, struct value value) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     *stack_vector(U, offset, 1) = value;
 }
 
 void stackI_rotate(morphine_coroutine_t U, ml_size count) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
 
     if (count == 0) {
         return;
@@ -535,26 +564,21 @@ void stackI_rotate(morphine_coroutine_t U, ml_size count) {
     values[0] = temp;
 }
 
-void callstackI_check_access(morphine_coroutine_t U) {
-    if (U->status == COROUTINE_STATUS_KILLING) {
-        throwI_error(U->I, "attempt to access while killing coroutine");
+struct callframe *callstackI_interpreter_context(morphine_instance_t I) {
+    morphine_coroutine_t coroutine = I->interpreter.context;
+    if (coroutine == NULL) {
+        throwI_error(I, "attempt to access outside context");
     }
 
-    if (U->status != COROUTINE_STATUS_DETACHED && U->I->interpreter.context != U) {
-        throwI_error(U->I, "attempt to access outside current coroutine");
-    }
-
-    if (U->callstack.size != U->callstack.access) {
-        throwI_error(U->I, "attempt to access outside current call frame");
-    }
+    return callstack_coroutine_context(coroutine);
 }
 
-void callstackI_update_access(morphine_coroutine_t U) {
-    U->callstack.access = U->callstack.size;
+void callstackI_update_context(morphine_coroutine_t U) {
+    U->callstack.context = U->callstack.size;
 }
 
 void callstackI_call(morphine_coroutine_t U, struct value *callable, struct value *args, ml_size argc, ml_size pop_size) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
 
     morphine_instance_t I = U->I;
     if (argc > MPARAM_CALLABLE_ARGS_LIMIT) {
@@ -594,11 +618,6 @@ void callstackI_call(morphine_coroutine_t U, struct value *callable, struct valu
         struct value source = extract_callable(U->I, *extract_stack_value(U, stack_callable), "unable to call", true);
         if (valueI_is_function(source)) {
             struct function *function = valueI_as_function(source);
-
-            if (!function->complete) {
-                throwI_error(U->I, "incomplete function");
-            }
-
             raise = function->stack_size;
         }
     }
@@ -678,7 +697,7 @@ void callstackI_call(morphine_coroutine_t U, struct value *callable, struct valu
 }
 
 void callstackI_call_api(morphine_coroutine_t U, ml_size argc) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
 
     struct value *callable = stack_vector(U, argc, 1);
     struct value *args = argc > 0 ? stack_vector(U, 0, argc) : NULL;
@@ -687,32 +706,19 @@ void callstackI_call_api(morphine_coroutine_t U, ml_size argc) {
 }
 
 void callstackI_pop(morphine_coroutine_t U, struct value result) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     struct callframe *frame = callstack_frame_or_error(U);
     U->callstack.result = result;
-    callstackI_drop(U, frame->prev);
+    callstack_drop(U, frame->prev);
 
     if (U->callstack.frame == NULL) {
         coroutineI_kill(U);
     }
 }
 
-void callstackI_drop(morphine_coroutine_t U, struct callframe *frame) {
-    while (U->callstack.frame != NULL && U->callstack.frame != frame) {
-        struct callframe *current = U->callstack.frame;
-        localstorageI_clear(U->I, current);
-
-        ml_size pop_size = current->params.pop_size;
-        pop_size += current->params.pop_callable ? 1 : 0;
-        pop_size += current->params.pop_args ? current->params.arguments_count : 0;
-
-        stack_reduce(U, stack_space(U));
-        U->callstack.frame = current->prev;
-        U->callstack.size--;
-
-        callframe_dispose(U, current);
-        stack_pop(U, pop_size);
-    }
+void callstackI_throw_drop(morphine_coroutine_t U, struct callframe *frame) {
+    callstack_drop(U, frame);
+    stack_pop(U, stack_space(U));
 }
 
 struct value callstackI_extract_callable(morphine_instance_t I, struct value callable) {
@@ -720,23 +726,23 @@ struct value callstackI_extract_callable(morphine_instance_t I, struct value cal
 }
 
 void callstackI_continue(morphine_coroutine_t U, ml_size state) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     struct callframe *frame = callstack_frame_or_error(U);
     frame->pc.state = state;
 }
 
 ml_size callstackI_state(morphine_coroutine_t U) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     return callstack_frame_or_error(U)->pc.state;
 }
 
 ml_size callstackI_args(morphine_coroutine_t U) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     return callstack_frame_or_error(U)->params.arguments_count;
 }
 
 struct value callstackI_get_arg(morphine_coroutine_t U, ml_size index) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     struct callframe *frame = callstack_frame_or_error(U);
     if (index >= frame->params.arguments_count) {
         throwI_error(U->I, "argument index out of bounce");
@@ -746,24 +752,24 @@ struct value callstackI_get_arg(morphine_coroutine_t U, ml_size index) {
 }
 
 struct value callstackI_callable(morphine_coroutine_t U) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     return *callstack_frame_or_error(U)->s.direct.callable;
 }
 
 struct value callstackI_result(morphine_coroutine_t U) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     struct value result = U->callstack.result;
     U->callstack.result = valueI_nil;
     return result;
 }
 
 void callstackI_set_result(morphine_coroutine_t U, struct value value) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     U->callstack.result = value;
 }
 
 void callstackI_catchable(morphine_coroutine_t U, ml_size callstate) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     struct callframe *frame = callstack_frame_or_error(U);
 
     frame->params.catch_enabled = true;
@@ -772,7 +778,7 @@ void callstackI_catchable(morphine_coroutine_t U, ml_size callstate) {
 }
 
 void callstackI_crashable(morphine_coroutine_t U) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     struct callframe *frame = callstack_frame_or_error(U);
 
     frame->params.catch_enabled = true;
@@ -781,7 +787,7 @@ void callstackI_crashable(morphine_coroutine_t U) {
 }
 
 void callstackI_uncatch(morphine_coroutine_t U) {
-    callstackI_check_access(U);
+    callstack_coroutine_context(U);
     struct callframe *frame = callstack_frame_or_error(U);
 
     frame->params.catch_enabled = false;

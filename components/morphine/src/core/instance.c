@@ -58,12 +58,14 @@ static void init_throw(morphine_instance_t I) {
 
 static void init_localstorage(morphine_instance_t I) {
     I->localstorage = tableI_create(I);
-    tableI_mode_lock(I, I->localstorage);
+    tableI_lock_metatable(I, I->localstorage);
+    tableI_lock_mode(I, I->localstorage);
 }
 
 static void init_sharedstorage(morphine_instance_t I) {
     I->sharedstorage = tableI_create(I);
-    tableI_mode_lock(I, I->sharedstorage);
+    tableI_lock_metatable(I, I->sharedstorage);
+    tableI_lock_mode(I, I->sharedstorage);
 }
 
 static void init_metatables(morphine_instance_t I) {
@@ -82,7 +84,8 @@ static void init_libraries(morphine_instance_t I) {
 
 static struct table *build_env(morphine_instance_t I) {
     struct table *env = tableI_create(I);
-    tableI_mode_lock(I, env);
+    tableI_lock_metatable(I, env);
+    tableI_lock_mode(I, env);
 
     struct string *name = stringI_create(I, "lib");
     struct value native = valueI_object(nativeI_create(I, name, lib));

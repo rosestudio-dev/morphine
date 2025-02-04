@@ -28,8 +28,6 @@ void packerI_write_opcode(struct packer_write *, morphine_opcode_t);
 void packerI_write_bool(struct packer_write *, bool);
 void packerI_write_object_string(struct packer_write *, struct string *);
 void packerI_write_value(struct packer_write *, struct value);
-morphine_noret void packerI_vectorize_error(struct packer_vectorize *, const char *);
-morphine_noret void packerI_write_error(struct packer_write *, const char *);
 
 struct value packerI_from(morphine_instance_t, struct stream *);
 ml_size packerI_read_ml_size(struct packer_read *);

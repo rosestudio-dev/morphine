@@ -48,8 +48,8 @@ struct throw throwI_prototype(void);
 void throwI_destruct(morphine_instance_t);
 void throwI_special(morphine_instance_t);
 
-void throwI_handler(morphine_instance_t);
-void throwI_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void *, void *, bool);
+morphine_catch_result_t throwI_interpreter_handler(morphine_instance_t);
+void throwI_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void *, void *);
 
 morphine_noret void throwI_error(morphine_instance_t, const char *);
 morphine_noret void throwI_errorv(morphine_instance_t, struct value);

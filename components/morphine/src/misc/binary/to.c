@@ -126,14 +126,6 @@ void packerI_vectorize_append(struct packer_vectorize *V, struct value value) {
     vectorize_append(V->D, value);
 }
 
-morphine_noret void packerI_vectorize_error(struct packer_vectorize *V, const char *message) {
-    throwI_error(V->D->I, message);
-}
-
-morphine_noret void packerI_write_error(struct packer_write *W, const char *message) {
-    throwI_error(W->D->I, message);
-}
-
 // vectorize
 
 static void vectorize(struct data *D) {
@@ -155,10 +147,10 @@ static void vectorize(struct data *D) {
             case VALUE_TYPE_DECIMAL:
             case VALUE_TYPE_BOOLEAN:
             case VALUE_TYPE_STRING: break;
-            case VALUE_TYPE_TABLE: tableI_packer_vectorize(valueI_as_table(pair.key), &vectorize); break;
-            case VALUE_TYPE_VECTOR: vectorI_packer_vectorize(valueI_as_vector(pair.key), &vectorize); break;
-            case VALUE_TYPE_FUNCTION: functionI_packer_vectorize(valueI_as_function(pair.key), &vectorize); break;
-            case VALUE_TYPE_CLOSURE: closureI_packer_vectorize(valueI_as_closure(pair.key), &vectorize); break;
+            case VALUE_TYPE_TABLE: tableI_packer_vectorize(D->I, valueI_as_table(pair.key), &vectorize); break;
+            case VALUE_TYPE_VECTOR: vectorI_packer_vectorize(D->I, valueI_as_vector(pair.key), &vectorize); break;
+            case VALUE_TYPE_FUNCTION: functionI_packer_vectorize(D->I, valueI_as_function(pair.key), &vectorize); break;
+            case VALUE_TYPE_CLOSURE: closureI_packer_vectorize(D->I, valueI_as_closure(pair.key), &vectorize); break;
             default: throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
         }
     }
@@ -222,10 +214,10 @@ static void write_objects_info(struct data *D) {
             case VALUE_TYPE_DECIMAL: write_ml_decimal(D, valueI_as_decimal(pair.key)); break;
             case VALUE_TYPE_BOOLEAN: write_bool(D, valueI_as_boolean(pair.key)); break;
             case VALUE_TYPE_STRING: write_object_string(D, valueI_as_string(pair.key)); break;
-            case VALUE_TYPE_TABLE: tableI_packer_write_info(valueI_as_table(pair.key), &write); break;
-            case VALUE_TYPE_VECTOR: vectorI_packer_write_info(valueI_as_vector(pair.key), &write); break;
-            case VALUE_TYPE_FUNCTION: functionI_packer_write_info(valueI_as_function(pair.key), &write); break;
-            case VALUE_TYPE_CLOSURE: closureI_packer_write_info(valueI_as_closure(pair.key), &write); break;
+            case VALUE_TYPE_TABLE: tableI_packer_write_info(D->I, valueI_as_table(pair.key), &write); break;
+            case VALUE_TYPE_VECTOR: vectorI_packer_write_info(D->I, valueI_as_vector(pair.key), &write); break;
+            case VALUE_TYPE_FUNCTION: functionI_packer_write_info(D->I, valueI_as_function(pair.key), &write); break;
+            case VALUE_TYPE_CLOSURE: closureI_packer_write_info(D->I, valueI_as_closure(pair.key), &write); break;
             default: throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
         }
     }
@@ -249,10 +241,10 @@ static void write_objects_data(struct data *D) {
             case VALUE_TYPE_DECIMAL:
             case VALUE_TYPE_BOOLEAN:
             case VALUE_TYPE_STRING: break;
-            case VALUE_TYPE_TABLE: tableI_packer_write_data(valueI_as_table(pair.key), &write); break;
-            case VALUE_TYPE_VECTOR: vectorI_packer_write_data(valueI_as_vector(pair.key), &write); break;
-            case VALUE_TYPE_FUNCTION: functionI_packer_write_data(valueI_as_function(pair.key), &write); break;
-            case VALUE_TYPE_CLOSURE: closureI_packer_write_data(valueI_as_closure(pair.key), &write); break;
+            case VALUE_TYPE_TABLE: tableI_packer_write_data(D->I, valueI_as_table(pair.key), &write); break;
+            case VALUE_TYPE_VECTOR: vectorI_packer_write_data(D->I, valueI_as_vector(pair.key), &write); break;
+            case VALUE_TYPE_FUNCTION: functionI_packer_write_data(D->I, valueI_as_function(pair.key), &write); break;
+            case VALUE_TYPE_CLOSURE: closureI_packer_write_data(D->I, valueI_as_closure(pair.key), &write); break;
             default: throwI_errorf(D->I, "%s cannot be packed", valueI_type(D->I, pair.key, false));
         }
     }

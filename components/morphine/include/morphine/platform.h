@@ -23,8 +23,14 @@ typedef void (*morphine_yield_t)(void *);
 
 // throw
 
+typedef enum {
+    MORPHINE_CATCH_SUCCESS,
+    MORPHINE_CATCH_PROVIDE,
+    MORPHINE_CATCH_CRASH,
+} morphine_catch_result_t;
+
 typedef void (*morphine_try_t)(void *);
-typedef void (*morphine_catch_t)(void *);
+typedef morphine_catch_result_t (*morphine_catch_t)(void *);
 
 // native
 

@@ -43,17 +43,14 @@ bool instructionI_validate(morphine_instruction_t instruction, struct function *
 #define arg_type_size(a, s)  do { if (instruction.argument##a > (s)) goto error; } while (0)
 
 #define arg_undefined(a)
-#define arg_position(a)
-#define arg_size(a)
-#define arg_argument_index(a)
-
-#define arg_closure_index(a)
-#define arg_static_index(a)
 
 #define arg_sslot(a)          arg_type_index(a, function->slots_count)
 #define arg_dslot(a)          arg_type_index(a, function->slots_count)
+#define arg_size(a)
+#define arg_position(a)
 #define arg_constant_index(a) arg_type_index(a, function->constants_count)
 #define arg_param_index(a)    arg_type_index(a, function->params_count)
+#define arg_argument_index(a)
 #define arg_params_count(a)   arg_type_size(a, function->params_count)
 
     switch (instruction.opcode) {

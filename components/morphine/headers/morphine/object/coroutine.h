@@ -75,7 +75,7 @@ struct coroutine {
     } stack;
 
     struct {
-        ml_size access;
+        ml_size context;
         ml_size size;
         struct callframe *frame;
         struct callframe *uninited;
@@ -121,13 +121,13 @@ struct value stackI_peek(morphine_coroutine_t, ml_size offset);
 void stackI_replace(morphine_coroutine_t, ml_size offset, struct value);
 void stackI_rotate(morphine_coroutine_t, ml_size count);
 
-void callstackI_check_access(morphine_coroutine_t);
-void callstackI_update_access(morphine_coroutine_t);
+struct callframe *callstackI_interpreter_context(morphine_instance_t);
+void callstackI_update_context(morphine_coroutine_t);
 
 void callstackI_call(morphine_coroutine_t, struct value *callable, struct value *args, ml_size argc, ml_size pop_size);
 void callstackI_call_api(morphine_coroutine_t, ml_size argc);
 void callstackI_pop(morphine_coroutine_t, struct value);
-void callstackI_drop(morphine_coroutine_t, struct callframe *);
+void callstackI_throw_drop(morphine_coroutine_t, struct callframe *);
 
 struct value callstackI_extract_callable(morphine_instance_t, struct value);
 

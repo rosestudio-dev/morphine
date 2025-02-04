@@ -23,8 +23,8 @@ static inline size_t size_table(struct table *table) {
            + table->hashmap.hashing.size * sizeof(struct tree);
 }
 
-static inline size_t size_closure(struct closure *closure) {
-    return sizeof(struct closure) + ((size_t) closure->size) * sizeof(struct value);
+static inline size_t size_closure(morphine_unused struct closure *closure) {
+    return sizeof(struct closure);
 }
 
 static inline size_t size_vector(struct vector *vector) {
@@ -33,7 +33,6 @@ static inline size_t size_vector(struct vector *vector) {
 
 static inline size_t size_function(struct function *function) {
     return sizeof(struct function) + ((size_t) function->instructions_count) * sizeof(morphine_instruction_t)
-           + ((size_t) function->statics_count) * sizeof(struct value)
            + ((size_t) function->constants_count) * sizeof(struct value);
 }
 

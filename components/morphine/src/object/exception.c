@@ -54,6 +54,33 @@ const char *exceptionI_kind2str(morphine_instance_t I, exception_kind_t kind) {
     throwI_panic(I, "unsupported exception kind");
 }
 
+const char *exceptionI_stacktrace_type2str(morphine_instance_t I, stacktrace_type_t type) {
+    switch (type) {
+        case STACKTRACE_TYPE_NONE: return "none";
+        case STACKTRACE_TYPE_FUNCTION: return "function";
+        case STACKTRACE_TYPE_NATIVE: return "native";
+    }
+
+    throwI_panic(I, "unsupported stacktrace element type");
+
+}
+
+void exceptionI_stacktrace_stub(morphine_instance_t I, struct exception *exception) {
+    if (exception == NULL) {
+        throwI_error(I, "exception is null");
+    }
+
+    if (exception->stacktrace.recorded) {
+        throwI_error(I, "stacktrace already recorded");
+    }
+
+    exception->stacktrace.recorded = true;
+    exception->stacktrace.printable = false;
+    exception->stacktrace.elements = NULL;
+    exception->stacktrace.size = 0;
+    exception->stacktrace.name = NULL;
+}
+
 struct string *exceptionI_message(morphine_instance_t I, struct exception *exception) {
     if (exception == NULL) {
         throwI_error(I, "exception is null");
@@ -76,7 +103,9 @@ struct string *exceptionI_message(morphine_instance_t I, struct exception *excep
 }
 
 static void print_string(morphine_instance_t I, struct stream *stream, struct string *string) {
-    if (string->size > MPARAM_STACKTRACE_LINE_LEN) {
+    if (string == NULL) {
+        streamI_print(I, stream, "(no string)");
+    } else if (string->size > MPARAM_STACKTRACE_LINE_LEN) {
         streamI_write(I, stream, (const uint8_t *) (string->chars), MPARAM_STACKTRACE_LINE_LEN * sizeof(char));
         streamI_print(I, stream, "...");
     } else {
@@ -140,7 +169,7 @@ void exceptionI_stacktrace_print(
     }
 
     for (ml_size i = 0; i < size; i++) {
-        struct stacktrace_element element = exception->stacktrace.elements[i];
+        struct stacktrace_element *element = exception->stacktrace.elements + i;
 
         if (size > count) {
             ml_size count_before = count / 2;
@@ -164,80 +193,31 @@ void exceptionI_stacktrace_print(
         }
 
         streamI_print(I, stream, "    ");
-        if (valueI_is_function(element.callable)) {
-            struct function *function = valueI_as_function(element.callable);
-
-            if (function->instructions_count > 0) {
-                ml_line line;
-                if (element.pc.position < function->instructions_count) {
-                    line = function->instructions[element.pc.position].line;
+        switch (element->type) {
+            case STACKTRACE_TYPE_FUNCTION: {
+                if (element->line == 0) {
+                    streamI_print(I, stream, "[line: undefined]");
                 } else {
-                    line = function->instructions[function->instructions_count - 1].line;
+                    streamI_printf(I, stream, "[line: %" MLIMIT_LINE_PR "]", element->line);
                 }
 
-                streamI_printf(I, stream, "[line: %" MLIMIT_LINE_PR "]", line);
-            } else {
-                streamI_print(I, stream, "[line: undefined]");
+                streamI_print(I, stream, " function '");
+                print_string(I, stream, element->name);
+                streamI_printf(I, stream, "'\n");
+                break;
             }
-
-            streamI_print(I, stream, " function '");
-            print_string(I, stream, function->name);
-            streamI_printf(I, stream, "' (declared in %" MLIMIT_LINE_PR " line)\n", function->line);
-        } else if (valueI_is_native(element.callable)) {
-            struct native *native = valueI_as_native(element.callable);
-
-            streamI_printf(I, stream, "[state: %" MLIMIT_SIZE_PR "] native '", element.pc.state);
-            print_string(I, stream, native->name);
-            streamI_printf(I, stream, "'\n");
-        } else {
-            streamI_printf(I, stream, "(unsupported callstack element)\n");
-        }
-    }
-}
-
-struct stacktrace_parsed_element exceptionI_stacktrace_element(
-    morphine_instance_t I,
-    struct exception *exception,
-    ml_size index
-) {
-    if (exception == NULL) {
-        throwI_error(I, "exception is null");
-    }
-
-    if (!exception->stacktrace.recorded) {
-        throwI_error(I, "stacktrace wasn't recorded");
-    }
-
-    if (index >= exception->stacktrace.size) {
-        throwI_error(I, "stacktrace index is out of bounce");
-    }
-
-    struct stacktrace_element element = exception->stacktrace.elements[index];
-    struct stacktrace_parsed_element result = {
-        .type = valueI_type(I, element.callable, false),
-        .name = NULL,
-        .line = 0,
-        .state = 0,
-    };
-
-    if (valueI_is_function(element.callable)) {
-        struct function *function = valueI_as_function(element.callable);
-        result.name = function->name;
-
-        if (function->instructions_count > 0) {
-            if (element.pc.position < function->instructions_count) {
-                result.line = function->instructions[element.pc.position].line;
-            } else {
-                result.line = function->instructions[function->instructions_count - 1].line;
+            case STACKTRACE_TYPE_NATIVE: {
+                streamI_printf(I, stream, "[state: %" MLIMIT_SIZE_PR "] native '", element->state);
+                print_string(I, stream, element->name);
+                streamI_printf(I, stream, "'\n");
+                break;
+            }
+            default: {
+                streamI_printf(I, stream, "(unsupported callstack element)\n");
+                break;
             }
         }
-    } else if (valueI_is_native(element.callable)) {
-        struct native *native = valueI_as_native(element.callable);
-        result.name = native->name;
-        result.state = element.pc.state;
     }
-
-    return result;
 }
 
 void exceptionI_stacktrace_record(morphine_instance_t I, struct exception *exception, morphine_coroutine_t coroutine) {
@@ -265,9 +245,10 @@ void exceptionI_stacktrace_record(morphine_instance_t I, struct exception *excep
     exception->stacktrace.size = size;
     for (ml_size i = 0; i < size; i++) {
         exception->stacktrace.elements[i] = (struct stacktrace_element) {
-            .callable = valueI_nil,
-            .pc.position = 0,
-            .pc.state = 0,
+            .type = STACKTRACE_TYPE_NONE,
+            .name = NULL,
+            .line = 0,
+            .state = 0,
         };
     }
 
@@ -280,30 +261,60 @@ void exceptionI_stacktrace_record(morphine_instance_t I, struct exception *excep
         if (frame == NULL) {
             break;
         } else {
-            *element = (struct stacktrace_element) {
-                .callable = callstackI_extract_callable(I, *frame->s.direct.callable),
-                .pc.position = frame->pc.position,
-                .pc.state = frame->pc.state,
-            };
-            gcI_barrier(I, exception, element->callable);
+            struct value callable = callstackI_extract_callable(I, *frame->s.direct.callable);
+            if (valueI_is_function(callable)) {
+                ml_line line = 0;
+                struct function *function = valueI_as_function(callable);
+                if (function->instructions_count > 0) {
+                    if (frame->pc.position < function->instructions_count) {
+                        line = function->instructions[frame->pc.position].line;
+                    } else {
+                        line = function->instructions[function->instructions_count - 1].line;
+                    }
+                }
+
+                (*element) = (struct stacktrace_element) {
+                    .type = STACKTRACE_TYPE_FUNCTION,
+                    .name = function->name,
+                    .line = line,
+                    .state = 0,
+                };
+            } else if (valueI_is_native(callable)) {
+                struct native *native = valueI_as_native(callable);
+
+                (*element) = (struct stacktrace_element) {
+                    .type = STACKTRACE_TYPE_NATIVE,
+                    .name = native->name,
+                    .line = 0,
+                    .state = frame->pc.state,
+                };
+            }
+
+            if (element->name != NULL) {
+                gcI_objbarrier(I, exception, element->name);
+            }
 
             frame = frame->prev;
         }
     }
 }
 
-void exceptionI_stacktrace_stub(morphine_instance_t I, struct exception *exception) {
+struct stacktrace_element exceptionI_stacktrace_element(
+    morphine_instance_t I,
+    struct exception *exception,
+    ml_size index
+) {
     if (exception == NULL) {
         throwI_error(I, "exception is null");
     }
 
-    if (exception->stacktrace.recorded) {
-        throwI_error(I, "stacktrace already recorded");
+    if (!exception->stacktrace.recorded) {
+        throwI_error(I, "stacktrace wasn't recorded");
     }
 
-    exception->stacktrace.recorded = true;
-    exception->stacktrace.printable = false;
-    exception->stacktrace.elements = NULL;
-    exception->stacktrace.size = 0;
-    exception->stacktrace.name = NULL;
+    if (index >= exception->stacktrace.size) {
+        throwI_error(I, "stacktrace index is out of bounce");
+    }
+
+    return exception->stacktrace.elements[index];
 }

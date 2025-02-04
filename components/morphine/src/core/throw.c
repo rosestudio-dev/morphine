@@ -101,12 +101,12 @@ void throwI_special(morphine_instance_t I) {
     I->throw.special.af = create_special(I, SPECIAL(AF));
 }
 
-void throwI_handler(morphine_instance_t I) {
+morphine_catch_result_t throwI_interpreter_handler(morphine_instance_t I) {
     struct throw *throw = &I->throw;
     morphine_coroutine_t coroutine = I->interpreter.context;
 
     if (coroutine == NULL) {
-        error(I);
+        return MORPHINE_CATCH_PROVIDE;
     }
 
     struct callframe *frame = coroutine->callstack.frame;
@@ -114,7 +114,7 @@ void throwI_handler(morphine_instance_t I) {
         while (frame != NULL) {
             if (frame->params.catch_enabled) {
                 if (frame->params.catch_crash) {
-                    csignal(I, false);
+                    return MORPHINE_CATCH_CRASH;
                 }
 
                 break;
@@ -172,7 +172,7 @@ void throwI_handler(morphine_instance_t I) {
         frame->params.catch_enabled = false;
 
         // pop while catch
-        callstackI_drop(coroutine, frame);
+        callstackI_throw_drop(coroutine, frame);
     } else {
         exceptionI_error_print(I, exception, I->stream.err);
         exceptionI_stacktrace_print(I, exception, I->stream.err, MPARAM_STACKTRACE_COUNT);
@@ -184,6 +184,8 @@ void throwI_handler(morphine_instance_t I) {
 
     I->interpreter.context = NULL;
     gcI_safe_exit(I);
+
+    return MORPHINE_CATCH_SUCCESS;
 }
 
 morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
@@ -292,8 +294,7 @@ void throwI_protect(
     morphine_try_t try,
     morphine_catch_t catch,
     void *try_data,
-    void *catch_data,
-    bool catch_provide
+    void *catch_data
 ) {
     struct throw *throw = &I->throw;
 
@@ -302,11 +303,15 @@ void throwI_protect(
 
     if (setjmp(throw->protect.handler) != 0) {
         memcpy(&throw->protect, &previous, sizeof(struct protect_frame));
-        catch(catch_data);
+        morphine_catch_result_t result = catch(catch_data);
 
-        if (catch_provide) {
-            error(I);
+        switch (result) {
+            case MORPHINE_CATCH_SUCCESS: return;
+            case MORPHINE_CATCH_PROVIDE: error(I);
+            case MORPHINE_CATCH_CRASH: csignal(I, false);
         }
+
+        throwI_panic(I, "unsupported catch result");
     } else {
         throw->protect.safe_level = gcI_safe_level(I);
         throw->protect.danger_entered = 0;

@@ -14,8 +14,11 @@ struct vector {
         bool fixed;
         bool mutable;
         bool accessible;
-        bool locked;
     } mode;
+
+    struct {
+        bool mode;
+    } lock;
 
     struct {
         ml_size real;
@@ -31,7 +34,7 @@ void vectorI_free(morphine_instance_t, struct vector *);
 void vectorI_mode_fixed(morphine_instance_t, struct vector *, bool is_fixed);
 void vectorI_mode_mutable(morphine_instance_t, struct vector *, bool is_mutable);
 void vectorI_mode_accessible(morphine_instance_t, struct vector *, bool is_accessible);
-void vectorI_mode_lock(morphine_instance_t, struct vector *);
+void vectorI_lock_mode(morphine_instance_t, struct vector *);
 
 ml_size vectorI_size(morphine_instance_t, struct vector *);
 
@@ -49,8 +52,8 @@ void vectorI_sort(morphine_instance_t, struct vector *);
 struct value vectorI_iterator_first(morphine_instance_t, struct vector *, bool *has);
 struct pair vectorI_iterator_next(morphine_instance_t, struct vector *, struct value *key, bool *next);
 
-void vectorI_packer_vectorize(struct vector *, struct packer_vectorize *);
-void vectorI_packer_write_info(struct vector *, struct packer_write *);
-void vectorI_packer_write_data(struct vector *, struct packer_write *);
+void vectorI_packer_vectorize(morphine_instance_t, struct vector *, struct packer_vectorize *);
+void vectorI_packer_write_info(morphine_instance_t, struct vector *, struct packer_write *);
+void vectorI_packer_write_data(morphine_instance_t, struct vector *, struct packer_write *);
 struct vector *vectorI_packer_read_info(morphine_instance_t, struct packer_read *);
 void vectorI_packer_read_data(morphine_instance_t, struct vector *, struct packer_read *);

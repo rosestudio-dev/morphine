@@ -55,9 +55,12 @@ struct table {
         bool fixed;
         bool mutable;
         bool accessible;
-        bool metatable_locked;
-        bool locked;
     } mode;
+
+    struct {
+        bool metatable;
+        bool mode;
+    } lock;
 
     struct hashmap hashmap;
 };
@@ -65,12 +68,11 @@ struct table {
 struct table *tableI_create(morphine_instance_t);
 void tableI_free(morphine_instance_t, struct table *);
 
-
 void tableI_mode_fixed(morphine_instance_t, struct table *, bool is_fixed);
 void tableI_mode_mutable(morphine_instance_t, struct table *, bool is_mutable);
 void tableI_mode_accessible(morphine_instance_t, struct table *, bool is_accessible);
-void tableI_mode_lock_metatable(morphine_instance_t, struct table *);
-void tableI_mode_lock(morphine_instance_t, struct table *);
+void tableI_lock_metatable(morphine_instance_t, struct table *);
+void tableI_lock_mode(morphine_instance_t, struct table *);
 
 ml_size tableI_size(morphine_instance_t, struct table *);
 void tableI_set(morphine_instance_t, struct table *, struct value key, struct value value);
@@ -88,8 +90,8 @@ struct table *tableI_copy(morphine_instance_t, struct table *);
 struct value tableI_iterator_first(morphine_instance_t, struct table *, bool *has);
 struct pair tableI_iterator_next(morphine_instance_t, struct table *, struct value *key, bool *next);
 
-void tableI_packer_vectorize(struct table *, struct packer_vectorize *);
-void tableI_packer_write_info(struct table *, struct packer_write *);
-void tableI_packer_write_data(struct table *, struct packer_write *);
+void tableI_packer_vectorize(morphine_instance_t, struct table *, struct packer_vectorize *);
+void tableI_packer_write_info(morphine_instance_t, struct table *, struct packer_write *);
+void tableI_packer_write_data(morphine_instance_t, struct table *, struct packer_write *);
 struct table *tableI_packer_read_info(morphine_instance_t, struct packer_read *);
 void tableI_packer_read_data(morphine_instance_t, struct table *, struct packer_read *);

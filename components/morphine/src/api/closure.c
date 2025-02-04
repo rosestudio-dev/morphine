@@ -7,23 +7,25 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
 
-MORPHINE_API void mapi_push_closure(morphine_coroutine_t U, ml_size size) {
-    stackI_push(U, valueI_object(closureI_create(U->I, stackI_peek(U, 0), size)));
-}
-
-MORPHINE_API void mapi_closure_get(morphine_coroutine_t U, ml_size index) {
-    struct closure *closure = valueI_as_closure_or_error(U->I, stackI_peek(U, 0));
-    struct value value = closureI_get(U->I, closure, index);
-    stackI_push(U, value);
-}
-
-MORPHINE_API void mapi_closure_set(morphine_coroutine_t U, ml_size index) {
-    struct closure *closure = valueI_as_closure_or_error(U->I, stackI_peek(U, 1));
-    closureI_set(U->I, closure, index, stackI_peek(U, 0));
+MORPHINE_API void mapi_push_closure(morphine_coroutine_t U) {
+    struct value callable = stackI_peek(U, 1);
+    struct value value = stackI_peek(U, 0);
+    struct closure *closure = closureI_create(U->I, callable, value);
+    stackI_replace(U, 1, valueI_object(closure));
     stackI_pop(U, 1);
 }
 
-MORPHINE_API ml_size mapi_closure_size(morphine_coroutine_t U) {
+MORPHINE_API void mapi_closure_lock(morphine_coroutine_t U) {
     struct closure *closure = valueI_as_closure_or_error(U->I, stackI_peek(U, 0));
-    return closure->size;
+    closureI_lock(U->I, closure);
+}
+
+MORPHINE_API void mapi_closure_unlock(morphine_coroutine_t U) {
+    struct closure *closure = valueI_as_closure_or_error(U->I, stackI_peek(U, 0));
+    closureI_unlock(U->I, closure);
+}
+
+MORPHINE_API void mapi_closure_value(morphine_coroutine_t U) {
+    struct closure *closure = valueI_as_closure_or_error(U->I, stackI_peek(U, 0));
+    stackI_push(U, closureI_value(U->I, closure));
 }

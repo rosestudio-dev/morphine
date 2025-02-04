@@ -2,12 +2,12 @@
 // Created by why-iskra on 30.09.2024.
 //
 
-#include "morphine/api.h"
 #include "morphine/object/exception.h"
+#include "morphine/api.h"
+#include "morphine/core/throw.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/function.h"
 #include "morphine/object/native.h"
-#include "morphine/core/throw.h"
 #include "morphine/object/string.h"
 
 MORPHINE_API void mapi_push_exception(morphine_coroutine_t U) {
@@ -65,15 +65,16 @@ MORPHINE_API ml_size mapi_exception_stacktrace_size(morphine_coroutine_t U) {
 
 MORPHINE_API const char *mapi_exception_stacktrace_type(morphine_coroutine_t U, ml_size index) {
     struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
-    return exceptionI_stacktrace_element(U->I, exception, index).type;
+    stacktrace_type_t type = exceptionI_stacktrace_element(U->I, exception, index).type;
+    return exceptionI_stacktrace_type2str(U->I, type);
 }
 
 MORPHINE_API void mapi_exception_stacktrace_callable(morphine_coroutine_t U, ml_size index) {
     struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
-    struct stacktrace_parsed_element element = exceptionI_stacktrace_element(U->I, exception, index);
+    struct string *name = exceptionI_stacktrace_element(U->I, exception, index).name;
 
-    if (element.name != NULL) {
-        stackI_push(U, valueI_object(element.name));
+    if (name != NULL) {
+        stackI_push(U, valueI_object(name));
     } else {
         stackI_push(U, valueI_nil);
     }
@@ -82,7 +83,6 @@ MORPHINE_API void mapi_exception_stacktrace_callable(morphine_coroutine_t U, ml_
 MORPHINE_API ml_line mapi_exception_stacktrace_line(morphine_coroutine_t U, ml_size index) {
     struct exception *exception = valueI_as_exception_or_error(U->I, stackI_peek(U, 0));
     return exceptionI_stacktrace_element(U->I, exception, index).line;
-
 }
 
 MORPHINE_API ml_size mapi_exception_stacktrace_state(morphine_coroutine_t U, ml_size index) {

@@ -11,14 +11,12 @@ static inline struct value localstorage_key(struct callframe *frame) {
     return valueI_raw(frame);
 }
 
-static inline struct value localstorage_current_key(morphine_coroutine_t U) {
-    callstackI_check_access(U);
-    return localstorage_key(U->callstack.frame);
+static inline struct value localstorage_current_key(morphine_instance_t I) {
+    return localstorage_key(callstackI_interpreter_context(I));
 }
 
-void localstorageI_set(morphine_coroutine_t U, struct value key, struct value value) {
-    morphine_instance_t I = U->I;
-    struct value local_key = localstorage_current_key(U);
+void localstorageI_set(morphine_instance_t I, struct value key, struct value value) {
+    struct value local_key = localstorage_current_key(I);
 
     gcI_safe_enter(I);
     gcI_safe(I, key);
@@ -39,11 +37,11 @@ void localstorageI_set(morphine_coroutine_t U, struct value key, struct value va
     gcI_safe_exit(I);
 }
 
-struct value localstorageI_get(morphine_coroutine_t U, struct value key, bool *has) {
-    struct value local_key = localstorage_current_key(U);
+struct value localstorageI_get(morphine_instance_t I, struct value key, bool *has) {
+    struct value local_key = localstorage_current_key(I);
 
     bool internal_has = false;
-    struct value table = tableI_get(U->I, U->I->localstorage, local_key, &internal_has);
+    struct value table = tableI_get(I, I->localstorage, local_key, &internal_has);
 
     if (!internal_has) {
         if (has != NULL) {
@@ -53,14 +51,14 @@ struct value localstorageI_get(morphine_coroutine_t U, struct value key, bool *h
         return valueI_nil;
     }
 
-    return tableI_get(U->I, valueI_as_table_or_error(U->I, table), key, has);
+    return tableI_get(I, valueI_as_table_or_error(I, table), key, has);
 }
 
-struct value localstorageI_remove(morphine_coroutine_t U, struct value key, bool *has) {
-    struct value local_key = localstorage_current_key(U);
+struct value localstorageI_remove(morphine_instance_t I, struct value key, bool *has) {
+    struct value local_key = localstorage_current_key(I);
 
     bool internal_has = false;
-    struct value table = tableI_get(U->I, U->I->localstorage, local_key, &internal_has);
+    struct value table = tableI_get(I, I->localstorage, local_key, &internal_has);
 
     if (!internal_has) {
         if (has != NULL) {
@@ -70,10 +68,16 @@ struct value localstorageI_remove(morphine_coroutine_t U, struct value key, bool
         return valueI_nil;
     }
 
-    return tableI_remove(U->I, valueI_as_table_or_error(U->I, table), key, has);
+    return tableI_remove(I, valueI_as_table_or_error(I, table), key, has);
 }
 
-void localstorageI_clear(morphine_instance_t I, struct callframe *frame) {
+void localstorageI_clear(morphine_instance_t I) {
+    struct value local_key = localstorage_current_key(I);
+    tableI_remove(I, I->localstorage, local_key, NULL);
+}
+
+
+void localstorageI_clear_frame(morphine_instance_t I, struct callframe *frame) {
     struct value local_key = localstorage_key(frame);
     tableI_remove(I, I->localstorage, local_key, NULL);
 }

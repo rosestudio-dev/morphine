@@ -20,7 +20,7 @@ struct vector *vectorI_create(morphine_instance_t I, ml_size size) {
         .mode.fixed = true,
         .mode.mutable = true,
         .mode.accessible = true,
-        .mode.locked = false,
+        .lock.mode = false,
         .size.real = 0,
         .size.accessible = 0,
         .values = NULL,
@@ -55,7 +55,7 @@ void vectorI_mode_fixed(morphine_instance_t I, struct vector *vector, bool is_fi
         throwI_error(I, "vector is null");
     }
 
-    if (vector->mode.locked) {
+    if (vector->lock.mode) {
         throwI_error(I, "vector is locked");
     }
 
@@ -72,7 +72,7 @@ void vectorI_mode_mutable(morphine_instance_t I, struct vector *vector, bool is_
         throwI_error(I, "vector is null");
     }
 
-    if (vector->mode.locked) {
+    if (vector->lock.mode) {
         throwI_error(I, "vector is locked");
     }
 
@@ -84,19 +84,19 @@ void vectorI_mode_accessible(morphine_instance_t I, struct vector *vector, bool 
         throwI_error(I, "vector is null");
     }
 
-    if (vector->mode.locked) {
+    if (vector->lock.mode) {
         throwI_error(I, "vector is locked");
     }
 
     vector->mode.accessible = is_accessible;
 }
 
-void vectorI_mode_lock(morphine_instance_t I, struct vector *vector) {
+void vectorI_lock_mode(morphine_instance_t I, struct vector *vector) {
     if (vector == NULL) {
         throwI_error(I, "vector is null");
     }
 
-    vector->mode.locked = true;
+    vector->lock.mode = true;
 }
 
 ml_size vectorI_size(morphine_instance_t I, struct vector *vector) {
@@ -276,16 +276,20 @@ struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
 
     ml_size size = vector->size.accessible;
 
-    struct vector *result = vectorI_create(I, size);
-    result->mode.fixed = vector->mode.fixed;
-    result->mode.mutable = vector->mode.mutable;
-    result->mode.locked = vector->mode.locked;
-
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(vector));
+    struct vector *result = gcI_safe_obj(I, vector, vectorI_create(I, size));
     memcpy(result->values, vector->values, ((size_t) size) * sizeof(struct value));
 
     for (ml_size i = 0; i < size; i++) {
         gcI_barrier(I, result, result->values[i]);
     }
+
+    result->mode.accessible = vector->mode.accessible;
+    result->mode.mutable = vector->mode.mutable;
+    result->mode.fixed = vector->mode.fixed;
+
+    gcI_safe_exit(I);
 
     return result;
 }
@@ -298,11 +302,10 @@ struct vector *vectorI_concat(morphine_instance_t I, struct vector *a, struct ve
     ml_size size =
         mm_overflow_opc_add(a->size.accessible, b->size.accessible, throwI_error(I, "too big concat vector length"));
 
-    struct vector *result = vectorI_create(I, size);
-    result->mode.mutable = a->mode.mutable;
-    result->mode.fixed = a->mode.fixed;
-    result->mode.accessible = a->mode.accessible;
-    result->mode.locked = a->mode.locked;
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(a));
+    gcI_safe(I, valueI_object(b));
+    struct vector *result = gcI_safe_obj(I, vector, vectorI_create(I, size));
 
     memcpy(result->values, a->values, ((size_t) a->size.accessible) * sizeof(struct value));
     memcpy(result->values + a->size.accessible, b->values, ((size_t) b->size.accessible) * sizeof(struct value));
@@ -310,6 +313,12 @@ struct vector *vectorI_concat(morphine_instance_t I, struct vector *a, struct ve
     for (ml_size i = 0; i < size; i++) {
         gcI_barrier(I, result, result->values[i]);
     }
+
+    result->mode.accessible = a->mode.accessible;
+    result->mode.mutable = a->mode.mutable;
+    result->mode.fixed = a->mode.fixed;
+
+    gcI_safe_exit(I);
 
     return result;
 }
@@ -507,9 +516,9 @@ struct pair vectorI_iterator_next(morphine_instance_t I, struct vector *vector, 
     return valueI_pair(valueI_size(index), vector->values[index]);
 }
 
-void vectorI_packer_vectorize(struct vector *vector, struct packer_vectorize *V) {
+void vectorI_packer_vectorize(morphine_instance_t I, struct vector *vector, struct packer_vectorize *V) {
     if (!vector->mode.accessible) {
-        packerI_vectorize_error(V, "vector is inaccessible");
+        throwI_error(I, "vector is inaccessible");
     }
 
     for (ml_size i = 0; i < vector->size.accessible; i++) {
@@ -517,17 +526,17 @@ void vectorI_packer_vectorize(struct vector *vector, struct packer_vectorize *V)
     }
 }
 
-void vectorI_packer_write_info(struct vector *vector, struct packer_write *W) {
+void vectorI_packer_write_info(morphine_instance_t I, struct vector *vector, struct packer_write *W) {
     if (!vector->mode.accessible) {
-        packerI_write_error(W, "vector is inaccessible");
+        throwI_error(I, "vector is inaccessible");
     }
 
     packerI_write_ml_size(W, vector->size.accessible);
 }
 
-void vectorI_packer_write_data(struct vector *vector, struct packer_write *W) {
+void vectorI_packer_write_data(morphine_instance_t I, struct vector *vector, struct packer_write *W) {
     if (!vector->mode.accessible) {
-        packerI_write_error(W, "vector is inaccessible");
+        throwI_error(I, "vector is inaccessible");
     }
 
     for (ml_size i = 0; i < vector->size.accessible; i++) {
@@ -537,7 +546,7 @@ void vectorI_packer_write_data(struct vector *vector, struct packer_write *W) {
     packerI_write_bool(W, vector->mode.mutable);
     packerI_write_bool(W, vector->mode.fixed);
     packerI_write_bool(W, vector->mode.accessible);
-    packerI_write_bool(W, vector->mode.locked);
+    packerI_write_bool(W, vector->lock.mode);
 }
 
 struct vector *vectorI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
@@ -558,6 +567,6 @@ void vectorI_packer_read_data(morphine_instance_t I, struct vector *vector, stru
     vectorI_mode_accessible(I, vector, packerI_read_bool(R));
 
     if (packerI_read_bool(R)) {
-        vectorI_mode_lock(I, vector);
+        vectorI_lock_mode(I, vector);
     }
 }

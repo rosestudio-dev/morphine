@@ -541,8 +541,8 @@ struct table *tableI_create(morphine_instance_t I) {
         .mode.fixed = false,
         .mode.mutable = true,
         .mode.accessible = true,
-        .mode.metatable_locked = false,
-        .mode.locked = false,
+        .lock.metatable = false,
+        .lock.mode = false,
 
         .hashmap.buckets.access = NULL,
         .hashmap.buckets.head = NULL,
@@ -576,7 +576,7 @@ void tableI_mode_fixed(morphine_instance_t I, struct table *table, bool is_fixed
         throwI_error(I, "table is null");
     }
 
-    if (table->mode.locked) {
+    if (table->lock.mode) {
         throwI_error(I, "table is locked");
     }
 
@@ -588,7 +588,7 @@ void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mut
         throwI_error(I, "table is null");
     }
 
-    if (table->mode.locked) {
+    if (table->lock.mode) {
         throwI_error(I, "table is locked");
     }
 
@@ -600,31 +600,27 @@ void tableI_mode_accessible(morphine_instance_t I, struct table *table, bool is_
         throwI_error(I, "table is null");
     }
 
-    if (table->mode.locked) {
+    if (table->lock.mode) {
         throwI_error(I, "table is locked");
     }
 
     table->mode.accessible = is_accessible;
 }
 
-void tableI_mode_lock_metatable(morphine_instance_t I, struct table *table) {
+void tableI_lock_metatable(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_error(I, "table is null");
     }
 
-    if (table->mode.locked) {
-        throwI_error(I, "table is locked");
-    }
-
-    table->mode.metatable_locked = true;
+    table->lock.metatable = true;
 }
 
-void tableI_mode_lock(morphine_instance_t I, struct table *table) {
+void tableI_lock_mode(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_error(I, "table is null");
     }
 
-    table->mode.locked = true;
+    table->lock.mode = true;
 }
 
 ml_size tableI_size(morphine_instance_t I, struct table *table) {
@@ -858,16 +854,44 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
     };
 }
 
+struct table *tableI_copy(morphine_instance_t I, struct table *table) {
+    if (table == NULL) {
+        throwI_error(I, "table is null");
+    }
+
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
+    }
+
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(table));
+    struct table *result = gcI_safe_obj(I, table, tableI_create(I));
+
+    struct bucket *current = table->hashmap.buckets.tail;
+    while (current != NULL) {
+        tableI_set(I, result, current->pair.key, current->pair.value);
+
+        current = current->ll.next;
+    }
+
+    result->mode.accessible = table->mode.accessible;
+    result->mode.mutable = table->mode.mutable;
+    result->mode.fixed = table->mode.fixed;
+
+    gcI_safe_exit(I);
+
+    return result;
+}
+
 struct table *tableI_concat(morphine_instance_t I, struct table *a, struct table *b) {
     if (a == NULL || b == NULL) {
         throwI_error(I, "table is null");
     }
 
     gcI_safe_enter(I);
-
-    struct table *result = gcI_safe_obj(I, table, tableI_create(I));
     gcI_safe(I, valueI_object(a));
     gcI_safe(I, valueI_object(b));
+    struct table *result = gcI_safe_obj(I, table, tableI_create(I));
 
     for (ml_size i = 0; i < a->hashmap.buckets.count; i++) {
         bool has = false;
@@ -887,32 +911,9 @@ struct table *tableI_concat(morphine_instance_t I, struct table *a, struct table
         }
     }
 
-    gcI_safe_exit(I);
-
-    return result;
-}
-
-struct table *tableI_copy(morphine_instance_t I, struct table *table) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
-    gcI_safe_enter(I);
-    gcI_safe(I, valueI_object(table));
-    struct table *result = gcI_safe_obj(I, table, tableI_create(I));
-    result->mode.mutable = table->mode.mutable;
-    result->mode.fixed = table->mode.fixed;
-
-    struct bucket *current = table->hashmap.buckets.tail;
-    while (current != NULL) {
-        tableI_set(I, result, current->pair.key, current->pair.value);
-
-        current = current->ll.next;
-    }
+    result->mode.accessible = a->mode.accessible;
+    result->mode.mutable = a->mode.mutable;
+    result->mode.fixed = a->mode.fixed;
 
     gcI_safe_exit(I);
 
@@ -987,9 +988,9 @@ struct pair tableI_iterator_next(morphine_instance_t I, struct table *table, str
     return current->pair;
 }
 
-void tableI_packer_vectorize(struct table *table, struct packer_vectorize *V) {
+void tableI_packer_vectorize(morphine_instance_t I, struct table *table, struct packer_vectorize *V) {
     if (!table->mode.accessible) {
-        packerI_vectorize_error(V, "table is inaccessible");
+        throwI_error(I, "table is inaccessible");
     }
 
     struct bucket *current = table->hashmap.buckets.tail;
@@ -1005,15 +1006,15 @@ void tableI_packer_vectorize(struct table *table, struct packer_vectorize *V) {
     }
 }
 
-void tableI_packer_write_info(struct table *table, struct packer_write *W) {
+void tableI_packer_write_info(morphine_instance_t I, struct table *table, morphine_unused struct packer_write *W) {
     if (!table->mode.accessible) {
-        packerI_write_error(W, "table is inaccessible");
+        throwI_error(I, "table is inaccessible");
     }
 }
 
-void tableI_packer_write_data(struct table *table, struct packer_write *W) {
+void tableI_packer_write_data(morphine_instance_t I, struct table *table, struct packer_write *W) {
     if (!table->mode.accessible) {
-        packerI_write_error(W, "table is inaccessible");
+        throwI_error(I, "table is inaccessible");
     }
 
     packerI_write_ml_size(W, table->hashmap.buckets.count);
@@ -1034,8 +1035,8 @@ void tableI_packer_write_data(struct table *table, struct packer_write *W) {
     packerI_write_bool(W, table->mode.mutable);
     packerI_write_bool(W, table->mode.fixed);
     packerI_write_bool(W, table->mode.accessible);
-    packerI_write_bool(W, table->mode.metatable_locked);
-    packerI_write_bool(W, table->mode.locked);
+    packerI_write_bool(W, table->lock.metatable);
+    packerI_write_bool(W, table->lock.mode);
 }
 
 struct table *tableI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
@@ -1066,10 +1067,10 @@ void tableI_packer_read_data(morphine_instance_t I, struct table *table, struct 
     tableI_mode_accessible(I, table, packerI_read_bool(R));
 
     if (packerI_read_bool(R)) {
-        tableI_mode_lock_metatable(I, table);
+        tableI_lock_metatable(I, table);
     }
 
     if (packerI_read_bool(R)) {
-        tableI_mode_lock(I, table);
+        tableI_lock_mode(I, table);
     }
 }

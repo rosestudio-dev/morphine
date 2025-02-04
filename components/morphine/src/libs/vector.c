@@ -355,14 +355,14 @@ static void inaccessible(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void lock(morphine_coroutine_t U) {
+static void lockmode(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
 
-            mapi_vector_mode_lock(U);
+            mapi_vector_lock_mode(U);
             maux_nb_return();
     maux_nb_end
 }
@@ -406,7 +406,7 @@ static void isaccessible(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void islocked(morphine_coroutine_t U) {
+static void modeislocked(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
@@ -441,11 +441,11 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("unfixed", unfixed),
     MAUX_CONSTRUCT_FUNCTION("accessible", accessible),
     MAUX_CONSTRUCT_FUNCTION("inaccessible", inaccessible),
-    MAUX_CONSTRUCT_FUNCTION("lock", lock),
+    MAUX_CONSTRUCT_FUNCTION("lockmode", lockmode),
     MAUX_CONSTRUCT_FUNCTION("isfixed", isfixed),
     MAUX_CONSTRUCT_FUNCTION("ismutable", ismutable),
     MAUX_CONSTRUCT_FUNCTION("isaccessible", isaccessible),
-    MAUX_CONSTRUCT_FUNCTION("islocked", islocked),
+    MAUX_CONSTRUCT_FUNCTION("modeislocked", modeislocked),
     MAUX_CONSTRUCT_END
 };
 

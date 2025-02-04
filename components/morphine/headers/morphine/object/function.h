@@ -16,16 +16,22 @@ struct function {
     ml_line line;
     ml_size instructions_count;
     ml_size constants_count;
-    ml_size statics_count;
     ml_size slots_count;
     ml_size params_count;
 
     morphine_instruction_t *instructions;
     struct value *constants;
-    struct value *statics;
 
     ml_size stack_size;
-    bool complete;
+
+    struct {
+        bool mutable;
+        bool accessible;
+    } mode;
+
+    struct {
+        bool mode;
+    } lock;
 };
 
 struct function *functionI_create(
@@ -34,15 +40,15 @@ struct function *functionI_create(
     ml_line line,
     ml_size instructions_count,
     ml_size constants_count,
-    ml_size statics_count,
     ml_size slots_count,
     ml_size params_count
 );
 
 void functionI_free(morphine_instance_t, struct function *);
 
-struct function *functionI_copy(morphine_instance_t, struct function *);
-void functionI_complete(morphine_instance_t, struct function *);
+void functionI_mode_mutable(morphine_instance_t, struct function *, bool is_mutable);
+void functionI_mode_accessible(morphine_instance_t, struct function *, bool is_accessible);
+void functionI_lock_mode(morphine_instance_t, struct function *);
 
 morphine_instruction_t functionI_instruction_get(morphine_instance_t, struct function *, ml_size index);
 void functionI_instruction_set(morphine_instance_t, struct function *, ml_size index, morphine_instruction_t);
@@ -50,11 +56,10 @@ void functionI_instruction_set(morphine_instance_t, struct function *, ml_size i
 struct value functionI_constant_get(morphine_instance_t, struct function *, ml_size index);
 void functionI_constant_set(morphine_instance_t, struct function *, ml_size index, struct value);
 
-struct value functionI_static_get(morphine_instance_t, struct function *, ml_size index);
-void functionI_static_set(morphine_instance_t, struct function *, ml_size index, struct value);
+struct function *functionI_copy(morphine_instance_t, struct function *);
 
-void functionI_packer_vectorize(struct function *, struct packer_vectorize *);
-void functionI_packer_write_info(struct function *, struct packer_write *);
-void functionI_packer_write_data(struct function *, struct packer_write *);
+void functionI_packer_vectorize(morphine_instance_t, struct function *, struct packer_vectorize *);
+void functionI_packer_write_info(morphine_instance_t, struct function *, struct packer_write *);
+void functionI_packer_write_data(morphine_instance_t, struct function *, struct packer_write *);
 struct function *functionI_packer_read_info(morphine_instance_t, struct packer_read *);
 void functionI_packer_read_data(morphine_instance_t, struct function *, struct packer_read *);

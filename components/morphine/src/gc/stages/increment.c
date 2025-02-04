@@ -27,10 +27,6 @@ static inline void record(morphine_instance_t I) {
             mark_object(I, objectI_cast(I->interpreter.context));
         }
 
-        if (I->interpreter.context != NULL) {
-            mark_object(I, objectI_cast(I->interpreter.context));
-        }
-
         if (I->throw.fix.stack != NULL) {
             mark_object(I, objectI_cast(I->throw.fix.stack));
         }

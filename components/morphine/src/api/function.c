@@ -13,7 +13,6 @@ MORPHINE_API void mapi_push_function(
     ml_line line,
     ml_size instructions_count,
     ml_size constants_count,
-    ml_size statics_count,
     ml_size slots_count,
     ml_size params_count
 ) {
@@ -25,7 +24,6 @@ MORPHINE_API void mapi_push_function(
         line,
         instructions_count,
         constants_count,
-        statics_count,
         slots_count,
         params_count
     );
@@ -36,16 +34,6 @@ MORPHINE_API void mapi_push_function(
 MORPHINE_API void mapi_function_copy(morphine_coroutine_t U) {
     struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
     stackI_push(U, valueI_object(functionI_copy(U->I, function)));
-}
-
-MORPHINE_API void mapi_function_complete(morphine_coroutine_t U) {
-    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
-    functionI_complete(U->I, function);
-}
-
-MORPHINE_API bool mapi_function_is_complete(morphine_coroutine_t U) {
-    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
-    return function->complete;
 }
 
 MORPHINE_API void mapi_function_name(morphine_coroutine_t U) {
@@ -68,21 +56,34 @@ MORPHINE_API ml_size mapi_function_params(morphine_coroutine_t U) {
     return function->params_count;
 }
 
-MORPHINE_API void mapi_static_get(morphine_coroutine_t U, ml_size index) {
+MORPHINE_API void mapi_function_mode_mutable(morphine_coroutine_t U, bool is_mutable) {
     struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
-    struct value value = functionI_static_get(U->I, function, index);
-    stackI_push(U, value);
+    functionI_mode_mutable(U->I, function, is_mutable);
 }
 
-MORPHINE_API void mapi_static_set(morphine_coroutine_t U, ml_size index) {
-    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 1));
-    functionI_static_set(U->I, function, index, stackI_peek(U, 0));
-    stackI_pop(U, 1);
+MORPHINE_API void mapi_function_mode_accessible(morphine_coroutine_t U, bool is_accessible) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    functionI_mode_accessible(U->I, function, is_accessible);
 }
 
-MORPHINE_API ml_size mapi_static_size(morphine_coroutine_t U) {
+MORPHINE_API void mapi_function_lock_mode(morphine_coroutine_t U) {
     struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
-    return function->statics_count;
+    functionI_lock_mode(U->I, function);
+}
+
+MORPHINE_API bool mapi_function_mode_is_mutable(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    return function->mode.mutable;
+}
+
+MORPHINE_API bool mapi_function_mode_is_accessible(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    return function->mode.accessible;
+}
+
+MORPHINE_API bool mapi_function_mode_is_locked(morphine_coroutine_t U) {
+    struct function *function = valueI_as_function_or_error(U->I, stackI_peek(U, 0));
+    return function->lock.mode;
 }
 
 MORPHINE_API void mapi_constant_get(morphine_coroutine_t U, ml_size index) {

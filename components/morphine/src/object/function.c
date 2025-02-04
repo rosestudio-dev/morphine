@@ -18,7 +18,6 @@ struct function *functionI_create(
     ml_line line,
     ml_size instructions_count,
     ml_size constants_count,
-    ml_size statics_count,
     ml_size slots_count,
     ml_size params_count
 ) {
@@ -32,10 +31,6 @@ struct function *functionI_create(
 
     if (constants_count > mm_typemax(ml_argument)) {
         throwI_error(I, "too many constants");
-    }
-
-    if (statics_count > mm_typemax(ml_argument)) {
-        throwI_error(I, "too many statics");
     }
 
     if (slots_count > mm_typemax(ml_argument)) {
@@ -54,18 +49,18 @@ struct function *functionI_create(
     // create
     struct function *result = allocI_uni(I, NULL, sizeof(struct function));
     (*result) = (struct function) {
-        .complete = false,
         .name = name,
         .line = line,
         .instructions_count = 0,
         .constants_count = 0,
-        .statics_count = 0,
         .slots_count = slots_count,
         .params_count = params_count,
         .constants = NULL,
         .instructions = NULL,
-        .statics = NULL,
         .stack_size = stack_size,
+        .mode.mutable = true,
+        .mode.accessible = true,
+        .lock.mode = false
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);
@@ -78,7 +73,7 @@ struct function *functionI_create(
     for (ml_size i = 0; i < instructions_count; i++) {
         result->instructions[i] = (morphine_instruction_t) {
             .line = 0,
-            .opcode = MORPHINE_OPCODE_YIELD,
+            .opcode = MORPHINE_OPCODE_NO_OPERATION,
             .argument1 = 0,
             .argument2 = 0,
             .argument3 = 0,
@@ -91,12 +86,6 @@ struct function *functionI_create(
         result->constants[i] = valueI_nil;
     }
 
-    result->statics = allocI_vec(I, NULL, statics_count, sizeof(struct value));
-    result->statics_count = statics_count;
-    for (ml_size i = 0; i < statics_count; i++) {
-        result->statics[i] = valueI_nil;
-    }
-
     gcI_safe_exit(I);
 
     return result;
@@ -105,64 +94,48 @@ struct function *functionI_create(
 void functionI_free(morphine_instance_t I, struct function *function) {
     allocI_free(I, function->instructions);
     allocI_free(I, function->constants);
-    allocI_free(I, function->statics);
     allocI_free(I, function);
 }
 
-struct function *functionI_copy(morphine_instance_t I, struct function *function) {
+void functionI_mode_mutable(morphine_instance_t I, struct function *function, bool is_mutable) {
     if (function == NULL) {
         throwI_error(I, "function is null");
     }
 
-    gcI_safe_enter(I);
-    gcI_safe(I, valueI_object(function));
-
-    struct function *result = gcI_safe_obj(
-        I,
-        function,
-        functionI_create(
-            I,
-            function->name,
-            function->line,
-            function->instructions_count,
-            function->constants_count,
-            function->statics_count,
-            function->slots_count,
-            function->params_count
-        )
-    );
-
-    for (ml_size i = 0; i < function->instructions_count; i++) {
-        morphine_instruction_t instruction = functionI_instruction_get(I, function, i);
-        functionI_instruction_set(I, result, i, instruction);
+    if (function->lock.mode) {
+        throwI_error(I, "function is locked");
     }
 
-    for (ml_size i = 0; i < function->constants_count; i++) {
-        struct value value = functionI_constant_get(I, function, i);
-        functionI_constant_set(I, result, i, value);
-    }
-
-    for (ml_size i = 0; i < function->statics_count; i++) {
-        struct value value = functionI_static_get(I, function, i);
-        functionI_static_set(I, result, i, value);
-    }
-
-    gcI_safe_exit(I);
-
-    return result;
+    function->mode.mutable = is_mutable;
 }
 
-void functionI_complete(morphine_instance_t I, struct function *function) {
+void functionI_mode_accessible(morphine_instance_t I, struct function *function, bool is_accessible) {
     if (function == NULL) {
         throwI_error(I, "function is null");
     }
 
-    function->complete = true;
+    if (function->lock.mode) {
+        throwI_error(I, "function is locked");
+    }
+
+    function->mode.accessible = is_accessible;
+}
+
+void functionI_lock_mode(morphine_instance_t I, struct function *function) {
+    if (function == NULL) {
+        throwI_error(I, "function is null");
+    }
+
+    function->lock.mode = true;
 }
 
 morphine_instruction_t functionI_instruction_get(morphine_instance_t I, struct function *function, ml_size index) {
     if (function == NULL) {
         throwI_error(I, "function is null");
+    }
+
+    if (!function->mode.accessible) {
+        throwI_error(I, "function is inaccessible");
     }
 
     if (index >= function->instructions_count) {
@@ -182,8 +155,8 @@ void functionI_instruction_set(
         throwI_error(I, "function is null");
     }
 
-    if (function->complete) {
-        throwI_error(I, "function is complete");
+    if (!function->mode.mutable) {
+        throwI_error(I, "function is immutable");
     }
 
     if (index >= function->instructions_count) {
@@ -208,6 +181,10 @@ struct value functionI_constant_get(morphine_instance_t I, struct function *func
         throwI_error(I, "function is null");
     }
 
+    if (!function->mode.accessible) {
+        throwI_error(I, "function is inaccessible");
+    }
+
     if (index >= function->constants_count) {
         throwI_error(I, "constant index was out of bounce");
     }
@@ -220,8 +197,8 @@ void functionI_constant_set(morphine_instance_t I, struct function *function, ml
         throwI_error(I, "function is null");
     }
 
-    if (function->complete) {
-        throwI_error(I, "function is complete");
+    if (!function->mode.mutable) {
+        throwI_error(I, "function is immutable");
     }
 
     if (index >= function->constants_count) {
@@ -239,52 +216,74 @@ void functionI_constant_set(morphine_instance_t I, struct function *function, ml
     function->constants[index] = value;
 }
 
-struct value functionI_static_get(morphine_instance_t I, struct function *function, ml_size index) {
+struct function *functionI_copy(morphine_instance_t I, struct function *function) {
     if (function == NULL) {
         throwI_error(I, "function is null");
     }
 
-    if (index >= function->statics_count) {
-        throwI_error(I, "static index was out of bounce");
+    if (!function->mode.accessible) {
+        throwI_error(I, "function is inaccessible");
     }
 
-    return function->statics[index];
+    gcI_safe_enter(I);
+    gcI_safe(I, valueI_object(function));
+    struct function *result = functionI_create(
+        I,
+        function->name,
+        function->line,
+        function->instructions_count,
+        function->constants_count,
+        function->slots_count,
+        function->params_count
+    );
+    gcI_safe(I, valueI_object(result));
+
+    for (ml_size i = 0; i < function->instructions_count; i++) {
+        morphine_instruction_t instruction = functionI_instruction_get(I, function, i);
+        functionI_instruction_set(I, result, i, instruction);
+    }
+
+    for (ml_size i = 0; i < function->constants_count; i++) {
+        struct value value = functionI_constant_get(I, function, i);
+        functionI_constant_set(I, result, i, value);
+    }
+
+    result->mode.accessible = function->mode.accessible;
+    result->mode.mutable = function->mode.mutable;
+
+    gcI_safe_exit(I);
+
+    return result;
 }
 
-void functionI_static_set(morphine_instance_t I, struct function *function, ml_size index, struct value value) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
+void functionI_packer_vectorize(morphine_instance_t I, struct function *function, struct packer_vectorize *V) {
+    if (!function->mode.accessible) {
+        throwI_error(I, "function is inaccessible");
     }
 
-    if (index >= function->statics_count) {
-        throwI_error(I, "static index was out of bounce");
-    }
-
-    gcI_barrier(I, function, value);
-    function->statics[index] = value;
-}
-
-void functionI_packer_vectorize(struct function *function, struct packer_vectorize *V) {
     for (ml_size i = 0; i < function->constants_count; i++) {
         packerI_vectorize_append(V, function->constants[i]);
     }
-
-    for (ml_size i = 0; i < function->statics_count; i++) {
-        packerI_vectorize_append(V, function->statics[i]);
-    }
 }
 
-void functionI_packer_write_info(struct function *function, struct packer_write *W) {
+void functionI_packer_write_info(morphine_instance_t I, struct function *function, struct packer_write *W) {
+    if (!function->mode.accessible) {
+        throwI_error(I, "function is inaccessible");
+    }
+
     packerI_write_ml_line(W, function->line);
     packerI_write_ml_size(W, function->instructions_count);
     packerI_write_ml_size(W, function->constants_count);
-    packerI_write_ml_size(W, function->statics_count);
     packerI_write_ml_size(W, function->slots_count);
     packerI_write_ml_size(W, function->params_count);
     packerI_write_object_string(W, function->name);
 }
 
-void functionI_packer_write_data(struct function *function, struct packer_write *W) {
+void functionI_packer_write_data(morphine_instance_t I, struct function *function, struct packer_write *W) {
+    if (!function->mode.accessible) {
+        throwI_error(I, "function is inaccessible");
+    }
+
     for (ml_size i = 0; i < function->instructions_count; i++) {
         morphine_instruction_t instruction = function->instructions[i];
         packerI_write_opcode(W, instruction.opcode);
@@ -309,18 +308,15 @@ void functionI_packer_write_data(struct function *function, struct packer_write 
         packerI_write_value(W, function->constants[i]);
     }
 
-    for (ml_size i = 0; i < function->statics_count; i++) {
-        packerI_write_value(W, function->statics[i]);
-    }
-
-    packerI_write_bool(W, function->complete);
+    packerI_write_bool(W, function->mode.mutable);
+    packerI_write_bool(W, function->mode.accessible);
+    packerI_write_bool(W, function->lock.mode);
 }
 
 struct function *functionI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
     ml_line line = packerI_read_ml_line(R);
     ml_size instructions_count = packerI_read_ml_size(R);
     ml_size constants_count = packerI_read_ml_size(R);
-    ml_size statics_count = packerI_read_ml_size(R);
     ml_size slots_count = packerI_read_ml_size(R);
     ml_size params_count = packerI_read_ml_size(R);
 
@@ -332,7 +328,6 @@ struct function *functionI_packer_read_info(morphine_instance_t I, struct packer
         line,
         instructions_count,
         constants_count,
-        statics_count,
         slots_count,
         params_count
     );
@@ -379,15 +374,10 @@ void functionI_packer_read_data(morphine_instance_t I, struct function *function
         gcI_safe_exit(I);
     }
 
-    for (ml_size i = 0; i < function->statics_count; i++) {
-        gcI_safe_enter(I);
-        struct value value = gcI_safe(I, packerI_read_value(R));
-        functionI_static_set(I, function, i, value);
-        gcI_safe_exit(I);
-    }
+    functionI_mode_mutable(I, function, packerI_read_bool(R));
+    functionI_mode_accessible(I, function, packerI_read_bool(R));
 
-    bool is_complete = packerI_read_bool(R);
-    if (is_complete) {
-        functionI_complete(I, function);
+    if (packerI_read_bool(R)) {
+        functionI_lock_mode(I, function);
     }
 }

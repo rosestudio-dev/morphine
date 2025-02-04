@@ -2,11 +2,11 @@
 // Created by whyiskra on 25.12.23.
 //
 
+#include "morphine/core/throw.h"
 #include "morphine/api.h"
+#include "morphine/core/instance.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/string.h"
-#include "morphine/core/throw.h"
-#include "morphine/core/instance.h"
 
 MORPHINE_API morphine_noret void mapi_errorf(morphine_coroutine_t U, const char *str, ...) {
     va_list args;
@@ -55,14 +55,8 @@ MORPHINE_API void mapi_uncatch(morphine_coroutine_t U) {
     callstackI_uncatch(U);
 }
 
-MORPHINE_API void mapi_protect(
-    morphine_instance_t I,
-    morphine_try_t try,
-    morphine_catch_t catch,
-    void *data,
-    bool catch_provide
-) {
-    throwI_protect(I, try, catch, data, data, catch_provide);
+MORPHINE_API void mapi_protect(morphine_instance_t I, morphine_try_t try, morphine_catch_t catch, void *data) {
+    throwI_protect(I, try, catch, data, data);
 }
 
 MORPHINE_API bool mapi_exception(morphine_coroutine_t U) {

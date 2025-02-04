@@ -34,7 +34,7 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
     if (valueI_is_table(value)) {
         struct table *table = valueI_as_table(value);
 
-        if (table->mode.metatable_locked) {
+        if (table->lock.metatable) {
             throwI_error(I, "metatable was locked");
         }
 
@@ -49,7 +49,7 @@ void metatableI_set(morphine_instance_t I, struct value value, struct table *met
     if (valueI_is_userdata(value)) {
         struct userdata *userdata = valueI_as_userdata(value);
 
-        if (userdata->mode.metatable_locked) {
+        if (userdata->lock.metatable) {
             throwI_error(I, "metatable was locked");
         }
 

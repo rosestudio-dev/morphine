@@ -59,9 +59,7 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             struct closure *closure = cast(struct closure *, obj);
 
             mark_value(I, closure->callable);
-            for (ml_size i = 0; i < closure->size; i++) {
-                mark_value(I, closure->values[i]);
-            }
+            mark_value(I, closure->value);
 
             return size_closure(closure);
         }
@@ -72,10 +70,6 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             for (ml_size i = 0; i < function->constants_count; i++) {
                 mark_value(I, function->constants[i]);
-            }
-
-            for (ml_size i = 0; i < function->statics_count; i++) {
-                mark_value(I, function->statics[i]);
             }
 
             return size_function(function);
@@ -131,7 +125,10 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             }
 
             for (ml_size i = 0; i < exception->stacktrace.size; i++) {
-                mark_value(I, exception->stacktrace.elements[i].callable);
+                struct string *name = exception->stacktrace.elements[i].name;
+                if (name != NULL) {
+                    mark_object(I, objectI_cast(name));
+                }
             }
 
             return size_exception(exception);

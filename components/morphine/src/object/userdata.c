@@ -18,9 +18,9 @@ static struct userdata *create(morphine_instance_t I) {
         .untyped.size = 0,
         .untyped.destructor = NULL,
         .data = NULL,
-        .mode.destructor_locked = false,
-        .mode.metatable_locked = false,
-        .mode.size_locked = false,
+        .lock.destructor = false,
+        .lock.metatable = false,
+        .lock.size = false,
         .metatable = NULL,
     };
 
@@ -52,9 +52,9 @@ struct userdata *userdataI_instance(morphine_instance_t I, const char *type, str
     userdata->is_typed = true;
     userdata->typed.usertype = usertype;
     userdata->typed.inited = false;
-    userdata->mode.destructor_locked = true;
-    userdata->mode.metatable_locked = true;
-    userdata->mode.size_locked = true;
+    userdata->lock.destructor = true;
+    userdata->lock.metatable = true;
+    userdata->lock.size = true;
 
     userdata->metatable = metatable;
     gcI_objbarrier(I, userdata, metatable);
@@ -130,14 +130,14 @@ void userdataI_set_destructor(
         throwI_error(I, "userdata is typed");
     }
 
-    if (userdata->mode.destructor_locked) {
+    if (userdata->lock.destructor) {
         throwI_error(I, "userdata destructor is locked");
     }
 
     userdata->untyped.destructor = destructor;
 }
 
-void userdataI_mode_lock_destructor(morphine_instance_t I, struct userdata *userdata) {
+void userdataI_lock_destructor(morphine_instance_t I, struct userdata *userdata) {
     if (userdata == NULL) {
         throwI_error(I, "userdata is null");
     }
@@ -146,10 +146,10 @@ void userdataI_mode_lock_destructor(morphine_instance_t I, struct userdata *user
         throwI_error(I, "userdata is typed");
     }
 
-    userdata->mode.destructor_locked = true;
+    userdata->lock.destructor = true;
 }
 
-void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userdata) {
+void userdataI_lock_metatable(morphine_instance_t I, struct userdata *userdata) {
     if (userdata == NULL) {
         throwI_error(I, "userdata is null");
     }
@@ -158,10 +158,10 @@ void userdataI_mode_lock_metatable(morphine_instance_t I, struct userdata *userd
         throwI_error(I, "userdata is typed");
     }
 
-    userdata->mode.metatable_locked = true;
+    userdata->lock.metatable = true;
 }
 
-void userdataI_mode_lock_size(morphine_instance_t I, struct userdata *userdata) {
+void userdataI_lock_size(morphine_instance_t I, struct userdata *userdata) {
     if (userdata == NULL) {
         throwI_error(I, "userdata is null");
     }
@@ -170,7 +170,7 @@ void userdataI_mode_lock_size(morphine_instance_t I, struct userdata *userdata) 
         throwI_error(I, "userdata is typed");
     }
 
-    userdata->mode.size_locked = true;
+    userdata->lock.size = true;
 }
 
 void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t size) {
@@ -178,7 +178,7 @@ void userdataI_resize(morphine_instance_t I, struct userdata *userdata, size_t s
         throwI_error(I, "userdata is null");
     }
 
-    if (userdata->mode.size_locked) {
+    if (userdata->lock.size) {
         throwI_error(I, "userdata size is locked");
     }
 
@@ -195,7 +195,7 @@ void userdataI_resize_vec(morphine_instance_t I, struct userdata *userdata, size
         throwI_error(I, "userdata is null");
     }
 
-    if (userdata->mode.size_locked) {
+    if (userdata->lock.size) {
         throwI_error(I, "userdata size is locked");
     }
 

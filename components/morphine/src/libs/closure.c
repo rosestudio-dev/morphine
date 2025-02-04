@@ -9,55 +9,48 @@ static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 2);
-            mapi_push_arg(U, 1);
-            ml_size size = mapi_get_size(U, NULL);
             mapi_push_arg(U, 0);
-            mapi_push_closure(U, size);
+            mapi_push_arg(U, 1);
+            mapi_push_closure(U);
             maux_nb_return();
     maux_nb_end
 }
 
-static void size(morphine_coroutine_t U) {
+static void lock(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            ml_size size = mapi_closure_size(U);
-            mapi_push_integer(U, size);
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void get(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 2);
-            mapi_push_arg(U, 1);
-            ml_size size = mapi_get_size(U, NULL);
-            mapi_push_arg(U, 0);
-            mapi_closure_get(U, size);
-            maux_nb_return();
-    maux_nb_end
-}
-
-static void set(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 3);
-            mapi_push_arg(U, 1);
-            ml_size size = mapi_get_size(U, NULL);
-            mapi_push_arg(U, 0);
-            mapi_push_arg(U, 2);
-            mapi_closure_set(U, size);
+            mapi_closure_lock(U);
             maux_nb_leave();
+    maux_nb_end
+}
+
+static void unlock(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mapi_closure_unlock(U);
+        maux_nb_leave();
+    maux_nb_end
+}
+
+static void value(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            mapi_closure_value(U);
+            maux_nb_return();
     maux_nb_end
 }
 
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("create", create),
-    MAUX_CONSTRUCT_FUNCTION("size", size),
-    MAUX_CONSTRUCT_FUNCTION("get", get),
-    MAUX_CONSTRUCT_FUNCTION("set", set),
+    MAUX_CONSTRUCT_FUNCTION("lock", lock),
+    MAUX_CONSTRUCT_FUNCTION("unlock", unlock),
+    MAUX_CONSTRUCT_FUNCTION("value", value),
     MAUX_CONSTRUCT_END
 };
 
