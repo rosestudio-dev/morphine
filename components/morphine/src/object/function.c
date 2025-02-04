@@ -287,7 +287,6 @@ void functionI_packer_write_data(morphine_instance_t I, struct function *functio
     for (ml_size i = 0; i < function->instructions_count; i++) {
         morphine_instruction_t instruction = function->instructions[i];
         packerI_write_opcode(W, instruction.opcode);
-        packerI_write_ml_line(W, instruction.line);
 
         ml_size count = instructionI_opcode_args(instruction.opcode, NULL);
 
@@ -302,6 +301,22 @@ void functionI_packer_write_data(morphine_instance_t I, struct function *functio
         if (count > 2) {
             packerI_write_ml_argument(W, instruction.argument3);
         }
+    }
+
+    {
+        ml_line line = 0;
+        ml_size index = 0;
+        for (ml_size i = 0; i < function->instructions_count; i++) {
+            morphine_instruction_t instruction = function->instructions[i];
+            if (instruction.line != line) {
+                packerI_write_ml_line(W, line);
+                packerI_write_ml_size(W, i - index);
+                line = instruction.line;
+                index = i;
+            }
+        }
+        packerI_write_ml_line(W, line);
+        packerI_write_ml_size(W, function->instructions_count - index);
     }
 
     for (ml_size i = 0; i < function->constants_count; i++) {
@@ -340,7 +355,7 @@ void functionI_packer_read_data(morphine_instance_t I, struct function *function
     for (ml_size i = 0; i < function->instructions_count; i++) {
         morphine_instruction_t instruction;
         instruction.opcode = packerI_read_opcode(R);
-        instruction.line = packerI_read_ml_line(R);
+        instruction.line = 0;
         instruction.argument1 = 0;
         instruction.argument2 = 0;
         instruction.argument3 = 0;
@@ -365,6 +380,18 @@ void functionI_packer_read_data(morphine_instance_t I, struct function *function
         }
 
         functionI_instruction_set(I, function, i, instruction);
+    }
+
+    {
+        ml_size index = 0;
+        do {
+            ml_line line = packerI_read_ml_line(R);
+            ml_size count = packerI_read_ml_size(R);
+
+            for (ml_size i = 0; i < count && index < function->instructions_count; i++, index++) {
+                function->instructions[index].line = line;
+            }
+        } while (index < function->instructions_count);
     }
 
     for (ml_size i = 0; i < function->constants_count; i++) {
