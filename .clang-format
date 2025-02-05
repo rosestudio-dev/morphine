@@ -155,3 +155,6 @@ PenaltyIndentedWhitespace: 0
 PenaltyExcessCharacter: 120
 PenaltyBreakScopeResolution: 1000000
 PenaltyBreakAssignment: 0
+
+MacroBlockBegin: '(maux_nb_function)'
+MacroBlockEnd: '(maux_nb_end)'

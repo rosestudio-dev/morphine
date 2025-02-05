@@ -4,12 +4,12 @@
 
 #pragma once
 
-#define mtype(n, s)                static const char *const MTYPE_##n = #s;
-#define mspec_type_object(i, n, s) mtype(n, s)
-#define mspec_type_value(i, n, s)  mtype(n, s)
+#define mtype_name(n, s)           static const char *const MTYPE_##n = #s;
+#define mspec_type_object(i, n, s) mtype_name(n, s)
+#define mspec_type_value(i, n, s)  mtype_name(n, s)
 
 #include "specification.h"
 
-#undef mtype
+#undef mtype_name
 #undef mspec_type_object
 #undef mspec_type_value

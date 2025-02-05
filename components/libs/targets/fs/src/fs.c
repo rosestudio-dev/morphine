@@ -334,7 +334,7 @@ static struct safedir *create_safedir(morphine_coroutine_t U, const char *path) 
 
 static void lib_open(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);
@@ -368,7 +368,7 @@ static void lib_open(morphine_coroutine_t U) {
 
 static void lib_temp(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             mlapi_fs_temp(U);
             maux_nb_return();
@@ -377,7 +377,7 @@ static void lib_temp(morphine_coroutine_t U) {
 
 static void lib_info(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             const char *path = mapi_get_cstr(U);
@@ -395,7 +395,7 @@ static void lib_info(morphine_coroutine_t U) {
 
 static void lib_symlinkinfo(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             const char *path = mapi_get_cstr(U);
@@ -413,7 +413,7 @@ static void lib_symlinkinfo(morphine_coroutine_t U) {
 
 static void lib_pwd(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
 
             size_t size = MAXPATHLEN;
@@ -443,7 +443,7 @@ static void lib_pwd(morphine_coroutine_t U) {
 
 static void lib_list(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             const char *path = mapi_get_cstr(U);
@@ -468,7 +468,7 @@ static void lib_list(morphine_coroutine_t U) {
 
 static void lib_remove(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -480,14 +480,14 @@ static void lib_remove(morphine_coroutine_t U) {
             } else {
                 maux_nb_im_continue(5);
             }
-        maux_nb_state(1)
+        maux_nb_state(1);
             maux_library_access(U, "fs.list");
             mapi_push_arg(U, 0);
             maux_nb_call(1, 2);
-        maux_nb_state(2)
+        maux_nb_state(2);
             mapi_push_result(U);
             maux_nb_im_continue(3);
-        maux_nb_state(3)
+        maux_nb_state(3);
             ml_size size = mapi_vector_len(U);
             maux_localstorage_get(U, "index");
             ml_size index = mapi_get_size(U, "index");
@@ -523,10 +523,10 @@ static void lib_remove(morphine_coroutine_t U) {
                 mapi_pop(U, 1);
                 maux_nb_continue(3);
             }
-        maux_nb_state(4)
+        maux_nb_state(4);
             mapi_pop(U, 1);
             maux_nb_im_continue(3);
-        maux_nb_state(5)
+        maux_nb_state(5);
             mapi_push_arg(U, 0);
             const char *path = mapi_get_cstr(U);
             if (isdir(U, path)) {
@@ -545,7 +545,7 @@ static void lib_remove(morphine_coroutine_t U) {
 
 static void lib_move(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -564,7 +564,7 @@ static void lib_move(morphine_coroutine_t U) {
 
 static void lib_copy(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -580,7 +580,7 @@ static void lib_copy(morphine_coroutine_t U) {
 
 static void lib_mkdir(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             mode_t mode = DIR_DEFAULT_PERM;
             if (mapi_args(U) == 2) {
                 mapi_push_arg(U, 1);
@@ -598,7 +598,7 @@ static void lib_mkdir(morphine_coroutine_t U) {
 
 static void lib_chdir(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
@@ -613,7 +613,7 @@ static void lib_chdir(morphine_coroutine_t U) {
 
 static void lib_chmod(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);
@@ -632,7 +632,7 @@ static void lib_chmod(morphine_coroutine_t U) {
 
 static void lib_link(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -651,7 +651,7 @@ static void lib_link(morphine_coroutine_t U) {
 
 static void lib_symlink(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);

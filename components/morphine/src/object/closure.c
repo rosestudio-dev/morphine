@@ -89,8 +89,8 @@ void closureI_packer_vectorize(morphine_instance_t I, struct closure *closure, s
 
 void closureI_packer_write_info(
     morphine_instance_t I,
-    morphine_unused struct closure *closure,
-    morphine_unused struct packer_write *W
+    mattr_unused struct closure *closure,
+    mattr_unused struct packer_write *W
 ) {
     if (check_lock(I, closure)) {
         throwI_error(I, "unable to pack closure");
@@ -106,7 +106,7 @@ void closureI_packer_write_data(morphine_instance_t I, struct closure *closure, 
     packerI_write_value(W, closure->value);
 }
 
-struct closure *closureI_packer_read_info(morphine_instance_t I, morphine_unused struct packer_read *R) {
+struct closure *closureI_packer_read_info(morphine_instance_t I, mattr_unused struct packer_read *R) {
     return create_closure(I, valueI_nil, valueI_nil);
 }
 

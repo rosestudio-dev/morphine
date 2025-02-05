@@ -14,10 +14,10 @@ MORPHINE_API void mapi_type_declare(
     const char *name,
     size_t allocate,
     bool require_metatable,
-    morphine_userdata_constructor_t constructor,
-    morphine_userdata_destructor_t destructor,
-    morphine_userdata_compare_t compare,
-    morphine_userdata_hash_t hash
+    mfunc_constructor_t constructor,
+    mfunc_destructor_t destructor,
+    mfunc_compare_t compare,
+    mfunc_hash_t hash
 ) {
     usertypeI_declare(
         I, name, allocate,

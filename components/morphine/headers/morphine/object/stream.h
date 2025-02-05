@@ -23,13 +23,10 @@ void streamI_close(morphine_instance_t, struct stream *, bool force);
 size_t streamI_read(morphine_instance_t, struct stream *, uint8_t *buffer, size_t size);
 size_t streamI_write(morphine_instance_t, struct stream *, const uint8_t *buffer, size_t size);
 void streamI_flush(morphine_instance_t, struct stream *);
-bool streamI_seek_set(morphine_instance_t, struct stream *, size_t);
-bool streamI_seek_cur(morphine_instance_t, struct stream *, size_t);
-bool streamI_seek_prv(morphine_instance_t, struct stream *, size_t);
-bool streamI_seek_end(morphine_instance_t, struct stream *, size_t);
+bool streamI_seek(morphine_instance_t, struct stream *, size_t, mtype_seek_t);
 size_t streamI_tell(morphine_instance_t, struct stream *);
 bool streamI_eos(morphine_instance_t, struct stream *);
 
 size_t streamI_print(morphine_instance_t, struct stream *, const char *);
-morphine_printf(3, 4) size_t streamI_printf(morphine_instance_t, struct stream *, const char *, ...);
+mattr_printf(3, 4) size_t streamI_printf(morphine_instance_t, struct stream *, const char *, ...);
 size_t streamI_vprintf(morphine_instance_t, struct stream *, const char *, va_list args);

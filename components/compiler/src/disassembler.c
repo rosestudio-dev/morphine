@@ -9,9 +9,9 @@
 #define printf(args...) do { mapi_peek(U, 1); mapi_stream_printf(U, args); mapi_pop(U, 1); } while(false)
 
 
-static const char *opcode2str(morphine_opcode_t opcode) {
+static const char *opcode2str(mtype_opcode_t opcode) {
     switch (opcode) {
-#define opcode_case(n, m)                         case MORPHINE_OPCODE_##n: return #m;
+#define opcode_case(n, m)                         case MTYPE_OPCODE_##n: return #m;
 #define mspec_instruction_args0(n, s)             opcode_case(n, s)
 #define mspec_instruction_args1(n, s, a1)         opcode_case(n, s)
 #define mspec_instruction_args2(n, s, a1, a2)     opcode_case(n, s)
@@ -34,118 +34,118 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
 #define SLOT "slot "APR
 #define arg(n) instr.argument##n
     switch (instr.opcode) {
-        case MORPHINE_OPCODE_NO_OPERATION:
+        case MTYPE_OPCODE_NO_OPERATION:
             printf("no operation");
             return;
-        case MORPHINE_OPCODE_YIELD:
+        case MTYPE_OPCODE_YIELD:
             printf("yield");
             return;
-        case MORPHINE_OPCODE_LOAD:
+        case MTYPE_OPCODE_LOAD:
             printf(SLOT" = constant "APR, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_MOVE:
+        case MTYPE_OPCODE_MOVE:
             printf(SLOT" = "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_PARAM:
+        case MTYPE_OPCODE_PARAM:
             printf("param "APR" = "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_ARG:
+        case MTYPE_OPCODE_ARG:
             printf(SLOT" = arg "APR, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_ENV:
+        case MTYPE_OPCODE_ENV:
             printf(SLOT" = env", arg(1));
             return;
-        case MORPHINE_OPCODE_INVOKED:
+        case MTYPE_OPCODE_INVOKED:
             printf(SLOT" = invoked callable", arg(1));
             return;
-        case MORPHINE_OPCODE_VECTOR:
+        case MTYPE_OPCODE_VECTOR:
             printf(SLOT" = vector with size "APR, arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_TABLE:
+        case MTYPE_OPCODE_TABLE:
             printf(SLOT" = table", arg(1));
             return;
-        case MORPHINE_OPCODE_GET:
+        case MTYPE_OPCODE_GET:
             printf(SLOT" = ("SLOT")["SLOT"]", arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_SET:
+        case MTYPE_OPCODE_SET:
             printf("("SLOT")["SLOT"] = "SLOT, arg(1), arg(2), arg(3));
             return;
-        case MORPHINE_OPCODE_ITERATOR:
+        case MTYPE_OPCODE_ITERATOR:
             printf(SLOT" = iterator from "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_ITERATOR_INIT:
+        case MTYPE_OPCODE_ITERATOR_INIT:
             printf("init iterator in "SLOT" with name "SLOT" for key and "SLOT" for value", arg(1), arg(2), arg(3));
             return;
-        case MORPHINE_OPCODE_ITERATOR_HAS:
+        case MTYPE_OPCODE_ITERATOR_HAS:
             printf(SLOT" = iterator has in "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_ITERATOR_NEXT:
+        case MTYPE_OPCODE_ITERATOR_NEXT:
             printf(SLOT" = iterator next in "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_JUMP:
+        case MTYPE_OPCODE_JUMP:
             printf("jump to "APR, arg(1));
             return;
-        case MORPHINE_OPCODE_JUMP_IF:
+        case MTYPE_OPCODE_JUMP_IF:
             printf("jump if "SLOT" to "APR" else "APR, arg(1), arg(2), arg(3));
             return;
-        case MORPHINE_OPCODE_CLOSURE:
+        case MTYPE_OPCODE_CLOSURE:
             printf(SLOT" = create closure for "SLOT" with "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_CLOSURE_VALUE:
+        case MTYPE_OPCODE_CLOSURE_VALUE:
             printf(SLOT" = get value from closure "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_CALL:
+        case MTYPE_OPCODE_CALL:
             printf(SLOT" = call "SLOT" with "APR" args", arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_RETURN:
+        case MTYPE_OPCODE_RETURN:
             printf("return "SLOT, arg(1));
             return;
-        case MORPHINE_OPCODE_ADD:
+        case MTYPE_OPCODE_ADD:
             printf(SLOT" = "SLOT" + "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_SUB:
+        case MTYPE_OPCODE_SUB:
             printf(SLOT" = "SLOT" - "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_MUL:
+        case MTYPE_OPCODE_MUL:
             printf(SLOT" = "SLOT" * "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_DIV:
+        case MTYPE_OPCODE_DIV:
             printf(SLOT" = "SLOT" / "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_MOD:
+        case MTYPE_OPCODE_MOD:
             printf(SLOT" = "SLOT" %% "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_EQUAL:
+        case MTYPE_OPCODE_EQUAL:
             printf(SLOT" = "SLOT" == "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_LESS:
+        case MTYPE_OPCODE_LESS:
             printf(SLOT" = "SLOT" < "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_AND:
+        case MTYPE_OPCODE_AND:
             printf(SLOT" = "SLOT" and "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_OR:
+        case MTYPE_OPCODE_OR:
             printf(SLOT" = "SLOT" or "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_CONCAT:
+        case MTYPE_OPCODE_CONCAT:
             printf(SLOT" = "SLOT" .. "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MORPHINE_OPCODE_TYPE:
+        case MTYPE_OPCODE_TYPE:
             printf(SLOT" = type "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_NEGATIVE:
+        case MTYPE_OPCODE_NEGATIVE:
             printf(SLOT" = - "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_NOT:
+        case MTYPE_OPCODE_NOT:
             printf(SLOT" = not "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_REF:
+        case MTYPE_OPCODE_REF:
             printf(SLOT" = ref "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_DEREF:
+        case MTYPE_OPCODE_DEREF:
             printf(SLOT" = deref "SLOT, arg(2), arg(1));
             return;
-        case MORPHINE_OPCODE_LENGTH:
+        case MTYPE_OPCODE_LENGTH:
             printf(SLOT" = len "SLOT, arg(2), arg(1));
             return;
     }

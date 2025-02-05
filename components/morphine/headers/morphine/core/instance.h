@@ -35,7 +35,7 @@ struct instance {
     struct table *sharedstorage;
 
     struct {
-        struct string *names[MORPHINE_METATABLE_FIELDS_COUNT];
+        struct string *names[MORPHINE_METAFIELDS_COUNT];
     } metatable;
 
     struct {

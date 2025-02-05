@@ -48,20 +48,20 @@ struct throw throwI_prototype(void);
 void throwI_destruct(morphine_instance_t);
 void throwI_special(morphine_instance_t);
 
-morphine_catch_result_t throwI_interpreter_handler(morphine_instance_t);
-void throwI_protect(morphine_instance_t, morphine_try_t, morphine_catch_t, void *, void *);
+mtype_catch_t throwI_interpreter_handler(morphine_instance_t);
+void throwI_protect(morphine_instance_t, mfunc_try_t, mfunc_catch_t, void *, void *);
 
-morphine_noret void throwI_error(morphine_instance_t, const char *);
-morphine_noret void throwI_errorv(morphine_instance_t, struct value);
-morphine_noret morphine_printf(2, 3) void throwI_errorf(morphine_instance_t, const char *, ...);
-morphine_noret void throwI_panic(morphine_instance_t, const char *);
-morphine_noret void throwI_panicv(morphine_instance_t, struct value);
-morphine_noret morphine_printf(2, 3) void throwI_panicf(morphine_instance_t, const char *, ...);
-morphine_noret void throwI_ofm(morphine_instance_t);
-morphine_noret void throwI_af(morphine_instance_t);
-morphine_noret void throwI_undef(morphine_instance_t);
+mattr_noret void throwI_error(morphine_instance_t, const char *);
+mattr_noret void throwI_errorv(morphine_instance_t, struct value);
+mattr_noret mattr_printf(2, 3) void throwI_errorf(morphine_instance_t, const char *, ...);
+mattr_noret void throwI_panic(morphine_instance_t, const char *);
+mattr_noret void throwI_panicv(morphine_instance_t, struct value);
+mattr_noret mattr_printf(2, 3) void throwI_panicf(morphine_instance_t, const char *, ...);
+mattr_noret void throwI_ofm(morphine_instance_t);
+mattr_noret void throwI_af(morphine_instance_t);
+mattr_noret void throwI_undef(morphine_instance_t);
 
-morphine_noret void throwI_provide_error(morphine_coroutine_t);
+mattr_noret void throwI_provide_error(morphine_coroutine_t);
 
 void throwI_danger_enter(morphine_instance_t);
 void throwI_danger_exit(morphine_instance_t);

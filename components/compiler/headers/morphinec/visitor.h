@@ -39,24 +39,24 @@ MORPHINE_API bool mcapi_visitor_step(
     void *
 );
 
-MORPHINE_API morphine_noret void mcapi_visitor_node(
+MORPHINE_API mattr_noret void mcapi_visitor_node(
     struct mc_visitor_controller *,
     struct mc_ast_node *,
     size_t next_state
 );
 
-MORPHINE_API morphine_noret void mcapi_visitor_function(
+MORPHINE_API mattr_noret void mcapi_visitor_function(
     struct mc_visitor_controller *,
     struct mc_ast_function *,
     size_t next_state
 );
 
-MORPHINE_API morphine_noret void mcapi_visitor_jump(
+MORPHINE_API mattr_noret void mcapi_visitor_jump(
     struct mc_visitor_controller *,
     size_t next_state
 );
 
-MORPHINE_API morphine_noret void mcapi_visitor_complete(struct mc_visitor_controller *);
+MORPHINE_API mattr_noret void mcapi_visitor_complete(struct mc_visitor_controller *);
 
 MORPHINE_API void *mcapi_visitor_data(struct mc_visitor_controller *);
 MORPHINE_API void *mcapi_visitor_saved(struct mc_visitor_controller *);

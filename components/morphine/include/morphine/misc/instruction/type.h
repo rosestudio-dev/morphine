@@ -11,11 +11,11 @@
 
 #define MORPHINE_INSTRUCTION_ARGS_COUNT 3
 
-#define MORPHINE_OPCODES_START (MORPHINE_OPCODE_NO_OPERATION)
-#define MORPHINE_OPCODES_COUNT (MORPHINE_OPCODE_LENGTH + 1)
+#define MORPHINE_OPCODES_START (MTYPE_OPCODE_NO_OPERATION)
+#define MORPHINE_OPCODES_COUNT (MTYPE_OPCODE_LENGTH + 1)
 
 typedef enum {
-#define mspec_instruction_opcode(n)               MORPHINE_OPCODE_##n,
+#define mspec_instruction_opcode(n)               MTYPE_OPCODE_##n,
 #define mspec_instruction_args0(n, s)             mspec_instruction_opcode(n)
 #define mspec_instruction_args1(n, s, a1)         mspec_instruction_opcode(n)
 #define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_opcode(n)
@@ -28,10 +28,10 @@ typedef enum {
 #undef mspec_instruction_args1
 #undef mspec_instruction_args2
 #undef mspec_instruction_args3
-} morphine_opcode_t;
+} mtype_opcode_t;
 
 typedef struct {
-    morphine_opcode_t opcode;
+    mtype_opcode_t opcode;
 
     union {
         ml_argument arguments[MORPHINE_INSTRUCTION_ARGS_COUNT];

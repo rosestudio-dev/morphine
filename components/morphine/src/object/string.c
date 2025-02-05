@@ -7,7 +7,6 @@
 #include "morphine/core/sso.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/allocator.h"
-#include "morphine/params.h"
 #include "morphine/utils/compare.h"
 #include "morphine/utils/overflow.h"
 #include <assert.h>

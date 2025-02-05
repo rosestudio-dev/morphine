@@ -6,7 +6,6 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
-#include "morphine/params.h"
 #include "morphine/utils/overflow.h"
 #include <string.h>
 
@@ -1006,7 +1005,7 @@ void tableI_packer_vectorize(morphine_instance_t I, struct table *table, struct 
     }
 }
 
-void tableI_packer_write_info(morphine_instance_t I, struct table *table, morphine_unused struct packer_write *W) {
+void tableI_packer_write_info(morphine_instance_t I, struct table *table, mattr_unused struct packer_write *W) {
     if (!table->mode.accessible) {
         throwI_error(I, "table is inaccessible");
     }

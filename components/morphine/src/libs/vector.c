@@ -7,7 +7,7 @@
 
 static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
             ml_size size = mapi_get_size(U, NULL);
@@ -23,7 +23,7 @@ static void create(morphine_coroutine_t U) {
 
 static void clear(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -35,7 +35,7 @@ static void clear(morphine_coroutine_t U) {
 
 static void copy(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -47,7 +47,7 @@ static void copy(morphine_coroutine_t U) {
 
 static void trim(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 1);
@@ -76,7 +76,7 @@ static void trim(morphine_coroutine_t U) {
 
 static void sort(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -88,7 +88,7 @@ static void sort(morphine_coroutine_t U) {
 
 static void resize(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -105,7 +105,7 @@ static void resize(morphine_coroutine_t U) {
 
 static void has(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -121,7 +121,7 @@ static void has(morphine_coroutine_t U) {
 
 static void add(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -140,7 +140,7 @@ static void add(morphine_coroutine_t U) {
 
 static void remove_(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -157,7 +157,7 @@ static void remove_(morphine_coroutine_t U) {
 
 static void push(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -170,7 +170,7 @@ static void push(morphine_coroutine_t U) {
 
 static void peek(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -182,7 +182,7 @@ static void peek(morphine_coroutine_t U) {
 
 static void pop(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -194,7 +194,7 @@ static void pop(morphine_coroutine_t U) {
 
 static void frontpush(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -207,7 +207,7 @@ static void frontpush(morphine_coroutine_t U) {
 
 static void frontpeek(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -219,7 +219,7 @@ static void frontpeek(morphine_coroutine_t U) {
 
 static void frontpop(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -231,7 +231,7 @@ static void frontpop(morphine_coroutine_t U) {
 
 static void mutable(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool value = true;
             if (mapi_args(U) == 0) {
                 mapi_push_vector(U, 0);
@@ -257,7 +257,7 @@ static void mutable(morphine_coroutine_t U) {
 
 static void immutable(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             if (mapi_args(U) == 0) {
                 mapi_push_vector(U, 0);
             } else {
@@ -273,7 +273,7 @@ static void immutable(morphine_coroutine_t U) {
 
 static void fixed(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool value = true;
             if (mapi_args(U) == 0) {
                 mapi_push_vector(U, 0);
@@ -299,7 +299,7 @@ static void fixed(morphine_coroutine_t U) {
 
 static void unfixed(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             if (mapi_args(U) == 0) {
                 mapi_push_vector(U, 0);
             } else {
@@ -315,7 +315,7 @@ static void unfixed(morphine_coroutine_t U) {
 
 static void accessible(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool value = true;
             if (mapi_args(U) == 0) {
                 mapi_push_vector(U, 0);
@@ -341,7 +341,7 @@ static void accessible(morphine_coroutine_t U) {
 
 static void inaccessible(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             if (mapi_args(U) == 0) {
                 mapi_push_vector(U, 0);
             } else {
@@ -357,7 +357,7 @@ static void inaccessible(morphine_coroutine_t U) {
 
 static void lockmode(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -369,7 +369,7 @@ static void lockmode(morphine_coroutine_t U) {
 
 static void ismutable(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -382,7 +382,7 @@ static void ismutable(morphine_coroutine_t U) {
 
 static void isfixed(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -395,7 +395,7 @@ static void isfixed(morphine_coroutine_t U) {
 
 static void isaccessible(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);
@@ -408,7 +408,7 @@ static void isaccessible(morphine_coroutine_t U) {
 
 static void modeislocked(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_expect(U, MTYPE_VECTOR);

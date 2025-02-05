@@ -18,7 +18,7 @@ static const ml_size opcode_args[] = {
 #undef mspec_instruction_args3
 };
 
-ml_size instructionI_opcode_args(morphine_opcode_t opcode, bool *valid) {
+ml_size instructionI_opcode_args(mtype_opcode_t opcode, bool *valid) {
     if (MORPHINE_OPCODES_START <= opcode && opcode < MORPHINE_OPCODES_COUNT) {
         if (valid != NULL) {
             *valid = true;
@@ -54,10 +54,10 @@ bool instructionI_validate(morphine_instruction_t instruction, struct function *
 #define arg_params_count(a)   arg_type_size(a, function->params_count)
 
     switch (instruction.opcode) {
-#define mspec_instruction_args0(n, s)             case MORPHINE_OPCODE_##n: arg_undefined(1); arg_undefined(2); arg_undefined(3); return true;
-#define mspec_instruction_args1(n, s, a1)         case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_undefined(2); arg_undefined(3); return true;
-#define mspec_instruction_args2(n, s, a1, a2)     case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_undefined(3); return true;
-#define mspec_instruction_args3(n, s, a1, a2, a3) case MORPHINE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_##a3(3);      return true;
+#define mspec_instruction_args0(n, s)             case MTYPE_OPCODE_##n: arg_undefined(1); arg_undefined(2); arg_undefined(3); return true;
+#define mspec_instruction_args1(n, s, a1)         case MTYPE_OPCODE_##n: arg_##a1(1);      arg_undefined(2); arg_undefined(3); return true;
+#define mspec_instruction_args2(n, s, a1, a2)     case MTYPE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_undefined(3); return true;
+#define mspec_instruction_args3(n, s, a1, a2, a3) case MTYPE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_##a3(3);      return true;
 
 #include "morphine/misc/instruction/specification.h"
 

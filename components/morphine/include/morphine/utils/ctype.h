@@ -9,32 +9,32 @@
 #include <limits.h>
 #include "morphine/attrs.h"
 
-#define MBIT_CNTRL  0
-#define MBIT_SPACE  1
-#define MBIT_BLANK  2
-#define MBIT_PUNCT  3
-#define MBIT_ALPHA  4
-#define MBIT_UPPER  5
-#define MBIT_DIGIT  6
-#define MBIT_XDIGIT 7
+#define MM_CTYPE_BIT_CNTRL  0
+#define MM_CTYPE_BIT_SPACE  1
+#define MM_CTYPE_BIT_BLANK  2
+#define MM_CTYPE_BIT_PUNCT  3
+#define MM_CTYPE_BIT_ALPHA  4
+#define MM_CTYPE_BIT_UPPER  5
+#define MM_CTYPE_BIT_DIGIT  6
+#define MM_CTYPE_BIT_XDIGIT 7
 
-#define morphine_ctype_testprob(c, b) ((morphine_ctype_probs[(uint8_t) (c)] & (1 << (b))) == (1 << (b)))
+#define mm_ctype_testprob(c, b) ((morphine_ctype_probs[(uint8_t) (c)] & (1 << (b))) == (1 << (b)))
 
-#define morphine_iscntrl(c)  (morphine_ctype_testprob((c), MBIT_CNTRL))
-#define morphine_isspace(c)  (morphine_ctype_testprob((c), MBIT_SPACE))
-#define morphine_isblank(c)  (morphine_ctype_testprob((c), MBIT_BLANK))
-#define morphine_ispunct(c)  (morphine_ctype_testprob((c), MBIT_PUNCT))
-#define morphine_isalpha(c)  (morphine_ctype_testprob((c), MBIT_ALPHA))
-#define morphine_isupper(c)  (morphine_ctype_testprob((c), MBIT_UPPER))
-#define morphine_isdigit(c)  (morphine_ctype_testprob((c), MBIT_DIGIT))
-#define morphine_isxdigit(c) (morphine_ctype_testprob((c), MBIT_XDIGIT))
+#define mm_ctype_iscntrl(c)  (mm_ctype_testprob((c), MM_CTYPE_BIT_CNTRL))
+#define mm_ctype_isspace(c)  (mm_ctype_testprob((c), MM_CTYPE_BIT_SPACE))
+#define mm_ctype_isblank(c)  (mm_ctype_testprob((c), MM_CTYPE_BIT_BLANK))
+#define mm_ctype_ispunct(c)  (mm_ctype_testprob((c), MM_CTYPE_BIT_PUNCT))
+#define mm_ctype_isalpha(c)  (mm_ctype_testprob((c), MM_CTYPE_BIT_ALPHA))
+#define mm_ctype_isupper(c)  (mm_ctype_testprob((c), MM_CTYPE_BIT_UPPER))
+#define mm_ctype_isdigit(c)  (mm_ctype_testprob((c), MM_CTYPE_BIT_DIGIT))
+#define mm_ctype_isxdigit(c) (mm_ctype_testprob((c), MM_CTYPE_BIT_XDIGIT))
 
-#define morphine_toupper(c) (morphine_isalpha((c)) && !morphine_isupper((c)) ? ((c) - ('a' - 'A')) : (c))
-#define morphine_tolower(c) (morphine_isalpha((c)) && morphine_isupper((c)) ? ((c) + ('a' - 'A')) : (c))
+mattr_export const uint8_t morphine_ctype_probs[UCHAR_MAX + 1];
 
-morphine_export const uint8_t morphine_ctype_probs[UCHAR_MAX + 1];
+static inline bool mm_ctype_isprint(char c) { return !mm_ctype_iscntrl(c); }
+static inline bool mm_ctype_isgraph(char c) { return mm_ctype_isprint(c) && !mm_ctype_isspace(c); }
+static inline bool mm_ctype_isalnum(char c) { return mm_ctype_isalpha(c) || mm_ctype_isdigit(c); }
+static inline bool mm_ctype_islower(char c) { return mm_ctype_isalpha(c) && !mm_ctype_isupper(c); }
 
-static inline bool morphine_isprint(char c) { return !morphine_iscntrl(c); }
-static inline bool morphine_isgraph(char c) { return morphine_isprint(c) && !morphine_isspace(c); }
-static inline bool morphine_isalnum(char c) { return morphine_isalpha(c) || morphine_isdigit(c); }
-static inline bool morphine_islower(char c) { return morphine_isalpha(c) && !morphine_isupper(c); }
+static inline char mm_ctype_toupper(char c) { return (char) (mm_ctype_islower(c) ? c - ('a' - 'A') : c); }
+static inline char mm_ctype_tolower(char c) { return (char) (mm_ctype_isupper(c) ? c + ('a' - 'A') : c); }

@@ -28,7 +28,7 @@ MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t U, const char *field)
     return result;
 }
 
-MORPHINE_API bool mapi_metatable_builtin_test(morphine_coroutine_t U, morphine_metatable_field_t field) {
+MORPHINE_API bool mapi_metatable_builtin_test(morphine_coroutine_t U, mtype_metafield_t field) {
     struct value source = stackI_peek(U, 0);
 
     struct value mt;

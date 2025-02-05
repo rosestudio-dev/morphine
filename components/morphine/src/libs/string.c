@@ -9,7 +9,7 @@
 
 static void substring(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -42,7 +42,7 @@ static void substring(morphine_coroutine_t U) {
 
 static void chars(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -64,7 +64,7 @@ static void chars(morphine_coroutine_t U) {
 
 static void codes(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -86,7 +86,7 @@ static void codes(morphine_coroutine_t U) {
 
 static void from(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             if (mapi_args(U) == 0) {
                 maux_expect_args(U, 1);
             }
@@ -135,7 +135,7 @@ static void from(morphine_coroutine_t U) {
 
 static void isempty(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -152,7 +152,7 @@ static void isempty(morphine_coroutine_t U) {
 #define isctype(n) \
     static void lib_is##n(morphine_coroutine_t U) { \
         maux_nb_function(U) \
-            maux_nb_init \
+            maux_nb_init(); \
                 maux_expect_args(U, 1); \
                 mapi_push_arg(U, 0); \
                 maux_expect(U, MTYPE_STRING); \
@@ -161,7 +161,7 @@ static void isempty(morphine_coroutine_t U) {
                 mapi_pop(U, 1); \
                 bool result = true; \
                 for (ml_size i = 0; i < len; i++) { \
-                    if (!morphine_is##n(string[i])) { result = false; } \
+                    if (!mm_ctype_is##n(string[i])) { result = false; } \
                 } \
                 mapi_push_boolean(U, result); \
                 maux_nb_return(); \
@@ -183,7 +183,7 @@ isctype(xdigit)
 
 static void repeat(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -207,7 +207,7 @@ static void repeat(morphine_coroutine_t U) {
 
 static void startswith(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -231,7 +231,7 @@ static void startswith(morphine_coroutine_t U) {
 
 static void endswith(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -256,7 +256,7 @@ static void endswith(morphine_coroutine_t U) {
 
 static void tolowercase(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -270,7 +270,7 @@ static void tolowercase(morphine_coroutine_t U) {
                 char *result = mapi_push_userdata_vec(U, len, sizeof(char));
 
                 for (ml_size i = 0; i < len; i++) {
-                    result[i] = morphine_tolower(string[i]);
+                    result[i] = mm_ctype_tolower(string[i]);
                 }
 
                 mapi_push_stringn(U, result, len);
@@ -284,7 +284,7 @@ static void tolowercase(morphine_coroutine_t U) {
 
 static void touppercase(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -298,7 +298,7 @@ static void touppercase(morphine_coroutine_t U) {
                 char *result = mapi_push_userdata_vec(U, len, sizeof(char));
 
                 for (ml_size i = 0; i < len; i++) {
-                    result[i] = morphine_toupper(string[i]);
+                    result[i] = mm_ctype_toupper(string[i]);
                 }
 
                 mapi_push_stringn(U, result, len);
@@ -312,7 +312,7 @@ static void touppercase(morphine_coroutine_t U) {
 
 static void split(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -371,7 +371,7 @@ static void split(morphine_coroutine_t U) {
 
 static void contains(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -403,7 +403,7 @@ static void contains(morphine_coroutine_t U) {
 
 static void indexof(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -441,7 +441,7 @@ static void indexof(morphine_coroutine_t U) {
 
 static void lastindexof(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -479,7 +479,7 @@ static void lastindexof(morphine_coroutine_t U) {
 
 static void trim(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -494,7 +494,7 @@ static void trim(morphine_coroutine_t U) {
 
             for (ml_size i = 0; i < strlen; i++) {
                 char c = string[i];
-                if (morphine_isspace(c)) {
+                if (mm_ctype_isspace(c)) {
                     start++;
                 } else {
                     break;
@@ -503,7 +503,7 @@ static void trim(morphine_coroutine_t U) {
 
             for (ml_size i = 0; i < strlen; i++) {
                 char c = string[strlen - i - 1];
-                if (morphine_isspace(c)) {
+                if (mm_ctype_isspace(c)) {
                     end--;
                 } else {
                     break;
@@ -522,7 +522,7 @@ static void trim(morphine_coroutine_t U) {
 
 static void trimstart(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -536,7 +536,7 @@ static void trimstart(morphine_coroutine_t U) {
 
             for (ml_size i = 0; i < strlen; i++) {
                 char c = string[i];
-                if (morphine_isspace(c)) {
+                if (mm_ctype_isspace(c)) {
                     start++;
                 } else {
                     break;
@@ -555,7 +555,7 @@ static void trimstart(morphine_coroutine_t U) {
 
 static void trimend(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -569,7 +569,7 @@ static void trimend(morphine_coroutine_t U) {
 
             for (ml_size i = 0; i < strlen; i++) {
                 char c = string[strlen - i - 1];
-                if (morphine_isspace(c)) {
+                if (mm_ctype_isspace(c)) {
                     end--;
                 } else {
                     break;
@@ -588,7 +588,7 @@ static void trimend(morphine_coroutine_t U) {
 
 static void replacefirst(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -636,7 +636,7 @@ static void replacefirst(morphine_coroutine_t U) {
 
 static void replacelast(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -690,7 +690,7 @@ static void replacelast(morphine_coroutine_t U) {
 
 static void replace(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
@@ -818,7 +818,7 @@ static void save_format_vars(morphine_coroutine_t U, struct format_vars vars) {
 
 static void format(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             struct format_vars vars = {
@@ -836,7 +836,7 @@ static void format(morphine_coroutine_t U) {
 
             mapi_push_string(U, "");
             maux_nb_im_continue(1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_arg(U, 0);
             const char *string = mapi_get_string(U);
             ml_size strlen = mapi_string_len(U);

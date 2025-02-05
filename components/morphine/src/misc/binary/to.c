@@ -85,7 +85,7 @@ write_compress_type(ml_integer, ml_integer);
 write_compress_type(ml_decimal, ml_decimal);
 write_compress_type(ml_version, ml_version);
 write_compress_type(enum value_type, value_type);
-write_compress_type(morphine_opcode_t, opcode);
+write_compress_type(mtype_opcode_t, opcode);
 write_type(char, char);
 write_type(bool, bool);
 write_type(uint8_t, uint8);
@@ -105,7 +105,7 @@ static void write_object_string(struct data *D, struct string *string) {
 write_wrapper(ml_size, ml_size);
 write_wrapper(ml_line, ml_line);
 write_wrapper(ml_argument, ml_argument);
-write_wrapper(morphine_opcode_t, opcode);
+write_wrapper(mtype_opcode_t, opcode);
 write_wrapper(bool, bool);
 
 void packerI_write_object_string(struct packer_write *W, struct string *value) {

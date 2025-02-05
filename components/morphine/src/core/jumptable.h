@@ -11,7 +11,7 @@
 #define sp_continue()  semicolon_blk(sp_fetch(); sp_dispatch(instruction.opcode))
 
 static const void *const sp_dispatch_tab[] = {
-#define mspec_instruction_label(n)                &&OL_MORPHINE_OPCODE_##n,
+#define mspec_instruction_label(n)                &&OL_MTYPE_OPCODE_##n,
 #define mspec_instruction_args0(n, s)             mspec_instruction_label(n)
 #define mspec_instruction_args1(n, s, a1)         mspec_instruction_label(n)
 #define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_label(n)

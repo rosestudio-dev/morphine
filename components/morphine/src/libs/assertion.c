@@ -7,7 +7,7 @@
 
 static void lib_assert(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool stub = false;
             if (mapi_args(U) == 1) {
                 stub = true;
@@ -33,7 +33,7 @@ static void lib_assert(morphine_coroutine_t U) {
 
 static void lib_nonnil(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             ml_size args = mapi_args(U);
             for (ml_size i = 0; i < args; i++) {
                 mapi_push_arg(U, i);
@@ -50,12 +50,12 @@ static void lib_nonnil(morphine_coroutine_t U) {
 
 static void lib_typecheck(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args_minimum(U, 2);
 
             mapi_push_arg(U, mapi_args(U) - 1);
             maux_nb_operation("type", 1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
 
             ml_size size = mapi_args(U) - 1;

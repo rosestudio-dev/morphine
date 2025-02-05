@@ -7,7 +7,7 @@
 
 static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
             mapi_push_arg(U, 1);
@@ -18,7 +18,7 @@ static void create(morphine_coroutine_t U) {
 
 static void lock(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_closure_lock(U);
@@ -28,7 +28,7 @@ static void lock(morphine_coroutine_t U) {
 
 static void unlock(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_closure_unlock(U);
@@ -38,7 +38,7 @@ static void unlock(morphine_coroutine_t U) {
 
 static void value(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_closure_value(U);

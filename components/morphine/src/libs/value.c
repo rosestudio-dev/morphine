@@ -7,7 +7,7 @@
 
 static void toint(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             if (mapi_args(U) == 2) {
                 mapi_push_arg(U, 1);
                 ml_size base = mapi_get_size(U, "base");
@@ -25,7 +25,7 @@ static void toint(morphine_coroutine_t U) {
 
 static void todec(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_to_decimal(U);
@@ -35,7 +35,7 @@ static void todec(morphine_coroutine_t U) {
 
 static void tobool(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             mapi_to_boolean(U);
@@ -45,11 +45,11 @@ static void tobool(morphine_coroutine_t U) {
 
 static void tostr(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
-            if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_TO_STRING)) {
+            if (mapi_metatable_builtin_test(U, MTYPE_METAFIELD_TO_STRING)) {
                 if (mapi_is_callable(U)) {
                     mapi_rotate(U, 2);
                     maux_nb_call(1, 1);
@@ -60,7 +60,7 @@ static void tostr(morphine_coroutine_t U) {
                 mapi_to_string(U);
                 maux_nb_return();
             }
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
@@ -68,11 +68,11 @@ static void tostr(morphine_coroutine_t U) {
 
 static void compare(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
 
-            if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_COMPARE)) {
+            if (mapi_metatable_builtin_test(U, MTYPE_METAFIELD_COMPARE)) {
                 if (mapi_is_callable(U)) {
                     mapi_rotate(U, 2);
                     mapi_push_arg(U, 1);
@@ -86,7 +86,7 @@ static void compare(morphine_coroutine_t U) {
                 mapi_push_integer(U, result);
                 maux_nb_return();
             }
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
@@ -94,11 +94,11 @@ static void compare(morphine_coroutine_t U) {
 
 static void hash(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
-            if (mapi_metatable_builtin_test(U, MORPHINE_METAFIELD_HASH)) {
+            if (mapi_metatable_builtin_test(U, MTYPE_METAFIELD_HASH)) {
                 if (mapi_is_callable(U)) {
                     mapi_rotate(U, 2);
                     mapi_call(U, 1);
@@ -110,7 +110,7 @@ static void hash(morphine_coroutine_t U) {
                 mapi_push_stringf(U, "%0*"MLIMIT_HASH_PR, (int) sizeof(ml_hash) * 2, hash);
                 maux_nb_return();
             }
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
@@ -118,7 +118,7 @@ static void hash(morphine_coroutine_t U) {
 
 static void serialize(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             if (mapi_args(U) == 2) {
                 mapi_push_arg(U, 1);
             } else {
@@ -153,7 +153,7 @@ static void serialize(morphine_coroutine_t U) {
                 mapi_rotate(U, 2);
                 maux_nb_call(1, 1);
             }
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
@@ -178,7 +178,7 @@ static void tabulation(morphine_coroutine_t U, ml_size level, ml_size size) {
 
 static void serializetype_table(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool pretty = false;
             ml_size level = 0;
             ml_size tab = 4;
@@ -229,7 +229,7 @@ static void serializetype_table(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             mapi_iterator_init(U);
-        maux_nb_state(1)
+        maux_nb_state(1);
             if (!mapi_iterator_has(U)) {
                 mapi_pop(U, 1);
 
@@ -262,7 +262,7 @@ static void serializetype_table(morphine_coroutine_t U) {
             mapi_rotate(U, 2);
             mapi_peek(U, 5);
             maux_nb_call(2, 2);
-        maux_nb_state(2)
+        maux_nb_state(2);
             mapi_push_result(U);
             mapi_rotate(U, 2);
 
@@ -270,7 +270,7 @@ static void serializetype_table(morphine_coroutine_t U) {
             mapi_rotate(U, 2);
             mapi_peek(U, 5);
             maux_nb_call(2, 3);
-        maux_nb_state(3)
+        maux_nb_state(3);
             mapi_push_result(U);
 
             mapi_peek(U, 4);
@@ -316,7 +316,7 @@ static void serializetype_table(morphine_coroutine_t U) {
 
 static void serializetype_vector(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool pretty = false;
             ml_size level = 0;
             ml_size tab = 4;
@@ -367,7 +367,7 @@ static void serializetype_vector(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             mapi_iterator_init(U);
-        maux_nb_state(1)
+        maux_nb_state(1);
             if (!mapi_iterator_has(U)) {
                 mapi_pop(U, 1);
 
@@ -401,7 +401,7 @@ static void serializetype_vector(morphine_coroutine_t U) {
             mapi_rotate(U, 2);
             mapi_peek(U, 4);
             maux_nb_call(2, 2);
-        maux_nb_state(2)
+        maux_nb_state(2);
             mapi_push_result(U);
 
             mapi_peek(U, 3);
@@ -441,7 +441,7 @@ static void serializetype_vector(morphine_coroutine_t U) {
 
 static void serializetype_string(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_string(U, "'");

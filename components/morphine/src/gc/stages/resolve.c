@@ -67,7 +67,7 @@ static inline bool finalize(morphine_instance_t I) {
 
         if (mm_unlikely(
                 !current->flags.finalized
-                && metatableI_builtin_test(I, valueI_object(current), MORPHINE_METAFIELD_GC, NULL)
+                && metatableI_builtin_test(I, valueI_object(current), MTYPE_METAFIELD_GC, NULL)
             )) {
             current->color = OBJ_COLOR_RED;
             gcI_pools_remove(current, &I->G.pools.allocated);
@@ -118,7 +118,7 @@ static inline bool mark_stream(morphine_instance_t I) {
 static inline bool mark_metatable(morphine_instance_t I) {
     bool marked = false;
 
-    for (morphine_metatable_field_t mf = MORPHINE_METATABLE_FIELDS_START; mf < MORPHINE_METATABLE_FIELDS_COUNT; mf++) {
+    for (mtype_metafield_t mf = MORPHINE_METAFIELDS_START; mf < MORPHINE_METAFIELDS_COUNT; mf++) {
         if (mark_object(I, objectI_cast(I->metatable.names[mf]))) {
             marked = true;
         }

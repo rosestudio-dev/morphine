@@ -6,4 +6,4 @@
 
 #include "morphine/platform.h"
 
-MORPHINE_AUX void maux_push_native(morphine_coroutine_t, const char *, morphine_native_t);
+MORPHINE_AUX void maux_push_native(morphine_coroutine_t, const char *, mfunc_native_t);

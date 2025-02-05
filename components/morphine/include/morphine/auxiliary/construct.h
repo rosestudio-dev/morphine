@@ -44,7 +44,7 @@ typedef struct {
 
         struct {
             const char *name;
-            morphine_native_t value;
+            mfunc_native_t value;
         } function;
 
         struct {

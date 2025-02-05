@@ -30,7 +30,7 @@ static inline void fix(morphine_instance_t I) {
 #undef fix_coroutine
 }
 
-morphine_noret static void csignal(morphine_instance_t I, bool is_panic) {
+mattr_noret static void csignal(morphine_instance_t I, bool is_panic) {
     struct throw *throw = &I->throw;
 
     throw->protect.entered = false;
@@ -45,7 +45,7 @@ morphine_noret static void csignal(morphine_instance_t I, bool is_panic) {
     I->platform.signal(I, I->data, is_panic);
 }
 
-morphine_noret static void error(morphine_instance_t I) {
+mattr_noret static void error(morphine_instance_t I) {
     struct throw *throw = &I->throw;
 
     if (throw->protect.danger_entered > 0) {
@@ -101,12 +101,12 @@ void throwI_special(morphine_instance_t I) {
     I->throw.special.af = create_special(I, SPECIAL(AF));
 }
 
-morphine_catch_result_t throwI_interpreter_handler(morphine_instance_t I) {
+mtype_catch_t throwI_interpreter_handler(morphine_instance_t I) {
     struct throw *throw = &I->throw;
     morphine_coroutine_t coroutine = I->interpreter.context;
 
     if (coroutine == NULL) {
-        return MORPHINE_CATCH_PROVIDE;
+        return MTYPE_CATCH_PROVIDE;
     }
 
     struct callframe *frame = coroutine->callstack.frame;
@@ -114,7 +114,7 @@ morphine_catch_result_t throwI_interpreter_handler(morphine_instance_t I) {
         while (frame != NULL) {
             if (frame->params.catch_enabled) {
                 if (frame->params.catch_crash) {
-                    return MORPHINE_CATCH_CRASH;
+                    return MTYPE_CATCH_CRASH;
                 }
 
                 break;
@@ -185,10 +185,10 @@ morphine_catch_result_t throwI_interpreter_handler(morphine_instance_t I) {
     I->interpreter.context = NULL;
     gcI_safe_exit(I);
 
-    return MORPHINE_CATCH_SUCCESS;
+    return MTYPE_CATCH_SUCCESS;
 }
 
-morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
+mattr_noret void throwI_error(morphine_instance_t I, const char *message) {
     struct throw *throw = &I->throw;
 
     throw->type = THROW_TYPE_MESSAGE;
@@ -196,7 +196,7 @@ morphine_noret void throwI_error(morphine_instance_t I, const char *message) {
     error(I);
 }
 
-morphine_noret void throwI_errorv(morphine_instance_t I, struct value value) {
+mattr_noret void throwI_errorv(morphine_instance_t I, struct value value) {
     struct throw *throw = &I->throw;
 
     throw->type = THROW_TYPE_VALUE;
@@ -204,7 +204,7 @@ morphine_noret void throwI_errorv(morphine_instance_t I, struct value value) {
     error(I);
 }
 
-morphine_noret void throwI_errorf(morphine_instance_t I, const char *message, ...) {
+mattr_noret void throwI_errorf(morphine_instance_t I, const char *message, ...) {
     va_list args;
     va_start(args, message);
     struct string *error = stringI_createva(I, message, args);
@@ -213,7 +213,7 @@ morphine_noret void throwI_errorf(morphine_instance_t I, const char *message, ..
     throwI_errorv(I, valueI_object(error));
 }
 
-morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
+mattr_noret void throwI_panic(morphine_instance_t I, const char *message) {
     struct throw *throw = &I->throw;
 
     throw->type = THROW_TYPE_MESSAGE;
@@ -221,7 +221,7 @@ morphine_noret void throwI_panic(morphine_instance_t I, const char *message) {
     csignal(I, true);
 }
 
-morphine_noret void throwI_panicv(morphine_instance_t I, struct value value) {
+mattr_noret void throwI_panicv(morphine_instance_t I, struct value value) {
     struct throw *throw = &I->throw;
 
     throw->type = THROW_TYPE_VALUE;
@@ -229,7 +229,7 @@ morphine_noret void throwI_panicv(morphine_instance_t I, struct value value) {
     csignal(I, true);
 }
 
-morphine_noret void throwI_panicf(morphine_instance_t I, const char *message, ...) {
+mattr_noret void throwI_panicf(morphine_instance_t I, const char *message, ...) {
     va_list args;
     va_start(args, message);
     struct string *error = stringI_createva(I, message, args);
@@ -238,28 +238,28 @@ morphine_noret void throwI_panicf(morphine_instance_t I, const char *message, ..
     throwI_panicv(I, valueI_object(error));
 }
 
-morphine_noret void throwI_ofm(morphine_instance_t I) {
+mattr_noret void throwI_ofm(morphine_instance_t I) {
     struct throw *throw = &I->throw;
 
     throw->type = THROW_TYPE_OFM;
     error(I);
 }
 
-morphine_noret void throwI_af(morphine_instance_t I) {
+mattr_noret void throwI_af(morphine_instance_t I) {
     struct throw *throw = &I->throw;
 
     throw->type = THROW_TYPE_AF;
     error(I);
 }
 
-morphine_noret void throwI_undef(morphine_instance_t I) {
+mattr_noret void throwI_undef(morphine_instance_t I) {
     struct throw *throw = &I->throw;
 
     throw->type = THROW_TYPE_UNDEF;
     error(I);
 }
 
-morphine_noret void throwI_provide_error(morphine_coroutine_t U) {
+mattr_noret void throwI_provide_error(morphine_coroutine_t U) {
     struct exception *exception = coroutineI_exception(U);
     if(exception != NULL) {
         switch (exception->kind) {
@@ -291,8 +291,8 @@ void throwI_danger_exit(morphine_instance_t I) {
 
 void throwI_protect(
     morphine_instance_t I,
-    morphine_try_t try,
-    morphine_catch_t catch,
+    mfunc_try_t try,
+    mfunc_catch_t catch,
     void *try_data,
     void *catch_data
 ) {
@@ -303,12 +303,12 @@ void throwI_protect(
 
     if (setjmp(throw->protect.handler) != 0) {
         memcpy(&throw->protect, &previous, sizeof(struct protect_frame));
-        morphine_catch_result_t result = catch(catch_data);
+        mtype_catch_t result = catch(catch_data);
 
         switch (result) {
-            case MORPHINE_CATCH_SUCCESS: return;
-            case MORPHINE_CATCH_PROVIDE: error(I);
-            case MORPHINE_CATCH_CRASH: csignal(I, false);
+            case MTYPE_CATCH_SUCCESS: return;
+            case MTYPE_CATCH_PROVIDE: error(I);
+            case MTYPE_CATCH_CRASH: csignal(I, false);
         }
 
         throwI_panic(I, "unsupported catch result");

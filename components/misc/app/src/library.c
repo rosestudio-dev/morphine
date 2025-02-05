@@ -40,7 +40,7 @@ static void api_readline(morphine_coroutine_t U, const char *promt) {
 
 static void lib_exit(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             ml_integer code = mapi_get_integer(U);
@@ -50,7 +50,7 @@ static void lib_exit(morphine_coroutine_t U) {
 
 static void lib_readline(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             const char *promt = mapi_get_cstr(U);
@@ -62,7 +62,7 @@ static void lib_readline(morphine_coroutine_t U) {
 
 static void lib_getscript(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             const char *name = mapi_get_cstr(U);

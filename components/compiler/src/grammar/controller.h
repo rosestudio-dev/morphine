@@ -70,7 +70,7 @@ typedef struct mc_ast_node *(*parse_function_t)(struct parse_controller *);
 
 ml_line parser_get_line(struct parse_controller *);
 ml_size parser_index(struct parse_controller *);
-morphine_noret void parser_errorf(struct parse_controller *, const char *, ...);
+mattr_noret void parser_errorf(struct parse_controller *, const char *, ...);
 
 struct mc_strtable_entry parser_string(struct parse_controller *, mc_strtable_index_t);
 morphine_coroutine_t parser_U(struct parse_controller *);

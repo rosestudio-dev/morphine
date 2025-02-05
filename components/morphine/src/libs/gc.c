@@ -8,7 +8,7 @@
 
 static void control_full(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             mapi_gc_full(mapi_instance(U));
             maux_nb_leave();
@@ -17,7 +17,7 @@ static void control_full(morphine_coroutine_t U) {
 
 static void control_force(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             mapi_gc_force(mapi_instance(U));
             maux_nb_leave();
@@ -26,7 +26,7 @@ static void control_force(morphine_coroutine_t U) {
 
 static void control_step(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             size_t count = 1;
             if (mapi_args(U) > 0) {
                 maux_expect_args(U, 1);
@@ -45,7 +45,7 @@ static void control_step(morphine_coroutine_t U) {
 
 static void control_enable(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool value = true;
             if (mapi_args(U) > 0) {
                 maux_expect_args(U, 1);
@@ -67,7 +67,7 @@ static void control_enable(morphine_coroutine_t U) {
 
 static void status_get(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             const char *result = mapi_gc_status(mapi_instance(U));
             maux_nb_return(mapi_push_string(U, result));
@@ -76,7 +76,7 @@ static void status_get(morphine_coroutine_t U) {
 
 static void status_isrunning(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             bool result = mapi_gc_is_running(mapi_instance(U));
             maux_nb_return(mapi_push_boolean(U, result));
@@ -85,7 +85,7 @@ static void status_isrunning(morphine_coroutine_t U) {
 
 static void status_isenabled(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             bool result = mapi_gc_is_enabled(mapi_instance(U));
             maux_nb_return(mapi_push_boolean(U, result));
@@ -94,7 +94,7 @@ static void status_isenabled(morphine_coroutine_t U) {
 
 static void settings_setlimit(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t limit = mapi_get_csize(U, NULL);
@@ -106,7 +106,7 @@ static void settings_setlimit(morphine_coroutine_t U) {
 
 static void settings_setthreshold(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_csize(U, NULL);
@@ -117,7 +117,7 @@ static void settings_setthreshold(morphine_coroutine_t U) {
 
 static void settings_setdeal(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_csize(U, NULL);
@@ -128,7 +128,7 @@ static void settings_setdeal(morphine_coroutine_t U) {
 
 static void settings_setgrow(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_csize(U, NULL);
@@ -139,7 +139,7 @@ static void settings_setgrow(morphine_coroutine_t U) {
 
 static void settings_setpause(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             size_t value = mapi_get_csize(U, NULL);
@@ -150,7 +150,7 @@ static void settings_setpause(morphine_coroutine_t U) {
 
 static void stat_memory_current(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             size_t result = mapi_gc_allocated(mapi_instance(U));
             maux_nb_return(mapi_push_csize(U, result, NULL));
@@ -159,7 +159,7 @@ static void stat_memory_current(morphine_coroutine_t U) {
 
 static void stat_memory_peak(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             size_t result = mapi_gc_max_allocated(mapi_instance(U));
             maux_nb_return(mapi_push_csize(U, result, NULL));

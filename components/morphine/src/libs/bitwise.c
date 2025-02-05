@@ -10,7 +10,7 @@
 
 static void not(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -24,7 +24,7 @@ static void not(morphine_coroutine_t U) {
 
 static void and(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -41,7 +41,7 @@ static void and(morphine_coroutine_t U) {
 
 static void or(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -58,7 +58,7 @@ static void or(morphine_coroutine_t U) {
 
 static void xor(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -75,7 +75,7 @@ static void xor(morphine_coroutine_t U) {
 
 static void shl(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -92,7 +92,7 @@ static void shl(morphine_coroutine_t U) {
 
 static void shr(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -109,7 +109,7 @@ static void shr(morphine_coroutine_t U) {
 
 static void rtl(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -127,7 +127,7 @@ static void rtl(morphine_coroutine_t U) {
 
 static void rtr(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);

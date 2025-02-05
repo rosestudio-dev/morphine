@@ -9,7 +9,7 @@
 
 static void has(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -21,7 +21,7 @@ static void has(morphine_coroutine_t U) {
 
 static void get(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -32,7 +32,7 @@ static void get(morphine_coroutine_t U) {
 
 static void set(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -44,7 +44,7 @@ static void set(morphine_coroutine_t U) {
 
 static void remove(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -55,7 +55,7 @@ static void remove(morphine_coroutine_t U) {
 
 static void clear(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
 
             mapi_sharedstorage_clear(U, SHAREDKEY);

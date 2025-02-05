@@ -8,7 +8,6 @@
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
 #include "morphine/object/userdata.h"
-#include "morphine/params.h"
 #include "morphine/utils/overflow.h"
 #include <memory.h>
 

@@ -5,7 +5,6 @@
 #pragma once
 
 #include "likely.h"
-#include "minmax.h"
 #include <stdint.h>
 
 #define mm_type_unsigned_max(t) ((t) (~((t) 0)))
@@ -13,8 +12,10 @@
 #define mm_type_signed_max(t)   ((t) (~(((t) 1) << (sizeof(t) * 8 - 1))))
 #define mm_type_signed_min(t)   ((t) (((t) 1) << (sizeof(t) * 8 - 1)))
 
-#define mm_typemax(t) ((__typeof__(t)) mm_max(mm_type_signed_max(__typeof__(t)), mm_type_unsigned_max(__typeof__(t))))
-#define mm_typemin(t) ((__typeof__(t)) mm_min(mm_type_signed_min(__typeof__(t)), mm_type_unsigned_min(__typeof__(t))))
+#define mm_type_calc_max(a, b) ((a) > (b) ? (a) : (b))
+#define mm_type_calc_min(a, b) ((a) < (b) ? (a) : (b))
+#define mm_typemax(t) ((__typeof__(t)) mm_type_calc_max(mm_type_signed_max(__typeof__(t)), mm_type_unsigned_max(__typeof__(t))))
+#define mm_typemin(t) ((__typeof__(t)) mm_type_calc_min(mm_type_signed_min(__typeof__(t)), mm_type_unsigned_min(__typeof__(t))))
 
 #define mm_is_unsigned(t) (mm_typemin(t) == 0)
 

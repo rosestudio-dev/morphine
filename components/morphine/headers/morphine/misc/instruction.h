@@ -7,5 +7,5 @@
 #include "morphine/misc/instruction/type.h"
 #include "morphine/object/function.h"
 
-ml_size instructionI_opcode_args(morphine_opcode_t, bool *valid);
+ml_size instructionI_opcode_args(mtype_opcode_t, bool *valid);
 bool instructionI_validate(morphine_instruction_t, struct function *);

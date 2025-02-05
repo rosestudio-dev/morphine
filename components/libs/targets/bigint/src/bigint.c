@@ -28,7 +28,7 @@ static inline void raw_binary(
     void (*function_type2)(morphine_coroutine_t, struct mlib_bigint *, struct mlib_bigint *)
 ) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
@@ -52,7 +52,7 @@ static inline void raw_unary(
     void (*function_type2)(morphine_coroutine_t, struct mlib_bigint *)
 ) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -73,11 +73,11 @@ static inline void binary(
     void (*function_type2)(morphine_coroutine_t, struct mlib_bigint *, struct mlib_bigint *)
 ) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
             mapi_push_arg(U, 1);
             maux_nb_operation("type", 1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             struct mlib_bigint *bigintB;
             if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
@@ -111,11 +111,11 @@ static inline void unary(
     void (*function_type2)(morphine_coroutine_t, struct mlib_bigint *)
 ) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             maux_nb_operation("type", 1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             struct mlib_bigint *bigintA;
             if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
@@ -256,19 +256,19 @@ static void lib_raw_bigint_hash(morphine_coroutine_t U) {
 
 static void bigint_metatable_wrap(morphine_coroutine_t U) {
     maux_construct_element_t metatable_elements[] = {
-        MAUX_CONSTRUCT_STRING(maux_metafield_name(U, MORPHINE_METAFIELD_TYPE), BIGINT_WRAPPED_TYPE),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_ADD), lib_bigint_add),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_SUB), lib_bigint_sub),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_MUL), lib_bigint_mul),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_DIV), lib_bigint_div),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_MOD), lib_bigint_mod),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_LESS), lib_bigint_less),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_EQUAL), lib_bigint_equal),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_NEGATE), lib_bigint_negate),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_TO_STRING), lib_bigint_tostring),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_COMPARE), lib_bigint_compare),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MORPHINE_METAFIELD_HASH), lib_bigint_hash),
-        MAUX_CONSTRUCT_NIL(maux_metafield_name(U, MORPHINE_METAFIELD_MASK)),
+        MAUX_CONSTRUCT_STRING(maux_metafield_name(U, MTYPE_METAFIELD_TYPE), BIGINT_WRAPPED_TYPE),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_ADD), lib_bigint_add),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_SUB), lib_bigint_sub),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_MUL), lib_bigint_mul),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_DIV), lib_bigint_div),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_MOD), lib_bigint_mod),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_LESS), lib_bigint_less),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_EQUAL), lib_bigint_equal),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_NEGATE), lib_bigint_negate),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_TO_STRING), lib_bigint_tostring),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_COMPARE), lib_bigint_compare),
+        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_HASH), lib_bigint_hash),
+        MAUX_CONSTRUCT_NIL(maux_metafield_name(U, MTYPE_METAFIELD_MASK)),
         MAUX_CONSTRUCT_END
     };
 
@@ -290,7 +290,7 @@ static void bigint_metatable_wrap(morphine_coroutine_t U) {
 
 static void lib_bigint_create(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             bigint_from(U);
@@ -300,7 +300,7 @@ static void lib_bigint_create(morphine_coroutine_t U) {
 
 static void lib_bigint_wrap(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             bigint_from(U);

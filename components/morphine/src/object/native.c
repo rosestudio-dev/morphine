@@ -8,7 +8,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/safe.h"
 
-struct native *nativeI_create(morphine_instance_t I, struct string *name, morphine_native_t function) {
+struct native *nativeI_create(morphine_instance_t I, struct string *name, mfunc_native_t function) {
     if (name == NULL) {
         throwI_error(I, "native name is null");
     }

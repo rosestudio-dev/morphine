@@ -8,7 +8,7 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/string.h"
 
-MORPHINE_API morphine_noret void mapi_errorf(morphine_coroutine_t U, const char *str, ...) {
+MORPHINE_API mattr_noret void mapi_errorf(morphine_coroutine_t U, const char *str, ...) {
     va_list args;
     va_start(args, str);
     struct string *result = stringI_createva(U->I, str, args);
@@ -17,7 +17,7 @@ MORPHINE_API morphine_noret void mapi_errorf(morphine_coroutine_t U, const char 
     throwI_errorv(U->I, valueI_object(result));
 }
 
-MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t U, const char *message) {
+MORPHINE_API mattr_noret void mapi_error(morphine_coroutine_t U, const char *message) {
     if (message == NULL) {
         struct value value = stackI_peek(U, 0);
         throwI_errorv(U->I, value);
@@ -26,7 +26,7 @@ MORPHINE_API morphine_noret void mapi_error(morphine_coroutine_t U, const char *
     }
 }
 
-MORPHINE_API morphine_noret void mapi_ierrorf(morphine_instance_t I, const char *str, ...) {
+MORPHINE_API mattr_noret void mapi_ierrorf(morphine_instance_t I, const char *str, ...) {
     va_list args;
     va_start(args, str);
     struct string *result = stringI_createva(I, str, args);
@@ -35,11 +35,11 @@ MORPHINE_API morphine_noret void mapi_ierrorf(morphine_instance_t I, const char 
     throwI_errorv(I, valueI_object(result));
 }
 
-MORPHINE_API morphine_noret void mapi_ierror(morphine_instance_t I, const char *message) {
+MORPHINE_API mattr_noret void mapi_ierror(morphine_instance_t I, const char *message) {
     throwI_error(I, message);
 }
 
-MORPHINE_API morphine_noret void mapi_provide_error(morphine_coroutine_t U) {
+MORPHINE_API mattr_noret void mapi_provide_error(morphine_coroutine_t U) {
     throwI_provide_error(U);
 }
 
@@ -55,7 +55,7 @@ MORPHINE_API void mapi_uncatch(morphine_coroutine_t U) {
     callstackI_uncatch(U);
 }
 
-MORPHINE_API void mapi_protect(morphine_instance_t I, morphine_try_t try, morphine_catch_t catch, void *data) {
+MORPHINE_API void mapi_protect(morphine_instance_t I, mfunc_try_t try, mfunc_catch_t catch, void *data) {
     throwI_protect(I, try, catch, data, data);
 }
 

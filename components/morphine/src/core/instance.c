@@ -32,18 +32,18 @@ static morphine_library_t (*builtins[])(void) = {
     mlib_builtin_iterator,
     mlib_builtin_assertion,
     mlib_builtin_algorithm,
-    NULL
+    NULL,
 };
 
 static void lib(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
+        maux_nb_init();
+        maux_expect_args(U, 1);
+        mapi_push_arg(U, 0);
 
-            const char *name = mapi_get_cstr(U);
-            maux_library_access(U, name);
-            maux_nb_return();
+        const char *name = mapi_get_cstr(U);
+        maux_library_access(U, name);
+        maux_nb_return();
     maux_nb_end
 }
 
@@ -69,15 +69,14 @@ static void init_sharedstorage(morphine_instance_t I) {
 }
 
 static void init_metatables(morphine_instance_t I) {
-    for (morphine_metatable_field_t field = MORPHINE_METATABLE_FIELDS_START;
-         field < MORPHINE_METATABLE_FIELDS_COUNT; field++) {
+    for (mtype_metafield_t field = MORPHINE_METAFIELDS_START; field < MORPHINE_METAFIELDS_COUNT; field++) {
         const char *name = metatableI_field2string(I, field);
         I->metatable.names[field] = stringI_create(I, name);
     }
 }
 
 static void init_libraries(morphine_instance_t I) {
-    for (morphine_library_t (**builtin)(void) = builtins; *builtin != NULL; builtin ++) {
+    for (morphine_library_t (**builtin)(void) = builtins; *builtin != NULL; builtin++) {
         librariesI_load(I, (*builtin)());
     }
 }

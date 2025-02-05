@@ -5,7 +5,6 @@
 #pragma once
 
 #include "morphine/object/string.h"
-#include "morphine/params.h"
 
 struct sso {
     struct string *table[MPARAM_SSO_HASHTABLE_ROWS][MPARAM_SSO_HASHTABLE_COLS];

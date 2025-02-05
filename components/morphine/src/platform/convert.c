@@ -17,7 +17,7 @@ static ml_integer digit(char c, ml_integer base) {
         return -1;
     }
 
-    if (morphine_isdigit(c)) {
+    if (mm_ctype_isdigit(c)) {
         ml_integer n = ((ml_integer) c) - '0';
 
         if (n >= base || n < 0 || n >= 10) {
@@ -27,8 +27,8 @@ static ml_integer digit(char c, ml_integer base) {
         return n;
     }
 
-    if (morphine_isalpha(c)) {
-        ml_integer n = ((ml_integer) c) - (morphine_isupper(c) ? 'A' : 'a');
+    if (mm_ctype_isalpha(c)) {
+        ml_integer n = ((ml_integer) c) - (mm_ctype_isupper(c) ? 'A' : 'a');
 
         if ((n + 10) >= base || n < 0 || n >= 26) {
             return -1;
@@ -117,7 +117,7 @@ bool platformI_string2decimal(const char *string, ml_decimal *container) {
             break;
         }
 
-        if (!morphine_isdigit(c) && c != '.' && c != '+' && c != '-') {
+        if (!mm_ctype_isdigit(c) && c != '.' && c != '+' && c != '-') {
             goto error;
         }
     }

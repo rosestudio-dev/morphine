@@ -14,16 +14,16 @@ struct collector {
 
 struct instruction_info {
     const char *name;
-    morphine_opcode_t opcode;
+    mtype_opcode_t opcode;
     size_t args;
 };
 
 static struct instruction_info instructions[] = {
 #define instruction(n, o, a)                      { #n, o, a },
-#define mspec_instruction_args0(n, s)             instruction(s, MORPHINE_OPCODE_##n, 0)
-#define mspec_instruction_args1(n, s, a1)         instruction(s, MORPHINE_OPCODE_##n, 1)
-#define mspec_instruction_args2(n, s, a1, a2)     instruction(s, MORPHINE_OPCODE_##n, 2)
-#define mspec_instruction_args3(n, s, a1, a2, a3) instruction(s, MORPHINE_OPCODE_##n, 3)
+#define mspec_instruction_args0(n, s)             instruction(s, MTYPE_OPCODE_##n, 0)
+#define mspec_instruction_args1(n, s, a1)         instruction(s, MTYPE_OPCODE_##n, 1)
+#define mspec_instruction_args2(n, s, a1, a2)     instruction(s, MTYPE_OPCODE_##n, 2)
+#define mspec_instruction_args3(n, s, a1, a2, a3) instruction(s, MTYPE_OPCODE_##n, 3)
 
 #include "morphine/misc/instruction/specification.h"
 

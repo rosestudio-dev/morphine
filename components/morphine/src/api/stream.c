@@ -58,24 +58,9 @@ MORPHINE_API void mapi_stream_flush(morphine_coroutine_t U) {
     streamI_flush(U->I, stream);
 }
 
-MORPHINE_API bool mapi_stream_seek_set(morphine_coroutine_t U, size_t offset) {
+MORPHINE_API bool mapi_stream_seek(morphine_coroutine_t U, size_t offset, mtype_seek_t mode) {
     struct stream *stream = valueI_as_stream_or_error(U->I, stackI_peek(U, 0));
-    return streamI_seek_set(U->I, stream, offset);
-}
-
-MORPHINE_API bool mapi_stream_seek_cur(morphine_coroutine_t U, size_t offset) {
-    struct stream *stream = valueI_as_stream_or_error(U->I, stackI_peek(U, 0));
-    return streamI_seek_cur(U->I, stream, offset);
-}
-
-MORPHINE_API bool mapi_stream_seek_prv(morphine_coroutine_t U, size_t offset) {
-    struct stream *stream = valueI_as_stream_or_error(U->I, stackI_peek(U, 0));
-    return streamI_seek_prv(U->I, stream, offset);
-}
-
-MORPHINE_API bool mapi_stream_seek_end(morphine_coroutine_t U, size_t offset) {
-    struct stream *stream = valueI_as_stream_or_error(U->I, stackI_peek(U, 0));
-    return streamI_seek_end(U->I, stream, offset);
+    return streamI_seek(U->I, stream, offset, mode);
 }
 
 MORPHINE_API size_t mapi_stream_tell(morphine_coroutine_t U) {

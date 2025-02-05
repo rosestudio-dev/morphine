@@ -97,7 +97,7 @@ struct userdata *userdataI_create_vec(morphine_instance_t I, size_t count, size_
 }
 
 void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
-    morphine_userdata_destructor_t destructor = NULL;
+    mfunc_destructor_t destructor = NULL;
     if (userdata->is_typed) {
         struct usertype_info info = usertypeI_info(I, userdata->typed.usertype);
         usertypeI_unref(I, userdata->typed.usertype);
@@ -120,7 +120,7 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
 void userdataI_set_destructor(
     morphine_instance_t I,
     struct userdata *userdata,
-    morphine_userdata_destructor_t destructor
+    mfunc_destructor_t destructor
 ) {
     if (userdata == NULL) {
         throwI_error(I, "userdata is null");
@@ -222,7 +222,7 @@ int userdataI_compare(morphine_instance_t I, struct userdata *a, struct userdata
         return raw_compared;
     }
 
-    morphine_userdata_compare_t compare = usertypeI_info(I, a->typed.usertype).compare;
+    mfunc_compare_t compare = usertypeI_info(I, a->typed.usertype).compare;
 
     if (compare == NULL) {
         return raw_compared;

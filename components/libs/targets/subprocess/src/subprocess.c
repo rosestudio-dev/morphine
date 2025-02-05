@@ -7,7 +7,7 @@
 
 static void lib_spawn(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool env = false;
             if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
@@ -35,7 +35,7 @@ static void lib_spawn(morphine_coroutine_t U) {
 
 static void lib_wait(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             int status = mlapi_process_wait(U);
@@ -46,7 +46,7 @@ static void lib_wait(morphine_coroutine_t U) {
 
 static void lib_kill(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool force = false;
             if(mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
@@ -65,7 +65,7 @@ static void lib_kill(morphine_coroutine_t U) {
 
 static void lib_isalive(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
             bool isalive = mlapi_process_isalive(U);

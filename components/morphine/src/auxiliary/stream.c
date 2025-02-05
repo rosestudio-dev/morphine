@@ -89,12 +89,12 @@ static size_t buffer_write(morphine_instance_t I, void *data, const uint8_t *buf
     return size;
 }
 
-static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphine_stream_seek_mode_t mode) {
+static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, mtype_seek_t mode) {
     (void) I;
     struct buffer_data *B = data;
 
     switch (mode) {
-        case MORPHINE_STREAM_SEEK_MODE_SET: {
+        case MTYPE_SEEK_SET: {
             if (offset > B->size) {
                 return false;
             } else {
@@ -102,7 +102,7 @@ static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphi
                 return true;
             }
         }
-        case MORPHINE_STREAM_SEEK_MODE_CUR: {
+        case MTYPE_SEEK_CUR: {
             if (B->pointer > B->size) {
                 B->pointer = B->size;
             }
@@ -114,7 +114,7 @@ static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphi
                 return true;
             }
         }
-        case MORPHINE_STREAM_SEEK_MODE_PRV: {
+        case MTYPE_SEEK_PRV: {
             if (B->pointer > B->size) {
                 B->pointer = B->size;
             }
@@ -126,7 +126,7 @@ static bool buffer_seek(morphine_instance_t I, void *data, size_t offset, morphi
                 return true;
             }
         }
-        case MORPHINE_STREAM_SEEK_MODE_END: {
+        case MTYPE_SEEK_END: {
             if (offset > B->size) {
                 return false;
             } else {
@@ -242,13 +242,13 @@ MORPHINE_AUX void maux_push_stream_empty(morphine_coroutine_t U, bool read_eof, 
 // other stuff
 
 MORPHINE_AUX void maux_stream_read_all(morphine_coroutine_t U) {
-    if (!mapi_stream_seek_end(U, 0)) {
+    if (!mapi_stream_seek(U, 0, MTYPE_SEEK_END)) {
         mapi_error(U, "cannot read all");
     }
 
     size_t size = mapi_stream_tell(U);
 
-    if (!mapi_stream_seek_set(U, 0)) {
+    if (!mapi_stream_seek(U, 0, MTYPE_SEEK_SET)) {
         mapi_error(U, "cannot read all");
     }
 
@@ -296,9 +296,9 @@ MORPHINE_AUX bool maux_stream_read_line(morphine_coroutine_t U) {
 }
 
 MORPHINE_AUX morphine_stream_interface_t maux_stream_interface_srwf(
-    morphine_stream_read_t read,
-    morphine_stream_write_t write,
-    morphine_stream_flush_t flush
+    mfunc_read_t read,
+    mfunc_write_t write,
+    mfunc_flush_t flush
 ) {
     return (morphine_stream_interface_t) {
         .data_size = 0,

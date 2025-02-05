@@ -8,12 +8,12 @@
 
 static void instance(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
             maux_nb_operation("iterator", 1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
@@ -21,26 +21,26 @@ static void instance(morphine_coroutine_t U) {
 
 static void init(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 3);
 
             mapi_push_arg(U, 0);
             mapi_push_arg(U, 1);
             mapi_push_arg(U, 2);
             maux_nb_operation("iteratorinit", 1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             maux_nb_leave();
     maux_nb_end
 }
 
 static void has(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
             maux_nb_operation("iteratorhas", 1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
@@ -48,12 +48,12 @@ static void has(morphine_coroutine_t U) {
 
 static void next(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
             maux_nb_operation("iteratornext", 1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
     maux_nb_end
@@ -61,14 +61,14 @@ static void next(morphine_coroutine_t U) {
 
 static void vectorize(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             if (mapi_args(U) != 1) {
                 maux_expect_args(U, 3);
             }
 
             mapi_push_arg(U, 0);
             maux_nb_operation("iterator", 1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             mapi_push_result(U);
             mapi_rotate(U, 2);
             mapi_pop(U, 1);
@@ -85,9 +85,9 @@ static void vectorize(morphine_coroutine_t U) {
                 mapi_push_arg(U, 2);
             }
             maux_nb_operation("iteratorinit", 2);
-        maux_nb_state(2)
+        maux_nb_state(2);
             maux_nb_operation("iteratorhas", 3);
-        maux_nb_state(3)
+        maux_nb_state(3);
             mapi_push_result(U);
             bool has = mapi_get_boolean(U);
             mapi_pop(U, 1);
@@ -98,7 +98,7 @@ static void vectorize(morphine_coroutine_t U) {
                 mapi_pop(U, 1);
                 maux_nb_return();
             }
-        maux_nb_state(4)
+        maux_nb_state(4);
             mapi_push_result(U);
             mapi_peek(U, 2);
             mapi_rotate(U, 2);

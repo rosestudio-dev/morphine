@@ -115,12 +115,7 @@ void streamI_flush(morphine_instance_t I, struct stream *stream) {
     }
 }
 
-static inline bool stream_seek(
-    morphine_instance_t I,
-    struct stream *stream,
-    size_t offset,
-    morphine_stream_seek_mode_t mode
-) {
+bool streamI_seek(morphine_instance_t I, struct stream *stream, size_t offset, mtype_seek_t mode) {
     checks(I, stream);
 
     if (stream->interface.seek == NULL) {
@@ -128,22 +123,6 @@ static inline bool stream_seek(
     }
 
     return stream->interface.seek(I, stream->data, offset, mode);
-}
-
-bool streamI_seek_set(morphine_instance_t I, struct stream *stream, size_t offset) {
-    return stream_seek(I, stream, offset, MORPHINE_STREAM_SEEK_MODE_SET);
-}
-
-bool streamI_seek_cur(morphine_instance_t I, struct stream *stream, size_t offset) {
-    return stream_seek(I, stream, offset, MORPHINE_STREAM_SEEK_MODE_CUR);
-}
-
-bool streamI_seek_prv(morphine_instance_t I, struct stream *stream, size_t offset) {
-    return stream_seek(I, stream, offset, MORPHINE_STREAM_SEEK_MODE_PRV);
-}
-
-bool streamI_seek_end(morphine_instance_t I, struct stream *stream, size_t offset) {
-    return stream_seek(I, stream, offset, MORPHINE_STREAM_SEEK_MODE_END);
 }
 
 size_t streamI_tell(morphine_instance_t I, struct stream *stream) {

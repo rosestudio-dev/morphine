@@ -291,7 +291,7 @@ static struct mc_lex_token lex_number_based(morphine_coroutine_t U, struct mc_le
     while (true) {
         bool is_digit = false;
         for (ml_size i = 0; i < base; i++) {
-            if (baseddigits[i] == morphine_tolower(current)) {
+            if (baseddigits[i] == mm_ctype_tolower(current)) {
                 is_digit = true;
                 break;
             }
@@ -354,7 +354,7 @@ static struct mc_lex_token lex_number(morphine_coroutine_t U, struct mc_lex *L) 
 
         if (current == '.') {
             dot = true;
-        } else if (!morphine_isdigit(current)) {
+        } else if (!mm_ctype_isdigit(current)) {
             if (count_after_dot == 1) {
                 lex_error(U, L, "fractional part is empty");
             } else {
@@ -434,7 +434,7 @@ static void handle_utf8(morphine_coroutine_t U, struct mc_lex *L, char *buffer, 
     size_t hex_count = 0;
     for (; hex_count < chars_size; hex_count++) {
         char c = peek(L, 1);
-        if (morphine_isxdigit(c)) {
+        if (mm_ctype_isxdigit(c)) {
             next(L);
             char value;
             if (c >= '0' && c <= '9') {
@@ -655,7 +655,7 @@ static struct mc_lex_token lex_word(
     char current = peek(L, 0);
 
     ml_size from = L->pos;
-    while (current == '_' || morphine_isalpha(current) || morphine_isdigit(current)) {
+    while (current == '_' || mm_ctype_isalpha(current) || mm_ctype_isdigit(current)) {
         current = next(L);
     }
 
@@ -756,7 +756,7 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
     while (true) {
         if (isnewline(current)) {
             skip_newline(L);
-        } else if (morphine_isblank(current)) {
+        } else if (mm_ctype_isblank(current)) {
             next(L);
         } else {
             break;
@@ -786,7 +786,7 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
         return multiline_comment(U, L, T);
     }
 
-    if (morphine_isdigit(current)) {
+    if (mm_ctype_isdigit(current)) {
         return lex_number(U, L);
     }
 
@@ -798,7 +798,7 @@ MORPHINE_API struct mc_lex_token mcapi_lex_step(
         return lex_extended_word(U, L, T);
     }
 
-    if (current == '_' || morphine_isalpha(current)) {
+    if (current == '_' || mm_ctype_isalpha(current)) {
         return lex_word(U, L, T);
     }
 

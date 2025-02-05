@@ -27,7 +27,7 @@ static inline int scheme2byte(char value, char const *scheme, size_t size) {
 
 static void lib_base16_encode(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -51,7 +51,7 @@ static void lib_base16_encode(morphine_coroutine_t U) {
 
 static void lib_base16_decode(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -64,8 +64,8 @@ static void lib_base16_decode(morphine_coroutine_t U) {
 
             mapi_push_string(U, "");
             for (ml_size i = 0; i < size / 2; i++) {
-                int comp1 = scheme2byte(morphine_tolower(string[i * 2]), BASE16_SCHEME, 16);
-                int comp2 = scheme2byte(morphine_tolower(string[i * 2 + 1]), BASE16_SCHEME, 16);
+                int comp1 = scheme2byte(mm_ctype_tolower(string[i * 2]), BASE16_SCHEME, 16);
+                int comp2 = scheme2byte(mm_ctype_tolower(string[i * 2 + 1]), BASE16_SCHEME, 16);
 
                 if (comp1 < 0 || comp2 < 0) {
                     goto error;
@@ -86,7 +86,7 @@ error:
 
 static void lib_base32_encode(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -130,7 +130,7 @@ static void lib_base32_encode(morphine_coroutine_t U) {
 
 static void lib_base32_decode(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -152,7 +152,7 @@ static void lib_base32_decode(morphine_coroutine_t U) {
                 }
 
                 {
-                    int byte = scheme2byte(morphine_tolower(value), BASE32_SCHEME, 32);
+                    int byte = scheme2byte(mm_ctype_tolower(value), BASE32_SCHEME, 32);
                     if (byte < 0) {
                         goto error;
                     }
@@ -180,7 +180,7 @@ error:
 
 static void lib_base64_encode(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -224,7 +224,7 @@ static void lib_base64_encode(morphine_coroutine_t U) {
 
 static void lib_base64_decode(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);

@@ -7,7 +7,7 @@
 #include "morphine/platform.h"
 
 struct library_instance {
-    morphine_library_init_t init;
+    mfunc_native_t init;
     struct string *name;
     struct table *table;
 };

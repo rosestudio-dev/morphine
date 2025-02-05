@@ -50,7 +50,7 @@ struct constant {
 
 struct instruction {
     ml_line line;
-    morphine_opcode_t opcode;
+    mtype_opcode_t opcode;
 
     struct instruction_argument argument1;
     struct instruction_argument argument2;
@@ -629,7 +629,7 @@ struct mc_strtable_entry codegen_string(struct codegen_controller *C, mc_strtabl
     return mcapi_strtable_access(C->U, C->T, index);
 }
 
-morphine_noret void codegen_errorf(struct codegen_controller *C, const char *str, ...) {
+mattr_noret void codegen_errorf(struct codegen_controller *C, const char *str, ...) {
     va_list args;
     va_start(args, str);
     mapi_push_stringv(C->U, str, args);
@@ -647,7 +647,7 @@ morphine_noret void codegen_errorf(struct codegen_controller *C, const char *str
     }
 }
 
-morphine_noret void codegen_lined_errorf(struct codegen_controller *C, ml_line line, const char *str, ...) {
+mattr_noret void codegen_lined_errorf(struct codegen_controller *C, ml_line line, const char *str, ...) {
     va_list args;
     va_start(args, str);
     mapi_push_stringv(C->U, str, args);
@@ -661,7 +661,7 @@ morphine_noret void codegen_lined_errorf(struct codegen_controller *C, ml_line l
     );
 }
 
-morphine_noret void codegen_statement(
+mattr_noret void codegen_statement(
     struct codegen_controller *C,
     struct mc_ast_statement *statement,
     size_t next_state
@@ -674,7 +674,7 @@ morphine_noret void codegen_statement(
     mcapi_visitor_node(C->VC, mcapi_ast_statement2node(statement), next_state);
 }
 
-morphine_noret void codegen_expression(
+mattr_noret void codegen_expression(
     struct codegen_controller *C,
     struct mc_ast_expression *expression,
     struct instruction_slot result_slot,
@@ -689,7 +689,7 @@ morphine_noret void codegen_expression(
     mcapi_visitor_node(C->VC, mcapi_ast_expression2node(expression), next_state);
 }
 
-morphine_noret void codegen_eval(
+mattr_noret void codegen_eval(
     struct codegen_controller *C,
     struct mc_ast_statement *statement,
     struct instruction_slot result_slot,
@@ -704,7 +704,7 @@ morphine_noret void codegen_eval(
     mcapi_visitor_node(C->VC, mcapi_ast_statement2node(statement), next_state);
 }
 
-morphine_noret void codegen_set(
+mattr_noret void codegen_set(
     struct codegen_controller *C,
     struct mc_ast_expression *expression,
     struct instruction_slot slot,
@@ -719,7 +719,7 @@ morphine_noret void codegen_set(
     mcapi_visitor_node(C->VC, mcapi_ast_expression2node(expression), next_state);
 }
 
-morphine_noret void codegen_function(
+mattr_noret void codegen_function(
     struct codegen_controller *C,
     struct mc_ast_function *function,
     size_t next_state
@@ -728,14 +728,14 @@ morphine_noret void codegen_function(
     mcapi_visitor_function(C->VC, function, next_state);
 }
 
-morphine_noret void codegen_jump(
+mattr_noret void codegen_jump(
     struct codegen_controller *C,
     size_t next_state
 ) {
     mcapi_visitor_jump(C->VC, next_state);
 }
 
-morphine_noret void codegen_complete(struct codegen_controller *C) {
+mattr_noret void codegen_complete(struct codegen_controller *C) {
     mcapi_visitor_complete(C->VC);
 }
 
@@ -753,7 +753,7 @@ void *codegen_alloc_saved_vec(struct codegen_controller *C, size_t count, size_t
 
 void codegen_add_instruction(
     struct codegen_controller *C,
-    morphine_opcode_t opcode,
+    mtype_opcode_t opcode,
     struct instruction_argument argument1,
     struct instruction_argument argument2,
     struct instruction_argument argument3
@@ -1016,7 +1016,7 @@ static void visitor_function_eval(
         case 2: {
             size_t constant = codegen_add_constant_nil(C);
             codegen_add_instruction(
-                C, MORPHINE_OPCODE_LOAD,
+                C, MTYPE_OPCODE_LOAD,
                 (struct instruction_argument) { .type = IAT_constant_index, .value_constant_index = constant },
                 (struct instruction_argument) { .type = IAT_dslot, .value_dslot = codegen_result(C) },
                 (struct instruction_argument) { .type = IAT_stub, .value_stub = 0 }

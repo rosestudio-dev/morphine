@@ -20,7 +20,7 @@ void codegen_instruction_##n(struct codegen_controller *C names) { \
     struct instruction_argument arg1 = { a1 }; \
     struct instruction_argument arg2 = { a2 }; \
     struct instruction_argument arg3 = { a3 }; \
-    codegen_add_instruction(C, MORPHINE_OPCODE_##n, arg1, arg2, arg3); \
+    codegen_add_instruction(C, MTYPE_OPCODE_##n, arg1, arg2, arg3); \
 }
 
 #define arg(t, d, v) .type = t, .d = v

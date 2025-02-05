@@ -135,7 +135,7 @@ static void pop_node(morphine_coroutine_t U, struct mc_visitor *V) {
 
 // controller
 
-MORPHINE_API morphine_noret void mcapi_visitor_node(
+MORPHINE_API mattr_noret void mcapi_visitor_node(
     struct mc_visitor_controller *C,
     struct mc_ast_node *node,
     size_t next_state
@@ -146,7 +146,7 @@ MORPHINE_API morphine_noret void mcapi_visitor_node(
     longjmp(C->jump, 1);
 }
 
-MORPHINE_API morphine_noret void mcapi_visitor_function(
+MORPHINE_API mattr_noret void mcapi_visitor_function(
     struct mc_visitor_controller *C,
     struct mc_ast_function *function,
     size_t next_state
@@ -157,7 +157,7 @@ MORPHINE_API morphine_noret void mcapi_visitor_function(
     longjmp(C->jump, 1);
 }
 
-MORPHINE_API morphine_noret void mcapi_visitor_jump(
+MORPHINE_API mattr_noret void mcapi_visitor_jump(
     struct mc_visitor_controller *C,
     size_t next_state
 ) {
@@ -166,7 +166,7 @@ MORPHINE_API morphine_noret void mcapi_visitor_jump(
     longjmp(C->jump, 1);
 }
 
-MORPHINE_API morphine_noret void mcapi_visitor_complete(
+MORPHINE_API mattr_noret void mcapi_visitor_complete(
     struct mc_visitor_controller *C
 ) {
     C->command.type = COMMAND_COMPLETE;

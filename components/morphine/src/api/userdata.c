@@ -43,7 +43,7 @@ MORPHINE_API void *mapi_push_userdata_vec(morphine_coroutine_t U, size_t count, 
     return userdata->data;
 }
 
-MORPHINE_API void mapi_userdata_set_destructor(morphine_coroutine_t U, morphine_userdata_destructor_t destructor) {
+MORPHINE_API void mapi_userdata_set_destructor(morphine_coroutine_t U, mfunc_destructor_t destructor) {
     struct userdata *userdata = valueI_as_userdata_or_error(U->I, stackI_peek(U, 0));
     userdataI_set_destructor(U->I, userdata, destructor);
 }

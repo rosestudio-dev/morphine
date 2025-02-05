@@ -73,7 +73,7 @@ struct function *functionI_create(
     for (ml_size i = 0; i < instructions_count; i++) {
         result->instructions[i] = (morphine_instruction_t) {
             .line = 0,
-            .opcode = MORPHINE_OPCODE_NO_OPERATION,
+            .opcode = MTYPE_OPCODE_NO_OPERATION,
             .argument1 = 0,
             .argument2 = 0,
             .argument3 = 0,

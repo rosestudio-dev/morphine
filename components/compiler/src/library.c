@@ -15,7 +15,7 @@
 
 static void compile(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
@@ -69,7 +69,7 @@ static void compile(morphine_coroutine_t U) {
 
                 maux_nb_continue(1);
             }
-        maux_nb_state(1)
+        maux_nb_state(1);
             maux_localstorage_get(U, "T");
             struct mc_strtable *T = mcapi_get_strtable(U);
 
@@ -96,7 +96,7 @@ static void compile(morphine_coroutine_t U) {
 
                 maux_nb_continue(2);
             }
-        maux_nb_state(2)
+        maux_nb_state(2);
             maux_localstorage_get(U, "T");
             struct mc_strtable *T = mcapi_get_strtable(U);
 
@@ -127,7 +127,7 @@ static void compile(morphine_coroutine_t U) {
 
 static void dis(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             bool stream_io = false;
             if (mapi_args(U) == 2) {
                 stream_io = true;
@@ -295,7 +295,7 @@ static void push_token(
 
 static void lex(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
@@ -336,7 +336,7 @@ static void lex(morphine_coroutine_t U) {
 
                 maux_nb_continue(1);
             }
-        maux_nb_state(1)
+        maux_nb_state(1);
             maux_localstorage_get(U, "T");
             struct mc_strtable *T = mcapi_get_strtable(U);
 

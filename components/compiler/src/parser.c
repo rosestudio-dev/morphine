@@ -386,7 +386,7 @@ ml_size parser_index(struct parse_controller *C) {
     return element.token.index;
 }
 
-morphine_noret void parser_errorf(struct parse_controller *C, const char *str, ...) {
+mattr_noret void parser_errorf(struct parse_controller *C, const char *str, ...) {
     va_list args;
     va_start(args, str);
     mapi_push_stringv(C->U, str, args);

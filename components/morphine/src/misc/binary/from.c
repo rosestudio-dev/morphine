@@ -73,7 +73,7 @@ get_compressed_type(ml_size, ml_size);
 get_compressed_type(ml_decimal, ml_decimal);
 get_compressed_type(ml_version, ml_version);
 get_compressed_type(enum value_type, value_type);
-get_compressed_type(morphine_opcode_t, opcode);
+get_compressed_type(mtype_opcode_t, opcode);
 get_type(char, char);
 get_type(bool, bool);
 get_type(uint8_t, uint8);
@@ -103,7 +103,7 @@ static struct string *read_object_string(struct data *D) {
 read_wrapper(ml_size, ml_size);
 read_wrapper(ml_line, ml_line);
 read_wrapper(ml_argument, ml_argument);
-read_wrapper(morphine_opcode_t, opcode);
+read_wrapper(mtype_opcode_t, opcode);
 read_wrapper(bool, bool);
 
 struct string *packerI_read_object_string(struct packer_read *R) {

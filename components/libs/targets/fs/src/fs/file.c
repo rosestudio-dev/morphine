@@ -110,7 +110,7 @@ static size_t file_tell(morphine_instance_t I, void *data) {
     return (size_t) tell;
 }
 
-static bool file_seek(morphine_instance_t I, void *data, size_t size, morphine_stream_seek_mode_t mode) {
+static bool file_seek(morphine_instance_t I, void *data, size_t size, mtype_seek_t mode) {
     struct file_data *D = data;
 
     if (size > -1UL) {
@@ -119,10 +119,10 @@ static bool file_seek(morphine_instance_t I, void *data, size_t size, morphine_s
 
     bool result = false;
     switch (mode) {
-        case MORPHINE_STREAM_SEEK_MODE_SET: result = fseek(D->file, (long) size, SEEK_SET) == 0; break;
-        case MORPHINE_STREAM_SEEK_MODE_CUR: result = fseek(D->file, (long) size, SEEK_CUR) == 0; break;
-        case MORPHINE_STREAM_SEEK_MODE_PRV: result = fseek(D->file, -((long) size), SEEK_CUR) == 0; break;
-        case MORPHINE_STREAM_SEEK_MODE_END: result = fseek(D->file, (long) size, SEEK_END) == 0; break;
+        case MTYPE_SEEK_SET: result = fseek(D->file, (long) size, SEEK_SET) == 0; break;
+        case MTYPE_SEEK_CUR: result = fseek(D->file, (long) size, SEEK_CUR) == 0; break;
+        case MTYPE_SEEK_PRV: result = fseek(D->file, -((long) size), SEEK_CUR) == 0; break;
+        case MTYPE_SEEK_END: result = fseek(D->file, (long) size, SEEK_END) == 0; break;
     }
 
     if (ferror(D->file)) {

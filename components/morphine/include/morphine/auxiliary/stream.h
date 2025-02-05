@@ -14,9 +14,9 @@ MORPHINE_AUX bool maux_stream_read_to(morphine_coroutine_t, const char *exit, bo
 MORPHINE_AUX bool maux_stream_read_line(morphine_coroutine_t);
 
 MORPHINE_AUX morphine_stream_interface_t maux_stream_interface_srwf(
-    morphine_stream_read_t,
-    morphine_stream_write_t,
-    morphine_stream_flush_t
+    mfunc_read_t,
+    mfunc_write_t,
+    mfunc_flush_t
 );
 
 #define maux_stream_interface_sro(f)    maux_stream_interface_srwf((f), NULL, NULL)

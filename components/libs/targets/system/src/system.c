@@ -14,13 +14,13 @@ static uint64_t get_millis(void) {
 
 static void lib_delay(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             uint64_t *time = mapi_push_userdata_uni(U, sizeof(uint64_t));
             *time = get_millis();
             maux_nb_im_continue(1);
-        maux_nb_state(1)
+        maux_nb_state(1);
             uint64_t *time = mapi_userdata_pointer(U, NULL);
 
             mapi_push_arg(U, 0);
@@ -37,7 +37,7 @@ static void lib_delay(morphine_coroutine_t U) {
 
 static void lib_millis(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
             mapi_push_integer(U, (ml_integer) (get_millis() % (uint64_t) mm_typemax(ml_integer)));
             maux_nb_return();
@@ -46,7 +46,7 @@ static void lib_millis(morphine_coroutine_t U) {
 
 static void lib_uname(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
 
             struct utsname uts;

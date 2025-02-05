@@ -24,7 +24,7 @@ static void set_termios(morphine_coroutine_t U, struct termios termios) {
 
 static void lib_makeraw(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
 
             struct termios termios = get_termios(U);
@@ -51,7 +51,7 @@ static void lib_makeraw(morphine_coroutine_t U) {
 
 static void lib_makecbreak(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
 
             struct termios termios = get_termios(U);
@@ -66,7 +66,7 @@ static void lib_makecbreak(morphine_coroutine_t U) {
 
 static void lib_size(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 0);
 
             struct winsize winsize;

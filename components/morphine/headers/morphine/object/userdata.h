@@ -18,7 +18,7 @@ struct userdata {
 
         struct {
             size_t size;
-            morphine_userdata_destructor_t destructor;
+            mfunc_destructor_t destructor;
         } untyped;
     };
 
@@ -38,7 +38,7 @@ struct userdata *userdataI_create(morphine_instance_t, size_t size);
 struct userdata *userdataI_create_vec(morphine_instance_t, size_t count, size_t size);
 void userdataI_free(morphine_instance_t, struct userdata *);
 
-void userdataI_set_destructor(morphine_instance_t, struct userdata *, morphine_userdata_destructor_t);
+void userdataI_set_destructor(morphine_instance_t, struct userdata *, mfunc_destructor_t);
 
 void userdataI_lock_destructor(morphine_instance_t, struct userdata *);
 void userdataI_lock_metatable(morphine_instance_t, struct userdata *);

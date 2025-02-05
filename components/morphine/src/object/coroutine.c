@@ -332,7 +332,7 @@ morphine_coroutine_t coroutineI_create(morphine_instance_t I, struct string *nam
         .stack.allocated = NULL,
         .stack.size = 0,
         .stack.top = 0,
-        .stack.settings.limit = I->settings.coroutines.stack.limit,
+        .stack.settings.limit = I->settings.stack.limit,
         .stack.settings.allow_reduce_stack = true,
         .callstack.context = 0,
         .callstack.size = 0,
@@ -598,7 +598,7 @@ void callstackI_call(morphine_coroutine_t U, struct value *callable, struct valu
 
     struct value mt_field;
     struct value mt_args[2];
-    if (mm_unlikely(metatableI_builtin_test(I, *callable, MORPHINE_METAFIELD_CALL, &mt_field))) { // check metafield
+    if (mm_unlikely(metatableI_builtin_test(I, *callable, MTYPE_METAFIELD_CALL, &mt_field))) { // check metafield
         struct vector *vector = gcI_safe_obj(I, vector, vectorI_create(I, argc));
         for (ml_size i = 0; i < argc; i++) {
             vectorI_set(I, vector, i, extract_stack_value(U, stack_args)[i]);

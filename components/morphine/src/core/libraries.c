@@ -9,7 +9,6 @@
 #include "morphine/object/table.h"
 #include "morphine/utils/overflow.h"
 #include "morphine/gc/allocator.h"
-#include "morphine/params.h"
 #include "morphine/gc/safe.h"
 #include "morphine/object/native.h"
 #include "morphine/object/coroutine.h"
@@ -76,7 +75,7 @@ void librariesI_load(morphine_instance_t I, morphine_library_t library) {
     gcI_safe_exit(I);
 }
 
-static struct table *init_library(morphine_coroutine_t U, morphine_library_init_t init) {
+static struct table *init_library(morphine_coroutine_t U, mfunc_native_t init) {
     size_t space_size = stackI_space(U);
 
     init(U);

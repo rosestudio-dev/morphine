@@ -80,28 +80,28 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
         sp_fetch();
 
         sp_dispatch(instruction.opcode) {
-            sp_case(MORPHINE_OPCODE_NO_OPERATION) {
+            sp_case(MTYPE_OPCODE_NO_OPERATION) {
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_YIELD) {
+            sp_case(MTYPE_OPCODE_YIELD) {
                 sp_next();
                 sp_yield();
             }
-            sp_case(MORPHINE_OPCODE_LOAD) {
+            sp_case(MTYPE_OPCODE_LOAD) {
                 set_slot(C, arg2, F->constants[arg1]);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_MOVE) {
+            sp_case(MTYPE_OPCODE_MOVE) {
                 get_slot(C, arg1, value);
                 set_slot(C, arg2, value);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_PARAM) {
+            sp_case(MTYPE_OPCODE_PARAM) {
                 get_slot(C, arg1, value);
                 set_param(C, arg2, value);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_ARG) {
+            sp_case(MTYPE_OPCODE_ARG) {
                 if (arg1 < C->params.arguments_count) {
                     set_slot(C, arg2, C->s.direct.args[arg1]);
                 } else {
@@ -109,23 +109,23 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 }
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_ENV) {
+            sp_case(MTYPE_OPCODE_ENV) {
                 set_slot(C, arg1, U->env);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_INVOKED) {
+            sp_case(MTYPE_OPCODE_INVOKED) {
                 set_slot(C, arg1, *C->s.direct.callable);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_VECTOR) {
+            sp_case(MTYPE_OPCODE_VECTOR) {
                 set_slot(C, arg1, valueI_object(vectorI_create(U->I, arg2)));
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_TABLE) {
+            sp_case(MTYPE_OPCODE_TABLE) {
                 set_slot(C, arg1, valueI_object(tableI_create(U->I)));
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_GET) {
+            sp_case(MTYPE_OPCODE_GET) {
                 get_slot(C, arg1, container);
                 get_slot(C, arg2, key);
                 struct value result = valueI_nil;
@@ -135,7 +135,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_SET) {
+            sp_case(MTYPE_OPCODE_SET) {
                 get_slot(C, arg1, container);
                 get_slot(C, arg2, key);
                 get_slot(C, arg3, value);
@@ -143,7 +143,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 complex_fun(interpreter_fun_set, 1, container, key, value);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_ITERATOR) {
+            sp_case(MTYPE_OPCODE_ITERATOR) {
                 get_slot(C, arg1, container);
                 struct value result = valueI_nil;
 
@@ -152,7 +152,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_ITERATOR_INIT) {
+            sp_case(MTYPE_OPCODE_ITERATOR_INIT) {
                 get_slot(C, arg1, iterator);
                 get_slot(C, arg2, key_name);
                 get_slot(C, arg3, value_name);
@@ -160,7 +160,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 complex_fun(interpreter_fun_iterator_init, 1, iterator, key_name, value_name);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_ITERATOR_HAS) {
+            sp_case(MTYPE_OPCODE_ITERATOR_HAS) {
                 get_slot(C, arg1, iterator);
                 struct value result = valueI_nil;
 
@@ -169,7 +169,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_ITERATOR_NEXT) {
+            sp_case(MTYPE_OPCODE_ITERATOR_NEXT) {
                 get_slot(C, arg1, iterator);
                 struct value result = valueI_nil;
 
@@ -178,11 +178,11 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_JUMP) {
+            sp_case(MTYPE_OPCODE_JUMP) {
                 *position = arg1;
                 sp_continue();
             }
-            sp_case(MORPHINE_OPCODE_JUMP_IF) {
+            sp_case(MTYPE_OPCODE_JUMP_IF) {
                 get_slot(C, arg1, cond);
 
                 if (convertI_to_boolean(cond)) {
@@ -193,21 +193,21 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
 
                 sp_continue();
             }
-            sp_case(MORPHINE_OPCODE_CLOSURE) {
+            sp_case(MTYPE_OPCODE_CLOSURE) {
                 get_slot(C, arg1, callable);
                 get_slot(C, arg2, value);
                 struct closure *closure = closureI_create(U->I, callable, value);
                 set_slot(C, arg3, valueI_object(closure));
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_CLOSURE_VALUE) {
+            sp_case(MTYPE_OPCODE_CLOSURE_VALUE) {
                 get_slot(C, arg1, callable);
                 struct closure *closure = valueI_as_closure_or_error(U->I, callable);
                 struct value result = closureI_value(U->I, closure);
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_CALL) {
+            sp_case(MTYPE_OPCODE_CALL) {
                 ml_size count = arg2;
 
                 if (callstackI_state(U) == 1) {
@@ -224,13 +224,13 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 callstackI_call(U, get_raw_slot(C, arg1), get_raw_param(C, 0), count, 0);
                 sp_yield();
             }
-            sp_case(MORPHINE_OPCODE_RETURN) {
+            sp_case(MTYPE_OPCODE_RETURN) {
                 get_slot(C, arg1, value);
                 sp_next();
                 callstackI_pop(U, value);
                 sp_yield();
             }
-            sp_case(MORPHINE_OPCODE_ADD) {
+            sp_case(MTYPE_OPCODE_ADD) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -240,7 +240,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_SUB) {
+            sp_case(MTYPE_OPCODE_SUB) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -250,7 +250,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_MUL) {
+            sp_case(MTYPE_OPCODE_MUL) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -260,7 +260,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_DIV) {
+            sp_case(MTYPE_OPCODE_DIV) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -270,7 +270,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_MOD) {
+            sp_case(MTYPE_OPCODE_MOD) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -280,7 +280,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_EQUAL) {
+            sp_case(MTYPE_OPCODE_EQUAL) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -290,7 +290,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_LESS) {
+            sp_case(MTYPE_OPCODE_LESS) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -300,7 +300,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_AND) {
+            sp_case(MTYPE_OPCODE_AND) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -310,7 +310,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_OR) {
+            sp_case(MTYPE_OPCODE_OR) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -320,7 +320,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_CONCAT) {
+            sp_case(MTYPE_OPCODE_CONCAT) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
@@ -330,7 +330,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_TYPE) {
+            sp_case(MTYPE_OPCODE_TYPE) {
                 get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
@@ -339,7 +339,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_NEGATIVE) {
+            sp_case(MTYPE_OPCODE_NEGATIVE) {
                 get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
@@ -348,7 +348,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_NOT) {
+            sp_case(MTYPE_OPCODE_NOT) {
                 get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
@@ -357,7 +357,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_REF) {
+            sp_case(MTYPE_OPCODE_REF) {
                 get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
@@ -366,7 +366,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_DEREF) {
+            sp_case(MTYPE_OPCODE_DEREF) {
                 get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
@@ -375,7 +375,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg2, result);
                 sp_end();
             }
-            sp_case(MORPHINE_OPCODE_LENGTH) {
+            sp_case(MTYPE_OPCODE_LENGTH) {
                 get_slot(C, arg1, a);
                 struct value result = valueI_nil;
 
@@ -472,7 +472,7 @@ static void wrapper_execute(void *pointer) {
     data->result = false;
 }
 
-static morphine_catch_result_t wrapper_handler(void *I) {
+static mtype_catch_t wrapper_handler(void *I) {
     return throwI_interpreter_handler(I);
 }
 

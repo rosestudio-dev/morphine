@@ -4,11 +4,10 @@
 
 #include <morphine.h>
 #include "morphine/libs/builtin.h"
-#include "morphine/params.h"
 
 static void create(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
@@ -19,7 +18,7 @@ static void create(morphine_coroutine_t U) {
 
 static void kind(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
@@ -31,7 +30,7 @@ static void kind(morphine_coroutine_t U) {
 
 static void value(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
@@ -42,7 +41,7 @@ static void value(morphine_coroutine_t U) {
 
 static void message(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
 
@@ -53,7 +52,7 @@ static void message(morphine_coroutine_t U) {
 
 static void print(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             if (mapi_args(U) == 1) {
                 mapi_push_stream_err(U);
             } else {
@@ -70,7 +69,7 @@ static void print(morphine_coroutine_t U) {
 
 static void error_print(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
             mapi_push_arg(U, 1);
             mapi_push_arg(U, 0);
@@ -81,7 +80,7 @@ static void error_print(morphine_coroutine_t U) {
 
 static void stacktrace_print(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             ml_size count;
             if (mapi_args(U) == 3) {
                 mapi_push_arg(U, 2);
@@ -102,7 +101,7 @@ static void stacktrace_print(morphine_coroutine_t U) {
 
 static void stacktrace_record(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);
@@ -116,7 +115,7 @@ static void stacktrace_record(morphine_coroutine_t U) {
 
 static void stacktrace_name(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -127,7 +126,7 @@ static void stacktrace_name(morphine_coroutine_t U) {
 
 static void stacktrace_size(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 1);
 
             mapi_push_arg(U, 0);
@@ -139,7 +138,7 @@ static void stacktrace_size(morphine_coroutine_t U) {
 
 static void stacktrace_get(morphine_coroutine_t U) {
     maux_nb_function(U)
-        maux_nb_init
+        maux_nb_init();
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 1);

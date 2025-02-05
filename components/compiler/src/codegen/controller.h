@@ -72,48 +72,48 @@ struct variable;
 struct codegen_controller;
 
 struct mc_strtable_entry codegen_string(struct codegen_controller *, mc_strtable_index_t);
-morphine_noret void codegen_errorf(struct codegen_controller *, const char *, ...);
-morphine_noret void codegen_lined_errorf(struct codegen_controller *, ml_line, const char *, ...);
+mattr_noret void codegen_errorf(struct codegen_controller *, const char *, ...);
+mattr_noret void codegen_lined_errorf(struct codegen_controller *, ml_line, const char *, ...);
 
-morphine_noret void codegen_statement(
+mattr_noret void codegen_statement(
     struct codegen_controller *,
     struct mc_ast_statement *,
     size_t next_state
 );
 
-morphine_noret void codegen_expression(
+mattr_noret void codegen_expression(
     struct codegen_controller *,
     struct mc_ast_expression *,
     struct instruction_slot result_slot,
     size_t next_state
 );
 
-morphine_noret void codegen_eval(
+mattr_noret void codegen_eval(
     struct codegen_controller *,
     struct mc_ast_statement *,
     struct instruction_slot result_slot,
     size_t next_state
 );
 
-morphine_noret void codegen_set(
+mattr_noret void codegen_set(
     struct codegen_controller *,
     struct mc_ast_expression *,
     struct instruction_slot slot,
     size_t next_state
 );
 
-morphine_noret void codegen_function(
+mattr_noret void codegen_function(
     struct codegen_controller *,
     struct mc_ast_function *,
     size_t next_state
 );
 
-morphine_noret void codegen_jump(
+mattr_noret void codegen_jump(
     struct codegen_controller *,
     size_t next_state
 );
 
-morphine_noret void codegen_complete(struct codegen_controller *);
+mattr_noret void codegen_complete(struct codegen_controller *);
 
 void *codegen_saved(struct codegen_controller *);
 void *codegen_alloc_saved_uni(struct codegen_controller *, size_t);
@@ -121,7 +121,7 @@ void *codegen_alloc_saved_vec(struct codegen_controller *, size_t, size_t);
 
 void codegen_add_instruction(
     struct codegen_controller *,
-    morphine_opcode_t,
+    mtype_opcode_t,
     struct instruction_argument argument1,
     struct instruction_argument argument2,
     struct instruction_argument argument3

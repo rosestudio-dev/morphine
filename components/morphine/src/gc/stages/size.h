@@ -23,7 +23,7 @@ static inline size_t size_table(struct table *table) {
            + table->hashmap.hashing.size * sizeof(struct tree);
 }
 
-static inline size_t size_closure(morphine_unused struct closure *closure) {
+static inline size_t size_closure(mattr_unused struct closure *closure) {
     return sizeof(struct closure);
 }
 
@@ -36,7 +36,7 @@ static inline size_t size_function(struct function *function) {
            + ((size_t) function->constants_count) * sizeof(struct value);
 }
 
-static inline size_t size_userdata(morphine_unused struct userdata *userdata) {
+static inline size_t size_userdata(mattr_unused struct userdata *userdata) {
     return sizeof(struct userdata);
 }
 
@@ -45,11 +45,11 @@ static inline size_t size_coroutine(struct coroutine *coroutine) {
            + ((size_t) coroutine->callstack.size) * sizeof(struct callframe);
 }
 
-static inline size_t size_native(morphine_unused struct native *native) {
+static inline size_t size_native(mattr_unused struct native *native) {
     return sizeof(struct native);
 }
 
-static inline size_t size_iterator(morphine_unused struct iterator *iterator) {
+static inline size_t size_iterator(mattr_unused struct iterator *iterator) {
     return sizeof(struct iterator);
 }
 
@@ -61,7 +61,7 @@ static inline size_t size_string(struct string *string) {
     return sizeof(struct string) + (((size_t) string->size) + 1) * sizeof(char);
 }
 
-static inline size_t size_reference(morphine_unused struct reference *reference) {
+static inline size_t size_reference(mattr_unused struct reference *reference) {
     return sizeof(struct reference);
 }
 
