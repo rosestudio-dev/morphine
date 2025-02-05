@@ -6,65 +6,52 @@
 #include <stdio.h>
 #include <string.h>
 
-struct file_data {
-    FILE *file;
-};
-
 struct file_args {
     char mode[4];
     const char *path;
 };
 
-static void file_open(morphine_instance_t I, void *data, void *args) {
+static void *file_open(morphine_instance_t I, void *args) {
     struct file_args *file_args = args;
-    struct file_data *file_data = data;
 
-    file_data->file = fopen(file_args->path, file_args->mode);
-    if (file_data->file == NULL) {
+    FILE *file = fopen(file_args->path, file_args->mode);
+    if (file == NULL) {
         mapi_ierror(I, "failed to open file");
     }
 
-    if (ferror(file_data->file)) {
-        mapi_ierror(I, "file error");
-    }
+    return file;
 }
 
-static void file_temp_open(morphine_instance_t I, void *data, void *args) {
-    (void) args;
-    struct file_data *file_data = data;
-
-    file_data->file = tmpfile();
-    if (file_data->file == NULL) {
-        mapi_ierror(I, "failed to open temp file");
+static void *file_temp_open(morphine_instance_t I, mattr_unused void *args) {
+    FILE *file = tmpfile();
+    if (file == NULL) {
+        mapi_ierror(I, "failed to open file");
     }
 
-    if (ferror(file_data->file)) {
-        mapi_ierror(I, "file error");
-    }
+    return file;
 }
 
-static void file_close(morphine_instance_t I, void *data) {
-    (void) I;
-    struct file_data *file_data = data;
-    fclose(file_data->file);
+static void file_close(mattr_unused morphine_instance_t I, void *data, mattr_unused bool force) {
+    FILE *file = data;
+    fclose(file);
 }
 
 static void file_flush(morphine_instance_t I, void *data) {
-    struct file_data *D = data;
+    FILE *file = data;
 
-    fflush(D->file);
+    fflush(file);
 
-    if (ferror(D->file)) {
+    if (ferror(file)) {
         mapi_ierror(I, "file error");
     }
 }
 
 static size_t file_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
-    struct file_data *D = data;
+    FILE *file = data;
 
-    size_t result = fwrite(buffer, 1, size, D->file);
+    size_t result = fwrite(buffer, 1, size, file);
 
-    if (ferror(D->file)) {
+    if (ferror(file)) {
         mapi_ierror(I, "file error");
     }
 
@@ -72,11 +59,11 @@ static size_t file_write(morphine_instance_t I, void *data, const uint8_t *buffe
 }
 
 static size_t file_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
-    struct file_data *D = data;
+    FILE *file = data;
 
-    size_t result = fread(buffer, 1, size, D->file);
+    size_t result = fread(buffer, 1, size, file);
 
-    if (ferror(D->file)) {
+    if (ferror(file)) {
         mapi_ierror(I, "file error");
     }
 
@@ -84,11 +71,11 @@ static size_t file_read(morphine_instance_t I, void *data, uint8_t *buffer, size
 }
 
 static bool file_eos(morphine_instance_t I, void *data) {
-    struct file_data *D = data;
+    FILE *file = data;
 
-    bool result = feof(D->file) != 0;
+    bool result = feof(file) != 0;
 
-    if (ferror(D->file)) {
+    if (ferror(file)) {
         mapi_ierror(I, "file error");
     }
 
@@ -96,13 +83,13 @@ static bool file_eos(morphine_instance_t I, void *data) {
 }
 
 static size_t file_tell(morphine_instance_t I, void *data) {
-    struct file_data *D = data;
+    FILE *file = data;
 
-    if (ferror(D->file)) {
+    if (ferror(file)) {
         mapi_ierror(I, "file error");
     }
 
-    long int tell = ftell(D->file);
+    long int tell = ftell(file);
     if (tell < 0) {
         mapi_ierror(I, "file error");
     }
@@ -111,7 +98,7 @@ static size_t file_tell(morphine_instance_t I, void *data) {
 }
 
 static bool file_seek(morphine_instance_t I, void *data, size_t size, mtype_seek_t mode) {
-    struct file_data *D = data;
+    FILE *file = data;
 
     if (size > -1UL) {
         mapi_ierror(I, "too big offset");
@@ -119,13 +106,13 @@ static bool file_seek(morphine_instance_t I, void *data, size_t size, mtype_seek
 
     bool result = false;
     switch (mode) {
-        case MTYPE_SEEK_SET: result = fseek(D->file, (long) size, SEEK_SET) == 0; break;
-        case MTYPE_SEEK_CUR: result = fseek(D->file, (long) size, SEEK_CUR) == 0; break;
-        case MTYPE_SEEK_PRV: result = fseek(D->file, -((long) size), SEEK_CUR) == 0; break;
-        case MTYPE_SEEK_END: result = fseek(D->file, (long) size, SEEK_END) == 0; break;
+        case MTYPE_SEEK_SET: result = fseek(file, (long) size, SEEK_SET) == 0; break;
+        case MTYPE_SEEK_CUR: result = fseek(file, (long) size, SEEK_CUR) == 0; break;
+        case MTYPE_SEEK_PRV: result = fseek(file, -((long) size), SEEK_CUR) == 0; break;
+        case MTYPE_SEEK_END: result = fseek(file, (long) size, SEEK_END) == 0; break;
     }
 
-    if (ferror(D->file)) {
+    if (ferror(file)) {
         mapi_ierror(I, "file error");
     }
 
@@ -161,7 +148,6 @@ MORPHINE_API void mlapi_fs_file(morphine_coroutine_t U, bool read, bool write, b
     // create stream
 
     morphine_stream_interface_t interface = {
-        .data_size = sizeof(struct file_data),
         .open = file_open,
         .close = file_close,
         .read = read ? file_read : NULL,
@@ -180,7 +166,6 @@ MORPHINE_API void mlapi_fs_file(morphine_coroutine_t U, bool read, bool write, b
 
 MORPHINE_API void mlapi_fs_temp(morphine_coroutine_t U) {
     morphine_stream_interface_t interface = {
-        .data_size = sizeof(struct file_data),
         .open = file_temp_open,
         .close = file_close,
         .read = file_read,

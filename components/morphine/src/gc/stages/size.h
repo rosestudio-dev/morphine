@@ -65,8 +65,8 @@ static inline size_t size_reference(mattr_unused struct reference *reference) {
     return sizeof(struct reference);
 }
 
-static inline size_t size_stream(struct stream *stream) {
-    return sizeof(struct stream) + stream->interface.data_size;
+static inline size_t size_stream(mattr_unused struct stream *stream) {
+    return sizeof(struct stream);
 }
 
 static inline size_t size_obj(morphine_instance_t I, struct object *obj) {

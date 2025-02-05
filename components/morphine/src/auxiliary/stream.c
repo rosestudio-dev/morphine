@@ -22,28 +22,28 @@ struct buffer_args {
     size_t factor;
 };
 
-static void buffer_open(morphine_instance_t I, void *data, void *args) {
-    (void) I;
+static void *buffer_open(morphine_instance_t I, void *args) {
     struct buffer_args *buffer_args = args;
-    struct buffer_data *buffer_data = data;
 
+    struct buffer_data *buffer_data = mapi_allocator_uni(I, NULL, sizeof(struct buffer_data));
     *buffer_data = (struct buffer_data) {
         .allocated = 0,
         .factor = buffer_args->factor,
         .size = 0,
         .pointer = 0,
-        .vector = NULL
+        .vector = NULL,
     };
+
+    return buffer_data;
 }
 
-static void buffer_close(morphine_instance_t I, void *data) {
-    (void) I;
+static void buffer_close(morphine_instance_t I, void *data, mattr_unused bool force) {
     struct buffer_data *buffer_data = data;
     mapi_allocator_free(I, buffer_data->vector);
+    mapi_allocator_free(I, buffer_data);
 }
 
-static size_t buffer_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
-    (void) I;
+static size_t buffer_read(mattr_unused morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
     struct buffer_data *B = data;
 
     size_t read = 0;
@@ -162,7 +162,6 @@ MORPHINE_AUX void maux_push_stream_buffer(morphine_coroutine_t U, size_t factor)
     }
 
     morphine_stream_interface_t interface = {
-        .data_size = sizeof(struct buffer_data),
         .open = buffer_open,
         .close = buffer_close,
         .read = buffer_read,
@@ -182,50 +181,44 @@ MORPHINE_AUX void maux_push_stream_buffer(morphine_coroutine_t U, size_t factor)
 
 // empty
 
-static size_t empty_eof_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
-    (void) I;
-    (void) data;
+static size_t empty_eof_read(mattr_unused morphine_instance_t I, mattr_unused void *data, uint8_t *buffer, size_t size) {
     memset(buffer, 0, size);
     return size;
 }
 
-static size_t empty_zero_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
-    (void) I;
-    (void) data;
+static size_t empty_zero_read(mattr_unused morphine_instance_t I, mattr_unused void *data, uint8_t *buffer, size_t size) {
     memset(buffer, 0, size);
     return 0;
 }
 
-static size_t empty_eof_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
-    (void) I;
-    (void) data;
-    (void) buffer;
+static size_t empty_eof_write(
+    mattr_unused morphine_instance_t I,
+    mattr_unused void *data,
+    const mattr_unused uint8_t *buffer,
+    size_t size
+) {
     return size;
 }
 
-static size_t empty_zero_write(morphine_instance_t I, void *data, const uint8_t *buffer, size_t size) {
-    (void) I;
-    (void) data;
-    (void) buffer;
-    (void) size;
+static size_t empty_zero_write(
+    mattr_unused morphine_instance_t I,
+    mattr_unused void *data,
+    const mattr_unused uint8_t *buffer,
+    mattr_unused size_t size
+) {
     return 0;
 }
 
-static bool empty_eof_eos(morphine_instance_t I, void *data) {
-    (void) I;
-    (void) data;
+static bool empty_eof_eos(mattr_unused morphine_instance_t I, mattr_unused void *data) {
     return false;
 }
 
-static bool empty_zero_eos(morphine_instance_t I, void *data) {
-    (void) I;
-    (void) data;
+static bool empty_zero_eos(mattr_unused morphine_instance_t I, mattr_unused void *data) {
     return true;
 }
 
 MORPHINE_AUX void maux_push_stream_empty(morphine_coroutine_t U, bool read_eof, bool write_eof) {
     morphine_stream_interface_t interface = {
-        .data_size = 0,
         .open = NULL,
         .close = NULL,
         .read = read_eof ? empty_eof_read : empty_zero_read,
@@ -295,13 +288,9 @@ MORPHINE_AUX bool maux_stream_read_line(morphine_coroutine_t U) {
     return maux_stream_read_to(U, "\n", true);
 }
 
-MORPHINE_AUX morphine_stream_interface_t maux_stream_interface_srwf(
-    mfunc_read_t read,
-    mfunc_write_t write,
-    mfunc_flush_t flush
-) {
+MORPHINE_AUX morphine_stream_interface_t
+maux_stream_interface_srwf(mfunc_read_t read, mfunc_write_t write, mfunc_flush_t flush) {
     return (morphine_stream_interface_t) {
-        .data_size = 0,
         .write = write,
         .read = read,
         .flush = flush,
@@ -309,6 +298,6 @@ MORPHINE_AUX morphine_stream_interface_t maux_stream_interface_srwf(
         .close = NULL,
         .seek = NULL,
         .tell = NULL,
-        .eos = NULL
+        .eos = NULL,
     };
 }

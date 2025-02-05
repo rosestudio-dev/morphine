@@ -37,9 +37,10 @@ struct stream *streamI_create(
     // config
     gcI_safe(I, valueI_object(result));
 
-    result->data = allocI_uni(I, NULL, interface.data_size);
     if (interface.open != NULL) {
-        interface.open(I, result->data, args);
+        result->data = interface.open(I, args);
+    } else {
+        result->data = args;
     }
 
     result->opened = true;
@@ -55,17 +56,17 @@ static inline void close(morphine_instance_t I, struct stream *stream, bool forc
     }
 
     if (stream->opened) {
-        stream->opened = false;
-
         if (stream->interface.close != NULL) {
-            stream->interface.close(I, stream->data);
+            stream->interface.close(I, stream->data, force);
         }
+
+        stream->data = NULL;
+        stream->opened = false;
     }
 }
 
 void streamI_free(morphine_instance_t I, struct stream *stream) {
     close(I, stream, true);
-    allocI_free(I, stream->data);
     allocI_free(I, stream);
 }
 

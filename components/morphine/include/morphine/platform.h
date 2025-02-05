@@ -52,8 +52,8 @@ typedef enum {
     MTYPE_SEEK_END,
 } mtype_seek_t;
 
-typedef void (*mfunc_open_t)(morphine_instance_t, void *, void *args);
-typedef void (*mfunc_close_t)(morphine_instance_t, void *);
+typedef void *(*mfunc_open_t)(morphine_instance_t, void *args);
+typedef void (*mfunc_close_t)(morphine_instance_t, void *, bool force);
 typedef size_t (*mfunc_read_t)(morphine_instance_t, void *, uint8_t *buffer, size_t size);
 typedef size_t (*mfunc_write_t)(morphine_instance_t, void *, const uint8_t *buffer, size_t size);
 typedef void (*mfunc_flush_t)(morphine_instance_t, void *);
@@ -62,7 +62,6 @@ typedef size_t (*mfunc_tell_t)(morphine_instance_t, void *);
 typedef bool (*mfunc_eos_t)(morphine_instance_t, void *);
 
 typedef struct {
-    size_t data_size;
     mfunc_open_t open;
     mfunc_close_t close;
     mfunc_read_t read;

@@ -37,10 +37,7 @@ struct pipe_args {
     struct pipe_data *data;
 };
 
-static void pipe_open(morphine_instance_t I, void *data, void *args) {
-    struct pipe_data *pipe_data = data;
-    struct pipe_args *pipe_args = args;
-
+static void *pipe_open(morphine_instance_t I, void *args) {
     int socket[2];
     if (pipe(socket) != 0) {
         mapi_ierror(I, "unable to create pipe");
@@ -49,18 +46,21 @@ static void pipe_open(morphine_instance_t I, void *data, void *args) {
     fcntl(socket[0], F_SETFL, fcntl(socket[0], F_GETFL) | O_NONBLOCK);
     fcntl(socket[1], F_SETFL, fcntl(socket[1], F_GETFL) | O_NONBLOCK);
 
-    (*pipe_data) = (struct pipe_data) {
+    struct pipe_args *pipe_args = args;
+    struct pipe_data *data = mapi_allocator_uni(I, NULL, sizeof(struct pipe_data));
+    (*data) = (struct pipe_data) {
         .input = socket[0],
         .output = socket[1],
         .input_closed = false,
         .output_closed = false,
     };
 
-    pipe_args->data = pipe_data;
+    pipe_args->data = data;
+
+    return data;
 }
 
-static void pipe_close(morphine_instance_t I, void *data) {
-    (void) I;
+static void pipe_close(mattr_unused morphine_instance_t I, void *data, mattr_unused bool force) {
     struct pipe_data *pipe_data = data;
 
     if (!pipe_data->input_closed) {
@@ -101,7 +101,6 @@ static size_t pipe_write(morphine_instance_t I, void *data, const uint8_t *buffe
 
 static struct pipe_data *create_pipe(morphine_coroutine_t U, bool read) {
     morphine_stream_interface_t interface = {
-        .data_size = sizeof(struct pipe_data),
         .open = pipe_open,
         .close = pipe_close,
         .read = read ? pipe_read : NULL,
