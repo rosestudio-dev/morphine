@@ -8,7 +8,6 @@
 #include "morphine/core/metatable.h"
 #include "morphine/gc/safe.h"
 #include "morphine/object/coroutine.h"
-#include "morphine/object/iterator.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/table.h"
 #include "morphine/object/vector.h"
@@ -19,128 +18,6 @@ typedef enum {
     CALLED,
     CALLED_COMPLETE
 } op_result_t;
-
-static inline op_result_t interpreter_fun_iterator(
-    morphine_coroutine_t U,
-    ml_size callstate,
-    struct value container,
-    struct value *result,
-    ml_size pop_size,
-    bool need_return
-) {
-    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
-        (*result) = callstackI_result(U);
-        return CALLED_COMPLETE;
-    }
-
-    struct value mt_field;
-    if (metatableI_test(U->I, container, MTYPE_METAFIELD_ITERATOR, &mt_field)) {
-        if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { container };
-            callstackI_continue(U, callstate);
-            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
-            return CALLED;
-        }
-
-        (*result) = mt_field;
-        return NORMAL;
-    }
-
-    (*result) = valueI_object(iteratorI_create(U->I, container));
-    return NORMAL;
-}
-
-static inline op_result_t interpreter_fun_iterator_init(
-    morphine_coroutine_t U,
-    ml_size callstate,
-    struct value iterator,
-    struct value key_name,
-    struct value value_name,
-    ml_size pop_size,
-    bool need_return
-) {
-    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
-        return CALLED_COMPLETE;
-    }
-
-    struct value mt_field;
-    if (valueI_is_iterator(iterator)) {
-        iteratorI_init(U->I, valueI_as_iterator(iterator), key_name, value_name);
-        return NORMAL;
-    } else if (metatableI_test(U->I, iterator, MTYPE_METAFIELD_ITERATOR_INIT, &mt_field)) {
-        struct value new_args[] = { iterator, key_name, value_name };
-        callstackI_continue(U, callstate);
-        callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
-        return CALLED;
-    }
-
-    throwI_error(U->I, "cannot init iterator");
-}
-
-static inline op_result_t interpreter_fun_iterator_has(
-    morphine_coroutine_t U,
-    ml_size callstate,
-    struct value iterator,
-    struct value *result,
-    ml_size pop_size,
-    bool need_return
-) {
-    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
-        (*result) = callstackI_result(U);
-        return CALLED_COMPLETE;
-    }
-
-    struct value mt_field;
-    if (valueI_is_iterator(iterator)) {
-        bool has = iteratorI_has(U->I, valueI_as_iterator(iterator));
-        (*result) = valueI_boolean(has);
-        return NORMAL;
-    } else if (metatableI_test(U->I, iterator, MTYPE_METAFIELD_ITERATOR_HAS, &mt_field)) {
-        if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { iterator };
-            callstackI_continue(U, callstate);
-            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
-            return CALLED;
-        }
-
-        (*result) = mt_field;
-        return NORMAL;
-    }
-
-    throwI_error(U->I, "cannot check next value of iterator");
-}
-
-static inline op_result_t interpreter_fun_iterator_next(
-    morphine_coroutine_t U,
-    ml_size callstate,
-    struct value iterator,
-    struct value *result,
-    ml_size pop_size,
-    bool need_return
-) {
-    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
-        (*result) = callstackI_result(U);
-        return CALLED_COMPLETE;
-    }
-
-    struct value mt_field;
-    if (mm_likely(valueI_is_iterator(iterator))) {
-        (*result) = valueI_object(iteratorI_next_table(U->I, valueI_as_iterator(iterator)));
-        return NORMAL;
-    } else if (metatableI_test(U->I, iterator, MTYPE_METAFIELD_ITERATOR_NEXT, &mt_field)) {
-        if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { iterator };
-            callstackI_continue(U, callstate);
-            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
-            return CALLED;
-        }
-
-        (*result) = mt_field;
-        return NORMAL;
-    }
-
-    throwI_error(U->I, "cannot get next value of iterator");
-}
 
 static inline op_result_t interpreter_fun_get(
     morphine_coroutine_t U,
@@ -525,7 +402,7 @@ static inline op_result_t interpreter_fun_and(
         return NORMAL;
     }
 
-    if (convertI_to_boolean(a)) {
+    if (valueI_tobool(a)) {
         (*result) = b;
     } else {
         (*result) = a;
@@ -561,7 +438,7 @@ static inline op_result_t interpreter_fun_or(
         return NORMAL;
     }
 
-    if (convertI_to_boolean(a)) {
+    if (valueI_tobool(a)) {
         (*result) = a;
     } else {
         (*result) = b;
@@ -717,7 +594,7 @@ static inline op_result_t interpreter_fun_not(
         return NORMAL;
     }
 
-    (*result) = valueI_boolean(!convertI_to_boolean(a));
+    (*result) = valueI_boolean(!valueI_tobool(a));
     return NORMAL;
 }
 

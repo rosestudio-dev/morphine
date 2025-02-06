@@ -7,6 +7,11 @@
 #include "morphine/core/value.h"
 #include "morphine/misc/packer.h"
 
+struct pair {
+    struct value key;
+    struct value value;
+};
+
 enum bucket_color {
     BUCKET_COLOR_BLACK,
     BUCKET_COLOR_RED,
@@ -81,12 +86,12 @@ struct value tableI_remove(morphine_instance_t, struct table *, struct value key
 void tableI_idx_set(morphine_instance_t, struct table *, ml_size, struct value);
 struct pair tableI_idx_get(morphine_instance_t, struct table *, ml_size, bool *has);
 
+struct pair tableI_first(morphine_instance_t, struct table *, bool *has);
+struct pair tableI_next(morphine_instance_t, struct table *, struct value, bool *has);
+
 void tableI_clear(morphine_instance_t, struct table *);
 struct table *tableI_concat(morphine_instance_t, struct table *, struct table *);
 struct table *tableI_copy(morphine_instance_t, struct table *);
-
-struct value tableI_iterator_first(morphine_instance_t, struct table *, bool *has);
-struct pair tableI_iterator_next(morphine_instance_t, struct table *, struct value *key, bool *next);
 
 void tableI_packer_vectorize(morphine_instance_t, struct table *, struct packer_vectorize *);
 void tableI_packer_write_info(morphine_instance_t, struct table *, struct packer_write *);

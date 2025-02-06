@@ -37,6 +37,3 @@ bool stringI_is_cstr_compatible(morphine_instance_t, struct string *);
 int stringI_compare(morphine_instance_t, struct string *, struct string *);
 int stringI_cstr_compare(morphine_instance_t, struct string *, const char *);
 ml_hash stringI_hash(morphine_instance_t, struct string *);
-
-struct value stringI_iterator_first(morphine_instance_t, struct string *, bool *has);
-struct pair stringI_iterator_next(morphine_instance_t, struct string *, struct value *key, bool *next);

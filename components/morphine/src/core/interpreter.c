@@ -143,41 +143,6 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 complex_fun(interpreter_fun_set, 1, container, key, value);
                 sp_end();
             }
-            sp_case(MTYPE_OPCODE_ITERATOR) {
-                get_slot(C, arg1, container);
-                struct value result = valueI_nil;
-
-                complex_fun(interpreter_fun_iterator, 1, container, &result);
-
-                set_slot(C, arg2, result);
-                sp_end();
-            }
-            sp_case(MTYPE_OPCODE_ITERATOR_INIT) {
-                get_slot(C, arg1, iterator);
-                get_slot(C, arg2, key_name);
-                get_slot(C, arg3, value_name);
-
-                complex_fun(interpreter_fun_iterator_init, 1, iterator, key_name, value_name);
-                sp_end();
-            }
-            sp_case(MTYPE_OPCODE_ITERATOR_HAS) {
-                get_slot(C, arg1, iterator);
-                struct value result = valueI_nil;
-
-                complex_fun(interpreter_fun_iterator_has, 1, iterator, &result);
-
-                set_slot(C, arg2, result);
-                sp_end();
-            }
-            sp_case(MTYPE_OPCODE_ITERATOR_NEXT) {
-                get_slot(C, arg1, iterator);
-                struct value result = valueI_nil;
-
-                complex_fun(interpreter_fun_iterator_next, 1, iterator, &result);
-
-                set_slot(C, arg2, result);
-                sp_end();
-            }
             sp_case(MTYPE_OPCODE_JUMP) {
                 *position = arg1;
                 sp_continue();
@@ -185,7 +150,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
             sp_case(MTYPE_OPCODE_JUMP_IF) {
                 get_slot(C, arg1, cond);
 
-                if (convertI_to_boolean(cond)) {
+                if (valueI_tobool(cond)) {
                     *position = arg2;
                 } else {
                     *position = arg3;

@@ -70,18 +70,6 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
         case MTYPE_OPCODE_SET:
             printf("("SLOT")["SLOT"] = "SLOT, arg(1), arg(2), arg(3));
             return;
-        case MTYPE_OPCODE_ITERATOR:
-            printf(SLOT" = iterator from "SLOT, arg(2), arg(1));
-            return;
-        case MTYPE_OPCODE_ITERATOR_INIT:
-            printf("init iterator in "SLOT" with name "SLOT" for key and "SLOT" for value", arg(1), arg(2), arg(3));
-            return;
-        case MTYPE_OPCODE_ITERATOR_HAS:
-            printf(SLOT" = iterator has in "SLOT, arg(2), arg(1));
-            return;
-        case MTYPE_OPCODE_ITERATOR_NEXT:
-            printf(SLOT" = iterator next in "SLOT, arg(2), arg(1));
-            return;
         case MTYPE_OPCODE_JUMP:
             printf("jump to "APR, arg(1));
             return;

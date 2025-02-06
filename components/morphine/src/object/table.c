@@ -9,6 +9,8 @@
 #include "morphine/utils/overflow.h"
 #include <string.h>
 
+#define value_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
+
 #define ROOT(tree) (&(tree)->root)
 #define NIL_LEAF(tree) (&(tree)->nil_leaf)
 #define FIRST(tree) ((tree)->root.left)
@@ -466,7 +468,7 @@ static void redblacktree_init(struct tree *tree) {
         .right = NIL_LEAF(tree),
         .parent = NIL_LEAF(tree),
         .color = BUCKET_COLOR_BLACK,
-        .pair = valueI_pair(valueI_nil, valueI_nil),
+        .pair = value_pair(valueI_nil, valueI_nil),
     };
 
     tree->root = (struct bucket) {
@@ -474,7 +476,7 @@ static void redblacktree_init(struct tree *tree) {
         .right = NIL_LEAF(tree),
         .parent = NIL_LEAF(tree),
         .color = BUCKET_COLOR_BLACK,
-        .pair = valueI_pair(valueI_nil, valueI_nil),
+        .pair = value_pair(valueI_nil, valueI_nil),
     };
 }
 
@@ -665,7 +667,7 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
 
     current = insert_bucket(I, table);
 
-    bool first = redblacktree_insert_second(I, tree, valueI_pair(key, value), current, parent);
+    bool first = redblacktree_insert_second(I, tree, value_pair(key, value), current, parent);
 
     if (mm_likely(first)) {
         hashmap->hashing.used++;
@@ -702,58 +704,6 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
     } else {
         return found->pair.value;
     }
-}
-
-void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, struct value value) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
-    if (!table->mode.mutable) {
-        throwI_error(I, "table is immutable");
-    }
-
-    if (index >= table->hashmap.buckets.count) {
-        throwI_error(I, "table index out of bounce");
-    }
-
-    struct bucket *current = get_bucket_by_index(&table->hashmap, index);
-    if (current == NULL || current->ll.index != index) {
-        throwI_error(I, "corrupted table buckets");
-    }
-    table->hashmap.buckets.access = current;
-
-    current->pair.value = gcI_valbarrier(I, table, value);
-}
-
-struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index, bool *has) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
-    if (index >= table->hashmap.buckets.count) {
-        if (has != NULL) {
-            (*has) = false;
-        }
-
-        return valueI_pair(valueI_nil, valueI_nil);
-    }
-
-    struct bucket *current = get_bucket_by_index(&table->hashmap, index);
-    if (current == NULL || current->ll.index != index) {
-        throwI_error(I, "corrupted table buckets");
-    }
-    table->hashmap.buckets.access = current;
-
-    if (has != NULL) {
-        (*has) = true;
-    }
-
-    return current->pair;
 }
 
 struct value tableI_remove(morphine_instance_t I, struct table *table, struct value key, bool *has) {
@@ -807,6 +757,114 @@ notfound:
     }
 
     return valueI_nil;
+}
+
+void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, struct value value) {
+    if (table == NULL) {
+        throwI_error(I, "table is null");
+    }
+
+    if (!table->mode.mutable) {
+        throwI_error(I, "table is immutable");
+    }
+
+    if (index >= table->hashmap.buckets.count) {
+        throwI_error(I, "table index out of bounce");
+    }
+
+    struct bucket *current = get_bucket_by_index(&table->hashmap, index);
+    if (current == NULL || current->ll.index != index) {
+        throwI_error(I, "corrupted table buckets");
+    }
+    table->hashmap.buckets.access = current;
+
+    current->pair.value = gcI_valbarrier(I, table, value);
+}
+
+struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index, bool *has) {
+    if (table == NULL) {
+        throwI_error(I, "table is null");
+    }
+
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
+    }
+
+    if (index >= table->hashmap.buckets.count) {
+        if (has != NULL) {
+            (*has) = false;
+        }
+
+        return value_pair(valueI_nil, valueI_nil);
+    }
+
+    struct bucket *current = get_bucket_by_index(&table->hashmap, index);
+    if (current == NULL || current->ll.index != index) {
+        throwI_error(I, "corrupted table buckets");
+    }
+    table->hashmap.buckets.access = current;
+
+    if (has != NULL) {
+        (*has) = true;
+    }
+
+    return current->pair;
+}
+
+struct pair tableI_first(morphine_instance_t I, struct table *table, bool *has) {
+    if (table == NULL) {
+        throwI_error(I, "table is null");
+    }
+
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
+    }
+
+    struct bucket *bucket = table->hashmap.buckets.tail;
+
+    if (has != NULL) {
+        (*has) = (bucket != NULL);
+    }
+
+    if (bucket == NULL) {
+        return value_pair(valueI_nil, valueI_nil);
+    }
+
+    return bucket->pair;
+}
+
+struct pair tableI_next(morphine_instance_t I, struct table *table, struct value key, bool *has) {
+    if (table == NULL) {
+        throwI_error(I, "table is null");
+    }
+
+    if (!table->mode.accessible) {
+        throwI_error(I, "table is inaccessible");
+    }
+
+    struct bucket *current = get(I, &table->hashmap, key);
+    if (current == NULL) {
+        if (has != NULL) {
+            (*has) = false;
+        }
+
+        return value_pair(valueI_nil, valueI_nil);
+    }
+
+    struct bucket *next_bucket = current->ll.next;
+    if (next_bucket == NULL) {
+        if (has != NULL) {
+            (*has) = false;
+        }
+
+        return value_pair(valueI_nil, valueI_nil);
+    }
+
+    if (has != NULL) {
+        (*has) = true;
+    }
+
+    return next_bucket->pair;
 }
 
 void tableI_clear(morphine_instance_t I, struct table *table) {
@@ -907,74 +965,6 @@ struct table *tableI_concat(morphine_instance_t I, struct table *a, struct table
     gcI_safe_exit(I);
 
     return result;
-}
-
-struct value tableI_iterator_first(morphine_instance_t I, struct table *table, bool *has) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
-    struct hashmap *hashmap = &table->hashmap;
-    struct bucket *bucket = hashmap->buckets.tail;
-
-    if (has != NULL) {
-        (*has) = (bucket != NULL);
-    }
-
-    if (bucket == NULL) {
-        return valueI_nil;
-    }
-
-    return bucket->pair.key;
-}
-
-struct pair tableI_iterator_next(morphine_instance_t I, struct table *table, struct value *key, bool *next) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
-    if (key == NULL) {
-        if (next != NULL) {
-            (*next) = false;
-        }
-
-        return valueI_pair(valueI_nil, valueI_nil);
-    }
-
-    struct hashmap *hashmap = &table->hashmap;
-
-    struct bucket *current = get(I, hashmap, *key);
-
-    if (current == NULL) {
-        if (next != NULL) {
-            (*next) = false;
-        }
-
-        (*key) = valueI_nil;
-        return valueI_pair(valueI_nil, valueI_nil);
-    }
-
-    struct bucket *next_bucket = current->ll.next;
-
-    if (next != NULL) {
-        (*next) = (next_bucket != NULL);
-    }
-
-    if (next_bucket == NULL) {
-        (*key) = valueI_nil;
-    } else {
-        (*key) = next_bucket->pair.key;
-    }
-
-    return current->pair;
 }
 
 void tableI_packer_vectorize(morphine_instance_t I, struct table *table, struct packer_vectorize *V) {

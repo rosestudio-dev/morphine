@@ -30,11 +30,6 @@ mspec_instruction_args1(TABLE,         tbl,     dslot)                       // 
 mspec_instruction_args3(GET,           get,     sslot, sslot, dslot)         // [container, key, dest]   get from (container) by (key) to (dest)
 mspec_instruction_args3(SET,           set,     sslot, sslot, sslot)         // [container, key, src]    set (src) to (container) by (key)
 
-mspec_instruction_args2(ITERATOR,      itr,     sslot, dslot)                // [container, dest]        create iterator from (container) to (dest)
-mspec_instruction_args3(ITERATOR_INIT, itinit,  sslot, sslot, sslot)         // [iterator, key, value]   init (iterator) with name (key) for key and (value) for value
-mspec_instruction_args2(ITERATOR_HAS,  ithas,   sslot, dslot)                // [iterator, dest]         check next value of (iterator) to (dest)
-mspec_instruction_args2(ITERATOR_NEXT, itnext,  sslot, dslot)                // [iterator, dest]         get next value of (iterator) to (dest)
-
 mspec_instruction_args1(JUMP,          jmp,     position)                    // [position]               jump to (position)
 mspec_instruction_args3(JUMP_IF,       jmpif,   sslot, position, position)   // [condition, if, else]    if (condition) is true jump to (if) else jump to (else)
 

@@ -189,3 +189,28 @@ MORPHINE_API void mapi_table_removeoe(morphine_coroutine_t U) {
 MORPHINE_API ml_size mapi_table_len(morphine_coroutine_t U) {
     return tableI_size(U->I, valueI_as_table_or_error(U->I, stackI_peek(U, 0)));
 }
+
+MORPHINE_API bool mapi_table_first(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
+
+    bool has = false;
+    struct pair pair = tableI_first(U->I, table, &has);
+
+    stackI_push(U, pair.key);
+    stackI_push(U, pair.value);
+
+    return has;
+}
+
+MORPHINE_API bool mapi_table_next(morphine_coroutine_t U) {
+    struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 1));
+    struct value key = stackI_peek(U, 0);
+
+    bool has = false;
+    struct pair pair = tableI_next(U->I, table, key, &has);
+
+    stackI_replace(U, 0, pair.key);
+    stackI_push(U, pair.value);
+
+    return has;
+}

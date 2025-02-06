@@ -9,7 +9,6 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/exception.h"
 #include "morphine/object/function.h"
-#include "morphine/object/iterator.h"
 #include "morphine/object/native.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/stream.h"
@@ -47,10 +46,6 @@ static inline size_t size_coroutine(struct coroutine *coroutine) {
 
 static inline size_t size_native(mattr_unused struct native *native) {
     return sizeof(struct native);
-}
-
-static inline size_t size_iterator(mattr_unused struct iterator *iterator) {
-    return sizeof(struct iterator);
 }
 
 static inline size_t size_exception(struct exception *exception) {
@@ -91,9 +86,6 @@ static inline size_t size_obj(morphine_instance_t I, struct object *obj) {
         }
         case OBJ_TYPE_NATIVE: {
             return size_native(cast(struct native *, obj));
-        }
-        case OBJ_TYPE_ITERATOR: {
-            return size_iterator(cast(struct iterator *, obj));
         }
         case OBJ_TYPE_EXCEPTION: {
             return size_exception(cast(struct exception *, obj));

@@ -49,9 +49,6 @@ struct vector *vectorI_copy(morphine_instance_t, struct vector *);
 struct vector *vectorI_concat(morphine_instance_t, struct vector *, struct vector *);
 void vectorI_sort(morphine_instance_t, struct vector *);
 
-struct value vectorI_iterator_first(morphine_instance_t, struct vector *, bool *has);
-struct pair vectorI_iterator_next(morphine_instance_t, struct vector *, struct value *key, bool *next);
-
 void vectorI_packer_vectorize(morphine_instance_t, struct vector *, struct packer_vectorize *);
 void vectorI_packer_write_info(morphine_instance_t, struct vector *, struct packer_write *);
 void vectorI_packer_write_data(morphine_instance_t, struct vector *, struct packer_write *);

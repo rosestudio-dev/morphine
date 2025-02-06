@@ -27,5 +27,4 @@ enum value_type {
 };
 
 const char *typeI_tostring(morphine_instance_t, enum value_type);
-enum value_type typeI_fromstring(morphine_instance_t, const char *);
 bool typeI_isobj(enum value_type);

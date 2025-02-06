@@ -103,20 +103,6 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
 
             return size_coroutine(coroutine);
         }
-        case OBJ_TYPE_ITERATOR: {
-            struct iterator *iterator = cast(struct iterator *, obj);
-
-            mark_object(I, objectI_cast(iterator->iterable.object));
-            mark_value(I, iterator->next.key);
-
-            mark_value(I, iterator->name.key);
-            mark_value(I, iterator->name.value);
-
-            mark_value(I, iterator->result.key);
-            mark_value(I, iterator->result.value);
-
-            return size_iterator(iterator);
-        }
         case OBJ_TYPE_EXCEPTION: {
             struct exception *exception = cast(struct exception *, obj);
 

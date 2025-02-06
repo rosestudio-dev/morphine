@@ -125,8 +125,6 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "expression_block";
                 case MCEXPRT_if:
                     return "expression_if";
-                case MCEXPRT_when:
-                    return "expression_when";
                 case MCEXPRT_asm:
                     return "expression_asm";
             }
@@ -145,8 +143,6 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "statement_while";
                 case MCSTMTT_for:
                     return "statement_for";
-                case MCSTMTT_iterator:
-                    return "statement_iterator";
                 case MCSTMTT_declaration:
                     return "statement_declaration";
                 case MCSTMTT_assigment:

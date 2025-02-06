@@ -29,7 +29,6 @@ static morphine_library_t (*builtins[])(void) = {
     mlib_builtin_closure,
     mlib_builtin_exception,
     mlib_builtin_sharedstorage,
-    mlib_builtin_iterator,
     mlib_builtin_assertion,
     mlib_builtin_algorithm,
     NULL,

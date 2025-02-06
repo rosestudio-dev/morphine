@@ -20,7 +20,6 @@ enum mc_statement_type {
     MCSTMTT_eval,
     MCSTMTT_while,
     MCSTMTT_for,
-    MCSTMTT_iterator,
     MCSTMTT_declaration,
     MCSTMTT_assigment,
 };
@@ -43,7 +42,6 @@ enum mc_expression_type {
     MCEXPRT_function,
     MCEXPRT_block,
     MCEXPRT_if,
-    MCEXPRT_when,
     MCEXPRT_asm,
 };
 
@@ -245,14 +243,6 @@ ast_declare_expr(if, ast_noargs)
     struct mc_ast_statement *else_statement;
 };
 
-ast_declare_expr(when, ast_args(size_t count))
-    size_t count;
-    struct mc_ast_expression *expression;
-    struct mc_ast_expression **if_conditions;
-    struct mc_ast_statement **if_statements;
-    struct mc_ast_statement *else_statement;
-};
-
 // statements
 
 ast_declare_stmt(eval, ast_noargs)
@@ -276,22 +266,15 @@ ast_declare_stmt(for, ast_noargs)
     struct mc_ast_statement *statement;
 };
 
-ast_declare_stmt(assigment, ast_args(size_t count))
+ast_declare_stmt(assigment, ast_noargs)
     struct mc_ast_expression *expression;
-    ast_extract_part(struct mc_ast_expression *);
+    struct mc_ast_expression *value;
 };
 
 ast_declare_stmt(declaration, ast_args(size_t count))
     bool mutable;
     struct mc_ast_expression *expression;
     ast_extract_part(struct mc_ast_expression_variable *);
-};
-
-ast_declare_stmt(iterator, ast_noargs)
-    struct mc_ast_statement_declaration *declaration;
-    struct mc_ast_expression *key;
-    struct mc_ast_expression *value;
-    struct mc_ast_statement *statement;
 };
 
 // asm

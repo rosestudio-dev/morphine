@@ -24,39 +24,7 @@ ast_standard_impl_stmt(pass)
 ast_standard_impl_stmt(yield)
 ast_standard_impl_stmt(while)
 ast_standard_impl_stmt(for)
-ast_standard_impl_stmt(iterator)
-
-ast_impl_stmt(assigment, ast_args(size_t count)) {
-    size_t alloc_size_keys = mm_overflow_opc_mul(
-        sizeof(struct mc_ast_expression *),
-        count,
-        ast_overflow_error("keys")
-    );
-
-    size_t alloc_size_values = mm_overflow_opc_mul(
-        sizeof(struct mc_ast_expression *),
-        count,
-        ast_overflow_error("values")
-    );
-
-    size_t alloc_size = sizeof(struct mc_ast_statement_assigment);
-    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_keys, ast_overflow_error("assigment"));
-    alloc_size = mm_overflow_opc_add(alloc_size, alloc_size_values, ast_overflow_error("assigment"));
-
-    struct mc_ast_statement *statement = ast_create_statement(
-        U, A, MCSTMTT_assigment, line, from, to, alloc_size
-    );
-
-    struct mc_ast_statement_assigment *assigment =
-        mcapi_ast_statement2assigment(U, statement);
-
-    assigment->is_extract = count > 0;
-    assigment->extract.size = count;
-    assigment->extract.keys = ((void *) assigment) + sizeof(struct mc_ast_statement_assigment);
-    assigment->extract.values = ((void *) assigment->extract.keys) + alloc_size_keys;
-
-    return assigment;
-}
+ast_standard_impl_stmt(assigment)
 
 ast_impl_stmt(declaration, ast_args(size_t count)) {
     size_t alloc_size_keys = mm_overflow_opc_mul(
@@ -215,47 +183,6 @@ ast_impl_expr(block, ast_args(size_t count)) {
     block->statements = ((void *) block) + sizeof(struct mc_ast_expression_block);
 
     return block;
-}
-
-ast_impl_expr(when, ast_args(size_t count)) {
-    size_t alloc_size_conditions = mm_overflow_opc_mul(
-        sizeof(struct mc_ast_expression *),
-        count,
-        ast_overflow_error("expressions")
-    );
-
-    size_t alloc_size_statements = mm_overflow_opc_mul(
-        sizeof(struct mc_ast_statement *),
-        count,
-        ast_overflow_error("statements")
-    );
-
-    size_t alloc_size = mm_overflow_opc_add(
-        sizeof(struct mc_ast_expression_when),
-        alloc_size_conditions,
-        ast_overflow_error("when")
-    );
-
-    alloc_size = mm_overflow_opc_add(
-        alloc_size,
-        alloc_size_statements,
-        ast_overflow_error("when")
-    );
-
-    struct mc_ast_expression *expression = ast_create_expression(
-        U, A, MCEXPRT_when, line, from, to, alloc_size
-    );
-
-    struct mc_ast_expression_when *when =
-        mcapi_ast_expression2when(U, expression);
-
-    when->count = count;
-    when->expression = NULL;
-    when->if_conditions = ((void *) when) + sizeof(struct mc_ast_expression_when);
-    when->if_statements = ((void *) when->if_conditions) + alloc_size_conditions;
-    when->else_statement = NULL;
-
-    return when;
 }
 
 ast_impl_expr(

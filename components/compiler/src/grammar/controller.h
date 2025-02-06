@@ -95,7 +95,6 @@ rule(statement);
 rule(while);
 rule(dowhile);
 rule(for);
-rule(iterator);
 rule(declaration);
 rule(assigment);
 
@@ -117,7 +116,6 @@ rule(table);
 rule(vector);
 rule(function);
 rule(if);
-rule(when);
 rule(asm);
 
 #undef rule

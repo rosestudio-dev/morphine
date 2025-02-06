@@ -39,7 +39,7 @@ static inline bool get_lock(morphine_instance_t I, struct table *metatable) {
 
     bool has = false;
     struct value value = tableI_get(I, metatable, field_name, &has);
-    return has && convertI_to_boolean(value);
+    return has && valueI_tobool(value);
 }
 
 static inline bool metatable_test(

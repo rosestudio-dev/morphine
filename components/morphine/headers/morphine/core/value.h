@@ -38,7 +38,6 @@
 #define valueI_is_native(x)    valueI_is(NATIVE, x)
 #define valueI_is_reference(x) valueI_is(REFERENCE, x)
 #define valueI_is_exception(x) valueI_is(EXCEPTION, x)
-#define valueI_is_iterator(x)  valueI_is(ITERATOR, x)
 #define valueI_is_stream(x)    valueI_is(STREAM, x)
 
 #define valueI_is_object(x)   (typeI_isobj((x).type))
@@ -65,7 +64,6 @@
 #define valueI_as_native(x)    valueI_as(object.native, x)
 #define valueI_as_reference(x) valueI_as(object.reference, x)
 #define valueI_as_exception(x) valueI_as(object.exception, x)
-#define valueI_as_iterator(x)  valueI_as(object.iterator, x)
 #define valueI_as_stream(x)    valueI_as(object.stream, x)
 #define valueI_as_object(x)    valueI_as(object.header, x)
 
@@ -88,7 +86,6 @@
 #define valueI_safe_as_native(x, o)    valueI_safe_as(native, x, o)
 #define valueI_safe_as_reference(x, o) valueI_safe_as(reference, x, o)
 #define valueI_safe_as_exception(x, o) valueI_safe_as(exception, x, o)
-#define valueI_safe_as_iterator(x, o)  valueI_safe_as(iterator, x, o)
 #define valueI_safe_as_stream(x, o)    valueI_safe_as(stream, x, o)
 #define valueI_safe_as_object(x, o)    valueI_safe_as(object, x, o)
 
@@ -111,7 +108,6 @@
 #define valueI_as_native_or_error(I, x)    valueI_as_or_error(I, native, x)
 #define valueI_as_reference_or_error(I, x) valueI_as_or_error(I, reference, x)
 #define valueI_as_exception_or_error(I, x) valueI_as_or_error(I, exception, x)
-#define valueI_as_iterator_or_error(I, x)  valueI_as_or_error(I, iterator, x)
 #define valueI_as_stream_or_error(I, x)    valueI_as_or_error(I, stream, x)
 #define valueI_as_object_or_error(I, x)    valueI_as_or_error(I, object, x)
 
@@ -124,7 +120,7 @@
 
 // other
 
-#define valueI_pair(k, v) ((struct pair) { .key = (k), .value = (v) })
+#define valueI_tobool(x) ({ struct value _v_bool = (x); !valueI_is_nil(_v_bool) && !valueI_is_exception(_v_bool) && valueI_safe_as_boolean(_v_bool, true); })
 
 // value
 
@@ -149,15 +145,9 @@ struct value {
             struct table *table;
             struct vector *vector;
             struct userdata *userdata;
-            struct iterator *iterator;
             struct stream *stream;
         } object;
     };
-};
-
-struct pair {
-    struct value key;
-    struct value value;
 };
 
 const char *valueI_type(morphine_instance_t, struct value, bool raw);

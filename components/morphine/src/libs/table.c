@@ -89,6 +89,47 @@ static void idxset(morphine_coroutine_t U) {
     maux_nb_end
 }
 
+static void first(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init();
+            maux_expect_args(U, 1);
+            mapi_push_arg(U, 0);
+            maux_expect(U, mstr_type_table);
+
+            if(mapi_table_first(U)) {
+                mapi_push_table(U);
+                mapi_rotate(U, 2);
+                maux_table_set(U, "value");
+                mapi_rotate(U, 2);
+                maux_table_set(U, "key");
+            } else {
+                mapi_push_nil(U);
+            }
+            maux_nb_return();
+    maux_nb_end
+}
+
+static void next(morphine_coroutine_t U) {
+    maux_nb_function(U)
+        maux_nb_init();
+            maux_expect_args(U, 2);
+            mapi_push_arg(U, 0);
+            maux_expect(U, mstr_type_table);
+
+            mapi_push_arg(U, 1);
+            if(mapi_table_next(U)) {
+                mapi_push_table(U);
+                mapi_rotate(U, 2);
+                maux_table_set(U, "value");
+                mapi_rotate(U, 2);
+                maux_table_set(U, "key");
+            } else {
+                mapi_push_nil(U);
+            }
+            maux_nb_return();
+    maux_nb_end
+}
+
 static void clear(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init();
@@ -338,6 +379,8 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("idxget", idxget),
     MAUX_CONSTRUCT_FUNCTION("idxkey", idxkey),
     MAUX_CONSTRUCT_FUNCTION("idxset", idxset),
+    MAUX_CONSTRUCT_FUNCTION("first", first),
+    MAUX_CONSTRUCT_FUNCTION("next", next),
     MAUX_CONSTRUCT_FUNCTION("clear", clear),
     MAUX_CONSTRUCT_FUNCTION("copy", copy),
     MAUX_CONSTRUCT_FUNCTION("has", has),

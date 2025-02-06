@@ -28,10 +28,6 @@ struct mc_ast_node *rule_primary(struct parse_controller *C) {
         return parser_reduce(C, rule_if);
     }
 
-    if (parser_look(C, et_predef_word(when))) {
-        return parser_reduce(C, rule_when);
-    }
-
     if (parser_match(C, et_predef_word(do))) {
         return parser_reduce(C, rule_expression_block);
     }

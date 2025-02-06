@@ -31,61 +31,6 @@ struct op_func {
         return result; \
     }
 
-static bool opiterator(morphine_coroutine_t U) {
-    struct value container = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_iterator(U, callstackI_state(U), container, &result_value, 0, false) == CALLED;
-
-    if (!result) {
-        stackI_push(U, result_value);
-    }
-
-    return result;
-}
-
-static bool opiteratorinit(morphine_coroutine_t U) {
-    struct value iterator = stackI_peek(U, 2);
-    struct value key_name = stackI_peek(U, 1);
-    struct value value_name = stackI_peek(U, 0);
-
-    op_result_t result =
-        interpreter_fun_iterator_init(U, callstackI_state(U), iterator, key_name, value_name, 2, false);
-
-    if (result == NORMAL) {
-        stackI_pop(U, 2);
-        stackI_push(U, iterator);
-    }
-
-    return result == CALLED;
-}
-
-static bool opiteratorhas(morphine_coroutine_t U) {
-    struct value iterator = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_iterator_has(U, callstackI_state(U), iterator, &result_value, 0, false) == CALLED;
-
-    if (!result) {
-        stackI_push(U, result_value);
-    }
-
-    return result;
-}
-
-static bool opiteratornext(morphine_coroutine_t U) {
-    struct value iterator = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_iterator_next(U, callstackI_state(U), iterator, &result_value, 0, false) == CALLED;
-
-    if (!result) {
-        stackI_push(U, result_value);
-    }
-
-    return result;
-}
-
 static bool opget(morphine_coroutine_t U) {
     struct value container = stackI_peek(U, 1);
     struct value key = stackI_peek(U, 0);
@@ -137,10 +82,6 @@ unary_op(tostr);
 unary_op(hash);
 
 static struct op_func ops[] = {
-    (struct op_func) { .name = "iterator",     .function = opiterator     },
-    (struct op_func) { .name = "iteratorinit", .function = opiteratorinit },
-    (struct op_func) { .name = "iteratorhas",  .function = opiteratorhas  },
-    (struct op_func) { .name = "iteratornext", .function = opiteratornext },
     (struct op_func) { .name = "get",          .function = opget          },
     (struct op_func) { .name = "set",          .function = opset          },
     (struct op_func) { .name = "add",          .function = opadd          },

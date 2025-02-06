@@ -26,8 +26,6 @@ static inline struct string *convertI_to_string(morphine_instance_t I, struct va
             return stringI_createf(I, "[object:table:%"PRIxPTR"]", (uintptr_t) value.object.table);
         case VALUE_TYPE_VECTOR:
             return stringI_createf(I, "[object:vector:%"PRIxPTR"]", (uintptr_t) value.object.vector);
-        case VALUE_TYPE_ITERATOR:
-            return stringI_createf(I, "[object:iterator:%"PRIxPTR"]", (uintptr_t) value.object.iterator);
         case VALUE_TYPE_CLOSURE:
             return stringI_createf(I, "[object:closure:%"PRIxPTR"]", (uintptr_t) value.object.closure);
         case VALUE_TYPE_COROUTINE:
@@ -110,8 +108,4 @@ static inline ml_decimal convertI_to_decimal(morphine_instance_t I, struct value
     }
 
     throwI_errorf(I, "cannot convert %s to decimal", valueI_type(I, value, false));
-}
-
-static inline bool convertI_to_boolean(struct value value) {
-    return !valueI_is_nil(value) && !valueI_is_exception(value) && valueI_safe_as_boolean(value, true);
 }

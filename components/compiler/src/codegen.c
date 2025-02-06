@@ -1059,7 +1059,6 @@ static void visitor_function(
                 stmt_case(eval)
                 stmt_case(while)
                 stmt_case(for)
-                stmt_case(iterator)
                 stmt_case(declaration)
                 stmt_case(assigment)
             }
@@ -1087,7 +1086,6 @@ static void visitor_function(
                 expr_case(function)
                 expr_case(block)
                 expr_case(if)
-                expr_case(when)
                 expr_case(asm)
             }
             break;

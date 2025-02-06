@@ -164,6 +164,9 @@ MORPHINE_API void mapi_table_idx_keyoe(morphine_coroutine_t, ml_size);
 MORPHINE_API void mapi_table_getoe(morphine_coroutine_t);
 MORPHINE_API void mapi_table_removeoe(morphine_coroutine_t);
 
+MORPHINE_API bool mapi_table_first(morphine_coroutine_t);
+MORPHINE_API bool mapi_table_next(morphine_coroutine_t);
+
 // vector
 
 MORPHINE_API void mapi_push_vector(morphine_coroutine_t, ml_size);
@@ -238,13 +241,6 @@ MORPHINE_API void mapi_coroutine_name(morphine_coroutine_t);
 
 MORPHINE_API void mapi_push_env(morphine_coroutine_t);
 MORPHINE_API void mapi_change_env(morphine_coroutine_t);
-
-// iterator
-
-MORPHINE_API void mapi_push_iterator(morphine_coroutine_t);
-MORPHINE_API void mapi_iterator_init(morphine_coroutine_t);
-MORPHINE_API bool mapi_iterator_has(morphine_coroutine_t);
-MORPHINE_API void mapi_iterator_next(morphine_coroutine_t);
 
 // closure
 

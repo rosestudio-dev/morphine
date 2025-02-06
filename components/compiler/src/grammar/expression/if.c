@@ -13,7 +13,11 @@ struct mc_ast_node *rule_if(struct parse_controller *C) {
         parser_consume(C, et_operator(RPAREN));
         parser_reduce(C, rule_statement_block);
         if (parser_match(C, et_predef_word(else))) {
-            parser_reduce(C, rule_statement_block);
+            if (parser_look(C, et_predef_word(if))) {
+                parser_reduce(C, rule_if);
+            } else {
+                parser_reduce(C, rule_statement_block);
+            }
         }
     }
     ml_size token_to = parser_index(C);
@@ -30,8 +34,21 @@ struct mc_ast_node *rule_if(struct parse_controller *C) {
     parser_consume(C, et_operator(RPAREN));
     expression_if->if_statement = mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
     if (parser_match(C, et_predef_word(else))) {
-        expression_if->else_statement =
-            mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
+        if (parser_look(C, et_predef_word(if))) {
+            struct mc_ast_expression *expression = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_if));
+            struct mc_ast_statement_eval *eval = mcapi_ast_create_statement_eval(
+                parser_U(C),
+                parser_A(C),
+                expression->node.from,
+                expression->node.to,
+                expression->node.line
+            );
+            eval->expression = expression;
+            expression_if->else_statement = mcapi_ast_eval2statement(eval);
+        } else {
+            expression_if->else_statement =
+                mcapi_ast_node2statement(parser_U(C), parser_reduce(C, rule_statement_block));
+        }
     } else {
         expression_if->else_statement = NULL;
     }

@@ -10,7 +10,6 @@
 #include "morphine/object/coroutine.h"
 #include "morphine/object/exception.h"
 #include "morphine/object/function.h"
-#include "morphine/object/iterator.h"
 #include "morphine/object/native.h"
 #include "morphine/object/reference.h"
 #include "morphine/object/stream.h"
@@ -50,9 +49,6 @@ static inline void destruct(morphine_instance_t I, struct object *object) {
             return;
         case OBJ_TYPE_EXCEPTION:
             exceptionI_free(I, cast(struct exception *, object));
-            return;
-        case OBJ_TYPE_ITERATOR:
-            iteratorI_free(I, cast(struct iterator *, object));
             return;
         case OBJ_TYPE_STREAM:
             streamI_free(I, cast(struct stream *, object));

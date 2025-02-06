@@ -62,7 +62,7 @@ MORPHINE_API void mapi_to_decimal(morphine_coroutine_t U) {
 
 MORPHINE_API void mapi_to_boolean(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
-    struct value result = valueI_boolean(convertI_to_boolean(value));
+    struct value result = valueI_boolean(valueI_tobool(value));
     stackI_replace(U, 0, result);
 }
 

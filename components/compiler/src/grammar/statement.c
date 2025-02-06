@@ -36,10 +36,6 @@ struct mc_ast_node *rule_statement(struct parse_controller *C) {
         return parser_reduce(C, rule_for);
     }
 
-    if (parser_look(C, et_predef_word(iterator))) {
-        return parser_reduce(C, rule_iterator);
-    }
-
     if (parser_look(C, et_predef_word(val)) ||
         parser_look(C, et_predef_word(var)) ||
         parser_look(C, et_predef_word(fun))) {

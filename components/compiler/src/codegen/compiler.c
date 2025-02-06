@@ -603,95 +603,6 @@ decl_expr(if) {
     }
 }
 
-struct when_data {
-    size_t index;
-    struct instruction_slot temp;
-    anchor_t anchor_else;
-    anchor_t *anchors;
-};
-
-decl_expr(when) {
-    decl_data_sized(when, sizeof(anchor_t) * expression->count);
-    data->anchors = ((void *) data) + sizeof(struct when_data);
-
-    switch (state) {
-        case 0: {
-            data->index = 0;
-            data->temp = codegen_declare_temporary(C);
-
-            for (size_t i = 0; i < expression->count; i++) {
-                data->anchors[i] = codegen_add_anchor(C);
-            }
-
-            if (expression->expression != NULL) {
-                codegen_expression(C, expression->expression, codegen_result(C), 1);
-            } else {
-                codegen_jump(C, 1);
-            }
-        }
-        case 1: {
-            if (data->index >= expression->count) {
-                codegen_jump(C, 3);
-            } else {
-                codegen_expression(C, expression->if_conditions[data->index], data->temp, 2);
-            }
-        }
-        case 2: {
-            if (expression->expression != NULL) {
-                codegen_instruction_EQUAL(C, codegen_result(C), data->temp, data->temp);
-            }
-
-            data->anchor_else = codegen_add_anchor(C);
-            codegen_instruction_JUMP_IF(C, data->temp, data->anchors[data->index], data->anchor_else);
-            codegen_anchor_change(C, data->anchor_else);
-
-            data->index++;
-            codegen_jump(C, 1);
-        }
-        case 3: {
-            codegen_enter_scope(C, false);
-            if (expression->else_statement != NULL) {
-                codegen_eval(C, expression->else_statement, codegen_result(C), 4);
-            } else {
-                size_t constant = codegen_add_constant_nil(C);
-                codegen_instruction_LOAD(C, constant, codegen_result(C));
-                codegen_jump(C, 4);
-            }
-        }
-        case 4: {
-            codegen_exit_scope(C);
-
-            data->anchor_else = codegen_add_anchor(C);
-            codegen_instruction_JUMP(C, data->anchor_else);
-
-            data->index = 0;
-            codegen_jump(C, 5);
-        }
-        case 5: {
-            if (data->index >= expression->count) {
-                codegen_jump(C, 7);
-            } else {
-                codegen_anchor_change(C, data->anchors[data->index]);
-                codegen_enter_scope(C, false);
-                codegen_eval(C, expression->if_statements[data->index], codegen_result(C), 6);
-            }
-        }
-        case 6: {
-            codegen_exit_scope(C);
-            codegen_instruction_JUMP(C, data->anchor_else);
-
-            data->index++;
-            codegen_jump(C, 5);
-        }
-        case 7: {
-            codegen_anchor_change(C, data->anchor_else);
-            codegen_complete(C);
-        }
-        default:
-            break;
-    }
-}
-
 decl_expr(function) {
     switch (state) {
         case 0:
@@ -775,8 +686,6 @@ decl_stmt(declaration) {
 
 struct assigment_data {
     struct instruction_slot slot;
-    struct instruction_slot key;
-    size_t index;
 };
 
 decl_stmt(assigment) {
@@ -786,27 +695,8 @@ decl_stmt(assigment) {
             data->slot = codegen_declare_temporary(C);
             codegen_expression(C, statement->expression, data->slot, 1);
         case 1:
-            if (statement->is_extract) {
-                data->index = 0;
-                data->key = codegen_declare_temporary(C);
-                codegen_jump(C, 2);
-            } else {
-                codegen_set(C, statement->value, data->slot, 4);
-            }
+            codegen_set(C, statement->value, data->slot, 2);
         case 2:
-            if (data->index < statement->extract.size) {
-                codegen_expression(C, statement->extract.keys[data->index], data->key, 3);
-            } else {
-                codegen_complete(C);
-            }
-        case 3: {
-            size_t index = data->index;
-            data->index++;
-
-            codegen_instruction_GET(C, data->slot, data->key, data->key);
-            codegen_set(C, statement->extract.values[index], data->key, 2);
-        }
-        case 4:
             codegen_complete(C);
         default:
             break;
@@ -892,98 +782,6 @@ decl_stmt(for) {
             codegen_statement(C, statement->increment, 4);
         case 4:
             codegen_instruction_JUMP(C, data->anchor);
-            codegen_anchor_change(C, codegen_scope_break_anchor(C));
-            codegen_exit_scope(C);
-            codegen_complete(C);
-        default:
-            break;
-    }
-}
-
-struct iterator_data {
-    struct instruction_slot slot;
-    struct instruction_slot key;
-    struct instruction_slot value;
-    size_t index;
-};
-
-decl_stmt(iterator) {
-    decl_data(iterator);
-    switch (state) {
-        case 0:
-            data->slot = codegen_declare_temporary(C);
-            codegen_enter_scope(C, true);
-            codegen_expression(C, statement->declaration->expression, data->slot, 1);
-        case 1:
-            codegen_instruction_ITERATOR(C, data->slot, data->slot);
-
-            data->key = codegen_declare_temporary(C);
-            data->value = codegen_declare_temporary(C);
-
-            if (statement->declaration->is_extract && statement->declaration->extract.size == 2) {
-                codegen_jump(C, 2);
-            } else {
-                size_t constant_key = codegen_add_constant_cstr(C, "key");
-                size_t constant_value = codegen_add_constant_cstr(C, "value");
-
-                codegen_instruction_LOAD(C, constant_key, data->key);
-                codegen_instruction_LOAD(C, constant_value, data->value);
-                codegen_jump(C, 4);
-            }
-        case 2:
-            codegen_expression(C, statement->declaration->extract.keys[0], data->key, 3);
-        case 3:
-            codegen_expression(C, statement->declaration->extract.keys[1], data->value, 4);
-        case 4:
-            codegen_instruction_ITERATOR_INIT(C, data->slot, data->key, data->value);
-            codegen_jump(C, 5);
-        case 5:
-            codegen_anchor_change(C, codegen_scope_continue_anchor(C));
-            codegen_instruction_ITERATOR_HAS(C, data->slot, data->value);
-
-            anchor_t anchor = codegen_add_anchor(C);
-            codegen_instruction_JUMP_IF(C, data->value, anchor, codegen_scope_break_anchor(C));
-            codegen_anchor_change(C, anchor);
-            codegen_instruction_ITERATOR_NEXT(C, data->slot, data->value);
-
-            if (statement->declaration->is_extract) {
-                data->index = 0;
-                codegen_jump(C, 6);
-            } else {
-                codegen_declare_variable(
-                    C,
-                    statement->declaration->value->index,
-                    statement->declaration->mutable
-                );
-                codegen_set(C, mcapi_ast_variable2expression(statement->declaration->value), data->value, 8);
-            }
-        case 6:
-            if (data->index < statement->declaration->extract.size) {
-                codegen_expression(C, statement->declaration->extract.keys[data->index], data->key, 7);
-            } else {
-                codegen_jump(C, 8);
-            }
-        case 7: {
-            size_t index = data->index;
-            data->index++;
-
-            codegen_instruction_GET(C, data->value, data->key, data->key);
-            codegen_declare_variable(
-                C,
-                statement->declaration->extract.values[index]->index,
-                statement->declaration->mutable
-            );
-            codegen_set(
-                C,
-                mcapi_ast_variable2expression(statement->declaration->extract.values[index]),
-                data->key,
-                6
-            );
-        }
-        case 8:
-            codegen_statement(C, statement->statement, 9);
-        case 9:
-            codegen_instruction_JUMP(C, codegen_scope_continue_anchor(C));
             codegen_anchor_change(C, codegen_scope_break_anchor(C));
             codegen_exit_scope(C);
             codegen_complete(C);
