@@ -59,7 +59,9 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
             struct closure *closure = cast(struct closure *, obj);
 
             mark_value(I, closure->callable);
-            mark_value(I, closure->value);
+            for (ml_size i = 0; i < closure->size; i++) {
+                mark_value(I, closure->values[i]);
+            }
 
             return size_closure(closure);
         }

@@ -18,8 +18,7 @@
 static void get_variable(
     struct codegen_controller *C,
     mc_strtable_index_t name,
-    struct instruction_slot slot,
-    struct instruction_slot *temp
+    struct instruction_slot slot
 ) {
     struct variable_info info = codegen_get_variable(C, name);
     switch (info.type) {
@@ -32,21 +31,10 @@ static void get_variable(
         case VIT_RECURSIVE:
             codegen_instruction_INVOKED(C, slot);
             break;
-        case VIT_CLOSURE: {
-            struct instruction_slot key;
-            if (temp == NULL) {
-                key = codegen_declare_temporary(C);
-            } else {
-                key = *temp;
-            }
-
-            size_t index = codegen_add_constant_index(C, info.closure_variable);
+        case VIT_CLOSURE:
             codegen_instruction_INVOKED(C, slot);
-            codegen_instruction_CLOSURE_VALUE(C, slot, slot);
-            codegen_instruction_LOAD(C, index, key);
-            codegen_instruction_GET(C, slot, key, slot);
+            codegen_instruction_CLOSURE_GET(C, slot, info.closure_variable, slot);
             break;
-        }
         case VIT_NOT_FOUND:
             codegen_errorf(C, "variable '%s' not found", codegen_string(C, name).string);
     }
@@ -75,12 +63,8 @@ decl_set(variable) {
             codegen_errorf(C, "cannot be set to function");
         case VIT_CLOSURE: {
             struct instruction_slot slot = codegen_declare_temporary(C);
-            struct instruction_slot index_slot = codegen_declare_temporary(C);
-            size_t index = codegen_add_constant_index(C, info.closure_variable);
             codegen_instruction_INVOKED(C, slot);
-            codegen_instruction_CLOSURE_VALUE(C, slot, slot);
-            codegen_instruction_LOAD(C, index, index_slot);
-            codegen_instruction_SET(C, slot, index_slot, codegen_result(C));
+            codegen_instruction_CLOSURE_SET(C, slot, info.closure_variable, codegen_result(C));
             break;
         }
         case VIT_NOT_FOUND:
@@ -720,19 +704,13 @@ decl_expr(function) {
             size_t size = codegen_closures(C, expression->ref, &variables);
 
             if (size > 0) {
-                struct instruction_slot temp = codegen_declare_temporary(C);
                 struct instruction_slot slot = codegen_declare_temporary(C);
-                struct instruction_slot vector = codegen_declare_temporary(C);
-                codegen_instruction_VECTOR(C, vector, size);
+                codegen_instruction_CLOSURE(C, codegen_result(C), size, codegen_result(C));
 
                 for (size_t i = 0; i < size; i++) {
-                    size_t index = codegen_add_constant_index(C, i);
-                    get_variable(C, codegen_variable_name(variables, i), slot, &temp);
-                    codegen_instruction_LOAD(C, index, temp);
-                    codegen_instruction_SET(C, vector, temp, slot);
+                    get_variable(C, codegen_variable_name(variables, i), slot);
+                    codegen_instruction_CLOSURE_SET(C, codegen_result(C), i, slot);
                 }
-
-                codegen_instruction_CLOSURE(C, codegen_result(C), vector, codegen_result(C));
             }
 
             codegen_complete(C);
@@ -747,7 +725,7 @@ decl_expr(variable) {
         return;
     }
 
-    get_variable(C, expression->index, codegen_result(C), NULL);
+    get_variable(C, expression->index, codegen_result(C));
     codegen_complete(C);
 }
 
@@ -1148,6 +1126,28 @@ static size_t arg_get_argument_index(
     }
 
     return info.argument;
+}
+
+static size_t arg_get_closure_index(
+    struct codegen_controller *C,
+    struct mc_ast_expression_asm *asm_expr,
+    struct asm_data *data,
+    ml_line line,
+    struct mc_asm_argument argument
+) {
+    (void) asm_expr;
+    (void) data;
+
+    if (argument.type != MCAAT_WORD) {
+        codegen_lined_errorf(C, line, "expected closure");
+    }
+
+    struct variable_info info = codegen_get_variable(C, argument.word);
+    if (info.type != VIT_CLOSURE) {
+        codegen_lined_errorf(C, line, "'%s' isn't closure", codegen_string(C, argument.word).string);
+    }
+
+    return info.closure_variable;
 }
 
 static size_t arg_get_constant_index(

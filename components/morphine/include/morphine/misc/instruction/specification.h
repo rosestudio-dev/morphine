@@ -11,6 +11,7 @@
  * constant_index
  * param_index
  * argument_index
+ * closure_index
  * params_count
  */
 
@@ -37,8 +38,10 @@ mspec_instruction_args2(ITERATOR_NEXT, itnext,  sslot, dslot)                // 
 mspec_instruction_args1(JUMP,          jmp,     position)                    // [position]               jump to (position)
 mspec_instruction_args3(JUMP_IF,       jmpif,   sslot, position, position)   // [condition, if, else]    if (condition) is true jump to (if) else jump to (else)
 
-mspec_instruction_args3(CLOSURE,       cls,     sslot, sslot, dslot)         // [function, value, dest]  create closure for (function) with (value) in (dest)
-mspec_instruction_args2(CLOSURE_VALUE, clsval,  sslot, dslot)                // [closure, dest]          get value from (closure) to (dest)
+mspec_instruction_args3(CLOSURE,       cls,     sslot, size, dslot)          // [function, size, dest]   create closure for (function) with (size) in (dest)
+mspec_instruction_args3(CLOSURE_GET,   getcls,  sslot, closure_index, dslot) // [closure, index, dest]   get value by (index) from (closure) to (dest)
+mspec_instruction_args3(CLOSURE_SET,   setcls,  sslot, closure_index, sslot) // [closure, index, src]    set (src) to (closure) by (index)
+
 mspec_instruction_args3(CALL,          call,    sslot, params_count, dslot)  // [function, params, dest] call (function) with count (params) and set result in (dest)
 mspec_instruction_args1(RETURN,        ret,     sslot)                       // [return]                 return with (return)
 

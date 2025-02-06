@@ -24,7 +24,7 @@ static inline size_t size_table(struct table *table) {
 }
 
 static inline size_t size_closure(mattr_unused struct closure *closure) {
-    return sizeof(struct closure);
+    return sizeof(struct closure) + ((size_t) closure->size) * sizeof(struct value);
 }
 
 static inline size_t size_vector(struct vector *vector) {

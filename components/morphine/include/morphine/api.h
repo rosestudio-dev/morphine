@@ -248,10 +248,10 @@ MORPHINE_API void mapi_iterator_next(morphine_coroutine_t);
 
 // closure
 
-MORPHINE_API void mapi_push_closure(morphine_coroutine_t);
-MORPHINE_API void mapi_closure_lock(morphine_coroutine_t);
-MORPHINE_API void mapi_closure_unlock(morphine_coroutine_t);
-MORPHINE_API void mapi_closure_value(morphine_coroutine_t);
+MORPHINE_API void mapi_push_closure(morphine_coroutine_t, ml_size);
+MORPHINE_API void mapi_closure_get(morphine_coroutine_t, ml_size);
+MORPHINE_API void mapi_closure_set(morphine_coroutine_t, ml_size);
+MORPHINE_API ml_size mapi_closure_size(morphine_coroutine_t);
 
 // function
 

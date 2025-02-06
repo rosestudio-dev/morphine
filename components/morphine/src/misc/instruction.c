@@ -51,6 +51,7 @@ bool instructionI_validate(morphine_instruction_t instruction, struct function *
 #define arg_constant_index(a) arg_type_index(a, function->constants_count)
 #define arg_param_index(a)    arg_type_index(a, function->params_count)
 #define arg_argument_index(a)
+#define arg_closure_index(a)
 #define arg_params_count(a)   arg_type_size(a, function->params_count)
 
     switch (instruction.opcode) {

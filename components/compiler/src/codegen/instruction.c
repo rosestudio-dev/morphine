@@ -13,6 +13,7 @@
 #define constant_index size_t
 #define param_index    size_t
 #define argument_index size_t
+#define closure_index  size_t
 #define params_count   size_t
 
 #define instruction_function(n, a1, a2, a3, names...) \

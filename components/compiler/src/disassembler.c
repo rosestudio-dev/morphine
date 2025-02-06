@@ -89,10 +89,13 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             printf("jump if "SLOT" to "APR" else "APR, arg(1), arg(2), arg(3));
             return;
         case MTYPE_OPCODE_CLOSURE:
-            printf(SLOT" = create closure for "SLOT" with "SLOT, arg(3), arg(1), arg(2));
+            printf(SLOT" = closure from "SLOT" with size "APR, arg(3), arg(1), arg(2));
             return;
-        case MTYPE_OPCODE_CLOSURE_VALUE:
-            printf(SLOT" = get value from closure "SLOT, arg(2), arg(1));
+        case MTYPE_OPCODE_CLOSURE_GET:
+            printf(SLOT" = closure "APR" from "SLOT, arg(3), arg(2), arg(1));
+            return;
+        case MTYPE_OPCODE_CLOSURE_SET:
+            printf("closure "APR" from "SLOT" = "SLOT, arg(2), arg(1), arg(3));
             return;
         case MTYPE_OPCODE_CALL:
             printf(SLOT" = call "SLOT" with "APR" args", arg(3), arg(1), arg(2));

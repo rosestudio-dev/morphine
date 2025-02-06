@@ -195,16 +195,23 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
             }
             sp_case(MTYPE_OPCODE_CLOSURE) {
                 get_slot(C, arg1, callable);
-                get_slot(C, arg2, value);
-                struct closure *closure = closureI_create(U->I, callable, value);
+                ml_size count = arg2;
+                struct closure *closure = closureI_create(U->I, callable, count);
                 set_slot(C, arg3, valueI_object(closure));
                 sp_end();
             }
-            sp_case(MTYPE_OPCODE_CLOSURE_VALUE) {
+            sp_case(MTYPE_OPCODE_CLOSURE_GET) {
                 get_slot(C, arg1, callable);
                 struct closure *closure = valueI_as_closure_or_error(U->I, callable);
-                struct value result = closureI_value(U->I, closure);
-                set_slot(C, arg2, result);
+                struct value result = closureI_get(U->I, closure, arg2);
+                set_slot(C, arg3, result);
+                sp_end();
+            }
+            sp_case(MTYPE_OPCODE_CLOSURE_SET) {
+                get_slot(C, arg1, callable);
+                struct closure *closure = valueI_as_closure_or_error(U->I, callable);
+                get_slot(C, arg3, value);
+                closureI_set(U->I, closure, arg2, value);
                 sp_end();
             }
             sp_case(MTYPE_OPCODE_CALL) {

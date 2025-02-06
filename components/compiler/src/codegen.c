@@ -1320,6 +1320,11 @@ static inline ml_argument argument_normalize(
                 mapi_error(U, "argument index too big");
             }
             return (ml_argument) argument.value_argument_index;
+        case IAT_closure_index:
+            if (argument.value_closure_index > mm_typemax(ml_argument)) {
+                mapi_error(U, "closure index too big");
+            }
+            return (ml_argument) argument.value_closure_index;
         case IAT_params_count:
             if (argument.value_params_count > mm_typemax(ml_argument)) {
                 mapi_error(U, "params count too big");

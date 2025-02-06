@@ -18,6 +18,7 @@ enum instruction_argument_type {
     IAT_constant_index,
     IAT_param_index,
     IAT_argument_index,
+    IAT_closure_index,
     IAT_params_count,
     IAT_stub,
 };
@@ -54,6 +55,7 @@ struct instruction_argument {
         size_t value_constant_index;
         size_t value_param_index;
         size_t value_argument_index;
+        size_t value_closure_index;
         size_t value_params_count;
     };
 };
