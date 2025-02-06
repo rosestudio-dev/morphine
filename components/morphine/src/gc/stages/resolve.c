@@ -67,7 +67,7 @@ static inline bool finalize(morphine_instance_t I) {
 
         if (mm_unlikely(
                 !current->flags.finalized
-                && metatableI_builtin_test(I, valueI_object(current), MTYPE_METAFIELD_GC, NULL)
+                && metatableI_test(I, valueI_object(current), MTYPE_METAFIELD_GC, NULL)
             )) {
             current->color = OBJ_COLOR_RED;
             gcI_pools_remove(current, &I->G.pools.allocated);

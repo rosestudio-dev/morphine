@@ -12,7 +12,7 @@
 #include "morphine/core/usertype.h"
 #include "morphine/core/throw.h"
 #include "morphine/core/sso.h"
-#include "morphine/misc/metatable.h"
+#include "morphine/core/metatable.h"
 
 struct instance {
     morphine_platform_t platform;

@@ -598,7 +598,7 @@ void callstackI_call(morphine_coroutine_t U, struct value *callable, struct valu
 
     struct value mt_field;
     struct value mt_args[2];
-    if (mm_unlikely(metatableI_builtin_test(I, *callable, MTYPE_METAFIELD_CALL, &mt_field))) { // check metafield
+    if (mm_unlikely(metatableI_test(I, *callable, MTYPE_METAFIELD_CALL, &mt_field))) { // check metafield
         struct vector *vector = gcI_safe_obj(I, vector, vectorI_create(I, argc));
         for (ml_size i = 0; i < argc; i++) {
             vectorI_set(I, vector, i, extract_stack_value(U, stack_args)[i]);
@@ -719,6 +719,7 @@ void callstackI_pop(morphine_coroutine_t U, struct value result) {
 void callstackI_throw_drop(morphine_coroutine_t U, struct callframe *frame) {
     callstack_drop(U, frame);
     stack_pop(U, stack_space(U));
+    U->callstack.result = valueI_nil;
 }
 
 struct value callstackI_extract_callable(morphine_instance_t I, struct value callable) {

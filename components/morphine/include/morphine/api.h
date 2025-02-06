@@ -5,11 +5,11 @@
 #pragma once
 
 #include "config.h"
+#include "core/metatable/constants.h"
+#include "core/metatable/type.h"
 #include "core/type/constants.h"
 #include "misc/instruction/constants.h"
 #include "misc/instruction/type.h"
-#include "misc/metatable/constants.h"
-#include "misc/metatable/type.h"
 #include "platform.h"
 #include <stdarg.h>
 
@@ -317,8 +317,6 @@ MORPHINE_API void mapi_gc_set_pause(morphine_instance_t, size_t);
 
 // metatable
 
-MORPHINE_API bool mapi_metatable_test(morphine_coroutine_t, const char *);
-MORPHINE_API bool mapi_metatable_builtin_test(morphine_coroutine_t, mtype_metafield_t);
 MORPHINE_API void mapi_set_metatable(morphine_coroutine_t);
 MORPHINE_API void mapi_get_metatable(morphine_coroutine_t);
 

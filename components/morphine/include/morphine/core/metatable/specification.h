@@ -27,15 +27,12 @@ mspec_metatable_field(ITERATOR_INIT, itinit) // (callable)
 mspec_metatable_field(ITERATOR_HAS, ithas)   // (callable | value)
 mspec_metatable_field(ITERATOR_NEXT, itnext) // (callable | value)
 
-// table
 mspec_metatable_field(TO_STRING, tostr)      // (callable | value)
 mspec_metatable_field(HASH, hash)            // (callable | value)
 mspec_metatable_field(COMPARE, compare)      // (callable | value)
 
-// exception
-mspec_metatable_field(MESSAGE, message)      // (value)
-
 // control
+mspec_metatable_field(MESSAGE, message)      // (value)
 mspec_metatable_field(MASK, mask)            // (value)
 mspec_metatable_field(LOCK, lock)            // (value)
 mspec_metatable_field(GC, gc)                // (callable)

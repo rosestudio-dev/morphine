@@ -4,7 +4,6 @@
 
 #include "morphine/api.h"
 #include "morphine/core/operations.h"
-#include "morphine/core/throw.h"
 #include "morphine/utils/array_size.h"
 #include <string.h>
 
@@ -13,15 +12,30 @@ struct op_func {
     bool (*function)(morphine_coroutine_t U);
 };
 
+#define unary_op(name) \
+    static bool op##name(morphine_coroutine_t U) { \
+        struct value a = stackI_peek(U, 0); \
+        struct value result_value = valueI_nil; \
+        bool result = interpreter_fun_##name(U, callstackI_state(U), a, &result_value, 1, false) == CALLED; \
+        if (!result) { stackI_replace(U, 0, result_value); } \
+        return result; \
+    }
+
+#define binary_op(name) \
+    static bool op##name(morphine_coroutine_t U) { \
+        struct value a = stackI_peek(U, 1); \
+        struct value b = stackI_peek(U, 0); \
+        struct value result_value = valueI_nil; \
+        bool result = interpreter_fun_##name(U, callstackI_state(U), a, b, &result_value, 1, false) == CALLED; \
+        if (!result) { stackI_replace(U, 1, result_value); stackI_pop(U, 1); } \
+        return result; \
+    }
+
 static bool opiterator(morphine_coroutine_t U) {
     struct value container = stackI_peek(U, 0);
 
     struct value result_value = valueI_nil;
-    bool result = interpreter_fun_iterator(
-        U, callstackI_state(U),
-        container, &result_value,
-        0, false
-    ) == CALLED;
+    bool result = interpreter_fun_iterator(U, callstackI_state(U), container, &result_value, 0, false) == CALLED;
 
     if (!result) {
         stackI_push(U, result_value);
@@ -35,11 +49,8 @@ static bool opiteratorinit(morphine_coroutine_t U) {
     struct value key_name = stackI_peek(U, 1);
     struct value value_name = stackI_peek(U, 0);
 
-    op_result_t result = interpreter_fun_iterator_init(
-        U, callstackI_state(U),
-        iterator, key_name, value_name,
-        2, false
-    );
+    op_result_t result =
+        interpreter_fun_iterator_init(U, callstackI_state(U), iterator, key_name, value_name, 2, false);
 
     if (result == NORMAL) {
         stackI_pop(U, 2);
@@ -53,11 +64,7 @@ static bool opiteratorhas(morphine_coroutine_t U) {
     struct value iterator = stackI_peek(U, 0);
 
     struct value result_value = valueI_nil;
-    bool result = interpreter_fun_iterator_has(
-        U, callstackI_state(U),
-        iterator, &result_value,
-        0, false
-    ) == CALLED;
+    bool result = interpreter_fun_iterator_has(U, callstackI_state(U), iterator, &result_value, 0, false) == CALLED;
 
     if (!result) {
         stackI_push(U, result_value);
@@ -70,11 +77,7 @@ static bool opiteratornext(morphine_coroutine_t U) {
     struct value iterator = stackI_peek(U, 0);
 
     struct value result_value = valueI_nil;
-    bool result = interpreter_fun_iterator_next(
-        U, callstackI_state(U),
-        iterator, &result_value,
-        0, false
-    ) == CALLED;
+    bool result = interpreter_fun_iterator_next(U, callstackI_state(U), iterator, &result_value, 0, false) == CALLED;
 
     if (!result) {
         stackI_push(U, result_value);
@@ -88,11 +91,7 @@ static bool opget(morphine_coroutine_t U) {
     struct value key = stackI_peek(U, 0);
 
     struct value result_value = valueI_nil;
-    bool result = interpreter_fun_get(
-        U, callstackI_state(U),
-        container, key, &result_value,
-        1, false
-    ) == CALLED;
+    bool result = interpreter_fun_get(U, callstackI_state(U), container, key, &result_value, 1, false) == CALLED;
 
     if (!result) {
         stackI_replace(U, 0, result_value);
@@ -106,326 +105,63 @@ static bool opset(morphine_coroutine_t U) {
     struct value key = stackI_peek(U, 1);
     struct value value = stackI_peek(U, 0);
 
-    op_result_t result = interpreter_fun_set(
-        U, callstackI_state(U),
-        container, key, value,
-        2, false
-    );
+    bool result = interpreter_fun_set(U, callstackI_state(U), container, key, value, 2, false) == CALLED;
 
-    if (result == NORMAL) {
+    if (!result) {
         stackI_pop(U, 2);
-        stackI_push(U, container);
-    }
-
-    return result == CALLED;
-}
-
-static bool opadd(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_add(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
     }
 
     return result;
 }
 
-static bool opsub(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
+binary_op(add);
+binary_op(sub);
+binary_op(mul);
+binary_op(div);
+binary_op(mod);
+binary_op(equal);
+binary_op(less);
+binary_op(and);
+binary_op(or);
+binary_op(concat);
 
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_sub(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
+unary_op(type);
+unary_op(negative);
+unary_op(not);
+unary_op(length);
+unary_op(ref);
+unary_op(deref);
 
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opmul(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_mul(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opdiv(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_div(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opmod(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_mod(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opequal(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_equal(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opless(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_less(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opand(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_and(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opor(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_or(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opconcat(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_concat(
-        U, callstackI_state(U),
-        a, b, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool optype(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_type(
-        U, callstackI_state(U),
-        a, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opneg(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_negative(
-        U, callstackI_state(U),
-        a, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opnot(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_not(
-        U, callstackI_state(U),
-        a, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool oplen(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_length(
-        U, callstackI_state(U),
-        a, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opref(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_ref(
-        U, callstackI_state(U),
-        a, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
-static bool opderef(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 0);
-
-    struct value result_value = valueI_nil;
-    bool result = interpreter_fun_deref(
-        U, callstackI_state(U),
-        a, &result_value,
-        1, false
-    ) == CALLED;
-
-    if (!result) {
-        stackI_replace(U, 0, result_value);
-    }
-
-    return result;
-}
-
+binary_op(compare);
+unary_op(tostr);
+unary_op(hash);
 
 static struct op_func ops[] = {
-    (struct op_func) { .name = "iterator", .function = opiterator },
+    (struct op_func) { .name = "iterator",     .function = opiterator     },
     (struct op_func) { .name = "iteratorinit", .function = opiteratorinit },
-    (struct op_func) { .name = "iteratorhas", .function = opiteratorhas },
+    (struct op_func) { .name = "iteratorhas",  .function = opiteratorhas  },
     (struct op_func) { .name = "iteratornext", .function = opiteratornext },
-    (struct op_func) { .name = "get", .function = opget },
-    (struct op_func) { .name = "set", .function = opset },
-    (struct op_func) { .name = "add", .function = opadd },
-    (struct op_func) { .name = "sub", .function = opsub },
-    (struct op_func) { .name = "mul", .function = opmul },
-    (struct op_func) { .name = "div", .function = opdiv },
-    (struct op_func) { .name = "mod", .function = opmod },
-    (struct op_func) { .name = "equal", .function = opequal },
-    (struct op_func) { .name = "less", .function = opless },
-    (struct op_func) { .name = "and", .function = opand },
-    (struct op_func) { .name = "or", .function = opor },
-    (struct op_func) { .name = "concat", .function = opconcat },
-    (struct op_func) { .name = "type", .function = optype },
-    (struct op_func) { .name = "neg", .function = opneg },
-    (struct op_func) { .name = "not", .function = opnot },
-    (struct op_func) { .name = "len", .function = oplen },
-    (struct op_func) { .name = "ref", .function = opref },
-    (struct op_func) { .name = "deref", .function = opderef },
+    (struct op_func) { .name = "get",          .function = opget          },
+    (struct op_func) { .name = "set",          .function = opset          },
+    (struct op_func) { .name = "add",          .function = opadd          },
+    (struct op_func) { .name = "sub",          .function = opsub          },
+    (struct op_func) { .name = "mul",          .function = opmul          },
+    (struct op_func) { .name = "div",          .function = opdiv          },
+    (struct op_func) { .name = "mod",          .function = opmod          },
+    (struct op_func) { .name = "equal",        .function = opequal        },
+    (struct op_func) { .name = "less",         .function = opless         },
+    (struct op_func) { .name = "and",          .function = opand          },
+    (struct op_func) { .name = "or",           .function = opor           },
+    (struct op_func) { .name = "concat",       .function = opconcat       },
+    (struct op_func) { .name = "type",         .function = optype         },
+    (struct op_func) { .name = "neg",          .function = opnegative     },
+    (struct op_func) { .name = "not",          .function = opnot          },
+    (struct op_func) { .name = "len",          .function = oplength       },
+    (struct op_func) { .name = "ref",          .function = opref          },
+    (struct op_func) { .name = "deref",        .function = opderef        },
+    (struct op_func) { .name = "compare",      .function = opcompare      },
+    (struct op_func) { .name = "tostr",        .function = optostr        },
+    (struct op_func) { .name = "hash",         .function = ophash         },
 };
 
 MORPHINE_API bool mapi_op(morphine_coroutine_t U, const char *op) {

@@ -54,7 +54,7 @@ static void println(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void setmetatable(morphine_coroutine_t U) {
+static void setmt(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init();
             if (mapi_args(U) == 1) {
@@ -74,7 +74,7 @@ static void setmetatable(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void getmetatable(morphine_coroutine_t U) {
+static void getmt(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init();
             maux_expect_args(U, 1);
@@ -196,8 +196,8 @@ static void chgenv(morphine_coroutine_t U) {
 static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("print", print),
     MAUX_CONSTRUCT_FUNCTION("println", println),
-    MAUX_CONSTRUCT_FUNCTION("setmetatable", setmetatable),
-    MAUX_CONSTRUCT_FUNCTION("getmetatable", getmetatable),
+    MAUX_CONSTRUCT_FUNCTION("setmt", setmt),
+    MAUX_CONSTRUCT_FUNCTION("getmt", getmt),
     MAUX_CONSTRUCT_FUNCTION("error", error),
     MAUX_CONSTRUCT_FUNCTION("pcall", pcall),
     MAUX_CONSTRUCT_FUNCTION("ucall", ucall),
@@ -207,7 +207,7 @@ static maux_construct_element_t elements[] = {
 
 #define mspec_metatable_field(n, s) MAUX_CONSTRUCT_STRING("metafield."#s, MORPHINE_METAFIELD_PREFIX#s),
 
-#include "morphine/misc/metatable/specification.h"
+#include "morphine/core/metatable/specification.h"
 
 #undef mspec_metatable_field
 

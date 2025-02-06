@@ -2,12 +2,12 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include "morphine/misc/metatable.h"
+#include "morphine/core/metatable.h"
 #include "morphine/core/convert.h"
 #include "morphine/core/instance.h"
+#include "morphine/core/metatable/type.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/barrier.h"
-#include "morphine/misc/metatable/type.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/string.h"
 #include "morphine/object/table.h"
@@ -42,6 +42,35 @@ static inline bool get_lock(morphine_instance_t I, struct table *metatable) {
     return has && convertI_to_boolean(value);
 }
 
+static inline bool metatable_test(
+    morphine_instance_t I,
+    struct value source,
+    struct string *field,
+    struct value *result
+) {
+    struct table *metatable = NULL;
+    if (valueI_is_table(source)) {
+        metatable = valueI_as_table(source)->metatable;
+    } else if (valueI_is_userdata(source)) {
+        metatable = valueI_as_userdata(source)->metatable;
+    }
+
+    struct value field_name = valueI_object(field);
+
+    bool has = false;
+
+    struct value extracted = valueI_nil;
+    if (metatable != NULL) {
+        extracted = tableI_get(I, metatable, field_name, &has);
+    }
+
+    if (result != NULL) {
+        *result = extracted;
+    }
+
+    return has;
+}
+
 void metatableI_set(morphine_instance_t I, struct value value, struct table *metatable) {
     struct table **container;
     if (valueI_is_table(value)) {
@@ -72,44 +101,20 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
     return get_mask(I, metatable);
 }
 
-bool metatableI_builtin_test(morphine_instance_t I, struct value source, mtype_metafield_t field, struct value *result) {
+bool metatableI_test(morphine_instance_t I, struct value source, mtype_metafield_t field, struct value *result) {
     if (MORPHINE_METAFIELDS_START > field || field >= MORPHINE_METAFIELDS_COUNT) {
         throwI_panic(I, "unsupported meta field");
     }
 
     struct string *name = I->metafields[field];
-    return metatableI_test(I, source, name, result);
-}
-
-bool metatableI_test(morphine_instance_t I, struct value source, struct string *field, struct value *result) {
-    struct table *metatable = NULL;
-    if (valueI_is_table(source)) {
-        metatable = valueI_as_table(source)->metatable;
-    } else if (valueI_is_userdata(source)) {
-        metatable = valueI_as_userdata(source)->metatable;
-    }
-
-    struct value field_name = valueI_object(field);
-
-    bool has = false;
-
-    struct value extracted = valueI_nil;
-    if (metatable != NULL) {
-        extracted = tableI_get(I, metatable, field_name, &has);
-    }
-
-    if (result != NULL) {
-        *result = extracted;
-    }
-
-    return has;
+    return metatable_test(I, source, name, result);
 }
 
 const char *metatableI_field2string(morphine_instance_t I, mtype_metafield_t field) {
     switch (field) {
 #define mspec_metatable_field(n, s) case MTYPE_METAFIELD_##n: return MORPHINE_METAFIELD_PREFIX#s;
 
-#include "morphine/misc/metatable/specification.h"
+#include "morphine/core/metatable/specification.h"
 
 #undef mspec_metatable_field
     }

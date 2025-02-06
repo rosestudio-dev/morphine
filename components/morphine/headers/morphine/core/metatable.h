@@ -5,13 +5,11 @@
 #pragma once
 
 #include "morphine/core/value.h"
-#include "morphine/misc/metatable/type.h"
+#include "morphine/core/metatable/type.h"
 
 void metatableI_set(morphine_instance_t, struct value, struct table *);
 struct value metatableI_get(morphine_instance_t, struct value);
-
-bool metatableI_builtin_test(morphine_instance_t, struct value, mtype_metafield_t, struct value *);
-bool metatableI_test(morphine_instance_t, struct value, struct string *, struct value *);
+bool metatableI_test(morphine_instance_t, struct value, mtype_metafield_t, struct value *);
 
 const char *metatableI_field2string(morphine_instance_t, mtype_metafield_t);
 mtype_metafield_t metatableI_string2field(morphine_instance_t, const char *name);

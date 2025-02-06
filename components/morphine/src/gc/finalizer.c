@@ -49,7 +49,7 @@ static void resolver(morphine_coroutine_t U) {
 
             struct value candidate_value = valueI_object(candidate);
             struct value callable = valueI_nil;
-            if (metatableI_builtin_test(U->I, candidate_value, MTYPE_METAFIELD_GC, &callable)) {
+            if (metatableI_test(U->I, candidate_value, MTYPE_METAFIELD_GC, &callable)) {
                 callstackI_call(U, &callable, &candidate_value, 1, 0);
                 return;
             }

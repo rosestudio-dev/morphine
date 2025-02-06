@@ -48,18 +48,7 @@ static void tostr(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-
-            if (mapi_metatable_builtin_test(U, MTYPE_METAFIELD_TO_STRING)) {
-                if (mapi_is_callable(U)) {
-                    mapi_rotate(U, 2);
-                    maux_nb_call(1, 1);
-                } else {
-                    maux_nb_return();
-                }
-            } else {
-                mapi_to_string(U);
-                maux_nb_return();
-            }
+            maux_nb_operation("tostr", 1);
         maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
@@ -71,21 +60,8 @@ static void compare(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 2);
             mapi_push_arg(U, 0);
-
-            if (mapi_metatable_builtin_test(U, MTYPE_METAFIELD_COMPARE)) {
-                if (mapi_is_callable(U)) {
-                    mapi_rotate(U, 2);
-                    mapi_push_arg(U, 1);
-                    mapi_call(U, 2);
-                } else {
-                    maux_nb_return();
-                }
-            } else {
-                mapi_push_arg(U, 1);
-                int result = mapi_compare(U);
-                mapi_push_integer(U, result);
-                maux_nb_return();
-            }
+            mapi_push_arg(U, 1);
+            maux_nb_operation("compare", 1);
         maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();
@@ -97,19 +73,7 @@ static void hash(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-
-            if (mapi_metatable_builtin_test(U, MTYPE_METAFIELD_HASH)) {
-                if (mapi_is_callable(U)) {
-                    mapi_rotate(U, 2);
-                    mapi_call(U, 1);
-                } else {
-                    maux_nb_return();
-                }
-            } else {
-                ml_hash hash = mapi_hash(U);
-                mapi_push_stringf(U, "%0*"MLIMIT_HASH_PR, (int) sizeof(ml_hash) * 2, hash);
-                maux_nb_return();
-            }
+            maux_nb_operation("hash", 1);
         maux_nb_state(1);
             mapi_push_result(U);
             maux_nb_return();

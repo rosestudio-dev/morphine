@@ -87,7 +87,7 @@ struct string *exceptionI_message(morphine_instance_t I, struct exception *excep
     }
 
     struct value value = exception->value;
-    if (!metatableI_builtin_test(I, value, MTYPE_METAFIELD_MESSAGE, &value)) {
+    if (!metatableI_test(I, value, MTYPE_METAFIELD_MESSAGE, &value)) {
         value = exception->value;
     }
 
