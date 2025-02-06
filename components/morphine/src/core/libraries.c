@@ -16,61 +16,52 @@
 
 struct libraries librariesI_prototype(void) {
     return (struct libraries) {
-        .allocated = 0,
-        .size = 0,
-        .array = NULL
+        .list = NULL
     };
 }
 
+static void library_free(morphine_instance_t I, struct library *library) {
+    allocI_free(I, library);
+}
+
 void librariesI_free(morphine_instance_t I, struct libraries *libraries) {
-    allocI_free(I, libraries->array);
-    *libraries = librariesI_prototype();
+    struct library *library = libraries->list;
+    while (library != NULL) {
+        struct library *prev = library->prev;
+        library_free(I, library);
+
+        library = prev;
+    }
 }
 
 void librariesI_load(morphine_instance_t I, morphine_library_t library) {
-    for (size_t i = 0; i < I->libraries.size; i++) {
-        if (stringI_cstr_compare(I, I->libraries.array[i].name, library.name) == 0) {
-            throwI_error(I, "library already loaded");
+    {
+        struct library *current = I->libraries.list;
+        while (current != NULL) {
+            if (stringI_cstr_compare(I, current->name, library.name) == 0) {
+                throwI_error(I, "library already loaded");
+            }
+
+            current = current->prev;
         }
-    }
-
-    if (mm_unlikely(I->libraries.allocated == I->libraries.size)) {
-        mm_overflow_add(I->libraries.allocated, MPARAM_LIBRARIES_GROW) {
-            throwI_error(I, "library limit exceeded");
-        }
-
-        I->libraries.array = allocI_vec(
-            I,
-            I->libraries.array,
-            I->libraries.allocated + MPARAM_LIBRARIES_GROW,
-            sizeof(struct library_instance)
-        );
-
-        for (size_t i = 0; i < MPARAM_LIBRARIES_GROW; i++) {
-            I->libraries.array[i + I->libraries.allocated] = (struct library_instance) {
-                .name = NULL,
-                .init = NULL,
-                .table = NULL
-            };
-        }
-
-        I->libraries.allocated += MPARAM_LIBRARIES_GROW;
     }
 
     gcI_safe_enter(I);
     struct string *name = gcI_safe_obj(I, string, stringI_create(I, library.name));
 
     if (library.sharedkey != NULL && !sharedstorageI_define(I, library.sharedkey)) {
-        throwI_error(I, "library sharedkey conflict");
+        throwI_error(I, "library sharedstorage conflict");
     }
 
-    I->libraries.array[I->libraries.size] = (struct library_instance) {
-        .name = name,
+    struct library *result = allocI_uni(I, NULL, sizeof(struct library));
+    (*result) = (struct library) {
         .init = library.init,
-        .table = NULL
+        .name = name,
+        .table = NULL,
+        .prev = I->libraries.list
     };
 
-    I->libraries.size++;
+    I->libraries.list = result;
 
     gcI_safe_exit(I);
 }
@@ -94,13 +85,13 @@ static struct table *init_library(morphine_coroutine_t U, mfunc_native_t init) {
 }
 
 struct value librariesI_get(morphine_coroutine_t U, const char *name) {
-    struct library_instance *library = NULL;
-    for (size_t i = 0; i < U->I->libraries.size; i++) {
-        struct library_instance *lib = U->I->libraries.array + i;
-        if (stringI_cstr_compare(U->I, lib->name, name) == 0) {
-            library = lib;
+    struct library *library = U->I->libraries.list;
+    while (library != NULL) {
+        if (stringI_cstr_compare(U->I, library->name, name) == 0) {
             break;
         }
+
+        library = library->prev;
     }
 
     if (library == NULL) {

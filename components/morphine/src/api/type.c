@@ -2,36 +2,9 @@
 // Created by why-iskra on 22.07.2024.
 //
 
-#include <string.h>
 #include "morphine/api.h"
-#include "morphine/core/value.h"
 #include "morphine/object/coroutine.h"
-#include "morphine/object/string.h"
-#include "morphine/core/usertype.h"
-
-MORPHINE_API void mapi_type_declare(
-    morphine_instance_t I,
-    const char *name,
-    size_t allocate,
-    bool require_metatable,
-    mfunc_constructor_t constructor,
-    mfunc_destructor_t destructor,
-    mfunc_compare_t compare,
-    mfunc_hash_t hash
-) {
-    usertypeI_declare(
-        I, name, allocate,
-        require_metatable,
-        constructor,
-        destructor,
-        compare,
-        hash
-    );
-}
-
-MORPHINE_API bool mapi_type_is_declared(morphine_instance_t I, const char *name) {
-    return usertypeI_is_declared(I, name);
-}
+#include <string.h>
 
 MORPHINE_API const char *mapi_type(morphine_coroutine_t U) {
     return valueI_type(U->I, stackI_peek(U, 0), false);

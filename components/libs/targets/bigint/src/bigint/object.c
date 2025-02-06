@@ -101,16 +101,17 @@ static ml_hash bigint_userdata_hash(morphine_instance_t I, void *data) {
 }
 
 static struct mlib_bigint *bigint_userdata(morphine_coroutine_t U) {
-    mapi_type_declare(
-        mapi_instance(U),
-        MLIB_BIGINT_USERDATA_TYPE,
-        sizeof(struct mlib_bigint),
-        false,
-        bigint_userdata_constructor,
-        bigint_userdata_destructor,
-        bigint_userdata_compare,
-        bigint_userdata_hash
-    );
+    morphine_usertype_t type = {
+        .name = MLIB_BIGINT_USERDATA_TYPE,
+        .size = sizeof(struct mlib_bigint),
+        .constructor = bigint_userdata_constructor,
+        .destructor = bigint_userdata_destructor,
+        .compare = bigint_userdata_compare,
+        .hash = bigint_userdata_hash,
+        .metatable = false,
+    };
+
+    mapi_usertype_declare(U, type);
 
     struct mlib_bigint *bigint = mapi_push_userdata(U, MLIB_BIGINT_USERDATA_TYPE);
 

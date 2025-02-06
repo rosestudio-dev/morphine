@@ -135,16 +135,17 @@ MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U) {
     ml_size len = mapi_string_len(U);
     const char *text = mapi_get_string(U);
 
-    mapi_type_declare(
-        mapi_instance(U),
-        MC_LEX_USERDATA_TYPE,
-        sizeof(struct mc_lex),
-        false,
-        lex_userdata_constructor,
-        lex_userdata_destructor,
-        NULL,
-        NULL
-    );
+    morphine_usertype_t usertype = {
+        .name = MC_LEX_USERDATA_TYPE,
+        .size = sizeof(struct mc_lex),
+        .constructor = lex_userdata_constructor,
+        .destructor = lex_userdata_destructor,
+        .compare = NULL,
+        .hash = NULL,
+        .metatable = false,
+    };
+
+    mapi_usertype_declare(U, usertype);
 
     struct mc_lex *L = mapi_push_userdata(U, MC_LEX_USERDATA_TYPE);
     create_opchars(U, L);
@@ -582,7 +583,7 @@ static struct mc_lex_token lex_string(
     ml_size saved_pos = L->pos;
 
     size_t size = handle_string(U, L, NULL);
-    char *str = mapi_push_userdata_uni(U, size);
+    char *str = mapi_push_userdata_vec(U, size, sizeof(char), NULL);
     memset(str, 0, size);
 
     L->pos = saved_pos;

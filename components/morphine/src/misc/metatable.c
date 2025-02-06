@@ -3,6 +3,7 @@
 //
 
 #include "morphine/misc/metatable.h"
+#include "morphine/core/convert.h"
 #include "morphine/core/instance.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/barrier.h"
@@ -13,55 +14,49 @@
 #include "morphine/object/userdata.h"
 #include <string.h>
 
-static inline struct value extract_metatable(morphine_instance_t I, struct table *metatable) {
+static inline struct value get_mask(morphine_instance_t I, struct table *metatable) {
     if (metatable == NULL) {
         return valueI_nil;
     }
 
-    struct value field_name = valueI_object(I->metatable.names[MTYPE_METAFIELD_MASK]);
+    struct value field_name = valueI_object(I->metafields[MTYPE_METAFIELD_MASK]);
 
     bool has = false;
-    struct value mask_value = tableI_get(I, metatable, field_name, &has);
-
+    struct value value = tableI_get(I, metatable, field_name, &has);
     if (has) {
-        return mask_value;
-    } else {
-        return valueI_object(metatable);
+        return value;
     }
+
+    return valueI_object(metatable);
+}
+
+static inline bool get_lock(morphine_instance_t I, struct table *metatable) {
+    if (metatable == NULL) {
+        return false;
+    }
+
+    struct value field_name = valueI_object(I->metafields[MTYPE_METAFIELD_LOCK]);
+
+    bool has = false;
+    struct value value = tableI_get(I, metatable, field_name, &has);
+    return has && convertI_to_boolean(value);
 }
 
 void metatableI_set(morphine_instance_t I, struct value value, struct table *metatable) {
+    struct table **container;
     if (valueI_is_table(value)) {
-        struct table *table = valueI_as_table(value);
-
-        if (table->lock.metatable) {
-            throwI_error(I, "metatable was locked");
-        }
-
-        if (metatable != NULL) {
-            gcI_objbarrier(I, table, metatable);
-        }
-
-        table->metatable = metatable;
-        return;
+        container = &valueI_as_table(value)->metatable;
+    } else if (valueI_is_userdata(value)) {
+        container = &valueI_as_userdata(value)->metatable;
+    } else {
+        throwI_errorf(I, "metatable cannot be set to %s", valueI_type(I, value, true));
     }
 
-    if (valueI_is_userdata(value)) {
-        struct userdata *userdata = valueI_as_userdata(value);
-
-        if (userdata->lock.metatable) {
-            throwI_error(I, "metatable was locked");
-        }
-
-        if (metatable != NULL) {
-            gcI_objbarrier(I, userdata, metatable);
-        }
-
-        userdata->metatable = metatable;
-        return;
+    if (get_lock(I, *container)) {
+        throwI_error(I, "metatable was locked");
     }
 
-    throwI_errorf(I, "metatable cannot be set to %s", valueI_type(I, value, true));
+    *container = gcI_objbarrier(I, valueI_as_object(value), metatable);
 }
 
 struct value metatableI_get(morphine_instance_t I, struct value value) {
@@ -74,7 +69,7 @@ struct value metatableI_get(morphine_instance_t I, struct value value) {
         throwI_errorf(I, "metatable cannot be get from %s", valueI_type(I, value, true));
     }
 
-    return extract_metatable(I, metatable);
+    return get_mask(I, metatable);
 }
 
 bool metatableI_builtin_test(morphine_instance_t I, struct value source, mtype_metafield_t field, struct value *result) {
@@ -82,7 +77,7 @@ bool metatableI_builtin_test(morphine_instance_t I, struct value source, mtype_m
         throwI_panic(I, "unsupported meta field");
     }
 
-    struct string *name = I->metatable.names[field];
+    struct string *name = I->metafields[field];
     return metatableI_test(I, source, name, result);
 }
 

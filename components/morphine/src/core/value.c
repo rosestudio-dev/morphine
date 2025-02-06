@@ -96,9 +96,7 @@ const char *valueI_type(morphine_instance_t I, struct value value, bool raw) {
         struct userdata *userdata = valueI_safe_as_userdata(value, NULL);
 
         if (userdata != NULL && userdata->is_typed) {
-            struct usertype_info info = usertypeI_info(I, userdata->typed.usertype);
-
-            return info.name;
+            return userdata->typed->name;
         }
     }
 
@@ -106,7 +104,7 @@ const char *valueI_type(morphine_instance_t I, struct value value, bool raw) {
 }
 
 bool valueI_is_type(morphine_instance_t I, const char *name, bool raw) {
-    if (!raw && usertypeI_is_declared(I, name)) {
+    if (!raw && usertypeI_has(I, name)) {
         return true;
     }
 

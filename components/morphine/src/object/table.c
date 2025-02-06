@@ -540,7 +540,6 @@ struct table *tableI_create(morphine_instance_t I) {
         .mode.fixed = false,
         .mode.mutable = true,
         .mode.accessible = true,
-        .lock.metatable = false,
         .lock.mode = false,
 
         .hashmap.buckets.access = NULL,
@@ -606,14 +605,6 @@ void tableI_mode_accessible(morphine_instance_t I, struct table *table, bool is_
     table->mode.accessible = is_accessible;
 }
 
-void tableI_lock_metatable(morphine_instance_t I, struct table *table) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
-    table->lock.metatable = true;
-}
-
 void tableI_lock_mode(morphine_instance_t I, struct table *table) {
     if (table == NULL) {
         throwI_error(I, "table is null");
@@ -652,8 +643,8 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
         gcI_safe_exit(I);
     }
 
-    gcI_barrier(I, table, key);
-    gcI_barrier(I, table, value);
+    gcI_valbarrier(I, table, key);
+    gcI_valbarrier(I, table, value);
 
     ml_hash hash = valueI_hash(I, key);
     size_t index = hash2index(hash, hashmap->hashing.size);
@@ -732,8 +723,7 @@ void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, s
     }
     table->hashmap.buckets.access = current;
 
-    gcI_barrier(I, table, value);
-    current->pair.value = value;
+    current->pair.value = gcI_valbarrier(I, table, value);
 }
 
 struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index, bool *has) {
@@ -1034,7 +1024,6 @@ void tableI_packer_write_data(morphine_instance_t I, struct table *table, struct
     packerI_write_bool(W, table->mode.mutable);
     packerI_write_bool(W, table->mode.fixed);
     packerI_write_bool(W, table->mode.accessible);
-    packerI_write_bool(W, table->lock.metatable);
     packerI_write_bool(W, table->lock.mode);
 }
 
@@ -1064,10 +1053,6 @@ void tableI_packer_read_data(morphine_instance_t I, struct table *table, struct 
     tableI_mode_mutable(I, table, packerI_read_bool(R));
     tableI_mode_fixed(I, table, packerI_read_bool(R));
     tableI_mode_accessible(I, table, packerI_read_bool(R));
-
-    if (packerI_read_bool(R)) {
-        tableI_lock_metatable(I, table);
-    }
 
     if (packerI_read_bool(R)) {
         tableI_lock_mode(I, table);

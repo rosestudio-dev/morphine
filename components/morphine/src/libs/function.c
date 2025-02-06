@@ -257,17 +257,17 @@ static void mutable(morphine_coroutine_t U) {
             bool value = true;
             if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
-                maux_expect(U, MTYPE_FUNCTION);
+                maux_expect(U, mstr_type_function);
             } else {
                 maux_expect_args(U, 2);
 
                 mapi_push_arg(U, 1);
-                maux_expect(U, MTYPE_BOOLEAN);
+                maux_expect(U, mstr_type_boolean);
                 value = mapi_get_boolean(U);
                 mapi_pop(U, 1);
 
                 mapi_push_arg(U, 0);
-                maux_expect(U, MTYPE_FUNCTION);
+                maux_expect(U, mstr_type_function);
             }
 
             mapi_function_mode_mutable(U, value);
@@ -280,7 +280,7 @@ static void immutable(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, MTYPE_FUNCTION);
+            maux_expect(U, mstr_type_function);
 
             mapi_function_mode_mutable(U, false);
         maux_nb_return();
@@ -293,17 +293,17 @@ static void accessible(morphine_coroutine_t U) {
             bool value = true;
             if (mapi_args(U) == 1) {
                 mapi_push_arg(U, 0);
-                maux_expect(U, MTYPE_FUNCTION);
+                maux_expect(U, mstr_type_function);
             } else {
                 maux_expect_args(U, 2);
 
                 mapi_push_arg(U, 1);
-                maux_expect(U, MTYPE_BOOLEAN);
+                maux_expect(U, mstr_type_boolean);
                 value = mapi_get_boolean(U);
                 mapi_pop(U, 1);
 
                 mapi_push_arg(U, 0);
-                maux_expect(U, MTYPE_FUNCTION);
+                maux_expect(U, mstr_type_function);
             }
 
             mapi_function_mode_accessible(U, value);
@@ -316,7 +316,7 @@ static void inaccessible(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, MTYPE_FUNCTION);
+            maux_expect(U, mstr_type_function);
 
             mapi_function_mode_accessible(U, false);
         maux_nb_return();
@@ -328,7 +328,7 @@ static void lockmode(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, MTYPE_FUNCTION);
+            maux_expect(U, mstr_type_function);
 
             mapi_function_lock_mode(U);
         maux_nb_return();
@@ -340,7 +340,7 @@ static void ismutable(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, MTYPE_FUNCTION);
+            maux_expect(U, mstr_type_function);
 
             bool value = mapi_function_mode_is_mutable(U);
             mapi_push_boolean(U, value);
@@ -353,7 +353,7 @@ static void isaccessible(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, MTYPE_FUNCTION);
+            maux_expect(U, mstr_type_function);
 
             bool value = mapi_function_mode_is_accessible(U);
             mapi_push_boolean(U, value);
@@ -366,7 +366,7 @@ static void modeislocked(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
             mapi_push_arg(U, 0);
-            maux_expect(U, MTYPE_FUNCTION);
+            maux_expect(U, mstr_type_function);
 
             bool value = mapi_function_mode_is_locked(U);
             mapi_push_boolean(U, value);

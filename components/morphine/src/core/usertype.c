@@ -7,25 +7,18 @@
 #include "morphine/core/instance.h"
 #include "morphine/gc/allocator.h"
 
-struct usertype {
-    struct usertype_info info;
-    size_t references;
-
-    struct usertype *prev;
-};
+struct usertypes usertypeI_prototype(void) {
+    return (struct usertypes) {
+        .list = NULL
+    };
+}
 
 static void usertype_free(morphine_instance_t I, struct usertype *usertype) {
     allocI_free(I, usertype);
 }
 
-struct usertypes usertypeI_prototype(void) {
-    return (struct usertypes) {
-        .types = NULL
-    };
-}
-
 void usertypeI_free(morphine_instance_t I, struct usertypes *usertypes) {
-    struct usertype *usertype = usertypes->types;
+    struct usertype *usertype = usertypes->list;
     while (usertype != NULL) {
         struct usertype *prev = usertype->prev;
         usertype_free(I, usertype);
@@ -38,26 +31,26 @@ void usertypeI_declare(
     morphine_instance_t I,
     const char *name,
     size_t allocate,
-    bool require_metatable,
     mfunc_constructor_t constructor,
     mfunc_destructor_t destructor,
     mfunc_compare_t compare,
-    mfunc_hash_t hash
+    mfunc_hash_t hash,
+    struct table *metatable
 ) {
     if (valueI_is_type(I, name, true)) {
         throwI_error(I, "unavailable type name");
     }
 
     {
-        struct usertype *usertype = I->usertypes.types;
+        struct usertype *usertype = I->usertypes.list;
         while (usertype != NULL) {
-            if (strcmp(usertype->info.name, name) == 0) {
-                bool check = usertype->info.allocate == allocate &&
-                             usertype->info.constructor == constructor &&
-                             usertype->info.destructor == destructor &&
-                             usertype->info.compare == compare &&
-                             usertype->info.hash == hash &&
-                             usertype->info.require_metatable == require_metatable;
+            if (strcmp(usertype->name, name) == 0) {
+                bool check = usertype->allocate == allocate &&
+                             usertype->constructor == constructor &&
+                             usertype->destructor == destructor &&
+                             usertype->compare == compare &&
+                             usertype->hash == hash &&
+                             usertype->metatable == metatable;
 
                 if (check) {
                     return;
@@ -81,29 +74,26 @@ void usertypeI_declare(
 
     char *name_str = ((void *) usertype) + sizeof(struct usertype);
     (*usertype) = (struct usertype) {
-        .info.name = name_str,
-        .info.constructor = constructor,
-        .info.destructor = destructor,
-        .info.compare = compare,
-        .info.hash = hash,
-        .info.allocate = allocate,
-        .info.require_metatable = require_metatable,
-
-        .references = 0,
-
-        .prev = I->usertypes.types
+        .name = name_str,
+        .constructor = constructor,
+        .destructor = destructor,
+        .compare = compare,
+        .hash = hash,
+        .allocate = allocate,
+        .metatable = metatable,
+        .prev = I->usertypes.list
     };
 
     memcpy(name_str, name, sizeof(char) * name_len);
     name_str[name_len] = '\0';
 
-    I->usertypes.types = usertype;
+    I->usertypes.list = usertype;
 }
 
-bool usertypeI_is_declared(morphine_instance_t I, const char *name) {
-    struct usertype *usertype = I->usertypes.types;
+bool usertypeI_has(morphine_instance_t I, const char *name) {
+    struct usertype *usertype = I->usertypes.list;
     while (usertype != NULL) {
-        if (strcmp(usertype->info.name, name) == 0) {
+        if (strcmp(usertype->name, name) == 0) {
             return true;
         }
 
@@ -114,9 +104,9 @@ bool usertypeI_is_declared(morphine_instance_t I, const char *name) {
 }
 
 struct usertype *usertypeI_get(morphine_instance_t I, const char *name) {
-    struct usertype *usertype = I->usertypes.types;
+    struct usertype *usertype = I->usertypes.list;
     while (usertype != NULL) {
-        if (strcmp(usertype->info.name, name) == 0) {
+        if (strcmp(usertype->name, name) == 0) {
             return usertype;
         }
 
@@ -124,40 +114,4 @@ struct usertype *usertypeI_get(morphine_instance_t I, const char *name) {
     }
 
     throwI_error(I, "type isn't declared");
-}
-
-struct usertype_info usertypeI_info(morphine_instance_t I, struct usertype *usertype) {
-    if (usertype == NULL) {
-        throwI_error(I, "type is null");
-    }
-
-    return usertype->info;
-}
-
-void usertypeI_ref(morphine_instance_t I, struct usertype *usertype) {
-    if (usertype == NULL) {
-        throwI_error(I, "type is null");
-    }
-
-    usertype->references++;
-}
-
-void usertypeI_unref(morphine_instance_t I, struct usertype *usertype) {
-    if (usertype == NULL) {
-        throwI_error(I, "type is null");
-    }
-
-    if (usertype->references == 0) {
-        throwI_panic(I, "references of type was corrupted");
-    }
-
-    usertype->references--;
-}
-
-bool usertypeI_eq(struct usertype *a, struct usertype *b) {
-    if (a == NULL || b == NULL) {
-        return false;
-    }
-
-    return a == b;
 }

@@ -93,13 +93,10 @@ void iteratorI_init(
         default:
             throwI_panic(I, "unknown iterable type");
     }
+    gcI_valbarrier(I, iterator, iterator->next.key);
 
-    iterator->name.key = key_name;
-    iterator->name.value = value_name;
-
-    gcI_barrier(I, iterator, iterator->next.key);
-    gcI_barrier(I, iterator, key_name);
-    gcI_barrier(I, iterator, value_name);
+    iterator->name.key = gcI_valbarrier(I, iterator, key_name);
+    iterator->name.value = gcI_valbarrier(I, iterator, value_name);
 
     iterator->next.inited = true;
 }
@@ -151,9 +148,9 @@ struct pair iteratorI_next(morphine_instance_t I, struct iterator *iterator) {
             throwI_panic(I, "unknown iterable type");
     }
 
-    gcI_barrier(I, iterator, iterator->result.key);
-    gcI_barrier(I, iterator, iterator->result.value);
-    gcI_barrier(I, iterator, iterator->next.key);
+    gcI_valbarrier(I, iterator, iterator->result.key);
+    gcI_valbarrier(I, iterator, iterator->result.value);
+    gcI_valbarrier(I, iterator, iterator->next.key);
 
     return iterator->result;
 }

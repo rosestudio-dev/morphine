@@ -252,8 +252,7 @@ void exceptionI_stacktrace_record(morphine_instance_t I, struct exception *excep
         };
     }
 
-    exception->stacktrace.name = coroutine->name;
-    gcI_objbarrier(I, exception, coroutine->name);
+    exception->stacktrace.name = gcI_objbarrier(I, exception, coroutine->name);
 
     struct callframe *frame = coroutine->callstack.frame;
     for (ml_size i = 0; i < size; i++) {
@@ -290,9 +289,7 @@ void exceptionI_stacktrace_record(morphine_instance_t I, struct exception *excep
                 };
             }
 
-            if (element->name != NULL) {
-                gcI_objbarrier(I, exception, element->name);
-            }
+            gcI_objbarrier(I, exception, element->name);
 
             frame = frame->prev;
         }

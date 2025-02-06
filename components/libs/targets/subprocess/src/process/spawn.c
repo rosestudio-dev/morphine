@@ -143,16 +143,17 @@ static void process_destructor(morphine_instance_t I, void *data) {
 }
 
 static void process_type(morphine_coroutine_t U) {
-    mapi_type_declare(
-        mapi_instance(U),
-        MLIB_PROCESS_USERDATA_TYPE,
-        sizeof(struct process),
-        false,
-        process_constructor,
-        process_destructor,
-        NULL,
-        NULL
-    );
+    morphine_usertype_t usertype = {
+        .name = MLIB_PROCESS_USERDATA_TYPE,
+        .size = sizeof(struct process),
+        .constructor = process_constructor,
+        .destructor = process_destructor,
+        .compare = NULL,
+        .hash = NULL,
+        .metatable = false,
+    };
+
+    mapi_usertype_declare(U, usertype);
 }
 
 // api

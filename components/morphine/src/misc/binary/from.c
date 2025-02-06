@@ -83,7 +83,7 @@ static struct string *read_object_string(struct data *D) {
     ml_size size = get_ml_size(D);
 
     gcI_safe_enter(D->I);
-    struct userdata *userdata = gcI_safe_obj(D->I, userdata, userdataI_create_vec(D->I, size, sizeof(char)));
+    struct userdata *userdata = gcI_safe_obj(D->I, userdata, userdataI_create_vec(D->I, size, sizeof(char), NULL));
 
     char *buffer = userdata->data;
     for (ml_size i = 0; i < size; i++) {

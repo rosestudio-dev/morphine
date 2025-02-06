@@ -8,7 +8,6 @@
 #include "auxiliary/expect.h"
 #include "auxiliary/library.h"
 #include "auxiliary/localstorage.h"
-#include "auxiliary/metafield.h"
 #include "auxiliary/native.h"
 #include "auxiliary/nativebuilder.h"
 #include "auxiliary/opcode.h"

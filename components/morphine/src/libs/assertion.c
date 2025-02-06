@@ -61,7 +61,7 @@ static void lib_typecheck(morphine_coroutine_t U) {
             ml_size size = mapi_args(U) - 1;
             for (ml_size i = 0; i < size; i++) {
                 mapi_push_arg(U, i);
-                maux_expect(U, MTYPE_STRING);
+                maux_expect(U, mstr_type_string);
 
                 if (mapi_equal(U)) {
                     maux_nb_leave();

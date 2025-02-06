@@ -519,16 +519,17 @@ static void parser_userdata_destructor(morphine_instance_t I, void *data) {
 }
 
 MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U) {
-    mapi_type_declare(
-        mapi_instance(U),
-        MC_PARSER_USERDATA_TYPE,
-        sizeof(struct mc_parser),
-        false,
-        parser_userdata_constructor,
-        parser_userdata_destructor,
-        NULL,
-        NULL
-    );
+    morphine_usertype_t usertype = {
+        .name = MC_PARSER_USERDATA_TYPE,
+        .size = sizeof(struct mc_parser),
+        .constructor = parser_userdata_constructor,
+        .destructor = parser_userdata_destructor,
+        .compare = NULL,
+        .hash = NULL,
+        .metatable = false,
+    };
+
+    mapi_usertype_declare(U, usertype);
 
     struct mc_parser *P = mapi_push_userdata(U, MC_PARSER_USERDATA_TYPE);
     push_context(U, P, rule_root);

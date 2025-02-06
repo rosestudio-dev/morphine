@@ -119,8 +119,7 @@ void vectorI_set(morphine_instance_t I, struct vector *vector, ml_size index, st
         throwI_error(I, "vector index out of bounce");
     }
 
-    gcI_barrier(I, vector, value);
-    vector->values[index] = value;
+    vector->values[index] = gcI_valbarrier(I, vector, value);
 }
 
 void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, struct value value) {
@@ -157,8 +156,6 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
         gcI_safe_exit(I);
     }
 
-    gcI_barrier(I, vector, value);
-
     vector->size.accessible++;
     for (ml_size i = 0; i < vector->size.accessible - 1 - index; i++) {
         ml_size from = vector->size.accessible - i - 2;
@@ -166,7 +163,7 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
         vector->values[to] = vector->values[from];
     }
 
-    vector->values[index] = value;
+    vector->values[index] = gcI_valbarrier(I, vector, value);
 }
 
 bool vectorI_has(morphine_instance_t I, struct vector *vector, struct value value) {
@@ -281,7 +278,7 @@ struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
     memcpy(result->values, vector->values, ((size_t) size) * sizeof(struct value));
 
     for (ml_size i = 0; i < size; i++) {
-        gcI_barrier(I, result, result->values[i]);
+        gcI_valbarrier(I, result, result->values[i]);
     }
 
     result->mode.accessible = vector->mode.accessible;
@@ -310,7 +307,7 @@ struct vector *vectorI_concat(morphine_instance_t I, struct vector *a, struct ve
     memcpy(result->values + a->size.accessible, b->values, ((size_t) b->size.accessible) * sizeof(struct value));
 
     for (ml_size i = 0; i < size; i++) {
-        gcI_barrier(I, result, result->values[i]);
+        gcI_valbarrier(I, result, result->values[i]);
     }
 
     result->mode.accessible = a->mode.accessible;
@@ -417,7 +414,8 @@ void vectorI_sort(morphine_instance_t I, struct vector *vector) {
     gcI_safe_enter(I);
     gcI_safe(I, valueI_object(vector));
     ml_size mul2size = mm_overflow_opc_mul(vec_size, 2, throwI_error(I, "sort vector too big"));
-    struct userdata *userdata = gcI_safe_obj(I, userdata, userdataI_create_vec(I, mul2size, sizeof(struct value)));
+    struct userdata *userdata =
+        gcI_safe_obj(I, userdata, userdataI_create_vec(I, mul2size, sizeof(struct value), NULL));
 
     for (ml_size factor = 0; factor < (sizeof(factor) * 8); factor++) {
         ml_size mul = ((ml_size) 1) << factor;

@@ -124,7 +124,7 @@ static void read(morphine_coroutine_t U) {
             ml_size size = mapi_get_size(U, NULL);
             mapi_pop(U, 1);
 
-            uint8_t *buffer = mapi_push_userdata_uni(U, size);
+            uint8_t *buffer = mapi_push_userdata_uni(U, size, NULL, NULL, NULL);
             memset(buffer, 0, size);
 
             mapi_push_arg(U, 0);

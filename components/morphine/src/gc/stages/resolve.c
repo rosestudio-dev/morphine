@@ -115,11 +115,11 @@ static inline bool mark_stream(morphine_instance_t I) {
     return marked;
 }
 
-static inline bool mark_metatable(morphine_instance_t I) {
+static inline bool mark_metafields(morphine_instance_t I) {
     bool marked = false;
 
     for (mtype_metafield_t mf = MORPHINE_METAFIELDS_START; mf < MORPHINE_METAFIELDS_COUNT; mf++) {
-        if (mark_object(I, objectI_cast(I->metatable.names[mf]))) {
+        if (mark_object(I, objectI_cast(I->metafields[mf]))) {
             marked = true;
         }
     }
@@ -129,8 +129,9 @@ static inline bool mark_metatable(morphine_instance_t I) {
 
 static inline bool mark_libraries(morphine_instance_t I) {
     bool marked = false;
-    for (size_t i = 0; i < I->libraries.size; i++) {
-        struct library_instance *library = I->libraries.array + i;
+
+    struct library *library = I->libraries.list;
+    while (library != NULL) {
         if (library->name != NULL && mark_object(I, objectI_cast(library->name))) {
             marked = true;
         }
@@ -138,6 +139,23 @@ static inline bool mark_libraries(morphine_instance_t I) {
         if (library->table != NULL && mark_object(I, objectI_cast(library->table))) {
             marked = true;
         }
+
+        library = library->prev;
+    }
+
+    return marked;
+}
+
+static inline bool mark_usertypes(morphine_instance_t I) {
+    bool marked = false;
+
+    struct usertype *usertype = I->usertypes.list;
+    while (usertype != NULL) {
+        if (usertype->metatable != NULL && mark_object(I, objectI_cast(usertype->metatable))) {
+            marked = true;
+        }
+
+        usertype = usertype->prev;
     }
 
     return marked;
@@ -176,12 +194,14 @@ static inline bool mark_gc(morphine_instance_t I) {
 static inline bool mark(morphine_instance_t I) {
     bool sso_marked = mark_sso(I);
     bool stream_marked = mark_stream(I);
-    bool metatable_marked = mark_metatable(I);
+    bool metafields_marked = mark_metafields(I);
     bool libraries_marked = mark_libraries(I);
+    bool usertypes_marked = mark_usertypes(I);
     bool throw_marked = mark_throw(I);
     bool gc_marked = mark_gc(I);
 
-    return sso_marked || stream_marked || metatable_marked || libraries_marked || throw_marked || gc_marked;
+    return sso_marked || stream_marked || metafields_marked || usertypes_marked || libraries_marked || throw_marked
+           || gc_marked;
 }
 
 void gcstageI_resolve(morphine_instance_t I, bool emergency) {

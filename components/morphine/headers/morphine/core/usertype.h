@@ -6,9 +6,7 @@
 
 #include "morphine/platform.h"
 
-struct usertype;
-
-struct usertype_info {
+struct usertype {
     const char *name;
 
     size_t allocate;
@@ -16,11 +14,13 @@ struct usertype_info {
     mfunc_destructor_t destructor;
     mfunc_compare_t compare;
     mfunc_hash_t hash;
-    bool require_metatable;
+    struct table *metatable;
+
+    struct usertype *prev;
 };
 
 struct usertypes {
-    struct usertype *types;
+    struct usertype *list;
 };
 
 struct usertypes usertypeI_prototype(void);
@@ -30,16 +30,12 @@ void usertypeI_declare(
     morphine_instance_t,
     const char *name,
     size_t allocate,
-    bool require_metatable,
     mfunc_constructor_t,
     mfunc_destructor_t,
     mfunc_compare_t,
-    mfunc_hash_t
+    mfunc_hash_t,
+    struct table *metatable
 );
 
-bool usertypeI_is_declared(morphine_instance_t, const char *name);
+bool usertypeI_has(morphine_instance_t, const char *name);
 struct usertype *usertypeI_get(morphine_instance_t, const char *);
-struct usertype_info usertypeI_info(morphine_instance_t, struct usertype *);
-void usertypeI_ref(morphine_instance_t, struct usertype *);
-void usertypeI_unref(morphine_instance_t, struct usertype *);
-bool usertypeI_eq(struct usertype *, struct usertype *);

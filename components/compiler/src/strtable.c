@@ -41,17 +41,17 @@ static void strtable_userdata_destructor(morphine_instance_t I, void *data) {
 }
 
 MORPHINE_API struct mc_strtable *mcapi_push_strtable(morphine_coroutine_t U) {
-    mapi_type_declare(
-        mapi_instance(U),
-        MC_STRTABLE_USERDATA_TYPE,
-        sizeof(struct mc_strtable),
-        false,
-        strtable_userdata_constructor,
-        strtable_userdata_destructor,
-        NULL,
-        NULL
-    );
+    morphine_usertype_t usertype = {
+        .name = MC_STRTABLE_USERDATA_TYPE,
+        .size = sizeof(struct mc_strtable),
+        .constructor = strtable_userdata_constructor,
+        .destructor = strtable_userdata_destructor,
+        .compare = NULL,
+        .hash = NULL,
+        .metatable = false,
+    };
 
+    mapi_usertype_declare(U, usertype);
     return mapi_push_userdata(U, MC_STRTABLE_USERDATA_TYPE);
 }
 

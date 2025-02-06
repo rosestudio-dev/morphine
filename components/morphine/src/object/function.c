@@ -212,8 +212,7 @@ void functionI_constant_set(morphine_instance_t I, struct function *function, ml
         throwI_error(I, "unsupported constant type");
     }
 
-    gcI_barrier(I, function, value);
-    function->constants[index] = value;
+    function->constants[index] = gcI_valbarrier(I, function, value);
 }
 
 struct function *functionI_copy(morphine_instance_t I, struct function *function) {

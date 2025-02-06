@@ -34,9 +34,7 @@ struct instance {
     struct table *localstorage;
     struct table *sharedstorage;
 
-    struct {
-        struct string *names[MORPHINE_METAFIELDS_COUNT];
-    } metatable;
+    struct string *metafields[MORPHINE_METAFIELDS_COUNT];
 
     struct {
         struct stream *io;

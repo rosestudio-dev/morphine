@@ -46,17 +46,17 @@ static void ast_userdata_destructor(morphine_instance_t I, void *data) {
 }
 
 MORPHINE_API struct mc_ast *mcapi_push_ast(morphine_coroutine_t U) {
-    mapi_type_declare(
-        mapi_instance(U),
-        MC_AST_USERDATA_TYPE,
-        sizeof(struct mc_ast),
-        false,
-        ast_userdata_constructor,
-        ast_userdata_destructor,
-        NULL,
-        NULL
-    );
+    morphine_usertype_t usertype = {
+        .name = MC_AST_USERDATA_TYPE,
+        .size = sizeof(struct mc_ast),
+        .constructor = ast_userdata_constructor,
+        .destructor = ast_userdata_destructor,
+        .compare = NULL,
+        .hash = NULL,
+        .metatable = false,
+    };
 
+    mapi_usertype_declare(U, usertype);
     return mapi_push_userdata(U, MC_AST_USERDATA_TYPE);
 }
 

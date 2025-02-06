@@ -256,20 +256,21 @@ static void lib_raw_bigint_hash(morphine_coroutine_t U) {
 
 static void bigint_metatable_wrap(morphine_coroutine_t U) {
     maux_construct_element_t metatable_elements[] = {
-        MAUX_CONSTRUCT_STRING(maux_metafield_name(U, MTYPE_METAFIELD_TYPE), BIGINT_WRAPPED_TYPE),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_ADD), lib_bigint_add),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_SUB), lib_bigint_sub),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_MUL), lib_bigint_mul),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_DIV), lib_bigint_div),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_MOD), lib_bigint_mod),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_LESS), lib_bigint_less),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_EQUAL), lib_bigint_equal),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_NEGATE), lib_bigint_negate),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_TO_STRING), lib_bigint_tostring),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_COMPARE), lib_bigint_compare),
-        MAUX_CONSTRUCT_FUNCTION(maux_metafield_name(U, MTYPE_METAFIELD_HASH), lib_bigint_hash),
-        MAUX_CONSTRUCT_NIL(maux_metafield_name(U, MTYPE_METAFIELD_MASK)),
-        MAUX_CONSTRUCT_END
+        MAUX_CONSTRUCT_STRING(mstr_mf_type, BIGINT_WRAPPED_TYPE),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_add, lib_bigint_add),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_sub, lib_bigint_sub),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_mul, lib_bigint_mul),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_div, lib_bigint_div),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_mod, lib_bigint_mod),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_less, lib_bigint_less),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_equal, lib_bigint_equal),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_negate, lib_bigint_negate),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_tostr, lib_bigint_tostring),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_compare, lib_bigint_compare),
+        MAUX_CONSTRUCT_FUNCTION(mstr_mf_hash, lib_bigint_hash),
+        MAUX_CONSTRUCT_BOOLEAN(mstr_mf_lock, true),
+        MAUX_CONSTRUCT_NIL(mstr_mf_mask),
+        MAUX_CONSTRUCT_END,
     };
 
     mapi_push_table(U);
@@ -281,7 +282,6 @@ static void bigint_metatable_wrap(morphine_coroutine_t U) {
 
     mapi_set_metatable(U);
     mapi_table_mode_mutable(U, false);
-    mapi_table_lock_metatable(U);
     mapi_table_lock_mode(U);
 
     mapi_rotate(U, 2);

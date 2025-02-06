@@ -6,16 +6,16 @@
 
 #include "morphine/platform.h"
 
-struct library_instance {
+struct library {
     mfunc_native_t init;
     struct string *name;
     struct table *table;
+
+    struct library *prev;
 };
 
 struct libraries {
-    size_t allocated;
-    size_t size;
-    struct library_instance *array;
+    struct library *list;
 };
 
 struct libraries librariesI_prototype(void);

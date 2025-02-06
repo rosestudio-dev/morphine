@@ -112,10 +112,8 @@ struct closure *closureI_packer_read_info(morphine_instance_t I, mattr_unused st
 
 void closureI_packer_read_data(morphine_instance_t I, struct closure *closure, struct packer_read *R) {
     struct value callable = callstackI_extract_callable(I, packerI_read_value(R));
-    gcI_barrier(I, closure, callable);
-    closure->callable = callable;
+    closure->callable = gcI_valbarrier(I, closure, callable);
 
     struct value value = packerI_read_value(R);
-    gcI_barrier(I, closure, value);
-    closure->value = value;
+    closure->value = gcI_valbarrier(I, closure, value);
 }

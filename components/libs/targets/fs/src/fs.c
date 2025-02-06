@@ -311,16 +311,17 @@ static void safedir_destructor(morphine_instance_t I, void *p) {
 }
 
 static struct safedir *create_safedir(morphine_coroutine_t U, const char *path) {
-    mapi_type_declare(
-        mapi_instance(U),
-        SAFEDIR_TYPE,
-        sizeof(struct safedir),
-        false,
-        safedir_constructor,
-        safedir_destructor,
-        NULL,
-        NULL
-    );
+    morphine_usertype_t type = {
+        .name = SAFEDIR_TYPE,
+        .size = sizeof(struct safedir),
+        .constructor = safedir_constructor,
+        .destructor = safedir_destructor,
+        .compare = NULL,
+        .hash = NULL,
+        .metatable = false,
+    };
+
+    mapi_usertype_declare(U, type);
 
     struct safedir *D = mapi_push_userdata(U, SAFEDIR_TYPE);
     D->dir = opendir(path);
@@ -417,13 +418,8 @@ static void lib_pwd(morphine_coroutine_t U) {
             maux_expect_args(U, 0);
 
             size_t size = MAXPATHLEN;
-            char *path = NULL;
             while (true) {
-                if (path == NULL) {
-                    path = mapi_push_userdata_vec(U, size, sizeof(char));
-                } else {
-                    path = mapi_userdata_resize_vec(U, size, sizeof(char));
-                }
+                char *path = mapi_push_userdata_vec(U, size, sizeof(char), NULL);
 
                 if (getcwd(path, size) != NULL) {
                     size_t len = strlen(path);
@@ -437,6 +433,7 @@ static void lib_pwd(morphine_coroutine_t U) {
                 }
 
                 size *= 2;
+                mapi_pop(U, 1);
             }
     maux_nb_end
 }

@@ -12,17 +12,6 @@
 #define INITIAL_SEED (7953)
 
 static mtrand_t *push_rand(morphine_coroutine_t U) {
-    mapi_type_declare(
-        mapi_instance(U),
-        RAND_TYPE,
-        sizeof(mtrand_t),
-        false,
-        NULL,
-        NULL,
-        NULL,
-        NULL
-    );
-
     mtrand_t *rand = mapi_push_userdata(U, RAND_TYPE);
     *rand = mtrand_get(INITIAL_SEED);
 
@@ -248,7 +237,7 @@ static void math_max(morphine_coroutine_t U) {
             maux_expect_args(U, 2);
 
             mapi_push_arg(U, 0);
-            if(mapi_is_type(U, MTYPE_DECIMAL)) {
+            if(mapi_is_type(U, mstr_type_decimal)) {
                 mapi_to_decimal(U);
                 ml_decimal a = mapi_get_decimal(U);
 
@@ -277,7 +266,7 @@ static void math_min(morphine_coroutine_t U) {
         maux_expect_args(U, 2);
 
         mapi_push_arg(U, 0);
-        if(mapi_is_type(U, MTYPE_DECIMAL)) {
+        if(mapi_is_type(U, mstr_type_decimal)) {
             mapi_to_decimal(U);
             ml_decimal a = mapi_get_decimal(U);
 
@@ -437,6 +426,18 @@ static maux_construct_element_t elements[] = {
 };
 
 static void library_init(morphine_coroutine_t U) {
+    morphine_usertype_t usertype = {
+        .name = RAND_TYPE,
+        .size = sizeof(mtrand_t),
+        .constructor = NULL,
+        .destructor = NULL,
+        .compare = NULL,
+        .hash = NULL,
+        .metatable = false,
+    };
+
+    mapi_usertype_declare(U, usertype);
+
     push_rand(U);
     maux_sharedstorage_set(U, SHAREDKEY, "rand-data");
     maux_construct(U, elements);

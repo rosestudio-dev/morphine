@@ -17,7 +17,7 @@ static void lib_delay(morphine_coroutine_t U) {
         maux_nb_init();
             maux_expect_args(U, 1);
 
-            uint64_t *time = mapi_push_userdata_uni(U, sizeof(uint64_t));
+            uint64_t *time = mapi_push_userdata_uni(U, sizeof(uint64_t), NULL, NULL, NULL);
             *time = get_millis();
             maux_nb_im_continue(1);
         maux_nb_state(1);

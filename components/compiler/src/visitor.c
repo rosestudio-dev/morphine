@@ -263,16 +263,17 @@ static void visitor_userdata_destructor(morphine_instance_t I, void *data) {
 }
 
 MORPHINE_API struct mc_visitor *mcapi_push_visitor(morphine_coroutine_t U) {
-    mapi_type_declare(
-        mapi_instance(U),
-        MC_VISITOR_USERDATA_TYPE,
-        sizeof(struct mc_visitor),
-        false,
-        visitor_userdata_constructor,
-        visitor_userdata_destructor,
-        NULL,
-        NULL
-    );
+    morphine_usertype_t usertype = {
+        .name = MC_VISITOR_USERDATA_TYPE,
+        .size = sizeof(struct mc_visitor),
+        .constructor = visitor_userdata_constructor,
+        .destructor = visitor_userdata_destructor,
+        .compare = NULL,
+        .hash = NULL,
+        .metatable = false,
+    };
+
+    mapi_usertype_declare(U, usertype);
 
     return mapi_push_userdata(U, MC_VISITOR_USERDATA_TYPE);
 }

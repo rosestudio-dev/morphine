@@ -121,3 +121,15 @@ typedef struct {
     const char *sharedkey;
     mfunc_native_t init;
 } morphine_library_t;
+
+// usertype
+
+typedef struct {
+    const char *name;
+    size_t size;
+    mfunc_constructor_t constructor;
+    mfunc_destructor_t destructor;
+    mfunc_compare_t compare;
+    mfunc_hash_t hash;
+    bool metatable;
+} morphine_usertype_t;
