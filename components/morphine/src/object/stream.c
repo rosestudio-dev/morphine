@@ -50,7 +50,12 @@ struct stream *streamI_create(
     return result;
 }
 
-static inline void close(morphine_instance_t I, struct stream *stream, bool force) {
+void streamI_free(morphine_instance_t I, struct stream *stream) {
+    streamI_close(I, stream, true);
+    allocI_free(I, stream);
+}
+
+void streamI_close(morphine_instance_t I, struct stream *stream, bool force) {
     if (!force && !stream->opened) {
         throwI_error(I, "stream already closed");
     }
@@ -65,24 +70,7 @@ static inline void close(morphine_instance_t I, struct stream *stream, bool forc
     }
 }
 
-void streamI_free(morphine_instance_t I, struct stream *stream) {
-    close(I, stream, true);
-    allocI_free(I, stream);
-}
-
-void streamI_close(morphine_instance_t I, struct stream *stream, bool force) {
-    if (stream == NULL) {
-        throwI_error(I, "stream is null");
-    }
-
-    close(I, stream, force);
-}
-
 static void checks(morphine_instance_t I, struct stream *stream) {
-    if (stream == NULL) {
-        throwI_error(I, "stream is null");
-    }
-
     if (!stream->opened) {
         throwI_error(I, "stream isn't opened");
     }

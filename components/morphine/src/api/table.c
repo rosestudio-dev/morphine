@@ -47,7 +47,7 @@ MORPHINE_API void mapi_table_mode_accessible(morphine_coroutine_t U, bool is_acc
 
 MORPHINE_API void mapi_table_lock_mode(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 0));
-    tableI_lock_mode(U->I, table);
+    tableI_lock_mode(table);
 }
 
 MORPHINE_API bool mapi_table_mode_is_mutable(morphine_coroutine_t U) {
@@ -187,7 +187,7 @@ MORPHINE_API void mapi_table_removeoe(morphine_coroutine_t U) {
 }
 
 MORPHINE_API ml_size mapi_table_len(morphine_coroutine_t U) {
-    return tableI_size(U->I, valueI_as_table_or_error(U->I, stackI_peek(U, 0)));
+    return tableI_size(valueI_as_table_or_error(U->I, stackI_peek(U, 0)));
 }
 
 MORPHINE_API bool mapi_table_first(morphine_coroutine_t U) {

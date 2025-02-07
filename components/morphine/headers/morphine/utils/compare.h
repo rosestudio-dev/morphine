@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/platform.h"
+#include <stddef.h>
 
 #define smpcmp(a, b) ((a) == (b) ? 0 : ((a) < (b) ? -1 : 1))
-int arrcmp(morphine_instance_t, const void *, const void *, size_t, size_t, size_t);
+int arrcmp(const void *, const void *, size_t, size_t);

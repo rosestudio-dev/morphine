@@ -140,8 +140,6 @@ MORPHINE_API struct mc_lex *mcapi_push_lex(morphine_coroutine_t U) {
         .size = sizeof(struct mc_lex),
         .constructor = lex_userdata_constructor,
         .destructor = lex_userdata_destructor,
-        .compare = NULL,
-        .hash = NULL,
         .metatable = false,
     };
 
@@ -583,7 +581,7 @@ static struct mc_lex_token lex_string(
     ml_size saved_pos = L->pos;
 
     size_t size = handle_string(U, L, NULL);
-    char *str = mapi_push_userdata_vec(U, size, sizeof(char), NULL);
+    char *str = mapi_push_userdata_vec(U, size, sizeof(char), NULL, NULL);
     memset(str, 0, size);
 
     L->pos = saved_pos;

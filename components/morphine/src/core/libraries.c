@@ -38,7 +38,7 @@ void librariesI_load(morphine_instance_t I, morphine_library_t library) {
     {
         struct library *current = I->libraries.list;
         while (current != NULL) {
-            if (stringI_cstr_compare(I, current->name, library.name) == 0) {
+            if (stringI_cstr_compare(current->name, library.name) == 0) {
                 throwI_error(I, "library already loaded");
             }
 
@@ -87,7 +87,7 @@ static struct table *init_library(morphine_coroutine_t U, mfunc_native_t init) {
 struct value librariesI_get(morphine_coroutine_t U, const char *name) {
     struct library *library = U->I->libraries.list;
     while (library != NULL) {
-        if (stringI_cstr_compare(U->I, library->name, name) == 0) {
+        if (stringI_cstr_compare(library->name, name) == 0) {
             break;
         }
 

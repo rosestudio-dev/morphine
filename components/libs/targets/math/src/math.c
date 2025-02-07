@@ -431,8 +431,6 @@ static void library_init(morphine_coroutine_t U) {
         .size = sizeof(mtrand_t),
         .constructor = NULL,
         .destructor = NULL,
-        .compare = NULL,
-        .hash = NULL,
         .metatable = false,
     };
 

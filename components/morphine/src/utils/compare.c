@@ -3,13 +3,9 @@
 //
 
 #include "morphine/utils/compare.h"
-#include "morphine/utils/overflow.h"
-#include "morphine/core/throw.h"
+#include <stdint.h>
 
-int arrcmp(morphine_instance_t I, const void *a, const void *b, size_t a_size, size_t b_size, size_t mul) {
-    a_size = mm_overflow_opc_mul(a_size, mul, throwI_error(I, "compare size overflow"));
-    b_size = mm_overflow_opc_mul(b_size, mul, throwI_error(I, "compare size overflow"));
-
+int arrcmp(const void *a, const void *b, size_t a_size, size_t b_size) {
     if (a_size != b_size) {
         return smpcmp(a_size, b_size);
     }

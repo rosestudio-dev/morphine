@@ -75,9 +75,9 @@ void tableI_free(morphine_instance_t, struct table *);
 void tableI_mode_fixed(morphine_instance_t, struct table *, bool is_fixed);
 void tableI_mode_mutable(morphine_instance_t, struct table *, bool is_mutable);
 void tableI_mode_accessible(morphine_instance_t, struct table *, bool is_accessible);
-void tableI_lock_mode(morphine_instance_t, struct table *);
+void tableI_lock_mode(struct table *);
 
-ml_size tableI_size(morphine_instance_t, struct table *);
+ml_size tableI_size(struct table *);
 void tableI_set(morphine_instance_t, struct table *, struct value key, struct value value);
 bool tableI_has(morphine_instance_t, struct table *, struct value key);
 struct value tableI_get(morphine_instance_t, struct table *, struct value key, bool *has);

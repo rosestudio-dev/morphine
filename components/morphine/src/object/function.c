@@ -57,10 +57,7 @@ struct function *functionI_create(
         .params_count = params_count,
         .constants = NULL,
         .instructions = NULL,
-        .stack_size = stack_size,
-        .mode.mutable = true,
-        .mode.accessible = true,
-        .lock.mode = false
+        .stack_size = stack_size
     };
 
     objectI_init(I, objectI_cast(result), OBJ_TYPE_FUNCTION);
@@ -97,47 +94,7 @@ void functionI_free(morphine_instance_t I, struct function *function) {
     allocI_free(I, function);
 }
 
-void functionI_mode_mutable(morphine_instance_t I, struct function *function, bool is_mutable) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
-    }
-
-    if (function->lock.mode) {
-        throwI_error(I, "function is locked");
-    }
-
-    function->mode.mutable = is_mutable;
-}
-
-void functionI_mode_accessible(morphine_instance_t I, struct function *function, bool is_accessible) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
-    }
-
-    if (function->lock.mode) {
-        throwI_error(I, "function is locked");
-    }
-
-    function->mode.accessible = is_accessible;
-}
-
-void functionI_lock_mode(morphine_instance_t I, struct function *function) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
-    }
-
-    function->lock.mode = true;
-}
-
 morphine_instruction_t functionI_instruction_get(morphine_instance_t I, struct function *function, ml_size index) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
-    }
-
-    if (!function->mode.accessible) {
-        throwI_error(I, "function is inaccessible");
-    }
-
     if (index >= function->instructions_count) {
         throwI_error(I, "instruction index was out of bounce");
     }
@@ -151,14 +108,6 @@ void functionI_instruction_set(
     ml_size index,
     morphine_instruction_t instruction
 ) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
-    }
-
-    if (!function->mode.mutable) {
-        throwI_error(I, "function is immutable");
-    }
-
     if (index >= function->instructions_count) {
         throwI_error(I, "instruction index was out of bounce");
     }
@@ -177,14 +126,6 @@ void functionI_instruction_set(
 }
 
 struct value functionI_constant_get(morphine_instance_t I, struct function *function, ml_size index) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
-    }
-
-    if (!function->mode.accessible) {
-        throwI_error(I, "function is inaccessible");
-    }
-
     if (index >= function->constants_count) {
         throwI_error(I, "constant index was out of bounce");
     }
@@ -193,14 +134,6 @@ struct value functionI_constant_get(morphine_instance_t I, struct function *func
 }
 
 void functionI_constant_set(morphine_instance_t I, struct function *function, ml_size index, struct value value) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
-    }
-
-    if (!function->mode.mutable) {
-        throwI_error(I, "function is immutable");
-    }
-
     if (index >= function->constants_count) {
         throwI_error(I, "constant index was out of bounce");
     }
@@ -216,14 +149,6 @@ void functionI_constant_set(morphine_instance_t I, struct function *function, ml
 }
 
 struct function *functionI_copy(morphine_instance_t I, struct function *function) {
-    if (function == NULL) {
-        throwI_error(I, "function is null");
-    }
-
-    if (!function->mode.accessible) {
-        throwI_error(I, "function is inaccessible");
-    }
-
     gcI_safe_enter(I);
     gcI_safe(I, valueI_object(function));
     struct function *result = functionI_create(
@@ -247,29 +172,20 @@ struct function *functionI_copy(morphine_instance_t I, struct function *function
         functionI_constant_set(I, result, i, value);
     }
 
-    result->mode.accessible = function->mode.accessible;
-    result->mode.mutable = function->mode.mutable;
-
     gcI_safe_exit(I);
 
     return result;
 }
 
 void functionI_packer_vectorize(morphine_instance_t I, struct function *function, struct packer_vectorize *V) {
-    if (!function->mode.accessible) {
-        throwI_error(I, "function is inaccessible");
-    }
-
+    (void) I;
     for (ml_size i = 0; i < function->constants_count; i++) {
         packerI_vectorize_append(V, function->constants[i]);
     }
 }
 
 void functionI_packer_write_info(morphine_instance_t I, struct function *function, struct packer_write *W) {
-    if (!function->mode.accessible) {
-        throwI_error(I, "function is inaccessible");
-    }
-
+    (void) I;
     packerI_write_ml_line(W, function->line);
     packerI_write_ml_size(W, function->instructions_count);
     packerI_write_ml_size(W, function->constants_count);
@@ -279,10 +195,7 @@ void functionI_packer_write_info(morphine_instance_t I, struct function *functio
 }
 
 void functionI_packer_write_data(morphine_instance_t I, struct function *function, struct packer_write *W) {
-    if (!function->mode.accessible) {
-        throwI_error(I, "function is inaccessible");
-    }
-
+    (void) I;
     for (ml_size i = 0; i < function->instructions_count; i++) {
         morphine_instruction_t instruction = function->instructions[i];
         packerI_write_opcode(W, instruction.opcode);
@@ -321,10 +234,6 @@ void functionI_packer_write_data(morphine_instance_t I, struct function *functio
     for (ml_size i = 0; i < function->constants_count; i++) {
         packerI_write_value(W, function->constants[i]);
     }
-
-    packerI_write_bool(W, function->mode.mutable);
-    packerI_write_bool(W, function->mode.accessible);
-    packerI_write_bool(W, function->lock.mode);
 }
 
 struct function *functionI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
@@ -398,12 +307,5 @@ void functionI_packer_read_data(morphine_instance_t I, struct function *function
         struct value value = gcI_safe(I, packerI_read_value(R));
         functionI_constant_set(I, function, i, value);
         gcI_safe_exit(I);
-    }
-
-    functionI_mode_mutable(I, function, packerI_read_bool(R));
-    functionI_mode_accessible(I, function, packerI_read_bool(R));
-
-    if (packerI_read_bool(R)) {
-        functionI_lock_mode(I, function);
     }
 }

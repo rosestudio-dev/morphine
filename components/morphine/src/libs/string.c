@@ -103,7 +103,7 @@ static void from(morphine_coroutine_t U) {
                 size = mapi_args(U);
             }
 
-            char *result = mapi_push_userdata_vec(U, size, sizeof(char), NULL);
+            char *result = mapi_push_userdata_vec(U, size, sizeof(char), NULL, NULL);
             mapi_rotate(U, 2);
 
             for (ml_size i = 0; i < size; i++) {
@@ -267,7 +267,7 @@ static void tolowercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (len > 0) {
-                char *result = mapi_push_userdata_vec(U, len, sizeof(char), NULL);
+                char *result = mapi_push_userdata_vec(U, len, sizeof(char), NULL, NULL);
 
                 for (ml_size i = 0; i < len; i++) {
                     result[i] = mm_ctype_tolower(string[i]);
@@ -295,7 +295,7 @@ static void touppercase(morphine_coroutine_t U) {
             mapi_pop(U, 1);
 
             if (len > 0) {
-                char *result = mapi_push_userdata_vec(U, len, sizeof(char), NULL);
+                char *result = mapi_push_userdata_vec(U, len, sizeof(char), NULL, NULL);
 
                 for (ml_size i = 0; i < len; i++) {
                     result[i] = mm_ctype_toupper(string[i]);

@@ -245,7 +245,7 @@ MORPHINE_AUX void maux_stream_read_all(morphine_coroutine_t U) {
         mapi_error(U, "cannot read all");
     }
 
-    char *buffer = mapi_push_userdata_vec(U, size, sizeof(char), NULL);
+    char *buffer = mapi_push_userdata_vec(U, size, sizeof(char), NULL, NULL);
 
     mapi_rotate(U, 2);
 

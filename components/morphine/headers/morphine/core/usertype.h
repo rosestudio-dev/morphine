@@ -12,8 +12,6 @@ struct usertype {
     size_t allocate;
     mfunc_constructor_t constructor;
     mfunc_destructor_t destructor;
-    mfunc_compare_t compare;
-    mfunc_hash_t hash;
     struct table *metatable;
 
     struct usertype *prev;
@@ -32,8 +30,6 @@ void usertypeI_declare(
     size_t allocate,
     mfunc_constructor_t,
     mfunc_destructor_t,
-    mfunc_compare_t,
-    mfunc_hash_t,
     struct table *metatable
 );
 

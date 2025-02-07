@@ -81,33 +81,12 @@ static void bigint_userdata_destructor(morphine_instance_t I, void *data) {
     mapi_allocator_free(I, bigint->digits);
 }
 
-static int bigint_userdata_compare(morphine_instance_t I, void *a, void *b) {
-    (void) I;
-    struct mlib_bigint *bigint_a = a;
-    struct mlib_bigint *bigint_b = b;
-
-    return bigint_raw_compare(bigint_a, bigint_b);
-}
-
-static ml_hash bigint_userdata_hash(morphine_instance_t I, void *data) {
-    (void) I;
-    struct mlib_bigint *bigint = data;
-
-    ml_hash result = mapi_misc_hash(bigint->digits, bigint->size);
-    result ^= mapi_misc_hash((const uint8_t *) &bigint->size, sizeof(bigint->size));
-    result ^= mapi_misc_hash((const uint8_t *) &bigint->is_negative, sizeof(bigint->is_negative));
-
-    return result;
-}
-
 static struct mlib_bigint *bigint_userdata(morphine_coroutine_t U) {
     morphine_usertype_t type = {
         .name = MLIB_BIGINT_USERDATA_TYPE,
         .size = sizeof(struct mlib_bigint),
         .constructor = bigint_userdata_constructor,
         .destructor = bigint_userdata_destructor,
-        .compare = bigint_userdata_compare,
-        .hash = bigint_userdata_hash,
         .metatable = false,
     };
 
@@ -449,7 +428,12 @@ MORPHINE_API int mlapi_bigint_compare(struct mlib_bigint *bigintA, struct mlib_b
 }
 
 MORPHINE_API ml_hash mlapi_bigint_hash(morphine_coroutine_t U, struct mlib_bigint *bigint) {
-    return bigint_userdata_hash(mapi_instance(U), bigint);
+    (void) U;
+    ml_hash result = mapi_misc_hash(bigint->digits, bigint->size);
+    result ^= mapi_misc_hash((const uint8_t *) &bigint->size, sizeof(bigint->size));
+    result ^= mapi_misc_hash((const uint8_t *) &bigint->is_negative, sizeof(bigint->is_negative));
+
+    return result;
 }
 
 MORPHINE_API struct mlib_bigint *mlapi_bigint_add(

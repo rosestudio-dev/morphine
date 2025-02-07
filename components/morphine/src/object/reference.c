@@ -28,18 +28,10 @@ void referenceI_free(morphine_instance_t I, struct reference *reference) {
     allocI_free(I, reference);
 }
 
-struct value *referenceI_get(morphine_instance_t I, struct reference *reference) {
-    if (reference == NULL) {
-        throwI_error(I, "reference is null");
-    }
-
+struct value *referenceI_get(struct reference *reference) {
     return &reference->value;
 }
 
-void referenceI_set(morphine_instance_t I, struct reference *reference, struct value value) {
-    if (reference == NULL) {
-        throwI_error(I, "reference is null");
-    }
-
+void referenceI_set(struct reference *reference, struct value value) {
     reference->value = value;
 }

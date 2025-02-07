@@ -23,15 +23,6 @@ struct function {
     struct value *constants;
 
     ml_size stack_size;
-
-    struct {
-        bool mutable;
-        bool accessible;
-    } mode;
-
-    struct {
-        bool mode;
-    } lock;
 };
 
 struct function *functionI_create(
@@ -45,10 +36,6 @@ struct function *functionI_create(
 );
 
 void functionI_free(morphine_instance_t, struct function *);
-
-void functionI_mode_mutable(morphine_instance_t, struct function *, bool is_mutable);
-void functionI_mode_accessible(morphine_instance_t, struct function *, bool is_accessible);
-void functionI_lock_mode(morphine_instance_t, struct function *);
 
 morphine_instruction_t functionI_instruction_get(morphine_instance_t, struct function *, ml_size index);
 void functionI_instruction_set(morphine_instance_t, struct function *, ml_size index, morphine_instruction_t);

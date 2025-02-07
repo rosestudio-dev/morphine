@@ -330,7 +330,7 @@ const char *throwI_message(morphine_instance_t I) {
             struct string *string = valueI_safe_as_string(throw->error.value, NULL);
             throw->error.value = valueI_nil;
 
-            if (string != NULL && stringI_is_cstr_compatible(I, string)) {
+            if (string != NULL && stringI_is_cstr(string)) {
                 return string->chars;
             }
 

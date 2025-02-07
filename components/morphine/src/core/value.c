@@ -28,9 +28,8 @@ int valueI_compare(morphine_instance_t I, struct value a, struct value b) {
         case VALUE_TYPE_RAW:
             return smpcmp(a.raw, b.raw);
         case VALUE_TYPE_STRING:
-            return stringI_compare(I, valueI_as_string(a), valueI_as_string(b));
+            return stringI_compare(valueI_as_string(a), valueI_as_string(b));
         case VALUE_TYPE_USERDATA:
-            return userdataI_compare(I, valueI_as_userdata(a), valueI_as_userdata(b));
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_VECTOR:
         case VALUE_TYPE_CLOSURE:
@@ -67,9 +66,8 @@ ml_hash valueI_hash(morphine_instance_t I, struct value value) {
         case VALUE_TYPE_RAW:
             return uintptr2hash(valueI_as_raw(value));
         case VALUE_TYPE_STRING:
-            return stringI_hash(I, valueI_as_string(value));
+            return stringI_hash(valueI_as_string(value));
         case VALUE_TYPE_USERDATA:
-            return userdataI_hash(I, valueI_as_userdata(value));
         case VALUE_TYPE_TABLE:
         case VALUE_TYPE_VECTOR:
         case VALUE_TYPE_CLOSURE:

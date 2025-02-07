@@ -35,7 +35,7 @@ static void vectorize_append(struct data *D, struct value value) {
     tableI_get(D->I, D->table, value, &has);
 
     if (!has) {
-        struct value index = valueI_integer(tableI_size(D->I, D->table));
+        struct value index = valueI_integer(tableI_size(D->table));
         tableI_set(D->I, D->table, value, index);
     }
 }
@@ -133,7 +133,7 @@ static void vectorize(struct data *D) {
 
     vectorize_append(D, D->value);
 
-    for (ml_size index = 0; index < tableI_size(D->I, D->table); index++) {
+    for (ml_size index = 0; index < tableI_size(D->table); index++) {
         bool has = false;
         struct pair pair = tableI_idx_get(D->I, D->table, index, &has);
 
@@ -190,14 +190,14 @@ static void write_head(struct data *D) {
     write_format_tag(D);
     write_prob(D);
 
-    write_ml_size(D, tableI_size(D->I, D->table));
+    write_ml_size(D, tableI_size(D->table));
     write_ml_size(D, 0);
 }
 
 static void write_objects_info(struct data *D) {
     struct packer_write write = { .D = D };
 
-    ml_size size = tableI_size(D->I, D->table);
+    ml_size size = tableI_size(D->table);
     for (ml_size index = 0; index < size; index++) {
         bool has = false;
         struct pair pair = tableI_idx_get(D->I, D->table, index, &has);
@@ -226,7 +226,7 @@ static void write_objects_info(struct data *D) {
 static void write_objects_data(struct data *D) {
     struct packer_write write = { .D = D };
 
-    ml_size size = tableI_size(D->I, D->table);
+    ml_size size = tableI_size(D->table);
     for (ml_size index = 0; index < size; index++) {
         bool has = false;
         struct pair pair = tableI_idx_get(D->I, D->table, index, &has);

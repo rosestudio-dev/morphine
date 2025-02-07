@@ -29,6 +29,8 @@ static struct string *create(morphine_instance_t I, ml_size size, char **buffer)
         .chars = str_p,
         .hash.calculated = false,
         .hash.value = 0,
+        .is_cstr.calculated = false,
+        .is_cstr.value = false,
     };
 
     memset(str_p, 0, raw_size);
@@ -117,10 +119,6 @@ void stringI_free(morphine_instance_t I, struct string *string) {
 }
 
 struct string *stringI_get(morphine_instance_t I, struct string *string, ml_size index) {
-    if (string == NULL) {
-        throwI_error(I, "string is null");
-    }
-
     if (index >= string->size) {
         throwI_error(I, "string index out of bounce");
     }
@@ -129,10 +127,6 @@ struct string *stringI_get(morphine_instance_t I, struct string *string, ml_size
 }
 
 struct string *stringI_concat(morphine_instance_t I, struct string *a, struct string *b) {
-    if (a == NULL || b == NULL) {
-        throwI_error(I, "string is null");
-    }
-
     ml_size size = mm_overflow_opc_add(a->size, b->size, throwI_error(I, "too big concat string length"));
     if (size <= MPARAM_SSO_MAX_LEN) {
         char buffer[MPARAM_SSO_MAX_LEN];
@@ -155,30 +149,18 @@ struct string *stringI_concat(morphine_instance_t I, struct string *a, struct st
     return result;
 }
 
-int stringI_compare(morphine_instance_t I, struct string *a, struct string *b) {
-    if (a == NULL || b == NULL) {
-        throwI_error(I, "string is null");
-    }
-
-    return arrcmp(I, a->chars, b->chars, a->size, b->size, sizeof(char));
+int stringI_compare(struct string *a, struct string *b) {
+    return arrcmp(a->chars, b->chars, ((size_t) a->size) * sizeof(char), ((size_t) b->size) * sizeof(char));
 }
 
-int stringI_cstr_compare(morphine_instance_t I, struct string *a, const char *b) {
-    if (a == NULL || b == NULL) {
-        throwI_error(I, "string is null");
-    }
-
+int stringI_cstr_compare(struct string *a, const char *b) {
     size_t b_size = strlen(b);
-    return arrcmp(I, a->chars, b, a->size, b_size, sizeof(char));
+    return arrcmp(a->chars, b, ((size_t) a->size) * sizeof(char), ((size_t) b_size) * sizeof(char));
 }
 
-bool stringI_is_cstr_compatible(morphine_instance_t I, struct string *string) {
-    if (string == NULL) {
-        throwI_error(I, "string is null");
-    }
-
-    if (string->is_cstr_compatible.calculated) {
-        return string->is_cstr_compatible.value;
+bool stringI_is_cstr(struct string *string) {
+    if (string->is_cstr.calculated) {
+        return string->is_cstr.value;
     }
 
     bool is_compatible = true;
@@ -189,17 +171,13 @@ bool stringI_is_cstr_compatible(morphine_instance_t I, struct string *string) {
         }
     }
 
-    string->is_cstr_compatible.calculated = true;
-    string->is_cstr_compatible.value = is_compatible;
+    string->is_cstr.calculated = true;
+    string->is_cstr.value = is_compatible;
 
     return is_compatible;
 }
 
-ml_hash stringI_hash(morphine_instance_t I, struct string *string) {
-    if (string == NULL) {
-        throwI_error(I, "string is null");
-    }
-
+ml_hash stringI_hash(struct string *string) {
     if (mm_likely(string->hash.calculated)) {
         return string->hash.value;
     }

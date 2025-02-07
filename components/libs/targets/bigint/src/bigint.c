@@ -80,7 +80,7 @@ static inline void binary(
         maux_nb_state(1);
             mapi_push_result(U);
             struct mlib_bigint *bigintB;
-            if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
+            if (mapi_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
                 mapi_push_arg(U, 1);
                 mapi_push_string(U, "instance");
                 mapi_table_get(U);
@@ -118,7 +118,7 @@ static inline void unary(
         maux_nb_state(1);
             mapi_push_result(U);
             struct mlib_bigint *bigintA;
-            if (mapi_string_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
+            if (mapi_cstr_compare(U, BIGINT_WRAPPED_TYPE) == 0) {
                 mapi_push_arg(U, 0);
                 mapi_push_string(U, "instance");
                 mapi_table_get(U);

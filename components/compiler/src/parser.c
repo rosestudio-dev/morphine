@@ -524,8 +524,6 @@ MORPHINE_API struct mc_parser *mcapi_push_parser(morphine_coroutine_t U) {
         .size = sizeof(struct mc_parser),
         .constructor = parser_userdata_constructor,
         .destructor = parser_userdata_destructor,
-        .compare = NULL,
-        .hash = NULL,
         .metatable = false,
     };
 

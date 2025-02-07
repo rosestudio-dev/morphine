@@ -62,14 +62,9 @@ const char *exceptionI_stacktrace_type2str(morphine_instance_t I, stacktrace_typ
     }
 
     throwI_panic(I, "unsupported stacktrace element type");
-
 }
 
 void exceptionI_stacktrace_stub(morphine_instance_t I, struct exception *exception) {
-    if (exception == NULL) {
-        throwI_error(I, "exception is null");
-    }
-
     if (exception->stacktrace.recorded) {
         throwI_error(I, "stacktrace already recorded");
     }
@@ -82,10 +77,6 @@ void exceptionI_stacktrace_stub(morphine_instance_t I, struct exception *excepti
 }
 
 struct string *exceptionI_message(morphine_instance_t I, struct exception *exception) {
-    if (exception == NULL) {
-        throwI_error(I, "exception is null");
-    }
-
     struct value value = exception->value;
     if (!metatableI_test(I, value, MTYPE_METAFIELD_MESSAGE, &value)) {
         value = exception->value;
@@ -133,10 +124,6 @@ void exceptionI_stacktrace_print(
     struct stream *stream,
     ml_size count
 ) {
-    if (exception == NULL) {
-        throwI_error(I, "exception is null");
-    }
-
     if (!exception->stacktrace.recorded) {
         streamI_print(I, stream, "stacktrace wasn't recorded");
         return;
@@ -221,10 +208,6 @@ void exceptionI_stacktrace_print(
 }
 
 void exceptionI_stacktrace_record(morphine_instance_t I, struct exception *exception, morphine_coroutine_t coroutine) {
-    if (exception == NULL) {
-        throwI_error(I, "exception is null");
-    }
-
     if (exception->stacktrace.recorded) {
         throwI_error(I, "stacktrace already recorded");
     }
@@ -301,10 +284,6 @@ struct stacktrace_element exceptionI_stacktrace_element(
     struct exception *exception,
     ml_size index
 ) {
-    if (exception == NULL) {
-        throwI_error(I, "exception is null");
-    }
-
     if (!exception->stacktrace.recorded) {
         throwI_error(I, "stacktrace wasn't recorded");
     }

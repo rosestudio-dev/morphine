@@ -40,8 +40,6 @@ typedef void (*mfunc_native_t)(morphine_coroutine_t);
 
 typedef void (*mfunc_constructor_t)(morphine_instance_t, void *);
 typedef void (*mfunc_destructor_t)(morphine_instance_t, void *);
-typedef int (*mfunc_compare_t)(morphine_instance_t, void *, void *);
-typedef ml_hash (*mfunc_hash_t)(morphine_instance_t, void *);
 
 // stream
 
@@ -129,7 +127,5 @@ typedef struct {
     size_t size;
     mfunc_constructor_t constructor;
     mfunc_destructor_t destructor;
-    mfunc_compare_t compare;
-    mfunc_hash_t hash;
     bool metatable;
 } morphine_usertype_t;

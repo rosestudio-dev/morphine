@@ -33,8 +33,6 @@ void usertypeI_declare(
     size_t allocate,
     mfunc_constructor_t constructor,
     mfunc_destructor_t destructor,
-    mfunc_compare_t compare,
-    mfunc_hash_t hash,
     struct table *metatable
 ) {
     if (valueI_is_type(I, name, true)) {
@@ -48,8 +46,6 @@ void usertypeI_declare(
                 bool check = usertype->allocate == allocate &&
                              usertype->constructor == constructor &&
                              usertype->destructor == destructor &&
-                             usertype->compare == compare &&
-                             usertype->hash == hash &&
                              usertype->metatable == metatable;
 
                 if (check) {
@@ -77,8 +73,6 @@ void usertypeI_declare(
         .name = name_str,
         .constructor = constructor,
         .destructor = destructor,
-        .compare = compare,
-        .hash = hash,
         .allocate = allocate,
         .metatable = metatable,
         .prev = I->usertypes.list

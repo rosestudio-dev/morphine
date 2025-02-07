@@ -63,7 +63,7 @@ static inline ml_integer convertI_to_integer(morphine_instance_t I, struct value
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         ml_integer integer;
-        bool compatible = stringI_is_cstr_compatible(I, str);
+        bool compatible = stringI_is_cstr(str);
         if (compatible && platformI_string2integer(str->chars, &integer, 10)) {
             return integer;
         }
@@ -76,7 +76,7 @@ static inline ml_integer convertI_to_basedinteger(morphine_instance_t I, struct 
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         ml_integer integer;
-        bool compatible = stringI_is_cstr_compatible(I, str);
+        bool compatible = stringI_is_cstr(str);
         if (compatible && platformI_string2integer(str->chars, &integer, base)) {
             return integer;
         }
@@ -101,7 +101,7 @@ static inline ml_decimal convertI_to_decimal(morphine_instance_t I, struct value
     struct string *str = valueI_safe_as_string(value, NULL);
     if (str != NULL) {
         ml_decimal decimal;
-        bool compatible = stringI_is_cstr_compatible(I, str);
+        bool compatible = stringI_is_cstr(str);
         if (compatible && platformI_string2decimal(str->chars, &decimal)) {
             return decimal;
         }

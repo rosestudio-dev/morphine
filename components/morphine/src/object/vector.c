@@ -50,10 +50,6 @@ void vectorI_free(morphine_instance_t I, struct vector *vector) {
 }
 
 void vectorI_mode_fixed(morphine_instance_t I, struct vector *vector, bool is_fixed) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (vector->lock.mode) {
         throwI_error(I, "vector is locked");
     }
@@ -67,10 +63,6 @@ void vectorI_mode_fixed(morphine_instance_t I, struct vector *vector, bool is_fi
 }
 
 void vectorI_mode_mutable(morphine_instance_t I, struct vector *vector, bool is_mutable) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (vector->lock.mode) {
         throwI_error(I, "vector is locked");
     }
@@ -79,10 +71,6 @@ void vectorI_mode_mutable(morphine_instance_t I, struct vector *vector, bool is_
 }
 
 void vectorI_mode_accessible(morphine_instance_t I, struct vector *vector, bool is_accessible) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (vector->lock.mode) {
         throwI_error(I, "vector is locked");
     }
@@ -90,27 +78,15 @@ void vectorI_mode_accessible(morphine_instance_t I, struct vector *vector, bool 
     vector->mode.accessible = is_accessible;
 }
 
-void vectorI_lock_mode(morphine_instance_t I, struct vector *vector) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
+void vectorI_lock_mode(struct vector *vector) {
     vector->lock.mode = true;
 }
 
-ml_size vectorI_size(morphine_instance_t I, struct vector *vector) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
+ml_size vectorI_size(struct vector *vector) {
     return vector->size.accessible;
 }
 
 void vectorI_set(morphine_instance_t I, struct vector *vector, ml_size index, struct value value) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (!vector->mode.mutable) {
         throwI_error(I, "vector is immutable");
     }
@@ -123,10 +99,6 @@ void vectorI_set(morphine_instance_t I, struct vector *vector, ml_size index, st
 }
 
 void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, struct value value) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (!vector->mode.mutable) {
         throwI_error(I, "vector is immutable");
     }
@@ -167,10 +139,6 @@ void vectorI_add(morphine_instance_t I, struct vector *vector, ml_size index, st
 }
 
 bool vectorI_has(morphine_instance_t I, struct vector *vector, struct value value) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     for (ml_size i = 0; i < vector->size.accessible; i++) {
         if (valueI_equal(I, vector->values[i], value)) {
             return true;
@@ -181,10 +149,6 @@ bool vectorI_has(morphine_instance_t I, struct vector *vector, struct value valu
 }
 
 struct value vectorI_get(morphine_instance_t I, struct vector *vector, ml_size index) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (!vector->mode.accessible) {
         throwI_error(I, "vector is inaccessible");
     }
@@ -197,10 +161,6 @@ struct value vectorI_get(morphine_instance_t I, struct vector *vector, ml_size i
 }
 
 struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_size index) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (!vector->mode.mutable) {
         throwI_error(I, "vector is immutable");
     }
@@ -237,10 +197,6 @@ struct value vectorI_remove(morphine_instance_t I, struct vector *vector, ml_siz
 }
 
 void vectorI_resize(morphine_instance_t I, struct vector *vector, ml_size size) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (!vector->mode.mutable) {
         throwI_error(I, "vector is immutable");
     }
@@ -262,10 +218,6 @@ void vectorI_resize(morphine_instance_t I, struct vector *vector, ml_size size) 
 }
 
 struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (!vector->mode.accessible) {
         throwI_error(I, "vector is inaccessible");
     }
@@ -291,10 +243,6 @@ struct vector *vectorI_copy(morphine_instance_t I, struct vector *vector) {
 }
 
 struct vector *vectorI_concat(morphine_instance_t I, struct vector *a, struct vector *b) {
-    if (a == NULL || b == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     ml_size size =
         mm_overflow_opc_add(a->size.accessible, b->size.accessible, throwI_error(I, "too big concat vector length"));
 
@@ -387,10 +335,6 @@ static inline ml_size minrun_length(ml_size n) {
 }
 
 void vectorI_sort(morphine_instance_t I, struct vector *vector) {
-    if (vector == NULL) {
-        throwI_error(I, "vector is null");
-    }
-
     if (!vector->mode.mutable) {
         throwI_error(I, "vector is immutable");
     }
@@ -415,7 +359,7 @@ void vectorI_sort(morphine_instance_t I, struct vector *vector) {
     gcI_safe(I, valueI_object(vector));
     ml_size mul2size = mm_overflow_opc_mul(vec_size, 2, throwI_error(I, "sort vector too big"));
     struct userdata *userdata =
-        gcI_safe_obj(I, userdata, userdataI_create_vec(I, mul2size, sizeof(struct value), NULL));
+        gcI_safe_obj(I, userdata, userdataI_create_vec(I, mul2size, sizeof(struct value), NULL, NULL));
 
     for (ml_size factor = 0; factor < (sizeof(factor) * 8); factor++) {
         ml_size mul = ((ml_size) 1) << factor;
@@ -499,6 +443,6 @@ void vectorI_packer_read_data(morphine_instance_t I, struct vector *vector, stru
     vectorI_mode_accessible(I, vector, packerI_read_bool(R));
 
     if (packerI_read_bool(R)) {
-        vectorI_lock_mode(I, vector);
+        vectorI_lock_mode(vector);
     }
 }

@@ -51,8 +51,6 @@ MORPHINE_API struct mc_ast *mcapi_push_ast(morphine_coroutine_t U) {
         .size = sizeof(struct mc_ast),
         .constructor = ast_userdata_constructor,
         .destructor = ast_userdata_destructor,
-        .compare = NULL,
-        .hash = NULL,
         .metatable = false,
     };
 

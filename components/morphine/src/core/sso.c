@@ -58,7 +58,7 @@ void ssoI_rec(morphine_instance_t I, struct string *string) {
         return;
     }
 
-    ml_hash hash = stringI_hash(I, string);
+    ml_hash hash = stringI_hash(string);
 
     struct string **bucket = I->sso.table[hash % MPARAM_SSO_HASHTABLE_ROWS];
     for (size_t i = 1; i < MPARAM_SSO_HASHTABLE_COLS; i++) {

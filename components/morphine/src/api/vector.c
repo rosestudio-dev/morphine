@@ -57,7 +57,7 @@ MORPHINE_API void mapi_vector_mode_accessible(morphine_coroutine_t U, bool is_ac
 
 MORPHINE_API void mapi_vector_lock_mode(morphine_coroutine_t U) {
     struct vector *vector = valueI_as_vector_or_error(U->I, stackI_peek(U, 0));
-    vectorI_lock_mode(U->I, vector);
+    vectorI_lock_mode(vector);
 }
 
 MORPHINE_API bool mapi_vector_mode_is_mutable(morphine_coroutine_t U) {

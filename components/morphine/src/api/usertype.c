@@ -15,8 +15,6 @@ MORPHINE_API void mapi_usertype_declare(morphine_coroutine_t U, morphine_usertyp
         usertype.size,
         usertype.constructor,
         usertype.destructor,
-        usertype.compare,
-        usertype.hash,
         table
     );
 

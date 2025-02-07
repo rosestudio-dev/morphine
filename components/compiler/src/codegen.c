@@ -1152,8 +1152,6 @@ MORPHINE_API struct mc_codegen *mcapi_push_codegen(morphine_coroutine_t U) {
         .size = sizeof(struct mc_codegen),
         .constructor = codegen_userdata_constructor,
         .destructor = codegen_userdata_destructor,
-        .compare = NULL,
-        .hash = NULL,
         .metatable = false,
     };
 

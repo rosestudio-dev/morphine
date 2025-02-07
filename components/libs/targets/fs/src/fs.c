@@ -316,8 +316,6 @@ static struct safedir *create_safedir(morphine_coroutine_t U, const char *path) 
         .size = sizeof(struct safedir),
         .constructor = safedir_constructor,
         .destructor = safedir_destructor,
-        .compare = NULL,
-        .hash = NULL,
         .metatable = false,
     };
 
@@ -419,7 +417,7 @@ static void lib_pwd(morphine_coroutine_t U) {
 
             size_t size = MAXPATHLEN;
             while (true) {
-                char *path = mapi_push_userdata_vec(U, size, sizeof(char), NULL);
+                char *path = mapi_push_userdata_vec(U, size, sizeof(char), NULL, NULL);
 
                 if (getcwd(path, size) != NULL) {
                     size_t len = strlen(path);

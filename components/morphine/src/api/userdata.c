@@ -19,16 +19,21 @@ MORPHINE_API void *mapi_push_userdata_uni(
     morphine_coroutine_t U,
     size_t size,
     mfunc_constructor_t constructor,
-    mfunc_destructor_t destructor,
-    mfunc_hash_t hash
+    mfunc_destructor_t destructor
 ) {
-    struct userdata *userdata = userdataI_create_uni(U->I, size, constructor, destructor, hash);
+    struct userdata *userdata = userdataI_create_uni(U->I, size, constructor, destructor);
     stackI_push(U, valueI_object(userdata));
     return userdata->data;
 }
 
-MORPHINE_API void *mapi_push_userdata_vec(morphine_coroutine_t U, size_t count, size_t size, mfunc_hash_t hash) {
-    struct userdata *userdata = userdataI_create_vec(U->I, count, size, hash);
+MORPHINE_API void *mapi_push_userdata_vec(
+    morphine_coroutine_t U,
+    size_t count,
+    size_t size,
+    mfunc_constructor_t constructor,
+    mfunc_destructor_t destructor
+) {
+    struct userdata *userdata = userdataI_create_vec(U->I, count, size, constructor, destructor);
     stackI_push(U, valueI_object(userdata));
     return userdata->data;
 }

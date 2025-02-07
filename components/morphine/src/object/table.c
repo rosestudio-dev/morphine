@@ -572,10 +572,6 @@ void tableI_free(morphine_instance_t I, struct table *table) {
 }
 
 void tableI_mode_fixed(morphine_instance_t I, struct table *table, bool is_fixed) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (table->lock.mode) {
         throwI_error(I, "table is locked");
     }
@@ -584,10 +580,6 @@ void tableI_mode_fixed(morphine_instance_t I, struct table *table, bool is_fixed
 }
 
 void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mutable) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (table->lock.mode) {
         throwI_error(I, "table is locked");
     }
@@ -596,10 +588,6 @@ void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mut
 }
 
 void tableI_mode_accessible(morphine_instance_t I, struct table *table, bool is_accessible) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (table->lock.mode) {
         throwI_error(I, "table is locked");
     }
@@ -607,27 +595,15 @@ void tableI_mode_accessible(morphine_instance_t I, struct table *table, bool is_
     table->mode.accessible = is_accessible;
 }
 
-void tableI_lock_mode(morphine_instance_t I, struct table *table) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
+void tableI_lock_mode(struct table *table) {
     table->lock.mode = true;
 }
 
-ml_size tableI_size(morphine_instance_t I, struct table *table) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
+ml_size tableI_size(struct table *table) {
     return table->hashmap.buckets.count;
 }
 
 void tableI_set(morphine_instance_t I, struct table *table, struct value key, struct value value) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.mutable) {
         throwI_error(I, "table is immutable");
     }
@@ -675,18 +651,10 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
 }
 
 bool tableI_has(morphine_instance_t I, struct table *table, struct value key) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     return get(I, &table->hashmap, key) != NULL;
 }
 
 struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.accessible) {
         throwI_error(I, "table is inaccessible");
     }
@@ -707,10 +675,6 @@ struct value tableI_get(morphine_instance_t I, struct table *table, struct value
 }
 
 struct value tableI_remove(morphine_instance_t I, struct table *table, struct value key, bool *has) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.mutable) {
         throwI_error(I, "table is immutable");
     }
@@ -760,10 +724,6 @@ notfound:
 }
 
 void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, struct value value) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.mutable) {
         throwI_error(I, "table is immutable");
     }
@@ -782,10 +742,6 @@ void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, s
 }
 
 struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index, bool *has) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.accessible) {
         throwI_error(I, "table is inaccessible");
     }
@@ -812,10 +768,6 @@ struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size i
 }
 
 struct pair tableI_first(morphine_instance_t I, struct table *table, bool *has) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.accessible) {
         throwI_error(I, "table is inaccessible");
     }
@@ -834,10 +786,6 @@ struct pair tableI_first(morphine_instance_t I, struct table *table, bool *has) 
 }
 
 struct pair tableI_next(morphine_instance_t I, struct table *table, struct value key, bool *has) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.accessible) {
         throwI_error(I, "table is inaccessible");
     }
@@ -868,10 +816,6 @@ struct pair tableI_next(morphine_instance_t I, struct table *table, struct value
 }
 
 void tableI_clear(morphine_instance_t I, struct table *table) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.mutable) {
         throwI_error(I, "table is immutable");
     }
@@ -902,10 +846,6 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
 }
 
 struct table *tableI_copy(morphine_instance_t I, struct table *table) {
-    if (table == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     if (!table->mode.accessible) {
         throwI_error(I, "table is inaccessible");
     }
@@ -931,10 +871,6 @@ struct table *tableI_copy(morphine_instance_t I, struct table *table) {
 }
 
 struct table *tableI_concat(morphine_instance_t I, struct table *a, struct table *b) {
-    if (a == NULL || b == NULL) {
-        throwI_error(I, "table is null");
-    }
-
     gcI_safe_enter(I);
     gcI_safe(I, valueI_object(a));
     gcI_safe(I, valueI_object(b));
@@ -1045,6 +981,6 @@ void tableI_packer_read_data(morphine_instance_t I, struct table *table, struct 
     tableI_mode_accessible(I, table, packerI_read_bool(R));
 
     if (packerI_read_bool(R)) {
-        tableI_lock_mode(I, table);
+        tableI_lock_mode(table);
     }
 }

@@ -148,8 +148,6 @@ static void process_type(morphine_coroutine_t U) {
         .size = sizeof(struct process),
         .constructor = process_constructor,
         .destructor = process_destructor,
-        .compare = NULL,
-        .hash = NULL,
         .metatable = false,
     };
 

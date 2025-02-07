@@ -268,8 +268,6 @@ MORPHINE_API struct mc_visitor *mcapi_push_visitor(morphine_coroutine_t U) {
         .size = sizeof(struct mc_visitor),
         .constructor = visitor_userdata_constructor,
         .destructor = visitor_userdata_destructor,
-        .compare = NULL,
-        .hash = NULL,
         .metatable = false,
     };
 

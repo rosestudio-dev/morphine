@@ -642,7 +642,7 @@ static inline op_result_t interpreter_fun_deref(
     }
 
     if (valueI_is_reference(a)) {
-        (*result) = *referenceI_get(U->I, valueI_as_reference_or_error(U->I, a));
+        (*result) = *referenceI_get(valueI_as_reference_or_error(U->I, a));
         return NORMAL;
     }
 
@@ -681,12 +681,12 @@ static inline op_result_t interpreter_fun_length(
     }
 
     if (valueI_is_table(a)) {
-        (*result) = valueI_size(tableI_size(U->I, valueI_as_table(a)));
+        (*result) = valueI_size(tableI_size(valueI_as_table(a)));
         return NORMAL;
     }
 
     if (valueI_is_vector(a)) {
-        (*result) = valueI_size(vectorI_size(U->I, valueI_as_vector(a)));
+        (*result) = valueI_size(vectorI_size(valueI_as_vector(a)));
         return NORMAL;
     }
 

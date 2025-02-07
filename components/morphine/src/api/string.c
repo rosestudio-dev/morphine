@@ -37,15 +37,6 @@ MORPHINE_API const char *mapi_get_string(morphine_coroutine_t U) {
     return valueI_as_string_or_error(U->I, stackI_peek(U, 0))->chars;
 }
 
-MORPHINE_API const char *mapi_get_cstr(morphine_coroutine_t U) {
-    struct string *string = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
-    if (!stringI_is_cstr_compatible(U->I, string)) {
-        throwI_error(U->I, "string isn't compatible with native");
-    }
-
-    return string->chars;
-}
-
 MORPHINE_API ml_size mapi_string_len(morphine_coroutine_t U) {
     return valueI_as_string_or_error(U->I, stackI_peek(U, 0))->size;
 }
@@ -61,16 +52,24 @@ MORPHINE_API void mapi_string_concat(morphine_coroutine_t U) {
 MORPHINE_API int mapi_string_compare(morphine_coroutine_t U) {
     struct string *a = valueI_as_string_or_error(U->I, stackI_peek(U, 1));
     struct string *b = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
-    return stringI_compare(U->I, a, b);
+    return stringI_compare(a, b);
 }
 
-
-MORPHINE_API int mapi_string_cstr_compare(morphine_coroutine_t U, const char *str) {
+MORPHINE_API const char *mapi_get_cstr(morphine_coroutine_t U) {
     struct string *string = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
-    return stringI_cstr_compare(U->I, string, str);
+    if (!stringI_is_cstr(string)) {
+        throwI_error(U->I, "string isn't compatible with native");
+    }
+
+    return string->chars;
 }
 
-MORPHINE_API bool mapi_string_is_cstr_compatible(morphine_coroutine_t U) {
+MORPHINE_API int mapi_cstr_compare(morphine_coroutine_t U, const char *str) {
     struct string *string = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
-    return stringI_is_cstr_compatible(U->I, string);
+    return stringI_cstr_compare(string, str);
+}
+
+MORPHINE_API bool mapi_is_cstr(morphine_coroutine_t U) {
+    struct string *string = valueI_as_string_or_error(U->I, stackI_peek(U, 0));
+    return stringI_is_cstr(string);
 }
