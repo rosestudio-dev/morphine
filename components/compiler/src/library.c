@@ -316,13 +316,12 @@ static void lex(morphine_coroutine_t U) {
                 struct mc_lex *lex = mcapi_push_lex(U);
                 struct mc_strtable *strtable = mcapi_push_strtable(U);
 
-                mapi_push_vector(U, 0);
-                mapi_vector_mode_fixed(U, false);
+                mapi_push_vector_dyn(U, 0);
                 struct mc_lex_token token;
                 do {
                     token = mcapi_lex_step(U, lex, strtable);
                     push_token(U, strtable, token);
-                    mapi_vector_push(U);
+                    maux_vector_push(U);
                 } while (!mcapi_lex_is_end(lex));
                 maux_nb_return();
             } else {
@@ -332,9 +331,7 @@ static void lex(morphine_coroutine_t U) {
                 mcapi_push_strtable(U);
                 maux_localstorage_set(U, "T");
 
-                mapi_push_vector(U, 0);
-                mapi_vector_mode_fixed(U, false);
-
+                mapi_push_vector_dyn(U, 0);
                 maux_nb_continue(1);
             }
         maux_nb_state(1);
@@ -348,7 +345,7 @@ static void lex(morphine_coroutine_t U) {
 
             struct mc_lex_token token = mcapi_lex_step(U, L, T);
             push_token(U, T, token);
-            mapi_vector_push(U);
+            maux_vector_push(U);
 
             if (mcapi_lex_is_end(L)) {
                 maux_nb_return();

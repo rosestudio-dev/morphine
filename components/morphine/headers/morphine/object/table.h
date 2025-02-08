@@ -5,7 +5,6 @@
 #pragma once
 
 #include "morphine/core/value.h"
-#include "morphine/misc/packer.h"
 
 struct pair {
     struct value key;
@@ -79,9 +78,3 @@ struct pair tableI_next(struct table *, struct value, bool *has);
 void tableI_clear(morphine_instance_t, struct table *);
 struct table *tableI_concat(morphine_instance_t, struct table *, struct table *);
 struct table *tableI_copy(morphine_instance_t, struct table *);
-
-void tableI_packer_vectorize(morphine_instance_t, struct table *, struct packer_vectorize *);
-void tableI_packer_write_info(morphine_instance_t, struct table *, struct packer_write *);
-void tableI_packer_write_data(morphine_instance_t, struct table *, struct packer_write *);
-struct table *tableI_packer_read_info(morphine_instance_t, struct packer_read *);
-void tableI_packer_read_data(morphine_instance_t, struct table *, struct packer_read *);

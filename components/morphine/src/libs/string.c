@@ -51,8 +51,7 @@ static void chars(morphine_coroutine_t U) {
             const char *string = mapi_get_string(U);
             ml_size len = mapi_string_len(U);
 
-            mapi_push_vector(U, len);
-
+            mapi_push_vector_fix(U, len);
             for (ml_size i = 0; i < len; i++) {
                 mapi_push_stringn(U, string + i, 1);
                 mapi_vector_set(U, i);
@@ -73,8 +72,7 @@ static void codes(morphine_coroutine_t U) {
             const char *string = mapi_get_string(U);
             ml_size len = mapi_string_len(U);
 
-            mapi_push_vector(U, len);
-
+            mapi_push_vector_fix(U, len);
             for (ml_size i = 0; i < len; i++) {
                 mapi_push_integer(U, (ml_integer) string[i]);
                 mapi_vector_set(U, i);
@@ -327,8 +325,7 @@ static void split(morphine_coroutine_t U) {
 
             mapi_pop(U, 2);
 
-            mapi_push_vector(U, 0);
-            mapi_vector_mode_fixed(U, false);
+            mapi_push_vector_dyn(U, 0);
             if (strlen < seplen) {
                 maux_nb_return();
             }
@@ -337,7 +334,7 @@ static void split(morphine_coroutine_t U) {
 
             if (seplen == 0) {
                 mapi_push_string(U, "");
-                mapi_vector_push(U);
+                maux_vector_push(U);
             }
 
             for (ml_size i = 0; i < strlen; i++) {
@@ -347,11 +344,11 @@ static void split(morphine_coroutine_t U) {
 
                 if (seplen == 0) {
                     mapi_push_stringn(U, string + start, 1);
-                    mapi_vector_push(U);
+                    maux_vector_push(U);
                     start++;
                 } else if (memcmp(string + i, separator, (size_t) seplen * sizeof(char)) == 0) {
                     mapi_push_stringn(U, string + start, i - start);
-                    mapi_vector_push(U);
+                    maux_vector_push(U);
 
                     start = i + seplen;
                     i += seplen - 1;
@@ -363,7 +360,7 @@ static void split(morphine_coroutine_t U) {
             } else {
                 mapi_push_string(U, "");
             }
-            mapi_vector_push(U);
+            maux_vector_push(U);
 
             maux_nb_return();
     maux_nb_end

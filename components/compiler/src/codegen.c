@@ -1503,7 +1503,7 @@ MORPHINE_API void mcapi_codegen_build(
     bool vector
 ) {
     size_t size = compiled_size(G);
-    mapi_push_vector(U, mapi_csize2size(U, size, NULL));
+    mapi_push_vector_fix(U, mapi_csize2size(U, size, NULL));
     fill_vector(U, G, T, A, main);
     build_vector(U, G, T);
 

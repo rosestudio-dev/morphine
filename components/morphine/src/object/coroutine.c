@@ -599,7 +599,7 @@ void callstackI_call(morphine_coroutine_t U, struct value *callable, struct valu
     struct value mt_field;
     struct value mt_args[2];
     if (mm_unlikely(metatableI_test(I, *callable, MTYPE_METAFIELD_CALL, &mt_field))) { // check metafield
-        struct vector *vector = gcI_safe_obj(I, vector, vectorI_create(I, argc));
+        struct vector *vector = gcI_safe_obj(I, vector, vectorI_create(I, argc, false));
         for (ml_size i = 0; i < argc; i++) {
             vectorI_set(I, vector, i, extract_stack_value(U, stack_args)[i]);
         }

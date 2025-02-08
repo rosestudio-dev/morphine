@@ -118,7 +118,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 sp_end();
             }
             sp_case(MTYPE_OPCODE_VECTOR) {
-                set_slot(C, arg1, valueI_object(vectorI_create(U->I, arg2)));
+                set_slot(C, arg1, valueI_object(vectorI_create(U->I, arg2, false)));
                 sp_end();
             }
             sp_case(MTYPE_OPCODE_TABLE) {

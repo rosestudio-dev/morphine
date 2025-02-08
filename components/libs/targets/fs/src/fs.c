@@ -445,8 +445,7 @@ static void lib_list(morphine_coroutine_t U) {
 
             struct safedir *D = create_safedir(U, path);
 
-            mapi_push_vector(U, 0);
-            mapi_vector_mode_fixed(U, false);
+            mapi_push_vector_dyn(U, 0);
             struct dirent *dirent;
             while ((dirent = readdir(D->dir)) != NULL) {
                 if (strcmp(".", dirent->d_name) == 0 || strcmp("..", dirent->d_name) == 0) {
@@ -454,7 +453,7 @@ static void lib_list(morphine_coroutine_t U) {
                 }
 
                 mapi_push_string(U, dirent->d_name);
-                mapi_vector_push(U);
+                maux_vector_push(U);
             }
 
             maux_nb_return();

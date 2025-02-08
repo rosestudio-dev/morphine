@@ -14,3 +14,4 @@
 #include "auxiliary/sharedstorage.h"
 #include "auxiliary/stream.h"
 #include "auxiliary/table.h"
+#include "auxiliary/vector.h"

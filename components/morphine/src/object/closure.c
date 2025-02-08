@@ -47,6 +47,14 @@ void closureI_free(morphine_instance_t I, struct closure *closure) {
     allocI_free(I, closure);
 }
 
+struct closure *closureI_packer_create(morphine_instance_t I, ml_size size) {
+    return create_closure(I, valueI_nil, size);
+}
+
+void closureI_packer_init(morphine_instance_t I, struct closure *closure, struct value callable) {
+    closure->callable = callstackI_extract_callable(I, callable);
+}
+
 struct value closureI_get(morphine_instance_t I, struct closure *closure, ml_size index) {
     if (index >= closure->size) {
         throwI_error(I, "closure index was out of bounce");
@@ -61,36 +69,4 @@ void closureI_set(morphine_instance_t I, struct closure *closure, ml_size index,
     }
 
     closure->values[index] = gcI_valbarrier(I, closure, value);
-}
-
-void closureI_packer_vectorize(mattr_unused morphine_instance_t I, struct closure *closure, struct packer_vectorize *V) {
-    packerI_vectorize_append(V, closure->callable);
-    for (ml_size i = 0; i < closure->size; i++) {
-        packerI_vectorize_append(V, closure->values[i]);
-    }
-}
-
-void closureI_packer_write_info(mattr_unused morphine_instance_t I, struct closure *closure, struct packer_write *W) {
-    packerI_write_ml_size(W, closure->size);
-}
-
-void closureI_packer_write_data(mattr_unused morphine_instance_t I, struct closure *closure, struct packer_write *W) {
-    packerI_write_value(W, closure->callable);
-    for (ml_size i = 0; i < closure->size; i++) {
-        packerI_write_value(W, closure->values[i]);
-    }
-}
-
-struct closure *closureI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
-    ml_size size = packerI_read_ml_size(R);
-    return create_closure(I, valueI_nil, size);
-}
-
-void closureI_packer_read_data(morphine_instance_t I, struct closure *closure, struct packer_read *R) {
-    struct value callable = callstackI_extract_callable(I, packerI_read_value(R));
-    closure->callable = gcI_valbarrier(I, closure, callable);
-
-    for (ml_size i = 0; i < closure->size; i++) {
-        closureI_set(I, closure, i, packerI_read_value(R));
-    }
 }

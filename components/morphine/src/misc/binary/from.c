@@ -3,11 +3,12 @@
 //
 
 #include "morphine/algorithm/crc32.h"
+#include "morphine/core/metatable.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/safe.h"
+#include "morphine/misc/instruction.h"
 #include "morphine/misc/packer.h"
 #include "morphine/object/closure.h"
-#include "morphine/object/function.h"
 #include "morphine/object/string.h"
 #include "morphine/object/table.h"
 #include "morphine/object/userdata.h"
@@ -22,10 +23,6 @@ struct data {
 
     ml_size size;
     ml_size value;
-};
-
-struct packer_read {
-    struct data *D;
 };
 
 // simple read
@@ -75,15 +72,19 @@ get_compressed_type(ml_version, ml_version);
 get_compressed_type(enum value_type, value_type);
 get_compressed_type(mtype_opcode_t, opcode);
 get_type(char, char);
-get_type(bool, bool);
 get_type(uint8_t, uint8);
 get_type(uint32_t, uint32);
+
+static inline bool read_bool(struct data *D) {
+    return get_uint8(D) > 0;
+}
 
 static struct string *read_object_string(struct data *D) {
     ml_size size = get_ml_size(D);
 
     gcI_safe_enter(D->I);
-    struct userdata *userdata = gcI_safe_obj(D->I, userdata, userdataI_create_vec(D->I, size, sizeof(char), NULL, NULL));
+    struct userdata *userdata =
+        gcI_safe_obj(D->I, userdata, userdataI_create_vec(D->I, size, sizeof(char), NULL, NULL));
 
     char *buffer = userdata->data;
     for (ml_size i = 0; i < size; i++) {
@@ -96,22 +97,8 @@ static struct string *read_object_string(struct data *D) {
     return string;
 }
 
-// wrappers
-
-#define read_wrapper(t, n) t packerI_read_##n(struct packer_read *R) { return get_##n(R->D); }
-
-read_wrapper(ml_size, ml_size);
-read_wrapper(ml_line, ml_line);
-read_wrapper(ml_argument, ml_argument);
-read_wrapper(mtype_opcode_t, opcode);
-read_wrapper(bool, bool);
-
-struct string *packerI_read_object_string(struct packer_read *R) {
-    return read_object_string(R->D);
-}
-
-struct value packerI_read_value(struct packer_read *R) {
-    return vectorI_get(R->D->I, R->D->vector, get_ml_size(R->D));
+static struct value get_read_value(struct data *D) {
+    return vectorI_get(D->I, D->vector, get_ml_size(D));
 }
 
 // complex read
@@ -174,9 +161,6 @@ static void check_prob(struct data *D) {
     if (get_uint8(D) != sizeof(char)) {
         goto error;
     }
-    if (get_uint8(D) != sizeof(bool)) {
-        goto error;
-    }
     if (get_ml_integer(D) != PROB_INTEGER) {
         goto error;
     }
@@ -199,77 +183,57 @@ static void read_head(struct data *D) {
     D->size = get_ml_size(D);
     D->value = get_ml_size(D);
 
-    D->vector = gcI_safe_obj(D->I, vector, vectorI_create(D->I, D->size));
+    D->vector = gcI_safe_obj(D->I, vector, vectorI_create(D->I, D->size, false));
 }
 
 static void read_objects_info(struct data *D) {
-    struct packer_read read = { .D = D };
-
     for (ml_size index = 0; index < D->size; index++) {
         ml_size vector_index = get_ml_size(D);
         enum value_type type = get_value_type(D);
+
+        gcI_safe_enter(D->I);
+        struct value preinited = valueI_nil;
         switch (type) {
-            case VALUE_TYPE_NIL: {
-                vectorI_set(D->I, D->vector, vector_index, valueI_nil);
-                break;
-            }
-            case VALUE_TYPE_INTEGER: {
-                vectorI_set(D->I, D->vector, vector_index, valueI_integer(get_ml_integer(D)));
-                break;
-            }
-            case VALUE_TYPE_DECIMAL: {
-                vectorI_set(D->I, D->vector, vector_index, valueI_decimal(get_ml_decimal(D)));
-                break;
-            }
-            case VALUE_TYPE_BOOLEAN: {
-                vectorI_set(D->I, D->vector, vector_index, valueI_boolean(get_bool(D)));
-                break;
-            }
-            case VALUE_TYPE_STRING: {
-                gcI_safe_enter(D->I);
-                struct string *string = gcI_safe_obj(D->I, string, read_object_string(D));
-                vectorI_set(D->I, D->vector, vector_index, valueI_object(string));
-                gcI_safe_exit(D->I);
-                break;
-            }
-            case VALUE_TYPE_TABLE: {
-                gcI_safe_enter(D->I);
-                struct table *table = gcI_safe_obj(D->I, table, tableI_packer_read_info(D->I, &read));
-                vectorI_set(D->I, D->vector, vector_index, valueI_object(table));
-                gcI_safe_exit(D->I);
-                break;
-            }
+            case VALUE_TYPE_NIL: preinited = valueI_nil; break;
+            case VALUE_TYPE_INTEGER: preinited = valueI_integer(get_ml_integer(D)); break;
+            case VALUE_TYPE_DECIMAL: preinited = valueI_decimal(get_ml_decimal(D)); break;
+            case VALUE_TYPE_BOOLEAN: preinited = valueI_boolean(read_bool(D)); break;
+            case VALUE_TYPE_STRING: preinited = valueI_object(read_object_string(D)); break;
+            case VALUE_TYPE_TABLE: preinited = valueI_object(tableI_create(D->I)); break;
             case VALUE_TYPE_VECTOR: {
-                gcI_safe_enter(D->I);
-                struct vector *vector = gcI_safe_obj(D->I, vector, vectorI_packer_read_info(D->I, &read));
-                vectorI_set(D->I, D->vector, vector_index, valueI_object(vector));
-                gcI_safe_exit(D->I);
-                break;
-            }
-            case VALUE_TYPE_FUNCTION: {
-                gcI_safe_enter(D->I);
-                struct function *function = gcI_safe_obj(D->I, function, functionI_packer_read_info(D->I, &read));
-                vectorI_set(D->I, D->vector, vector_index, valueI_object(function));
-                gcI_safe_exit(D->I);
+                ml_size size = get_ml_size(D);
+                bool dynamic = read_bool(D);
+                preinited = valueI_object(vectorI_create(D->I, size, dynamic));
                 break;
             }
             case VALUE_TYPE_CLOSURE: {
-                gcI_safe_enter(D->I);
-                struct closure *closure = gcI_safe_obj(D->I, closure, closureI_packer_read_info(D->I, &read));
-                vectorI_set(D->I, D->vector, vector_index, valueI_object(closure));
-                gcI_safe_exit(D->I);
+                ml_size size = get_ml_size(D);
+                preinited = valueI_object(closureI_packer_create(D->I, size));
                 break;
             }
-            default: {
-                throwI_error(D->I, "corrupted packed data");
+            case VALUE_TYPE_FUNCTION: {
+                ml_line line = get_ml_line(D);
+                ml_size instructions_count = get_ml_size(D);
+                ml_size constants_count = get_ml_size(D);
+                ml_size slots_count = get_ml_size(D);
+                ml_size params_count = get_ml_size(D);
+                struct string *name = gcI_safe_obj(D->I, string, read_object_string(D));
+
+                preinited = valueI_object(
+                    functionI_create(D->I, name, line, instructions_count, constants_count, slots_count, params_count)
+                );
+                break;
             }
+            default: throwI_error(D->I, "corrupted packed data");
         }
+
+        gcI_safe(D->I, preinited);
+        vectorI_set(D->I, D->vector, vector_index, preinited);
+        gcI_safe_exit(D->I);
     }
 }
 
 static void read_objects_data(struct data *D) {
-    struct packer_read read = { .D = D };
-
     for (ml_size index = 0; index < D->size; index++) {
         struct value value = vectorI_get(D->I, D->vector, index);
         switch (value.type) {
@@ -278,10 +242,81 @@ static void read_objects_data(struct data *D) {
             case VALUE_TYPE_DECIMAL:
             case VALUE_TYPE_BOOLEAN:
             case VALUE_TYPE_STRING: break;
-            case VALUE_TYPE_TABLE: tableI_packer_read_data(D->I, valueI_as_table(value), &read); break;
-            case VALUE_TYPE_VECTOR: vectorI_packer_read_data(D->I, valueI_as_vector(value), &read); break;
-            case VALUE_TYPE_FUNCTION: functionI_packer_read_data(D->I, valueI_as_function(value), &read); break;
-            case VALUE_TYPE_CLOSURE: closureI_packer_read_data(D->I, valueI_as_closure(value), &read); break;
+            case VALUE_TYPE_TABLE: {
+                struct table *table = valueI_as_table(value);
+
+                ml_size size = get_ml_size(D);
+                for (ml_size i = 0; i < size; i++) {
+                    struct value k = get_read_value(D);
+                    struct value v = get_read_value(D);
+                    tableI_set(D->I, table, k, v);
+                }
+
+                struct value metatable = get_read_value(D);
+                metatableI_set(D->I, valueI_object(table), valueI_as_table_or_error(D->I, metatable));
+                break;
+            }
+            case VALUE_TYPE_VECTOR: {
+                struct vector *vector = valueI_as_vector(value);
+
+                ml_size size = vectorI_size(vector);
+                for (ml_size i = 0; i < size; i++) {
+                    struct value v = get_read_value(D);
+                    vectorI_set(D->I, vector, i, v);
+                }
+                break;
+            }
+            case VALUE_TYPE_CLOSURE: {
+                struct closure *closure = valueI_as_closure(value);
+
+                struct value callable = get_read_value(D);
+                closureI_packer_init(D->I, closure, callable);
+
+                for (ml_size i = 0; i < closure->size; i++) {
+                    struct value v = get_read_value(D);
+                    closureI_set(D->I, closure, i, v);
+                }
+                break;
+            }
+            case VALUE_TYPE_FUNCTION: {
+                struct function *function = valueI_as_function(value);
+
+                for (ml_size i = 0; i < function->instructions_count; i++) {
+                    morphine_instruction_t instruction;
+                    instruction.opcode = get_opcode(D);
+                    instruction.line = get_ml_line(D);
+                    instruction.argument1 = 0;
+                    instruction.argument2 = 0;
+                    instruction.argument3 = 0;
+
+                    bool valid = false;
+                    ml_size count = instructionI_opcode_args(instruction.opcode, &valid);
+
+                    if (!valid) {
+                        throwI_error(D->I, "corrupted instruction");
+                    }
+
+                    if (count > 0) {
+                        instruction.argument1 = get_ml_argument(D);
+                    }
+
+                    if (count > 1) {
+                        instruction.argument2 = get_ml_argument(D);
+                    }
+
+                    if (count > 2) {
+                        instruction.argument3 = get_ml_argument(D);
+                    }
+
+                    functionI_instruction_set(D->I, function, i, instruction);
+                }
+
+                for (ml_size i = 0; i < function->constants_count; i++) {
+                    struct value v = get_read_value(D);
+                    functionI_constant_set(D->I, function, i, v);
+                }
+                break;
+            }
             default: throwI_error(D->I, "corrupted packed data");
         }
     }

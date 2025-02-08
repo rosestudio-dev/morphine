@@ -5,7 +5,6 @@
 #pragma once
 
 #include "morphine/core/value.h"
-#include "morphine/misc/packer.h"
 
 struct closure {
     struct object header;
@@ -18,11 +17,8 @@ struct closure {
 struct closure *closureI_create(morphine_instance_t, struct value callable, ml_size);
 void closureI_free(morphine_instance_t, struct closure *);
 
+struct closure *closureI_packer_create(morphine_instance_t, ml_size);
+void closureI_packer_init(morphine_instance_t, struct closure *, struct value callable);
+
 struct value closureI_get(morphine_instance_t, struct closure *, ml_size);
 void closureI_set(morphine_instance_t, struct closure *, ml_size, struct value);
-
-void closureI_packer_vectorize(morphine_instance_t, struct closure *, struct packer_vectorize *);
-void closureI_packer_write_info(morphine_instance_t, struct closure *, struct packer_write *);
-void closureI_packer_write_data(morphine_instance_t, struct closure *, struct packer_write *);
-struct closure *closureI_packer_read_info(morphine_instance_t, struct packer_read *);
-void closureI_packer_read_data(morphine_instance_t, struct closure *, struct packer_read *);

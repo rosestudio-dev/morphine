@@ -73,7 +73,7 @@ static void init_args(morphine_coroutine_t U, int argc, char **args) {
 
     mapi_push_env(U);
     mapi_push_string(U, "args");
-    mapi_push_vector(U, argc_size);
+    mapi_push_vector_fix(U, argc_size);
     for (ml_size i = 0; i < argc_size; i++) {
         mapi_push_string(U, args[i]);
         mapi_vector_set(U, i);
