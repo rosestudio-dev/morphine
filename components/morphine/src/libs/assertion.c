@@ -37,11 +37,10 @@ static void lib_nonnil(morphine_coroutine_t U) {
             ml_size args = mapi_args(U);
             for (ml_size i = 0; i < args; i++) {
                 mapi_push_arg(U, i);
-                mapi_push_nil(U);
-                if (mapi_equal(U)) {
+                if (mapi_is_type(U, mstr_type_nil)) {
                     mapi_error(U, "expected non-nil value");
                 }
-                mapi_pop(U, 2);
+                mapi_pop(U, 1);
             }
 
             maux_nb_leave();
@@ -63,7 +62,7 @@ static void lib_typecheck(morphine_coroutine_t U) {
                 mapi_push_arg(U, i);
                 maux_expect(U, mstr_type_string);
 
-                if (mapi_equal(U)) {
+                if (mapi_compare(U) == 0) {
                     maux_nb_leave();
                 }
 

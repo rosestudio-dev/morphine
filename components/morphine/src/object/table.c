@@ -19,43 +19,50 @@ static inline ml_size sabs(ml_size a, ml_size b) {
     return a > b ? a - b : b - a;
 }
 
-static inline size_t hash2index(ml_hash hash, size_t size) {
-    return (size_t) (hash % size);
-}
-
 // linked list of buckets
 
-static inline struct bucket *insert_bucket(morphine_instance_t I, struct table *table) {
-    mm_overflow_add(table->hashmap.buckets.count, 1) {
+static inline struct bucket *create_bucket(morphine_instance_t I, struct hashmap *hashmap) {
+    mm_overflow_add(hashmap->buckets.count, 1) {
         throwI_error(I, "table size limit has been exceeded");
     }
 
-    struct bucket *bucket = allocI_uni(I, NULL, sizeof(struct bucket));
-    bucket->ll.index = table->hashmap.buckets.count;
-    table->hashmap.buckets.count++;
-
-    {
-        struct bucket **head = &table->hashmap.buckets.head;
-
-        if ((*head) == NULL) {
-            bucket->ll.prev = NULL;
-            bucket->ll.next = NULL;
-
-            table->hashmap.buckets.tail = bucket;
-        } else {
-            (*head)->ll.next = bucket;
-            bucket->ll.prev = (*head);
-            bucket->ll.next = NULL;
-        }
-
-        (*head) = bucket;
+    struct bucket *bucket = hashmap->buckets.uninit;
+    if (bucket == NULL) {
+        bucket = allocI_uni(I, NULL, sizeof(struct bucket));
+        hashmap->buckets.uninit = bucket;
     }
 
     return bucket;
 }
 
-static inline void remove_bucket(morphine_instance_t I, struct table *table, struct bucket *bucket) {
-    if (table->hashmap.buckets.count == 0) {
+static inline void insert_bucket(morphine_instance_t I, struct hashmap *hashmap) {
+    struct bucket *bucket = hashmap->buckets.uninit;
+    if (bucket == NULL) {
+        throwI_panic(I, "no uninited bucket");
+    }
+    hashmap->buckets.uninit = NULL;
+
+    bucket->ll.index = hashmap->buckets.count;
+    hashmap->buckets.count++;
+
+    struct bucket **head = &hashmap->buckets.head;
+
+    if ((*head) == NULL) {
+        bucket->ll.prev = NULL;
+        bucket->ll.next = NULL;
+
+        hashmap->buckets.tail = bucket;
+    } else {
+        (*head)->ll.next = bucket;
+        bucket->ll.prev = (*head);
+        bucket->ll.next = NULL;
+    }
+
+    (*head) = bucket;
+}
+
+static inline void remove_bucket(morphine_instance_t I, struct hashmap *hashmap, struct bucket *bucket) {
+    if (hashmap->buckets.count == 0) {
         throwI_panic(I, "corrupted table buckets count");
     }
 
@@ -67,29 +74,31 @@ static inline void remove_bucket(morphine_instance_t I, struct table *table, str
         }
     }
 
-    if (table->hashmap.buckets.access == bucket) {
+    if (hashmap->buckets.access == bucket) {
         if (bucket->ll.next != NULL) {
-            table->hashmap.buckets.access = bucket->ll.next;
+            hashmap->buckets.access = bucket->ll.next;
         } else {
-            table->hashmap.buckets.access = bucket->ll.prev;
+            hashmap->buckets.access = bucket->ll.prev;
         }
     }
 
     if (bucket->ll.next != NULL) {
         bucket->ll.next->ll.prev = bucket->ll.prev;
-    } else {
-        table->hashmap.buckets.head = bucket->ll.prev;
-
-        if (bucket->ll.prev == NULL) {
-            table->hashmap.buckets.tail = NULL;
-        }
     }
 
     if (bucket->ll.prev != NULL) {
         bucket->ll.prev->ll.next = bucket->ll.next;
     }
 
-    table->hashmap.buckets.count--;
+    if (hashmap->buckets.head == bucket) {
+        hashmap->buckets.head = bucket->ll.prev;
+    }
+
+    if (hashmap->buckets.tail == bucket) {
+        hashmap->buckets.tail = bucket->ll.next;
+    }
+
+    hashmap->buckets.count--;
     allocI_free(I, bucket);
 }
 
@@ -135,10 +144,10 @@ static inline bool redblacktree_is_empty(struct tree *tree) {
     return FIRST(tree) == NIL_LEAF(tree);
 }
 
-static inline struct bucket *redblacktree_find(morphine_instance_t I, struct tree *tree, struct value key) {
+static inline struct bucket *redblacktree_find(struct tree *tree, struct value key) {
     struct bucket *current = FIRST(tree);
     while (current != NIL_LEAF(tree)) {
-        int cmp = valueI_compare(I, key, current->pair.key);
+        int cmp = valueI_compare(key, current->pair.key);
 
         if (cmp == 0) {
             return current;
@@ -259,8 +268,7 @@ static void redblacktree_insert_repair(struct tree *tree, struct bucket *current
     } while (current->parent->color == BUCKET_COLOR_RED);
 }
 
-static inline bool redblacktree_insert_first(
-    morphine_instance_t I,
+static inline bool redblacktree_insert_pre(
     struct tree *tree,
     struct value key,
     struct bucket **current,
@@ -270,7 +278,7 @@ static inline bool redblacktree_insert_first(
     *parent = ROOT(tree);
 
     while (*current != NIL_LEAF(tree)) {
-        int cmp = valueI_compare(I, key, (*current)->pair.key);
+        int cmp = valueI_compare(key, (*current)->pair.key);
 
         if (cmp == 0) {
             return true;
@@ -288,8 +296,7 @@ static inline bool redblacktree_insert_first(
     return false;
 }
 
-static inline bool redblacktree_insert_second(
-    morphine_instance_t I,
+static inline bool redblacktree_insert_post(
     struct tree *tree,
     struct pair pair,
     struct bucket *current,
@@ -301,7 +308,7 @@ static inline bool redblacktree_insert_second(
     current->color = BUCKET_COLOR_RED;
     current->pair = pair;
 
-    int cmp = valueI_compare(I, pair.key, parent->pair.key);
+    int cmp = valueI_compare(pair.key, parent->pair.key);
     if (parent == ROOT(tree) || cmp < 0) {
         parent->left = current;
     } else {
@@ -418,13 +425,7 @@ static inline void swap(struct tree *tree, struct bucket *bucket, struct bucket 
     remove->color = bucket->color;
 }
 
-static struct bucket *redblacktree_delete(morphine_instance_t I, struct tree *tree, struct value key) {
-    struct bucket *bucket = redblacktree_find(I, tree, key);
-
-    if (bucket == NULL) {
-        return NULL;
-    }
-
+static void redblacktree_delete(struct tree *tree, struct bucket *bucket) {
     struct bucket *target;
     if (bucket->left == NIL_LEAF(tree) || bucket->right == NIL_LEAF(tree)) {
         target = bucket;
@@ -458,8 +459,6 @@ static struct bucket *redblacktree_delete(morphine_instance_t I, struct tree *tr
     if (bucket != target) {
         swap(tree, bucket, target);
     }
-
-    return bucket;
 }
 
 static void redblacktree_init(struct tree *tree) {
@@ -482,71 +481,111 @@ static void redblacktree_init(struct tree *tree) {
 
 // table
 
-static inline void resize(morphine_instance_t I, struct hashmap *hashmap) {
-    bool need = hashmap->hashing.size > 0
-                && ((hashmap->hashing.used * 10) / hashmap->hashing.size) < (MPARAM_TABLE_GROW_PERCENT / 10);
+static inline struct tree *hashmap_get_tree(struct hashmap *hashmap, struct value value) {
+    size_t index = valueI_hash(value) % hashmap->hashing.size;
+    return hashmap->hashing.trees + index;
+}
 
-    if (mm_likely(need || hashmap->hashing.size >= MPARAM_TABLE_TREES)) {
-        return;
-    }
-
-    size_t new_size = 8;
-    if (hashmap->hashing.size > 0) {
-        new_size = hashmap->hashing.size + hashmap->hashing.size / 2;
-    }
-
-    hashmap->hashing.trees = allocI_vec(I, hashmap->hashing.trees, new_size, sizeof(struct tree));
-    hashmap->hashing.size = new_size;
-
-    for (size_t i = 0; i < new_size; i++) {
+static inline void hashmap_restruct_trees(struct hashmap *hashmap) {
+    size_t size = hashmap->hashing.size;
+    for (size_t i = 0; i < size; i++) {
         redblacktree_init(hashmap->hashing.trees + i);
     }
 
     struct bucket *current = hashmap->buckets.head;
     while (current != NULL) {
-        ml_hash hash = valueI_hash(I, current->pair.key);
-        size_t index = hash2index(hash, new_size);
-
-        struct tree *tree = hashmap->hashing.trees + index;
+        struct tree *tree = hashmap_get_tree(hashmap, current->pair.key);
 
         struct bucket *tree_current;
         struct bucket *tree_parent;
 
-        if (redblacktree_insert_first(I, tree, current->pair.key, &tree_current, &tree_parent)) {
-            throwI_error(I, "duplicate while resizing");
+        if (redblacktree_insert_pre(tree, current->pair.key, &tree_current, &tree_parent)) {
+            tree_current->pair.value = current->pair.value;
         } else {
-            redblacktree_insert_second(I, tree, current->pair, current, tree_parent);
+            redblacktree_insert_post(tree, current->pair, current, tree_parent);
         }
 
         current = current->ll.prev;
     }
 }
 
-static inline struct bucket *get(morphine_instance_t I, struct hashmap *hashmap, struct value key) {
+static inline void hashmap_resize(morphine_instance_t I, struct hashmap *hashmap) {
+    size_t old_size = hashmap->hashing.size;
+
+    bool need = old_size == 0 || ((hashmap->hashing.used * 10) / old_size) >= (MPARAM_TABLE_GROW_PERCENT / 10);
+    if (!need || old_size >= MPARAM_TABLE_MAX_TREES) {
+        return;
+    }
+
+    size_t new_size = MPARAM_TABLE_INIT_TREES;
+    if (old_size > 0) {
+        new_size = mm_overflow_opc_add(old_size, old_size / 2, return);
+    }
+
+    hashmap->hashing.trees = allocI_vec(I, hashmap->hashing.trees, new_size, sizeof(struct tree));
+    hashmap->hashing.size = new_size;
+    hashmap_restruct_trees(hashmap);
+}
+
+static inline struct bucket *hashmap_get(struct hashmap *hashmap, struct value key, struct tree **tree) {
     if (hashmap->hashing.size == 0) {
         return NULL;
     }
 
-    ml_hash hash = valueI_hash(I, key);
-    size_t index = hash2index(hash, hashmap->hashing.size);
+    struct tree *found_tree = hashmap_get_tree(hashmap, key);
+    if (tree != NULL) {
+        *tree = found_tree;
+    }
 
-    struct tree *tree = hashmap->hashing.trees + index;
-    return redblacktree_find(I, tree, key);
+    return redblacktree_find(found_tree, key);
 }
+
+static inline struct pair hashmap_remove(morphine_instance_t I, struct hashmap *hashmap, struct value key, bool *has) {
+    struct tree *tree = NULL;
+    struct bucket *bucket = hashmap_get(hashmap, key, &tree);
+    if (has != NULL) {
+        *has = bucket != NULL;
+    }
+
+    if (bucket == NULL) {
+        return value_pair(valueI_nil, valueI_nil);
+    }
+
+    redblacktree_delete(tree, bucket);
+    if (redblacktree_is_empty(tree)) {
+        hashmap->hashing.used = mm_overflow_opc_sub(hashmap->hashing.used, 1, throwI_panic(I, "broken table"));
+    }
+
+    struct pair pair = bucket->pair;
+    remove_bucket(I, hashmap, bucket);
+    return pair;
+}
+
+static inline struct bucket *hashmap_getidx(morphine_instance_t I, struct hashmap *hashmap, ml_size index) {
+    if (index >= hashmap->buckets.count) {
+        throwI_error(I, "table index out of bounce");
+    }
+
+    struct bucket *current = get_bucket_by_index(hashmap, index);
+    if (current == NULL || current->ll.index != index) {
+        throwI_error(I, "corrupted table buckets");
+    }
+    hashmap->buckets.access = current;
+
+    return current;
+}
+
+// public
 
 struct table *tableI_create(morphine_instance_t I) {
     struct table *result = allocI_uni(I, NULL, sizeof(struct table));
     (*result) = (struct table) {
         .metatable = NULL,
 
-        .mode.fixed = false,
-        .mode.mutable = true,
-        .mode.accessible = true,
-        .lock.mode = false,
-
         .hashmap.buckets.access = NULL,
         .hashmap.buckets.head = NULL,
         .hashmap.buckets.tail = NULL,
+        .hashmap.buckets.uninit = NULL,
         .hashmap.buckets.count = 0,
 
         .hashmap.hashing.trees = NULL,
@@ -567,211 +606,93 @@ void tableI_free(morphine_instance_t I, struct table *table) {
         current = prev;
     }
 
+    if (table->hashmap.buckets.uninit != NULL) {
+        allocI_free(I, table->hashmap.buckets.uninit);
+    }
+
     allocI_free(I, table->hashmap.hashing.trees);
     allocI_free(I, table);
-}
-
-void tableI_mode_fixed(morphine_instance_t I, struct table *table, bool is_fixed) {
-    if (table->lock.mode) {
-        throwI_error(I, "table is locked");
-    }
-
-    table->mode.fixed = is_fixed;
-}
-
-void tableI_mode_mutable(morphine_instance_t I, struct table *table, bool is_mutable) {
-    if (table->lock.mode) {
-        throwI_error(I, "table is locked");
-    }
-
-    table->mode.mutable = is_mutable;
-}
-
-void tableI_mode_accessible(morphine_instance_t I, struct table *table, bool is_accessible) {
-    if (table->lock.mode) {
-        throwI_error(I, "table is locked");
-    }
-
-    table->mode.accessible = is_accessible;
-}
-
-void tableI_lock_mode(struct table *table) {
-    table->lock.mode = true;
 }
 
 ml_size tableI_size(struct table *table) {
     return table->hashmap.buckets.count;
 }
 
-void tableI_set(morphine_instance_t I, struct table *table, struct value key, struct value value) {
-    if (!table->mode.mutable) {
-        throwI_error(I, "table is immutable");
-    }
-
-    struct hashmap *hashmap = &table->hashmap;
-
-    {
-        gcI_safe_enter(I);
-        gcI_safe(I, valueI_object(table));
-        gcI_safe(I, key);
-        gcI_safe(I, value);
-
-        resize(I, hashmap);
-
-        gcI_safe_exit(I);
-    }
-
-    gcI_valbarrier(I, table, key);
-    gcI_valbarrier(I, table, value);
-
-    ml_hash hash = valueI_hash(I, key);
-    size_t index = hash2index(hash, hashmap->hashing.size);
-
-    struct tree *tree = hashmap->hashing.trees + index;
-
-    struct bucket *current;
-    struct bucket *parent;
-
-    if (mm_unlikely(redblacktree_insert_first(I, tree, key, &current, &parent))) {
-        current->pair.value = value;
-        return;
-    }
-
-    if (table->mode.fixed) {
-        throwI_error(I, "table is fixed");
-    }
-
-    current = insert_bucket(I, table);
-
-    bool first = redblacktree_insert_second(I, tree, value_pair(key, value), current, parent);
-
-    if (mm_likely(first)) {
-        hashmap->hashing.used++;
-    }
+bool tableI_has(struct table *table, struct value key) {
+    return hashmap_get(&table->hashmap, key, NULL) != NULL;
 }
 
-bool tableI_has(morphine_instance_t I, struct table *table, struct value key) {
-    return get(I, &table->hashmap, key) != NULL;
-}
-
-struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
-    struct hashmap *hashmap = &table->hashmap;
-
-    struct bucket *found = get(I, hashmap, key);
+struct value tableI_get(struct table *table, struct value key, bool *has) {
+    struct bucket *found = hashmap_get(&table->hashmap, key, NULL);
 
     if (has != NULL) {
-        (*has) = (found != NULL);
+        *has = found != NULL;
     }
 
-    if (mm_unlikely(found == NULL)) {
+    if (found == NULL) {
         return valueI_nil;
     } else {
         return found->pair.value;
     }
 }
 
-struct value tableI_remove(morphine_instance_t I, struct table *table, struct value key, bool *has) {
-    if (!table->mode.mutable) {
-        throwI_error(I, "table is immutable");
-    }
-
-    if (table->mode.fixed) {
-        throwI_error(I, "table is fixed");
-    }
-
+void tableI_set(morphine_instance_t I, struct table *table, struct value key, struct value value) {
     struct hashmap *hashmap = &table->hashmap;
+    if (valueI_is_nil(value)) {
+        hashmap_remove(I, hashmap, key, NULL);
+    } else {
+        gcI_safe_enter(I);
 
-    if (hashmap->hashing.size == 0) {
-        goto notfound;
-    }
+        gcI_safe(I, valueI_object(table));
+        gcI_safe(I, key);
+        gcI_safe(I, value);
 
-    ml_hash hash = valueI_hash(I, key);
-    size_t index = hash2index(hash, hashmap->hashing.size);
+        struct bucket *parent;
+        struct bucket *current;
 
-    struct tree *tree = hashmap->hashing.trees + index;
-    struct bucket *bucket = redblacktree_delete(I, tree, key);
-    if (bucket == NULL) {
-        goto notfound;
-    }
+        hashmap_resize(I, hashmap);
+        struct bucket *new_bucket = create_bucket(I, hashmap);
+        struct tree *tree = hashmap_get_tree(hashmap, key);
 
-    if (redblacktree_is_empty(tree)) {
-        if (hashmap->hashing.used == 0) {
-            throwI_panic(I, "broken table");
+        gcI_valbarrier(I, table, key);
+        gcI_valbarrier(I, table, value);
+        if (redblacktree_insert_pre(tree, key, &current, &parent)) {
+            current->pair.value = value;
+        } else {
+            if (redblacktree_insert_post(tree, value_pair(key, value), new_bucket, parent)) {
+                hashmap->hashing.used++;
+            }
+
+            insert_bucket(I, hashmap);
         }
 
-        hashmap->hashing.used--;
+        gcI_safe_exit(I);
     }
+}
 
-    struct value value = bucket->pair.value;
-    remove_bucket(I, table, bucket);
+struct value tableI_remove(morphine_instance_t I, struct table *table, struct value key, bool *has) {
+    return hashmap_remove(I, &table->hashmap, key, has).value;
+}
 
-    if (has != NULL) {
-        *has = true;
-    }
-
-    return value;
-
-notfound:
-    if (has != NULL) {
-        *has = false;
-    }
-
-    return valueI_nil;
+struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index) {
+    return hashmap_getidx(I, &table->hashmap, index)->pair;
 }
 
 void tableI_idx_set(morphine_instance_t I, struct table *table, ml_size index, struct value value) {
-    if (!table->mode.mutable) {
-        throwI_error(I, "table is immutable");
+    struct bucket *current = hashmap_getidx(I, &table->hashmap, index);
+    if (valueI_is_nil(value)) {
+        tableI_remove(I, table, current->pair.key, NULL);
+    } else {
+        current->pair.value = gcI_valbarrier(I, table, value);
     }
-
-    if (index >= table->hashmap.buckets.count) {
-        throwI_error(I, "table index out of bounce");
-    }
-
-    struct bucket *current = get_bucket_by_index(&table->hashmap, index);
-    if (current == NULL || current->ll.index != index) {
-        throwI_error(I, "corrupted table buckets");
-    }
-    table->hashmap.buckets.access = current;
-
-    current->pair.value = gcI_valbarrier(I, table, value);
 }
 
-struct pair tableI_idx_get(morphine_instance_t I, struct table *table, ml_size index, bool *has) {
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
-    if (index >= table->hashmap.buckets.count) {
-        if (has != NULL) {
-            (*has) = false;
-        }
-
-        return value_pair(valueI_nil, valueI_nil);
-    }
-
-    struct bucket *current = get_bucket_by_index(&table->hashmap, index);
-    if (current == NULL || current->ll.index != index) {
-        throwI_error(I, "corrupted table buckets");
-    }
-    table->hashmap.buckets.access = current;
-
-    if (has != NULL) {
-        (*has) = true;
-    }
-
-    return current->pair;
+struct pair tableI_idx_remove(morphine_instance_t I, struct table *table, ml_size index) {
+    struct bucket *current = hashmap_getidx(I, &table->hashmap, index);
+    return hashmap_remove(I, &table->hashmap, current->pair.key, NULL);
 }
 
-struct pair tableI_first(morphine_instance_t I, struct table *table, bool *has) {
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
+struct pair tableI_first(struct table *table, bool *has) {
     struct bucket *bucket = table->hashmap.buckets.tail;
 
     if (has != NULL) {
@@ -785,12 +706,8 @@ struct pair tableI_first(morphine_instance_t I, struct table *table, bool *has) 
     return bucket->pair;
 }
 
-struct pair tableI_next(morphine_instance_t I, struct table *table, struct value key, bool *has) {
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
-    struct bucket *current = get(I, &table->hashmap, key);
+struct pair tableI_next(struct table *table, struct value key, bool *has) {
+    struct bucket *current = hashmap_get(&table->hashmap, key, NULL);
     if (current == NULL) {
         if (has != NULL) {
             (*has) = false;
@@ -816,14 +733,6 @@ struct pair tableI_next(morphine_instance_t I, struct table *table, struct value
 }
 
 void tableI_clear(morphine_instance_t I, struct table *table) {
-    if (!table->mode.mutable) {
-        throwI_error(I, "table is immutable");
-    }
-
-    if (table->mode.fixed) {
-        throwI_error(I, "table is fixed");
-    }
-
     struct bucket *current = table->hashmap.buckets.head;
     while (current != NULL) {
         struct bucket *prev = current->ll.prev;
@@ -846,24 +755,16 @@ void tableI_clear(morphine_instance_t I, struct table *table) {
 }
 
 struct table *tableI_copy(morphine_instance_t I, struct table *table) {
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
     gcI_safe_enter(I);
     gcI_safe(I, valueI_object(table));
+
     struct table *result = gcI_safe_obj(I, table, tableI_create(I));
 
     struct bucket *current = table->hashmap.buckets.tail;
     while (current != NULL) {
         tableI_set(I, result, current->pair.key, current->pair.value);
-
         current = current->ll.next;
     }
-
-    result->mode.accessible = table->mode.accessible;
-    result->mode.mutable = table->mode.mutable;
-    result->mode.fixed = table->mode.fixed;
 
     gcI_safe_exit(I);
 
@@ -874,40 +775,25 @@ struct table *tableI_concat(morphine_instance_t I, struct table *a, struct table
     gcI_safe_enter(I);
     gcI_safe(I, valueI_object(a));
     gcI_safe(I, valueI_object(b));
+
     struct table *result = gcI_safe_obj(I, table, tableI_create(I));
 
     for (ml_size i = 0; i < a->hashmap.buckets.count; i++) {
-        bool has = false;
-        struct pair pair = tableI_idx_get(I, a, i, &has);
-
-        if (has) {
-            tableI_set(I, result, pair.key, pair.value);
-        }
+        struct pair pair = tableI_idx_get(I, a, i);
+        tableI_set(I, result, pair.key, pair.value);
     }
 
     for (ml_size i = 0; i < b->hashmap.buckets.count; i++) {
-        bool has = false;
-        struct pair pair = tableI_idx_get(I, b, i, &has);
-
-        if (has) {
-            tableI_set(I, result, pair.key, pair.value);
-        }
+        struct pair pair = tableI_idx_get(I, b, i);
+        tableI_set(I, result, pair.key, pair.value);
     }
-
-    result->mode.accessible = a->mode.accessible;
-    result->mode.mutable = a->mode.mutable;
-    result->mode.fixed = a->mode.fixed;
 
     gcI_safe_exit(I);
 
     return result;
 }
 
-void tableI_packer_vectorize(morphine_instance_t I, struct table *table, struct packer_vectorize *V) {
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
+void tableI_packer_vectorize(mattr_unused morphine_instance_t I, struct table *table, struct packer_vectorize *V) {
     struct bucket *current = table->hashmap.buckets.tail;
     while (current != NULL) {
         packerI_vectorize_append(V, current->pair.key);
@@ -921,17 +807,13 @@ void tableI_packer_vectorize(morphine_instance_t I, struct table *table, struct 
     }
 }
 
-void tableI_packer_write_info(morphine_instance_t I, struct table *table, mattr_unused struct packer_write *W) {
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-}
+void tableI_packer_write_info(
+    mattr_unused morphine_instance_t I,
+    mattr_unused struct table *table,
+    mattr_unused struct packer_write *W
+) { }
 
-void tableI_packer_write_data(morphine_instance_t I, struct table *table, struct packer_write *W) {
-    if (!table->mode.accessible) {
-        throwI_error(I, "table is inaccessible");
-    }
-
+void tableI_packer_write_data(mattr_unused morphine_instance_t I, struct table *table, struct packer_write *W) {
     packerI_write_ml_size(W, table->hashmap.buckets.count);
 
     struct bucket *current = table->hashmap.buckets.tail;
@@ -946,15 +828,9 @@ void tableI_packer_write_data(morphine_instance_t I, struct table *table, struct
     if (table->metatable != NULL) {
         packerI_write_value(W, valueI_object(table->metatable));
     }
-
-    packerI_write_bool(W, table->mode.mutable);
-    packerI_write_bool(W, table->mode.fixed);
-    packerI_write_bool(W, table->mode.accessible);
-    packerI_write_bool(W, table->lock.mode);
 }
 
-struct table *tableI_packer_read_info(morphine_instance_t I, struct packer_read *R) {
-    (void) R;
+struct table *tableI_packer_read_info(morphine_instance_t I, mattr_unused struct packer_read *R) {
     return tableI_create(I);
 }
 
@@ -974,13 +850,5 @@ void tableI_packer_read_data(morphine_instance_t I, struct table *table, struct 
         struct value metatable = gcI_safe(I, packerI_read_value(R));
         metatableI_set(I, valueI_object(table), valueI_as_table_or_error(I, metatable));
         gcI_safe_exit(I);
-    }
-
-    tableI_mode_mutable(I, table, packerI_read_bool(R));
-    tableI_mode_fixed(I, table, packerI_read_bool(R));
-    tableI_mode_accessible(I, table, packerI_read_bool(R));
-
-    if (packerI_read_bool(R)) {
-        tableI_lock_mode(table);
     }
 }

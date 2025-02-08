@@ -30,5 +30,7 @@ mspec_metatable_field(COMPARE, compare)      // (callable | value)
 // control
 mspec_metatable_field(MESSAGE, message)      // (value)
 mspec_metatable_field(MASK, mask)            // (value)
-mspec_metatable_field(LOCK, lock)            // (value)
+mspec_metatable_field(LOCK, lock)            // (value as bool)
+mspec_metatable_field(WEAK_KEY, weak_key)    // (value as bool)
+mspec_metatable_field(WEAK_VALUE, weak_val)  // (value as bool)
 mspec_metatable_field(GC, gc)                // (callable)

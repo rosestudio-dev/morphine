@@ -182,7 +182,7 @@ static void guardlock(morphine_coroutine_t U) {
             maux_nb_im_continue(2);
         maux_nb_state(2);
             mapi_push_string(U, "islocked");
-            mapi_table_getoe(U);
+            mapi_table_get(U);
             if (mapi_get_boolean(U)) {
                 mapi_pop(U, 1);
                 maux_nb_continue(2);
@@ -234,8 +234,8 @@ static void guard(morphine_coroutine_t U) {
 
             maux_construct_element_t meta[] = {
                 MAUX_CONSTRUCT_STRING(mstr_mf_type, GUARD_TYPE),
-                MAUX_CONSTRUCT_NIL(mstr_mf_mask),
                 MAUX_CONSTRUCT_NIL(mstr_mf_set),
+                MAUX_CONSTRUCT_NIL(mstr_mf_mask),
                 MAUX_CONSTRUCT_BOOLEAN(mstr_mf_lock, true),
                 MAUX_CONSTRUCT_END
             };
@@ -244,9 +244,6 @@ static void guard(morphine_coroutine_t U) {
             maux_construct(U, meta);
 
             mapi_set_metatable(U);
-            mapi_table_mode_fixed(U, true);
-            mapi_table_lock_mode(U);
-
             maux_nb_return();
     maux_nb_end
 }

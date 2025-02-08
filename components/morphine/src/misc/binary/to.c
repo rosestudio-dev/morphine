@@ -32,7 +32,7 @@ struct packer_write {
 
 static void vectorize_append(struct data *D, struct value value) {
     bool has = false;
-    tableI_get(D->I, D->table, value, &has);
+    tableI_get(D->table, value, &has);
 
     if (!has) {
         struct value index = valueI_integer(tableI_size(D->table));
@@ -114,7 +114,7 @@ void packerI_write_object_string(struct packer_write *W, struct string *value) {
 
 void packerI_write_value(struct packer_write *W, struct value value) {
     bool has = false;
-    struct value key = tableI_get(W->D->I, W->D->table, value, &has);
+    struct value key = tableI_get(W->D->table, value, &has);
     if (!has) {
         throwI_error(W->D->I, "unrecognized value");
     }
@@ -134,13 +134,7 @@ static void vectorize(struct data *D) {
     vectorize_append(D, D->value);
 
     for (ml_size index = 0; index < tableI_size(D->table); index++) {
-        bool has = false;
-        struct pair pair = tableI_idx_get(D->I, D->table, index, &has);
-
-        if (!has) {
-            throwI_error(D->I, "vectorize value failed");
-        }
-
+        struct pair pair = tableI_idx_get(D->I, D->table, index);
         switch (pair.key.type) {
             case VALUE_TYPE_NIL:
             case VALUE_TYPE_INTEGER:
@@ -199,13 +193,7 @@ static void write_objects_info(struct data *D) {
 
     ml_size size = tableI_size(D->table);
     for (ml_size index = 0; index < size; index++) {
-        bool has = false;
-        struct pair pair = tableI_idx_get(D->I, D->table, index, &has);
-
-        if (!has) {
-            throwI_error(D->I, "vectorize value failed");
-        }
-
+        struct pair pair = tableI_idx_get(D->I, D->table, index);
         write_ml_size(D, valueI_as_index_or_error(D->I, pair.value));
         write_value_type(D, pair.key.type);
         switch (pair.key.type) {
@@ -228,13 +216,7 @@ static void write_objects_data(struct data *D) {
 
     ml_size size = tableI_size(D->table);
     for (ml_size index = 0; index < size; index++) {
-        bool has = false;
-        struct pair pair = tableI_idx_get(D->I, D->table, index, &has);
-
-        if (!has) {
-            throwI_error(D->I, "vectorize value failed");
-        }
-
+        struct pair pair = tableI_idx_get(D->I, D->table, index);
         switch (pair.key.type) {
             case VALUE_TYPE_NIL:
             case VALUE_TYPE_INTEGER:

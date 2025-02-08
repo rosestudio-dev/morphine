@@ -22,7 +22,7 @@ static inline struct value get_mask(morphine_instance_t I, struct table *metatab
     struct value field_name = valueI_object(I->metafields[MTYPE_METAFIELD_MASK]);
 
     bool has = false;
-    struct value value = tableI_get(I, metatable, field_name, &has);
+    struct value value = tableI_get(metatable, field_name, &has);
     if (has) {
         return value;
     }
@@ -38,12 +38,11 @@ static inline bool get_lock(morphine_instance_t I, struct table *metatable) {
     struct value field_name = valueI_object(I->metafields[MTYPE_METAFIELD_LOCK]);
 
     bool has = false;
-    struct value value = tableI_get(I, metatable, field_name, &has);
+    struct value value = tableI_get(metatable, field_name, &has);
     return has && valueI_tobool(value);
 }
 
 static inline bool metatable_test(
-    morphine_instance_t I,
     struct value source,
     struct string *field,
     struct value *result
@@ -61,7 +60,7 @@ static inline bool metatable_test(
 
     struct value extracted = valueI_nil;
     if (metatable != NULL) {
-        extracted = tableI_get(I, metatable, field_name, &has);
+        extracted = tableI_get(metatable, field_name, &has);
     }
 
     if (result != NULL) {
@@ -107,7 +106,7 @@ bool metatableI_test(morphine_instance_t I, struct value source, mtype_metafield
     }
 
     struct string *name = I->metafields[field];
-    return metatable_test(I, source, name, result);
+    return metatable_test(source, name, result);
 }
 
 const char *metatableI_field2string(morphine_instance_t I, mtype_metafield_t field) {

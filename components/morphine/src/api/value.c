@@ -73,19 +73,13 @@ MORPHINE_API void mapi_to_string(morphine_coroutine_t U) {
 }
 
 MORPHINE_API ml_hash mapi_hash(morphine_coroutine_t U) {
-    return valueI_hash(U->I, stackI_peek(U, 0));
+    return valueI_hash(stackI_peek(U, 0));
 }
 
 MORPHINE_API int mapi_compare(morphine_coroutine_t U) {
     struct value a = stackI_peek(U, 1);
     struct value b = stackI_peek(U, 0);
-    return valueI_compare(U->I, a, b);
-}
-
-MORPHINE_API bool mapi_equal(morphine_coroutine_t U) {
-    struct value a = stackI_peek(U, 1);
-    struct value b = stackI_peek(U, 0);
-    return valueI_equal(U->I, a, b);
+    return valueI_compare(a, b);
 }
 
 MORPHINE_API void mapi_push_csize(morphine_coroutine_t U, size_t value, const char *name) {

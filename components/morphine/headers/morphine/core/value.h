@@ -153,6 +153,5 @@ struct value {
 const char *valueI_type(morphine_instance_t, struct value, bool raw);
 bool valueI_is_type(morphine_instance_t, const char *name, bool raw);
 
-int valueI_compare(morphine_instance_t, struct value, struct value);
-ml_hash valueI_hash(morphine_instance_t, struct value);
-bool valueI_equal(morphine_instance_t, struct value, struct value);
+int valueI_compare(struct value, struct value);
+ml_hash valueI_hash(struct value);

@@ -146,7 +146,8 @@ static void dis(morphine_coroutine_t U) {
             mapi_table_set(U);
 
             for (ml_size index = 0; index < mapi_table_len(U); index++) {
-                mapi_table_idx_keyoe(U, index);
+                mapi_table_idx_get(U, index);
+                mapi_pop(U, 1);
                 for (ml_size i = 0; i < mapi_constant_size(U); i++) {
                     mapi_constant_get(U, i);
 

@@ -214,19 +214,19 @@ static void setinstruction(morphine_coroutine_t U) {
                 maux_expect_args(U, 3);
 
                 mapi_push_string(U, "opcode");
-                mapi_table_getoe(U);
+                mapi_table_get(U);
                 instruction.opcode = maux_opcode_from_name(U, mapi_get_cstr(U));
                 mapi_pop(U, 1);
 
                 mapi_push_string(U, "line");
-                mapi_table_getoe(U);
+                mapi_table_get(U);
                 instruction.line = mapi_get_size(U, "line");
                 mapi_pop(U, 1);
 
                 size_t count = mapi_opcode(U, instruction.opcode);
                 for (size_t i = 0; i < count; i++) {
                     mapi_push_stringf(U, "argument%zu", i);
-                    mapi_table_getoe(U);
+                    mapi_table_get(U);
                     instruction.arguments[i] = (ml_argument) mapi_get_size(U, "argument");
                     mapi_pop(U, 1);
                 }

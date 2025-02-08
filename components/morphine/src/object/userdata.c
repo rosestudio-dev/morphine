@@ -119,7 +119,7 @@ void userdataI_free(morphine_instance_t I, struct userdata *userdata) {
 void *userdataI_pointer(morphine_instance_t I, struct userdata *userdata, const char *type) {
     if (userdata->is_typed && (type == NULL || strcmp(userdata->typed->name, type) != 0)) {
         throwI_error(I, "userdata type doesn't match");
-    } else if (type != NULL) {
+    } else if (!userdata->is_typed && type != NULL) {
         throwI_error(I, "untyped userdata");
     }
 

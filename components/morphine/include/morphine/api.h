@@ -94,7 +94,6 @@ MORPHINE_API void mapi_to_string(morphine_coroutine_t);
 
 MORPHINE_API ml_hash mapi_hash(morphine_coroutine_t);
 MORPHINE_API int mapi_compare(morphine_coroutine_t);
-MORPHINE_API bool mapi_equal(morphine_coroutine_t);
 
 MORPHINE_API void mapi_push_csize(morphine_coroutine_t, size_t, const char *name);
 MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t, const char *name);
@@ -138,31 +137,15 @@ MORPHINE_API ml_size mapi_table_len(morphine_coroutine_t);
 MORPHINE_API void mapi_table_clear(morphine_coroutine_t);
 MORPHINE_API void mapi_table_copy(morphine_coroutine_t);
 MORPHINE_API void mapi_table_concat(morphine_coroutine_t);
-
-MORPHINE_API void mapi_table_mode_mutable(morphine_coroutine_t, bool);
-MORPHINE_API void mapi_table_mode_fixed(morphine_coroutine_t, bool);
-MORPHINE_API void mapi_table_mode_accessible(morphine_coroutine_t, bool);
-MORPHINE_API void mapi_table_lock_mode(morphine_coroutine_t);
-
-MORPHINE_API bool mapi_table_mode_is_mutable(morphine_coroutine_t);
-MORPHINE_API bool mapi_table_mode_is_fixed(morphine_coroutine_t);
-MORPHINE_API bool mapi_table_mode_is_accessible(morphine_coroutine_t);
-MORPHINE_API bool mapi_table_mode_is_locked(morphine_coroutine_t);
+MORPHINE_API bool mapi_table_has(morphine_coroutine_t);
 
 MORPHINE_API void mapi_table_set(morphine_coroutine_t);
-MORPHINE_API bool mapi_table_has(morphine_coroutine_t);
 MORPHINE_API bool mapi_table_get(morphine_coroutine_t);
 MORPHINE_API bool mapi_table_remove(morphine_coroutine_t);
 
 MORPHINE_API void mapi_table_idx_set(morphine_coroutine_t, ml_size);
-MORPHINE_API bool mapi_table_idx_get(morphine_coroutine_t, ml_size);
-MORPHINE_API bool mapi_table_idx_key(morphine_coroutine_t, ml_size);
-
-MORPHINE_API void mapi_table_idx_getoe(morphine_coroutine_t, ml_size);
-MORPHINE_API void mapi_table_idx_keyoe(morphine_coroutine_t, ml_size);
-
-MORPHINE_API void mapi_table_getoe(morphine_coroutine_t);
-MORPHINE_API void mapi_table_removeoe(morphine_coroutine_t);
+MORPHINE_API void mapi_table_idx_get(morphine_coroutine_t, ml_size);
+MORPHINE_API void mapi_table_idx_remove(morphine_coroutine_t, ml_size);
 
 MORPHINE_API bool mapi_table_first(morphine_coroutine_t);
 MORPHINE_API bool mapi_table_next(morphine_coroutine_t);
@@ -174,7 +157,6 @@ MORPHINE_API ml_size mapi_vector_len(morphine_coroutine_t);
 MORPHINE_API void mapi_vector_resize(morphine_coroutine_t, ml_size);
 MORPHINE_API void mapi_vector_clear(morphine_coroutine_t);
 MORPHINE_API void mapi_vector_copy(morphine_coroutine_t);
-MORPHINE_API void mapi_vector_sort(morphine_coroutine_t);
 MORPHINE_API void mapi_vector_concat(morphine_coroutine_t);
 
 MORPHINE_API void mapi_vector_mode_mutable(morphine_coroutine_t, bool);

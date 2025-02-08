@@ -41,6 +41,7 @@ struct hashmap {
         struct bucket *access;
         struct bucket *head;
         struct bucket *tail;
+        struct bucket *uninit;
         ml_size count;
     } buckets;
 
@@ -55,39 +56,25 @@ struct table {
     struct object header;
 
     struct table *metatable;
-
-    struct {
-        bool fixed;
-        bool mutable;
-        bool accessible;
-    } mode;
-
-    struct {
-        bool mode;
-    } lock;
-
     struct hashmap hashmap;
 };
 
 struct table *tableI_create(morphine_instance_t);
 void tableI_free(morphine_instance_t, struct table *);
 
-void tableI_mode_fixed(morphine_instance_t, struct table *, bool is_fixed);
-void tableI_mode_mutable(morphine_instance_t, struct table *, bool is_mutable);
-void tableI_mode_accessible(morphine_instance_t, struct table *, bool is_accessible);
-void tableI_lock_mode(struct table *);
-
 ml_size tableI_size(struct table *);
+bool tableI_has(struct table *, struct value key);
+
+struct value tableI_get(struct table *, struct value key, bool *has);
 void tableI_set(morphine_instance_t, struct table *, struct value key, struct value value);
-bool tableI_has(morphine_instance_t, struct table *, struct value key);
-struct value tableI_get(morphine_instance_t, struct table *, struct value key, bool *has);
 struct value tableI_remove(morphine_instance_t, struct table *, struct value key, bool *has);
 
+struct pair tableI_idx_get(morphine_instance_t, struct table *, ml_size);
 void tableI_idx_set(morphine_instance_t, struct table *, ml_size, struct value);
-struct pair tableI_idx_get(morphine_instance_t, struct table *, ml_size, bool *has);
+struct pair tableI_idx_remove(morphine_instance_t, struct table *, ml_size);
 
-struct pair tableI_first(morphine_instance_t, struct table *, bool *has);
-struct pair tableI_next(morphine_instance_t, struct table *, struct value, bool *has);
+struct pair tableI_first(struct table *, bool *has);
+struct pair tableI_next(struct table *, struct value, bool *has);
 
 void tableI_clear(morphine_instance_t, struct table *);
 struct table *tableI_concat(morphine_instance_t, struct table *, struct table *);

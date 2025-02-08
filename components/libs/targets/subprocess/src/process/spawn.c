@@ -72,6 +72,8 @@ static void pipe_close(mattr_unused morphine_instance_t I, void *data, mattr_unu
         close(pipe_data->output);
         pipe_data->output_closed = true;
     }
+
+    mapi_allocator_free(I, data);
 }
 
 static size_t pipe_read(morphine_instance_t I, void *data, uint8_t *buffer, size_t size) {
@@ -175,14 +177,13 @@ MORPHINE_API void mlapi_process_spawn(morphine_coroutine_t U, bool env) {
         }
 
         for (ml_size i = 0; i < len; i++) {
-            mapi_table_idx_key(U, i);
-            const char *key_str = mapi_get_string(U);
-            size_t key_len = mapi_string_len(U);
-            mapi_rotate(U, 2);
-
             mapi_table_idx_get(U, i);
             const char *val_str = mapi_get_string(U);
             size_t val_len = mapi_string_len(U);
+            mapi_rotate(U, 2);
+
+            const char *key_str = mapi_get_string(U);
+            size_t key_len = mapi_string_len(U);
             mapi_rotate(U, 2);
             mapi_rotate(U, 3);
 

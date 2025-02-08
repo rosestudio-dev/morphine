@@ -19,33 +19,76 @@ static inline void invalidate_ref(struct reference *reference) {
     }
 }
 
+static inline bool value_is_black(struct value value) {
+    struct object *object = valueI_safe_as_object(value, NULL);
+    if (object == NULL) {
+        return true;
+    }
+
+    return object->color == OBJ_COLOR_BLACK;
+}
+
+static inline void invalidate_table(morphine_instance_t I, struct table *table) {
+    if (table->metatable == NULL) {
+        return;
+    }
+
+    struct value result;
+    bool weak_key = false;
+    if (metatableI_test(I, valueI_object(table), MTYPE_METAFIELD_WEAK_KEY, &result)) {
+        weak_key = valueI_tobool(result);
+    }
+
+    bool weak_val = false;
+    if (metatableI_test(I, valueI_object(table), MTYPE_METAFIELD_WEAK_VALUE, &result)) {
+        weak_val = valueI_tobool(result);
+    }
+
+    if (!weak_val && !weak_key) {
+        return;
+    }
+
+    struct bucket *current = table->hashmap.buckets.tail;
+    while (current != NULL) {
+        struct bucket *next = current->ll.next;
+        bool remove_by_key = weak_key && !value_is_black(current->pair.key);
+        bool remove_by_val = weak_val && !value_is_black(current->pair.value);
+        if (remove_by_key || remove_by_val) {
+            tableI_idx_remove(I, table, current->ll.index);
+        }
+        current = next;
+    }
+}
+
 static inline void invalidate_coroutine(struct coroutine *coroutine, bool emergency) {
     stackI_reduce_stack(coroutine, emergency);
     stackI_reduce_cache(coroutine, emergency);
 }
 
-static inline void invalidate(struct object *object, bool emergency) {
+static inline void invalidate(morphine_instance_t I, struct object *object, bool emergency) {
     if (object->type == OBJ_TYPE_REFERENCE) {
         invalidate_ref(cast(struct reference *, object));
+    } else if (object->type == OBJ_TYPE_TABLE) {
+        invalidate_table(I, cast(struct table *, object));
     } else if (object->type == OBJ_TYPE_COROUTINE) {
         invalidate_coroutine(cast(struct coroutine *, object), emergency);
     }
 }
 
-static inline void invalidate_pool(struct object *pool, bool emergency) {
+static inline void invalidate_pool(morphine_instance_t I, struct object *pool, bool emergency) {
     struct object *current = pool;
     while (current != NULL) {
-        invalidate(current, emergency);
+        invalidate(I, current, emergency);
         current = current->prev;
     }
 }
 
 static inline void resolve_pools(morphine_instance_t I, bool emergency) {
-    invalidate_pool(I->G.pools.black, emergency);
-    invalidate_pool(I->G.pools.finalize, emergency);
+    invalidate_pool(I, I->G.pools.black, emergency);
+    invalidate_pool(I, I->G.pools.finalize, emergency);
 
     if (I->G.finalizer.candidate != NULL) {
-        invalidate(I->G.finalizer.candidate, emergency);
+        invalidate(I, I->G.finalizer.candidate, emergency);
     }
 }
 
@@ -66,8 +109,7 @@ static inline bool finalize(morphine_instance_t I) {
         struct object *prev = current->prev;
 
         if (mm_unlikely(
-                !current->flags.finalized
-                && metatableI_test(I, valueI_object(current), MTYPE_METAFIELD_GC, NULL)
+                !current->flags.finalized && metatableI_test(I, valueI_object(current), MTYPE_METAFIELD_GC, NULL)
             )) {
             current->color = OBJ_COLOR_RED;
             gcI_pools_remove(current, &I->G.pools.allocated);

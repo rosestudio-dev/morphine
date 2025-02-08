@@ -53,7 +53,7 @@ static inline op_result_t interpreter_fun_get(
         (*result) = mt_field;
         return NORMAL;
     } else if (valueI_is_table(container)) {
-        (*result) = tableI_get(U->I, valueI_as_table(container), key, NULL);
+        (*result) = tableI_get(valueI_as_table(container), key, NULL);
         return NORMAL;
     }
 
@@ -331,7 +331,7 @@ static inline op_result_t interpreter_fun_equal(
         return NORMAL;
     }
 
-    (*result) = valueI_boolean(valueI_equal(U->I, a, b));
+    (*result) = valueI_boolean(valueI_compare(a, b) == 0);
     return NORMAL;
 }
 
@@ -706,37 +706,6 @@ static inline op_result_t interpreter_fun_length(
     throwI_error(U->I, "length supports only string, table or vector");
 }
 
-static inline op_result_t interpreter_fun_compare(
-    morphine_coroutine_t U,
-    ml_size callstate,
-    struct value a,
-    struct value b,
-    struct value *result,
-    ml_size pop_size,
-    bool need_return
-) {
-    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
-        (*result) = callstackI_result(U);
-        return CALLED_COMPLETE;
-    }
-
-    struct value mt_field;
-    if (metatableI_test(U->I, a, MTYPE_METAFIELD_COMPARE, &mt_field)) {
-        if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { a, b };
-            callstackI_continue(U, callstate);
-            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
-            return CALLED;
-        }
-
-        (*result) = mt_field;
-        return NORMAL;
-    }
-
-    (*result) = valueI_integer(valueI_compare(U->I, a, b));
-    return NORMAL;
-}
-
 static inline op_result_t interpreter_fun_tostr(
     morphine_coroutine_t U,
     ml_size callstate,
@@ -767,6 +736,37 @@ static inline op_result_t interpreter_fun_tostr(
     return NORMAL;
 }
 
+static inline op_result_t interpreter_fun_compare(
+    morphine_coroutine_t U,
+    ml_size callstate,
+    struct value a,
+    struct value b,
+    struct value *result,
+    ml_size pop_size,
+    bool need_return
+) {
+    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
+        (*result) = callstackI_result(U);
+        return CALLED_COMPLETE;
+    }
+
+    struct value mt_field;
+    if (metatableI_test(U->I, a, MTYPE_METAFIELD_COMPARE, &mt_field)) {
+        if (valueI_is_callable(mt_field)) {
+            struct value new_args[] = { a, b };
+            callstackI_continue(U, callstate);
+            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
+            return CALLED;
+        }
+
+        (*result) = mt_field;
+        return NORMAL;
+    }
+
+    (*result) = valueI_integer(valueI_compare(a, b));
+    return NORMAL;
+}
+
 
 static inline op_result_t interpreter_fun_hash(
     morphine_coroutine_t U,
@@ -794,6 +794,6 @@ static inline op_result_t interpreter_fun_hash(
         return NORMAL;
     }
 
-    (*result) = valueI_integer(valueI_hash(U->I, a));
+    (*result) = valueI_integer(valueI_hash(a));
     return NORMAL;
 }
