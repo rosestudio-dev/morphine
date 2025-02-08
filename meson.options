@@ -3,7 +3,7 @@ option('build_libs', type : 'feature', value : 'enabled')
 option('build_compiler', type : 'feature', value : 'enabled')
 
 # Subdirs connection
-option('libs', type : 'array', value : ['system', 'fs', 'math', 'bigint', 'termios', 'subprocess'])
+option('libs', type : 'array', value : ['system', 'fs', 'math', 'termios', 'subprocess'])
 option('misc', type : 'array', value : ['app', 'jni'])
 
 # Common
