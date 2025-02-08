@@ -68,9 +68,6 @@ static struct {
     operator(SLASHEQ, "/="),
     operator(PERCENTEQ, "%="),
     operator(DOTDOTEQ, "..="),
-    operator(LARROW, "<-"),
-    operator(RARROW, "->"),
-    operator(EXCL, "!")
 #undef operator
 };
 

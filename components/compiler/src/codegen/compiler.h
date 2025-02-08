@@ -16,7 +16,6 @@ expr(unary);
 expr(increment);
 expr(variable);
 expr(env);
-expr(invoked);
 expr(leave);
 expr(break);
 expr(continue);
@@ -27,7 +26,6 @@ expr(call);
 expr(function);
 expr(block);
 expr(if);
-expr(asm);
 
 stmt(pass);
 stmt(yield);

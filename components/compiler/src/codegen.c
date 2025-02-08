@@ -207,43 +207,6 @@ static void push_context(struct codegen_controller *C, struct mc_ast_function *f
             codegen_errorf(C, "argument duplicates");
         }
     }
-
-    if (!function->auto_closure) {
-        for (size_t i = 0; i < function->closures_size; i++) {
-            size_t count = 0;
-            for (size_t index = 0; index < function->closures_size; index++) {
-                if (function->closures[i] == function->closures[index]) {
-                    count++;
-                }
-            }
-
-            if (count > 1) {
-                codegen_errorf(C, "closure duplicates");
-            }
-
-            if (C->G->context->prev == NULL) {
-                mapi_error(C->U, "no previous function");
-            }
-
-            struct variable_info info = deep_variable(
-                C, C->G->context->prev, function->closures[i]
-            );
-
-            if (info.type == VIT_NOT_FOUND) {
-                codegen_errorf(
-                    C, "closure variable '%s' not found",
-                    mcapi_strtable_access(C->U, C->T, function->closures[i])
-                );
-            }
-
-            struct variable closure = {
-                .index = function->closures[i],
-                .mutable = info.mutable
-            };
-
-            add_closure(C, C->G->context, closure);
-        }
-    }
 }
 
 static void pop_context(struct codegen_controller *C) {
@@ -549,7 +512,7 @@ static struct variable_info get_variable(
         }
     }
 
-    if (function->recursive && !function->anonymous && function->name == name) {
+    if (!function->anonymous && function->name == name) {
         return (struct variable_info) {
             .type = VIT_RECURSIVE,
             .mutable = false
@@ -585,11 +548,6 @@ static struct variable_info deep_variable(
 
         if (info.type != VIT_NOT_FOUND) {
             break;
-        } else if (!context->function->auto_closure) {
-            return (struct variable_info) {
-                .type = VIT_NOT_FOUND,
-                .mutable = true
-            };
         }
 
         context = context->prev;
@@ -907,10 +865,6 @@ struct instruction_slot codegen_result(struct codegen_controller *C) {
     return result.slot;
 }
 
-bool codegen_is_recursive(struct codegen_controller *C) {
-    return C->G->context->function->recursive;
-}
-
 struct instruction_slot codegen_declare_temporary(struct codegen_controller *C) {
     return (struct instruction_slot) {
         .is_variable = false,
@@ -1075,7 +1029,6 @@ static void visitor_function(
                 expr_case(increment)
                 expr_case(variable)
                 expr_case(env)
-                expr_case(invoked)
                 expr_case(leave)
                 expr_case(break)
                 expr_case(continue)
@@ -1086,7 +1039,6 @@ static void visitor_function(
                 expr_case(function)
                 expr_case(block)
                 expr_case(if)
-                expr_case(asm)
             }
             break;
         }

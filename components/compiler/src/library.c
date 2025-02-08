@@ -142,7 +142,7 @@ static void dis(morphine_coroutine_t U) {
             mapi_rotate(U, 2);
             mapi_pop(U, 1);
 
-            mapi_push_nil(U);
+            mapi_push_integer(U, 0);
             mapi_table_set(U);
 
             for (ml_size index = 0; index < mapi_table_len(U); index++) {

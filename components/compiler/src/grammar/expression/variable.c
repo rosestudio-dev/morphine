@@ -6,60 +6,21 @@
 #include "../extra/arguments.h"
 
 static size_t function_arguments(struct parse_controller *C, struct mc_ast_expression **args) {
-    bool error = true;
-    size_t count = 0;
+    struct arguments A = extra_arguments_init_full(
+        C, true, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
+    );
 
-    if (parser_look(C, et_operator(LPAREN))) {
-        error = false;
-
-        struct arguments A = extra_arguments_init_full(
-            C, true, true, et_operator(LPAREN), et_operator(RPAREN), et_operator(COMMA)
-        );
-
-        size_t index = 0;
-        for (; extra_arguments_next(C, &A); index++) {
-            struct mc_ast_expression *expression =
-                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
-
-            if (args != NULL) {
-                args[index] = expression;
-            }
-        }
-
-        count += extra_arguments_finish(C, &A);
-    }
-
-    if (parser_look(C, et_operator(LBRACE))) {
-        error = false;
-
-        struct mc_ast_expression *expression =
-            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_table));
-
-        if (args != NULL) {
-            args[count] = expression;
-        }
-
-        count++;
-    }
-
-    if (parser_match(C, et_operator(LARROW))) {
-        error = false;
-
+    size_t index = 0;
+    for (; extra_arguments_next(C, &A); index++) {
         struct mc_ast_expression *expression =
             mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_expression));
 
         if (args != NULL) {
-            args[count] = expression;
+            args[index] = expression;
         }
-
-        count++;
     }
 
-    if (error) {
-        parser_consume(C, et_operator(LPAREN));
-    }
-
-    return count;
+    return extra_arguments_finish(C, &A);
 }
 
 static struct mc_ast_node *rule_variable_call(struct parse_controller *C) {
@@ -148,8 +109,7 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
                 parser_consume(C, et_operator(RBRACKET));
             } else if (parser_match(C, et_operator(DOT))) {
                 parser_consume(C, et_word());
-            } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE)) ||
-                       parser_look(C, et_operator(LARROW))) {
+            } else if (parser_look(C, et_operator(LPAREN))) {
                 parser_reduce(C, rule_variable_call);
             } else if (parser_look(C, et_operator(COLON))) {
                 parser_reduce(C, rule_variable_call_self);
@@ -200,8 +160,7 @@ struct mc_ast_node *rule_variable(struct parse_controller *C) {
             access->key = mcapi_ast_value2expression(key_value);
 
             expression = mcapi_ast_access2expression(access);
-        } else if (parser_look(C, et_operator(LPAREN)) || parser_look(C, et_operator(LBRACE)) ||
-                   parser_look(C, et_operator(LARROW))) {
+        } else if (parser_look(C, et_operator(LPAREN))) {
             struct mc_ast_expression *next_expression =
                 mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_variable_call));
 

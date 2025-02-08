@@ -38,7 +38,6 @@ static void ast_userdata_destructor(morphine_instance_t I, void *data) {
     struct mc_ast_function *function = A->functions;
     while (function != NULL) {
         struct mc_ast_function *prev = function->prev;
-        mapi_allocator_free(I, function->closures);
         mapi_allocator_free(I, function->arguments);
         mapi_allocator_free(I, function);
         function = prev;
@@ -101,8 +100,6 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "expression_variable";
                 case MCEXPRT_env:
                     return "expression_env";
-                case MCEXPRT_invoked:
-                    return "expression_invoked";
                 case MCEXPRT_leave:
                     return "expression_leave";
                 case MCEXPRT_break:
@@ -123,8 +120,6 @@ MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t U, struct mc_a
                     return "expression_block";
                 case MCEXPRT_if:
                     return "expression_if";
-                case MCEXPRT_asm:
-                    return "expression_asm";
             }
             break;
         }
@@ -157,35 +152,21 @@ MORPHINE_API struct mc_ast_function *mcapi_ast_functions(struct mc_ast *A) {
     return A->functions;
 }
 
-MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(
-    morphine_coroutine_t U,
-    struct mc_ast *A,
-    size_t closures,
-    size_t args
-) {
+MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(morphine_coroutine_t U, struct mc_ast *A, size_t args) {
     struct mc_ast_function *function = mapi_allocator_uni(
         mapi_instance(U), NULL, sizeof(struct mc_ast_function)
     );
 
     *function = (struct mc_ast_function) {
         .line = 0,
-        .recursive = false,
         .anonymous = true,
-        .auto_closure = false,
-        .closures_size = 0,
         .args_size = 0,
-        .closures = NULL,
         .arguments = NULL,
         .body = NULL,
         .prev = A->functions
     };
 
     A->functions = function;
-
-    function->closures = mapi_allocator_vec(
-        mapi_instance(U), NULL, closures, sizeof(mc_strtable_index_t)
-    );
-    function->closures_size = closures;
 
     function->arguments = mapi_allocator_vec(
         mapi_instance(U), NULL, args, sizeof(mc_strtable_index_t)

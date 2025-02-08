@@ -31,7 +31,6 @@ enum mc_expression_type {
     MCEXPRT_increment,
     MCEXPRT_variable,
     MCEXPRT_env,
-    MCEXPRT_invoked,
     MCEXPRT_leave,
     MCEXPRT_break,
     MCEXPRT_continue,
@@ -42,7 +41,6 @@ enum mc_expression_type {
     MCEXPRT_function,
     MCEXPRT_block,
     MCEXPRT_if,
-    MCEXPRT_asm,
 };
 
 struct mc_ast_node {
@@ -67,15 +65,10 @@ struct mc_ast_expression {
 struct mc_ast_function {
     ml_line line;
 
-    bool recursive;
     bool anonymous;
     mc_strtable_index_t name;
 
-    bool auto_closure;
-    size_t closures_size;
     size_t args_size;
-
-    mc_strtable_index_t *closures;
     mc_strtable_index_t *arguments;
 
     struct mc_ast_statement *body;
@@ -92,12 +85,7 @@ MORPHINE_API struct mc_ast_statement *mcapi_ast_node2statement(morphine_coroutin
 MORPHINE_API const char *mcapi_ast_type_name(morphine_coroutine_t, struct mc_ast_node *);
 
 MORPHINE_API struct mc_ast_function *mcapi_ast_functions(struct mc_ast *);
-MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(
-    morphine_coroutine_t,
-    struct mc_ast *,
-    size_t closures,
-    size_t args
-);
+MORPHINE_API struct mc_ast_function *mcapi_ast_create_function(morphine_coroutine_t, struct mc_ast *, size_t args);
 
 MORPHINE_API void mcapi_ast_set_root_function(struct mc_ast *, struct mc_ast_function *);
 MORPHINE_API struct mc_ast_function *mcapi_ast_get_root_function(struct mc_ast *);
@@ -122,8 +110,6 @@ static inline struct mc_ast_node *mcapi_ast_statement2node(struct mc_ast_stateme
 
 #define ast_declare_expr(name, args) ast_declare_node(expression, MCEXPRT, name, args)
 #define ast_declare_stmt(name, args) ast_declare_node(statement, MCSTMTT, name, args)
-
-#define ast_extract_part(type) bool is_extract; union { struct { size_t size; type *values; struct mc_ast_expression **keys; } extract; type value; }
 
 // types
 
@@ -172,8 +158,6 @@ ast_declare_expr(function, ast_noargs)
 };
 
 ast_declare_expr(env, ast_noargs) };
-
-ast_declare_expr(invoked, ast_noargs) };
 
 ast_declare_expr(leave, ast_noargs)
     struct mc_ast_expression *expression;
@@ -269,76 +253,12 @@ ast_declare_stmt(assigment, ast_noargs)
     struct mc_ast_expression *value;
 };
 
-ast_declare_stmt(declaration, ast_args(size_t count))
+ast_declare_stmt(declaration, ast_noargs)
     bool mutable;
     struct mc_ast_expression *expression;
-    ast_extract_part(struct mc_ast_expression_variable *);
+    struct mc_ast_expression_variable *variable;
 };
 
-// asm
-
-enum mc_asm_data_type {
-    MCADT_NIL,
-    MCADT_INTEGER,
-    MCADT_DECIMAL,
-    MCADT_BOOLEAN,
-    MCADT_STRING,
-};
-
-enum mc_asm_argument_type {
-    MCAAT_WORD,
-    MCAAT_NUMBER
-};
-
-struct mc_asm_data {
-    mc_strtable_index_t name;
-    enum mc_asm_data_type type;
-    union {
-        ml_integer integer;
-        ml_decimal decimal;
-        bool boolean;
-        mc_strtable_index_t string;
-    };
-};
-
-struct mc_asm_argument {
-    enum mc_asm_argument_type type;
-    union {
-        mc_strtable_index_t word;
-        ml_integer number;
-    };
-};
-
-struct mc_asm_instruction {
-    ml_line line;
-    mtype_opcode_t opcode;
-    struct mc_asm_argument arguments[MORPHINE_INSTRUCTION_ARGS_COUNT];
-};
-
-struct mc_asm_anchor {
-    mc_strtable_index_t anchor;
-    size_t instruction;
-};
-
-ast_declare_expr(
-    asm,
-    ast_args(size_t data_count, size_t slots_count, size_t code_count, size_t anchors_count)
-)
-    bool has_emitter;
-    mc_strtable_index_t emitter;
-
-    size_t data_count;
-    size_t slots_count;
-    size_t code_count;
-    size_t anchors_count;
-
-    struct mc_asm_data *data;
-    mc_strtable_index_t *slots;
-    struct mc_asm_instruction *code;
-    struct mc_asm_anchor *anchors;
-};
-
-#undef ast_extract_part
 #undef ast_args
 #undef ast_noargs
 #undef ast_declare_node

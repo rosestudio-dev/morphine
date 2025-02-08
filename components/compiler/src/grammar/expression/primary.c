@@ -20,10 +20,6 @@ struct mc_ast_node *rule_primary(struct parse_controller *C) {
         return parser_reduce(C, rule_function);
     }
 
-    if (parser_look(C, et_predef_word(asm))) {
-        return parser_reduce(C, rule_asm);
-    }
-
     if (parser_look(C, et_predef_word(if))) {
         return parser_reduce(C, rule_if);
     }

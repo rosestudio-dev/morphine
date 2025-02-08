@@ -4,28 +4,13 @@
 
 #pragma once
 
-#include "morphinec/lex.h"
 #include "morphinec/ast.h"
+#include "morphinec/lex.h"
 
-enum predefined_word_normal {
-#define predef_word(n) PWN_##n,
-
-#include "predefword/normal.h"
-
+enum predefined_word {
+#define predef_word(n) PW_##n,
+#include "predefword.h"
 #undef predef_word
-};
-
-enum predefined_word_asm {
-#define predef_word(n) PWA_##n,
-
-#include "predefword/asm.h"
-
-#undef predef_word
-};
-
-enum predefined_word_mode {
-    PWM_NORMAL,
-    PWM_ASM,
 };
 
 enum expected_token_type {
@@ -39,19 +24,11 @@ enum expected_token_type {
     ETT_IMPLICIT_WORD,
 };
 
-struct predefined_word {
-    enum predefined_word_mode mode;
-    union {
-        enum predefined_word_normal normal_type;
-        enum predefined_word_asm asm_type;
-    };
-};
-
 struct expected_token {
     enum expected_token_type type;
     union {
         enum mc_lex_token_operator op;
-        struct predefined_word predefined_word;
+        enum predefined_word predefined_word;
     };
 };
 
@@ -61,8 +38,7 @@ struct expected_token {
 #define et_word()             ((struct expected_token) { .type = ETT_WORD })
 #define et_eos()              ((struct expected_token) { .type = ETT_EOS })
 #define et_operator(n)        ((struct expected_token) { .type = ETT_OPERATOR, .op = MCLTOP_##n })
-#define et_predef_word(n)     ((struct expected_token) { .type = ETT_PREDEFINED_WORD, .predefined_word.mode = PWM_NORMAL, .predefined_word.normal_type = PWN_##n })
-#define et_asm_predef_word(n) ((struct expected_token) { .type = ETT_PREDEFINED_WORD, .predefined_word.mode = PWM_ASM, .predefined_word.asm_type = PWA_##n })
+#define et_predef_word(n)     ((struct expected_token) { .type = ETT_PREDEFINED_WORD, .predefined_word = PW_##n })
 #define et_implicit_word()    ((struct expected_token) { .type = ETT_IMPLICIT_WORD })
 
 struct parse_controller;
@@ -80,7 +56,6 @@ bool parser_match(struct parse_controller *, struct expected_token);
 struct mc_lex_token parser_consume(struct parse_controller *, struct expected_token);
 struct mc_ast_node *parser_reduce(struct parse_controller *, parse_function_t);
 void parser_reset(struct parse_controller *);
-void parser_change_mode(struct parse_controller *, enum predefined_word_mode);
 
 // rules
 
@@ -116,6 +91,5 @@ rule(table);
 rule(vector);
 rule(function);
 rule(if);
-rule(asm);
 
 #undef rule
