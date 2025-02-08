@@ -5,7 +5,6 @@
 #include "impl.h"
 #include "mark.h"
 #include "morphine/core/instance.h"
-#include "morphine/object/reference.h"
 #include "morphine/utils/overflow.h"
 
 bool gcstageI_sweep(morphine_instance_t I, size_t debt) {

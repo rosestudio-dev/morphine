@@ -34,7 +34,7 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
 #define SLOT "slot "APR
 #define arg(n) instr.argument##n
     switch (instr.opcode) {
-        case MTYPE_OPCODE_NO_OPERATION:
+        case MTYPE_OPCODE_NOP:
             printf("no operation");
             return;
         case MTYPE_OPCODE_YIELD:
@@ -129,12 +129,6 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
             return;
         case MTYPE_OPCODE_NOT:
             printf(SLOT" = not "SLOT, arg(2), arg(1));
-            return;
-        case MTYPE_OPCODE_REF:
-            printf(SLOT" = ref "SLOT, arg(2), arg(1));
-            return;
-        case MTYPE_OPCODE_DEREF:
-            printf(SLOT" = deref "SLOT, arg(2), arg(1));
             return;
         case MTYPE_OPCODE_LENGTH:
             printf(SLOT" = len "SLOT, arg(2), arg(1));

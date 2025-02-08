@@ -5,19 +5,6 @@
 #include "impl.h"
 #include "mark.h"
 #include "morphine/core/instance.h"
-#include "morphine/object/reference.h"
-
-static inline void invalidate_ref(struct reference *reference) {
-    struct object *object = valueI_safe_as_object(reference->value, NULL);
-
-    if (object == NULL) {
-        return;
-    }
-
-    if (object->color != OBJ_COLOR_BLACK) {
-        reference->value = valueI_nil;
-    }
-}
 
 static inline bool value_is_black(struct value value) {
     struct object *object = valueI_safe_as_object(value, NULL);
@@ -66,9 +53,7 @@ static inline void invalidate_coroutine(struct coroutine *coroutine, bool emerge
 }
 
 static inline void invalidate(morphine_instance_t I, struct object *object, bool emergency) {
-    if (object->type == OBJ_TYPE_REFERENCE) {
-        invalidate_ref(cast(struct reference *, object));
-    } else if (object->type == OBJ_TYPE_TABLE) {
+    if (object->type == OBJ_TYPE_TABLE) {
         invalidate_table(I, cast(struct table *, object));
     } else if (object->type == OBJ_TYPE_COROUTINE) {
         invalidate_coroutine(cast(struct coroutine *, object), emergency);

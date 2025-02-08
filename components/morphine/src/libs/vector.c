@@ -74,18 +74,6 @@ static void trim(morphine_coroutine_t U) {
     maux_nb_end
 }
 
-static void sort(morphine_coroutine_t U) {
-    maux_nb_function(U)
-        maux_nb_init();
-            maux_expect_args(U, 1);
-            mapi_push_arg(U, 0);
-            maux_expect(U, mstr_type_vector);
-
-            mapi_vector_sort(U);
-            maux_nb_return();
-    maux_nb_end
-}
-
 static void resize(morphine_coroutine_t U) {
     maux_nb_function(U)
         maux_nb_init();
@@ -424,7 +412,6 @@ static maux_construct_element_t elements[] = {
     MAUX_CONSTRUCT_FUNCTION("clear", clear),
     MAUX_CONSTRUCT_FUNCTION("copy", copy),
     MAUX_CONSTRUCT_FUNCTION("trim", trim),
-    MAUX_CONSTRUCT_FUNCTION("sort", sort),
     MAUX_CONSTRUCT_FUNCTION("resize", resize),
     MAUX_CONSTRUCT_FUNCTION("has", has),
     MAUX_CONSTRUCT_FUNCTION("add", add),

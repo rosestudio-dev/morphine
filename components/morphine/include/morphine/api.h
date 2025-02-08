@@ -183,12 +183,6 @@ MORPHINE_API void mapi_vector_push_front(morphine_coroutine_t);
 MORPHINE_API void mapi_vector_pop_front(morphine_coroutine_t);
 MORPHINE_API void mapi_vector_peek_front(morphine_coroutine_t);
 
-// reference
-
-MORPHINE_API void mapi_push_ref(morphine_coroutine_t);
-MORPHINE_API void mapi_ref_set(morphine_coroutine_t);
-MORPHINE_API void mapi_ref_get(morphine_coroutine_t);
-
 // native
 
 MORPHINE_API void mapi_push_native(morphine_coroutine_t, mfunc_native_t);

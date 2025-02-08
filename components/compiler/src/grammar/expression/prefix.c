@@ -12,7 +12,6 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
                        parser_match(C, et_predef_word(not)) ||
                        parser_match(C, et_predef_word(typeof)) ||
                        parser_match(C, et_predef_word(lenof)) ||
-                       parser_match(C, et_predef_word(ref)) ||
                        parser_match(C, et_operator(PLUSPLUS)) ||
                        parser_match(C, et_operator(MINUSMINUS));
 
@@ -36,32 +35,6 @@ struct mc_ast_node *rule_prefix(struct parse_controller *C) {
             mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
 
         unary->type = MCEXPR_UNARY_TYPE_NEGATE;
-        unary->expression = expression;
-
-        return mcapi_ast_expression_unary2node(unary);
-    }
-
-    if (parser_match(C, et_operator(STAR))) {
-        struct mc_ast_expression *expression =
-            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
-
-        struct mc_ast_expression_unary *unary =
-            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
-
-        unary->type = MCEXPR_UNARY_TYPE_DEREF;
-        unary->expression = expression;
-
-        return mcapi_ast_expression_unary2node(unary);
-    }
-
-    if (parser_match(C, et_predef_word(ref))) {
-        struct mc_ast_expression *expression =
-            mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_prefix));
-
-        struct mc_ast_expression_unary *unary =
-            mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
-
-        unary->type = MCEXPR_UNARY_TYPE_REF;
         unary->expression = expression;
 
         return mcapi_ast_expression_unary2node(unary);

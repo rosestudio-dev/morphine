@@ -153,8 +153,6 @@ enum mc_expression_unary_type {
     MCEXPR_UNARY_TYPE_NOT,
     MCEXPR_UNARY_TYPE_TYPE,
     MCEXPR_UNARY_TYPE_LEN,
-    MCEXPR_UNARY_TYPE_REF,
-    MCEXPR_UNARY_TYPE_DEREF,
 };
 
 // expressions

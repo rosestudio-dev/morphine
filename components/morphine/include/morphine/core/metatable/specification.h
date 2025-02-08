@@ -20,8 +20,6 @@ mspec_metatable_field(CONCAT, concat)        // (callable | value)
 mspec_metatable_field(NEGATE, negate)        // (callable | value)
 mspec_metatable_field(NOT, not)              // (callable | value)
 mspec_metatable_field(LENGTH, length)        // (callable | value)
-mspec_metatable_field(REF, ref)              // (callable | value)
-mspec_metatable_field(DEREF, deref)          // (callable | value)
 
 mspec_metatable_field(TO_STRING, tostr)      // (callable | value)
 mspec_metatable_field(HASH, hash)            // (callable | value)

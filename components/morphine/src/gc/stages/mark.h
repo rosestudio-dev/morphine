@@ -11,7 +11,6 @@
 #include "morphine/object/exception.h"
 #include "morphine/object/function.h"
 #include "morphine/object/native.h"
-#include "morphine/object/reference.h"
 #include "morphine/object/stream.h"
 #include "morphine/object/string.h"
 #include "morphine/object/table.h"
@@ -75,10 +74,6 @@ static inline size_t size_exception(struct exception *exception) {
 
 static inline size_t size_string(struct string *string) {
     return sizeof(struct string) + (((size_t) string->size) + 1) * sizeof(char);
-}
-
-static inline size_t size_reference(mattr_unused struct reference *reference) {
-    return sizeof(struct reference);
 }
 
 static inline size_t size_stream(mattr_unused struct stream *stream) {
@@ -209,9 +204,6 @@ static inline size_t mark_internal(morphine_instance_t I, struct object *obj) {
         case OBJ_TYPE_STRING: {
             return size_string(cast(struct string *, obj));
         }
-        case OBJ_TYPE_REFERENCE: {
-            return size_reference(cast(struct reference *, obj));
-        }
     }
 
     throwI_panic(I, "unsupported object");
@@ -245,9 +237,6 @@ static inline size_t size_obj(morphine_instance_t I, struct object *obj) {
         }
         case OBJ_TYPE_STRING: {
             return size_string(cast(struct string *, obj));
-        }
-        case OBJ_TYPE_REFERENCE: {
-            return size_reference(cast(struct reference *, obj));
         }
         case OBJ_TYPE_STREAM: {
             return size_stream(cast(struct stream *, obj));

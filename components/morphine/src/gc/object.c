@@ -11,7 +11,6 @@
 #include "morphine/object/exception.h"
 #include "morphine/object/function.h"
 #include "morphine/object/native.h"
-#include "morphine/object/reference.h"
 #include "morphine/object/stream.h"
 #include "morphine/object/string.h"
 #include "morphine/object/table.h"
@@ -43,9 +42,6 @@ static inline void destruct(morphine_instance_t I, struct object *object) {
             return;
         case OBJ_TYPE_COROUTINE:
             coroutineI_free(I, cast(morphine_coroutine_t, object));
-            return;
-        case OBJ_TYPE_REFERENCE:
-            referenceI_free(I, cast(struct reference *, object));
             return;
         case OBJ_TYPE_EXCEPTION:
             exceptionI_free(I, cast(struct exception *, object));

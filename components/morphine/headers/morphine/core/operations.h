@@ -8,7 +8,6 @@
 #include "morphine/core/metatable.h"
 #include "morphine/gc/safe.h"
 #include "morphine/object/coroutine.h"
-#include "morphine/object/reference.h"
 #include "morphine/object/table.h"
 #include "morphine/object/vector.h"
 #include "morphine/utils/array_size.h"
@@ -596,70 +595,6 @@ static inline op_result_t interpreter_fun_not(
 
     (*result) = valueI_boolean(!valueI_tobool(a));
     return NORMAL;
-}
-
-static inline op_result_t interpreter_fun_ref(
-    morphine_coroutine_t U,
-    ml_size callstate,
-    struct value a,
-    struct value *result,
-    ml_size pop_size,
-    bool need_return
-) {
-    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
-        (*result) = callstackI_result(U);
-        return CALLED_COMPLETE;
-    }
-
-    struct value mt_field;
-    if (metatableI_test(U->I, a, MTYPE_METAFIELD_REF, &mt_field)) {
-        if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { a };
-            callstackI_continue(U, callstate);
-            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
-            return CALLED;
-        }
-
-        (*result) = mt_field;
-        return NORMAL;
-    }
-
-    (*result) = valueI_object(referenceI_create(U->I, a));
-    return NORMAL;
-}
-
-static inline op_result_t interpreter_fun_deref(
-    morphine_coroutine_t U,
-    ml_size callstate,
-    struct value a,
-    struct value *result,
-    ml_size pop_size,
-    bool need_return
-) {
-    if (mm_unlikely(need_return && (callstackI_state(U) == callstate))) {
-        (*result) = callstackI_result(U);
-        return CALLED_COMPLETE;
-    }
-
-    if (valueI_is_reference(a)) {
-        (*result) = *referenceI_get(valueI_as_reference_or_error(U->I, a));
-        return NORMAL;
-    }
-
-    struct value mt_field;
-    if (metatableI_test(U->I, a, MTYPE_METAFIELD_DEREF, &mt_field)) {
-        if (valueI_is_callable(mt_field)) {
-            struct value new_args[] = { a };
-            callstackI_continue(U, callstate);
-            callstackI_call(U, &mt_field, new_args, array_size(new_args), pop_size);
-            return CALLED;
-        }
-
-        (*result) = mt_field;
-        return NORMAL;
-    }
-
-    throwI_error(U->I, "deref supports only reference");
 }
 
 static inline op_result_t interpreter_fun_length(

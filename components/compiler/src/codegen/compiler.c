@@ -249,12 +249,6 @@ decl_expr(unary) {
                 case MCEXPR_UNARY_TYPE_LEN:
                     codegen_instruction_LENGTH(C, codegen_result(C), codegen_result(C));
                     codegen_complete(C);
-                case MCEXPR_UNARY_TYPE_REF:
-                    codegen_instruction_REF(C, codegen_result(C), codegen_result(C));
-                    codegen_complete(C);
-                case MCEXPR_UNARY_TYPE_DEREF:
-                    codegen_instruction_DEREF(C, codegen_result(C), codegen_result(C));
-                    codegen_complete(C);
             }
         default:
             break;

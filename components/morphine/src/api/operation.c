@@ -74,11 +74,9 @@ unary_op(type);
 unary_op(negative);
 unary_op(not);
 unary_op(length);
-unary_op(ref);
-unary_op(deref);
 
-binary_op(compare);
 unary_op(tostr);
+binary_op(compare);
 unary_op(hash);
 
 static struct op_func ops[] = {
@@ -98,10 +96,8 @@ static struct op_func ops[] = {
     (struct op_func) { .name = "neg",          .function = opnegative     },
     (struct op_func) { .name = "not",          .function = opnot          },
     (struct op_func) { .name = "len",          .function = oplength       },
-    (struct op_func) { .name = "ref",          .function = opref          },
-    (struct op_func) { .name = "deref",        .function = opderef        },
-    (struct op_func) { .name = "compare",      .function = opcompare      },
     (struct op_func) { .name = "tostr",        .function = optostr        },
+    (struct op_func) { .name = "compare",      .function = opcompare      },
     (struct op_func) { .name = "hash",         .function = ophash         },
 };
 

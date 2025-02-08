@@ -80,7 +80,7 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
         sp_fetch();
 
         sp_dispatch(instruction.opcode) {
-            sp_case(MTYPE_OPCODE_NO_OPERATION) {
+            sp_case(MTYPE_OPCODE_NOP) {
                 sp_end();
             }
             sp_case(MTYPE_OPCODE_YIELD) {
@@ -325,24 +325,6 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 struct value result = valueI_nil;
 
                 complex_fun(interpreter_fun_not, 1, a, &result);
-
-                set_slot(C, arg2, result);
-                sp_end();
-            }
-            sp_case(MTYPE_OPCODE_REF) {
-                get_slot(C, arg1, a);
-                struct value result = valueI_nil;
-
-                complex_fun(interpreter_fun_ref, 1, a, &result);
-
-                set_slot(C, arg2, result);
-                sp_end();
-            }
-            sp_case(MTYPE_OPCODE_DEREF) {
-                get_slot(C, arg1, a);
-                struct value result = valueI_nil;
-
-                complex_fun(interpreter_fun_deref, 1, a, &result);
 
                 set_slot(C, arg2, result);
                 sp_end();

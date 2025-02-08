@@ -30,8 +30,6 @@ static inline struct string *convertI_to_string(morphine_instance_t I, struct va
             return stringI_createf(I, "[object:closure:%"PRIxPTR"]", (uintptr_t) value.object.closure);
         case VALUE_TYPE_COROUTINE:
             return stringI_createf(I, "[object:coroutine:%"PRIxPTR"]", (uintptr_t) value.object.coroutine);
-        case VALUE_TYPE_REFERENCE:
-            return stringI_createf(I, "[object:reference:%"PRIxPTR"]", (uintptr_t) value.object.reference);
         case VALUE_TYPE_EXCEPTION:
             return stringI_createf(I, "[object:exception:%"PRIxPTR"]", (uintptr_t) value.object.exception);
         case VALUE_TYPE_FUNCTION:
