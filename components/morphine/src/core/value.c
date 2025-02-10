@@ -25,7 +25,7 @@ int valueI_compare(morphine_instance_t I, struct value a, struct value b, bool d
             return smpcmp(a.type, b.type);
         }
 
-        throwI_error(I, "unable to compare values with different types");
+        throwI_error(I, "unable to compare different types");
     }
 
     switch (a.type) {
