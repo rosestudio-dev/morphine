@@ -51,7 +51,7 @@ MORPHINE_API void mapi_vector_add(morphine_coroutine_t U, ml_size index) {
 MORPHINE_API bool mapi_vector_has(morphine_coroutine_t U) {
     struct vector *vector = valueI_as_vector_or_error(U->I, stackI_peek(U, 1));
     struct value value = stackI_peek(U, 0);
-    return vectorI_has(vector, value);
+    return vectorI_has(U->I, vector, value);
 }
 
 MORPHINE_API void mapi_vector_get(morphine_coroutine_t U, ml_size index) {

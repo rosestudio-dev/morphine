@@ -7,7 +7,7 @@
 #include "morphine/gc/allocator.h"
 #include "morphine/gc/barrier.h"
 #include "morphine/gc/safe.h"
-#include "morphine/misc/instruction.h"
+#include "morphine/core/instruction.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/object/string.h"
 #include <string.h>

@@ -164,11 +164,32 @@ decl_expr(binary) {
                     case MCEXPR_BINARY_TYPE_MOD:
                         codegen_instruction_MOD(C, codegen_result(C), data->slot, codegen_result(C));
                         codegen_complete(C);
-                    case MCEXPR_BINARY_TYPE_EQUAL:
-                        codegen_instruction_EQUAL(C, codegen_result(C), data->slot, codegen_result(C));
+                    case MCEXPR_BINARY_TYPE_LT:
+                        codegen_instruction_CMP(C, codegen_result(C), data->slot, codegen_result(C));
+                        codegen_instruction_TEST_LT(C, codegen_result(C), codegen_result(C));
                         codegen_complete(C);
-                    case MCEXPR_BINARY_TYPE_LESS:
-                        codegen_instruction_LESS(C, codegen_result(C), data->slot, codegen_result(C));
+                    case MCEXPR_BINARY_TYPE_GT:
+                        codegen_instruction_CMP(C, codegen_result(C), data->slot, codegen_result(C));
+                        codegen_instruction_TEST_LE(C, codegen_result(C), codegen_result(C));
+                        codegen_instruction_NOT(C, codegen_result(C), codegen_result(C));
+                        codegen_complete(C);
+                    case MCEXPR_BINARY_TYPE_LE:
+                        codegen_instruction_CMP(C, codegen_result(C), data->slot, codegen_result(C));
+                        codegen_instruction_TEST_LE(C, codegen_result(C), codegen_result(C));
+                        codegen_complete(C);
+                    case MCEXPR_BINARY_TYPE_GE:
+                        codegen_instruction_CMP(C, codegen_result(C), data->slot, codegen_result(C));
+                        codegen_instruction_TEST_LT(C, codegen_result(C), codegen_result(C));
+                        codegen_instruction_NOT(C, codegen_result(C), codegen_result(C));
+                        codegen_complete(C);
+                    case MCEXPR_BINARY_TYPE_EQ:
+                        codegen_instruction_CMP(C, codegen_result(C), data->slot, codegen_result(C));
+                        codegen_instruction_TEST_EQ(C, codegen_result(C), codegen_result(C));
+                        codegen_complete(C);
+                    case MCEXPR_BINARY_TYPE_NE:
+                        codegen_instruction_CMP(C, codegen_result(C), data->slot, codegen_result(C));
+                        codegen_instruction_TEST_EQ(C, codegen_result(C), codegen_result(C));
+                        codegen_instruction_NOT(C, codegen_result(C), codegen_result(C));
                         codegen_complete(C);
                     case MCEXPR_BINARY_TYPE_CONCAT:
                         codegen_instruction_CONCAT(C, codegen_result(C), data->slot, codegen_result(C));

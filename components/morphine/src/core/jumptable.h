@@ -17,7 +17,7 @@ static const void *const sp_dispatch_tab[] = {
 #define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_label(n)
 #define mspec_instruction_args3(n, s, a1, a2, a3) mspec_instruction_label(n)
 
-#include "morphine/misc/instruction/specification.h"
+#include "morphine/core/instruction/specification.h"
 
 #undef mspec_instruction_label
 #undef mspec_instruction_args0

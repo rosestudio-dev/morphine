@@ -6,7 +6,7 @@
 #include "morphine/core/metatable.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/safe.h"
-#include "morphine/misc/instruction.h"
+#include "morphine/core/instruction.h"
 #include "morphine/misc/packer.h"
 #include "morphine/object/closure.h"
 #include "morphine/object/string.h"

@@ -31,4 +31,4 @@ void codegen_instruction_##n(struct codegen_controller *C names) { \
 #define mspec_instruction_args2(n, s, ar1, ar2)      instruction_function(n, arg(IAT_##ar1, value_##ar1, ar1##_a1), arg(IAT_##ar2, value_##ar2, ar2##_a2), arg(IAT_stub, value_stub, 0),          dec_arg(ar1, ar1##_a1) dec_arg(ar2, ar2##_a2))
 #define mspec_instruction_args3(n, s, ar1, ar2, ar3) instruction_function(n, arg(IAT_##ar1, value_##ar1, ar1##_a1), arg(IAT_##ar2, value_##ar2, ar2##_a2), arg(IAT_##ar3, value_##ar3, ar3##_a3), dec_arg(ar1, ar1##_a1) dec_arg(ar2, ar2##_a2) dec_arg(ar3, ar3##_a3))
 
-#include "morphine/misc/instruction/specification.h"
+#include "morphine/core/instruction/specification.h"

@@ -288,7 +288,7 @@ static inline struct value extract_callable(
     const char *error,
     bool error_before
 ) {
-    struct closure *closure = valueI_safe_as_closure(callable, NULL);
+    struct closure *closure = valueI_as_closure_or_default(callable, NULL);
     if (closure != NULL) {
         callable = closure->callable;
     }

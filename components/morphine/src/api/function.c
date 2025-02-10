@@ -6,7 +6,7 @@
 #include "morphine/object/function.h"
 #include "morphine/object/coroutine.h"
 #include "morphine/core/throw.h"
-#include "morphine/misc/instruction.h"
+#include "morphine/core/instruction.h"
 
 MORPHINE_API void mapi_push_function(
     morphine_coroutine_t U,

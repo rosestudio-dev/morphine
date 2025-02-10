@@ -144,10 +144,10 @@ static inline bool redblacktree_is_empty(struct tree *tree) {
     return FIRST(tree) == NIL_LEAF(tree);
 }
 
-static inline struct bucket *redblacktree_find(struct tree *tree, struct value key) {
+static inline struct bucket *redblacktree_find(morphine_instance_t I, struct tree *tree, struct value key) {
     struct bucket *current = FIRST(tree);
     while (current != NIL_LEAF(tree)) {
-        int cmp = valueI_compare(key, current->pair.key);
+        int cmp = valueI_compare(I, key, current->pair.key, true);
 
         if (cmp == 0) {
             return current;
@@ -269,6 +269,7 @@ static void redblacktree_insert_repair(struct tree *tree, struct bucket *current
 }
 
 static inline bool redblacktree_insert_pre(
+    morphine_instance_t I,
     struct tree *tree,
     struct value key,
     struct bucket **current,
@@ -278,7 +279,7 @@ static inline bool redblacktree_insert_pre(
     *parent = ROOT(tree);
 
     while (*current != NIL_LEAF(tree)) {
-        int cmp = valueI_compare(key, (*current)->pair.key);
+        int cmp = valueI_compare(I, key, (*current)->pair.key, true);
 
         if (cmp == 0) {
             return true;
@@ -297,6 +298,7 @@ static inline bool redblacktree_insert_pre(
 }
 
 static inline bool redblacktree_insert_post(
+    morphine_instance_t I,
     struct tree *tree,
     struct pair pair,
     struct bucket *current,
@@ -308,7 +310,7 @@ static inline bool redblacktree_insert_post(
     current->color = BUCKET_COLOR_RED;
     current->pair = pair;
 
-    int cmp = valueI_compare(pair.key, parent->pair.key);
+    int cmp = valueI_compare(I, pair.key, parent->pair.key, true);
     if (parent == ROOT(tree) || cmp < 0) {
         parent->left = current;
     } else {
@@ -481,12 +483,12 @@ static void redblacktree_init(struct tree *tree) {
 
 // table
 
-static inline struct tree *hashmap_get_tree(struct hashmap *hashmap, struct value value) {
-    size_t index = valueI_hash(value) % hashmap->hashing.size;
+static inline struct tree *hashmap_get_tree(morphine_instance_t I, struct hashmap *hashmap, struct value value) {
+    size_t index = valueI_hash(I, value) % hashmap->hashing.size;
     return hashmap->hashing.trees + index;
 }
 
-static inline void hashmap_restruct_trees(struct hashmap *hashmap) {
+static inline void hashmap_restruct_trees(morphine_instance_t I, struct hashmap *hashmap) {
     size_t size = hashmap->hashing.size;
     for (size_t i = 0; i < size; i++) {
         redblacktree_init(hashmap->hashing.trees + i);
@@ -494,15 +496,15 @@ static inline void hashmap_restruct_trees(struct hashmap *hashmap) {
 
     struct bucket *current = hashmap->buckets.head;
     while (current != NULL) {
-        struct tree *tree = hashmap_get_tree(hashmap, current->pair.key);
+        struct tree *tree = hashmap_get_tree(I, hashmap, current->pair.key);
 
         struct bucket *tree_current;
         struct bucket *tree_parent;
 
-        if (redblacktree_insert_pre(tree, current->pair.key, &tree_current, &tree_parent)) {
+        if (redblacktree_insert_pre(I, tree, current->pair.key, &tree_current, &tree_parent)) {
             tree_current->pair.value = current->pair.value;
         } else {
-            redblacktree_insert_post(tree, current->pair, current, tree_parent);
+            redblacktree_insert_post(I, tree, current->pair, current, tree_parent);
         }
 
         current = current->ll.prev;
@@ -524,25 +526,25 @@ static inline void hashmap_resize(morphine_instance_t I, struct hashmap *hashmap
 
     hashmap->hashing.trees = allocI_vec(I, hashmap->hashing.trees, new_size, sizeof(struct tree));
     hashmap->hashing.size = new_size;
-    hashmap_restruct_trees(hashmap);
+    hashmap_restruct_trees(I, hashmap);
 }
 
-static inline struct bucket *hashmap_get(struct hashmap *hashmap, struct value key, struct tree **tree) {
+static inline struct bucket *hashmap_get(morphine_instance_t I, struct hashmap *hashmap, struct value key, struct tree **tree) {
     if (hashmap->hashing.size == 0) {
         return NULL;
     }
 
-    struct tree *found_tree = hashmap_get_tree(hashmap, key);
+    struct tree *found_tree = hashmap_get_tree(I, hashmap, key);
     if (tree != NULL) {
         *tree = found_tree;
     }
 
-    return redblacktree_find(found_tree, key);
+    return redblacktree_find(I, found_tree, key);
 }
 
 static inline struct pair hashmap_remove(morphine_instance_t I, struct hashmap *hashmap, struct value key, bool *has) {
     struct tree *tree = NULL;
-    struct bucket *bucket = hashmap_get(hashmap, key, &tree);
+    struct bucket *bucket = hashmap_get(I, hashmap, key, &tree);
     if (has != NULL) {
         *has = bucket != NULL;
     }
@@ -618,12 +620,12 @@ ml_size tableI_size(struct table *table) {
     return table->hashmap.buckets.count;
 }
 
-bool tableI_has(struct table *table, struct value key) {
-    return hashmap_get(&table->hashmap, key, NULL) != NULL;
+bool tableI_has(morphine_instance_t I, struct table *table, struct value key) {
+    return hashmap_get(I, &table->hashmap, key, NULL) != NULL;
 }
 
-struct value tableI_get(struct table *table, struct value key, bool *has) {
-    struct bucket *found = hashmap_get(&table->hashmap, key, NULL);
+struct value tableI_get(morphine_instance_t I, struct table *table, struct value key, bool *has) {
+    struct bucket *found = hashmap_get(I, &table->hashmap, key, NULL);
 
     if (has != NULL) {
         *has = found != NULL;
@@ -652,14 +654,14 @@ void tableI_set(morphine_instance_t I, struct table *table, struct value key, st
 
         hashmap_resize(I, hashmap);
         struct bucket *new_bucket = create_bucket(I, hashmap);
-        struct tree *tree = hashmap_get_tree(hashmap, key);
+        struct tree *tree = hashmap_get_tree(I, hashmap, key);
 
         gcI_valbarrier(I, table, key);
         gcI_valbarrier(I, table, value);
-        if (redblacktree_insert_pre(tree, key, &current, &parent)) {
+        if (redblacktree_insert_pre(I, tree, key, &current, &parent)) {
             current->pair.value = value;
         } else {
-            if (redblacktree_insert_post(tree, value_pair(key, value), new_bucket, parent)) {
+            if (redblacktree_insert_post(I, tree, value_pair(key, value), new_bucket, parent)) {
                 hashmap->hashing.used++;
             }
 
@@ -706,8 +708,8 @@ struct pair tableI_first(struct table *table, bool *has) {
     return bucket->pair;
 }
 
-struct pair tableI_next(struct table *table, struct value key, bool *has) {
-    struct bucket *current = hashmap_get(&table->hashmap, key, NULL);
+struct pair tableI_next(morphine_instance_t I, struct table *table, struct value key, bool *has) {
+    struct bucket *current = hashmap_get(I, &table->hashmap, key, NULL);
     if (current == NULL) {
         if (has != NULL) {
             (*has) = false;

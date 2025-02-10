@@ -13,7 +13,7 @@ bool sharedstorageI_define(morphine_instance_t I, const char *sharedkey) {
     struct string *string = gcI_safe_obj(I, string, stringI_create(I, sharedkey));
 
     bool has = false;
-    tableI_get(I->sharedstorage, valueI_object(string), &has);
+    tableI_get(I, I->sharedstorage, valueI_object(string), &has);
 
     if (!has) {
         struct table *table = gcI_safe_obj(I, table, tableI_create(I));
@@ -33,7 +33,7 @@ void sharedstorageI_set(morphine_instance_t I, const char *sharedkey, struct val
     struct string *string = gcI_safe_obj(I, string, stringI_create(I, sharedkey));
 
     bool has = false;
-    struct value table = tableI_get(I->sharedstorage, valueI_object(string), &has);
+    struct value table = tableI_get(I, I->sharedstorage, valueI_object(string), &has);
 
     if (!has) {
         throwI_error(I, "undefined sharedstorage");
@@ -51,13 +51,13 @@ struct value sharedstorageI_get(morphine_instance_t I, const char *sharedkey, st
     struct string *string = gcI_safe_obj(I, string, stringI_create(I, sharedkey));
 
     bool internal_has = false;
-    struct value table = tableI_get(I->sharedstorage, valueI_object(string), &internal_has);
+    struct value table = tableI_get(I, I->sharedstorage, valueI_object(string), &internal_has);
 
     if (!internal_has) {
         throwI_error(I, "undefined sharedstorage");
     }
 
-    struct value result = tableI_get(valueI_as_table_or_error(I, table), key, has);
+    struct value result = tableI_get(I, valueI_as_table_or_error(I, table), key, has);
 
     gcI_safe_exit(I);
 
@@ -71,7 +71,7 @@ struct value sharedstorageI_remove(morphine_instance_t I, const char *sharedkey,
     struct string *string = gcI_safe_obj(I, string, stringI_create(I, sharedkey));
 
     bool internal_has = false;
-    struct value table = tableI_get(I->sharedstorage, valueI_object(string), &internal_has);
+    struct value table = tableI_get(I, I->sharedstorage, valueI_object(string), &internal_has);
 
     if (!internal_has) {
         throwI_error(I, "undefined sharedstorage");
@@ -89,7 +89,7 @@ void sharedstorageI_clear(morphine_instance_t I, const char *sharedkey) {
     struct string *string = gcI_safe_obj(I, string, stringI_create(I, sharedkey));
 
     bool internal_has = false;
-    struct value table = tableI_get(I->sharedstorage, valueI_object(string), &internal_has);
+    struct value table = tableI_get(I, I->sharedstorage, valueI_object(string), &internal_has);
 
     if (!internal_has) {
         throwI_error(I, "undefined sharedstorage");

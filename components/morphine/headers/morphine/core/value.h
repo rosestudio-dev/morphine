@@ -67,28 +67,49 @@
 
 // safe as
 
-#define valueI_safe_as(t, x, o) ({struct value _a = (x); (mm_likely(valueI_is_##t(_a)) ? valueI_as_##t(_a) : (o));})
+#define valueI_as_or_default(t, x, o) ({struct value _a = (x); (mm_likely(valueI_is_##t(_a)) ? valueI_as_##t(_a) : (o));})
 
-#define valueI_safe_as_nil(x, o)       valueI_safe_as(nil, x, o)
-#define valueI_safe_as_integer(x, o)   valueI_safe_as(integer, x, o)
-#define valueI_safe_as_decimal(x, o)   valueI_safe_as(decimal, x, o)
-#define valueI_safe_as_boolean(x, o)   valueI_safe_as(boolean, x, o)
-#define valueI_safe_as_raw(x, o)       valueI_safe_as(raw, x, o)
-#define valueI_safe_as_userdata(x, o)  valueI_safe_as(userdata, x, o)
-#define valueI_safe_as_string(x, o)    valueI_safe_as(string, x, o)
-#define valueI_safe_as_table(x, o)     valueI_safe_as(table, x, o)
-#define valueI_safe_as_vector(x, o)    valueI_safe_as(vector, x, o)
-#define valueI_safe_as_closure(x, o)   valueI_safe_as(closure, x, o)
-#define valueI_safe_as_coroutine(x, o) valueI_safe_as(coroutine, x, o)
-#define valueI_safe_as_function(x, o)  valueI_safe_as(function, x, o)
-#define valueI_safe_as_native(x, o)    valueI_safe_as(native, x, o)
-#define valueI_safe_as_exception(x, o) valueI_safe_as(exception, x, o)
-#define valueI_safe_as_stream(x, o)    valueI_safe_as(stream, x, o)
-#define valueI_safe_as_object(x, o)    valueI_safe_as(object, x, o)
+#define valueI_as_nil_or_default(x, o)       valueI_as_or_default(nil, x, o)
+#define valueI_as_integer_or_default(x, o)   valueI_as_or_default(integer, x, o)
+#define valueI_as_decimal_or_default(x, o)   valueI_as_or_default(decimal, x, o)
+#define valueI_as_boolean_or_default(x, o)   valueI_as_or_default(boolean, x, o)
+#define valueI_as_raw_or_default(x, o)       valueI_as_or_default(raw, x, o)
+#define valueI_as_userdata_or_default(x, o)  valueI_as_or_default(userdata, x, o)
+#define valueI_as_string_or_default(x, o)    valueI_as_or_default(string, x, o)
+#define valueI_as_table_or_default(x, o)     valueI_as_or_default(table, x, o)
+#define valueI_as_vector_or_default(x, o)    valueI_as_or_default(vector, x, o)
+#define valueI_as_closure_or_default(x, o)   valueI_as_or_default(closure, x, o)
+#define valueI_as_coroutine_or_default(x, o) valueI_as_or_default(coroutine, x, o)
+#define valueI_as_function_or_default(x, o)  valueI_as_or_default(function, x, o)
+#define valueI_as_native_or_default(x, o)    valueI_as_or_default(native, x, o)
+#define valueI_as_exception_or_default(x, o) valueI_as_or_default(exception, x, o)
+#define valueI_as_stream_or_default(x, o)    valueI_as_or_default(stream, x, o)
+#define valueI_as_object_or_default(x, o)    valueI_as_or_default(object, x, o)
+
+// as or code
+
+#define valueI_as_or_cme(I, t, x, m) ({struct value _a = (x); if (mm_unlikely(!valueI_is_##t(_a))) throwI_error((I), (m)); valueI_as_##t(_a);})
+
+#define valueI_as_nil_or_cme(I, x, m)       valueI_as_or_cme(I, nil, x, m)
+#define valueI_as_integer_or_cme(I, x, m)   valueI_as_or_cme(I, integer, x, m)
+#define valueI_as_decimal_or_cme(I, x, m)   valueI_as_or_cme(I, decimal, x, m)
+#define valueI_as_boolean_or_cme(I, x, m)   valueI_as_or_cme(I, boolean, x, m)
+#define valueI_as_raw_or_cme(I, x, m)       valueI_as_or_cme(I, raw, x, m)
+#define valueI_as_userdata_or_cme(I, x, m)  valueI_as_or_cme(I, userdata, x, m)
+#define valueI_as_string_or_cme(I, x, m)    valueI_as_or_cme(I, string, x, m)
+#define valueI_as_table_or_cme(I, x, m)     valueI_as_or_cme(I, table, x, m)
+#define valueI_as_vector_or_cme(I, x, m)    valueI_as_or_cme(I, vector, x, m)
+#define valueI_as_closure_or_cme(I, x, m)   valueI_as_or_cme(I, closure, x, m)
+#define valueI_as_coroutine_or_cme(I, x, m) valueI_as_or_cme(I, coroutine, x, m)
+#define valueI_as_function_or_cme(I, x, m)  valueI_as_or_cme(I, function, x, m)
+#define valueI_as_native_or_cme(I, x, m)    valueI_as_or_cme(I, native, x, m)
+#define valueI_as_exception_or_cme(I, x, m) valueI_as_or_cme(I, exception, x, m)
+#define valueI_as_stream_or_cme(I, x, m)    valueI_as_or_cme(I, stream, x, m)
+#define valueI_as_object_or_cme(I, x, m)    valueI_as_or_cme(I, object, x, m)
 
 // as or error
 
-#define valueI_as_or_error(I, t, x) ({struct value _a = (x); if(mm_unlikely(!valueI_is_##t(_a))) throwI_error((I), "expected " #t); valueI_as_##t(_a);})
+#define valueI_as_or_error(I, t, x) valueI_as_or_cme(I, t, x, "expected " #t)
 
 #define valueI_as_nil_or_error(I, x)       valueI_as_or_error(I, nil, x)
 #define valueI_as_integer_or_error(I, x)   valueI_as_or_error(I, integer, x)
@@ -116,7 +137,7 @@
 
 // other
 
-#define valueI_tobool(x) ({ struct value _v_bool = (x); !valueI_is_nil(_v_bool) && !valueI_is_exception(_v_bool) && valueI_safe_as_boolean(_v_bool, true); })
+#define valueI_tobool(x) ({ struct value _v_bool = (x); !valueI_is_nil(_v_bool) && !valueI_is_exception(_v_bool) && valueI_as_boolean_or_default(_v_bool, true); })
 
 // value
 
@@ -148,5 +169,5 @@ struct value {
 const char *valueI_type(morphine_instance_t, struct value, bool raw);
 bool valueI_is_type(morphine_instance_t, const char *name, bool raw);
 
-int valueI_compare(struct value, struct value);
-ml_hash valueI_hash(struct value);
+int valueI_compare(morphine_instance_t, struct value, struct value, bool different_types);
+ml_hash valueI_hash(morphine_instance_t, struct value);

@@ -4,6 +4,7 @@
 
 #include "morphine/core/value.h"
 #include "morphine/algorithm/hash.h"
+#include "morphine/core/throw.h"
 #include "morphine/core/usertype.h"
 #include "morphine/object/string.h"
 #include "morphine/object/userdata.h"
@@ -18,9 +19,13 @@ declare_hash(ml_decimal, decimal);
 declare_hash(bool, bool);
 declare_hash(uintptr_t, uintptr);
 
-int valueI_compare(struct value a, struct value b) {
+int valueI_compare(morphine_instance_t I, struct value a, struct value b, bool different_types) {
     if (mm_likely(a.type != b.type)) {
-        return smpcmp(a.type, b.type);
+        if (different_types) {
+            return smpcmp(a.type, b.type);
+        }
+
+        throwI_error(I, "unable to compare values with different types");
     }
 
     switch (a.type) {
@@ -40,9 +45,11 @@ int valueI_compare(struct value a, struct value b) {
         case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_STREAM: return smpcmp(a.object.header, b.object.header);
     }
+
+    throwI_panic(I, "unsupported type");
 }
 
-ml_hash valueI_hash(struct value value) {
+ml_hash valueI_hash(morphine_instance_t I, struct value value) {
     switch (value.type) {
         case VALUE_TYPE_NIL: return ptr2hash(valueI_as_nil(value));
         case VALUE_TYPE_INTEGER: return integer2hash(valueI_as_integer(value));
@@ -60,11 +67,13 @@ ml_hash valueI_hash(struct value value) {
         case VALUE_TYPE_EXCEPTION:
         case VALUE_TYPE_STREAM: return ptr2hash(valueI_as_object(value));
     }
+
+    throwI_panic(I, "unsupported type");
 }
 
 const char *valueI_type(morphine_instance_t I, struct value value, bool raw) {
     if (!raw) {
-        struct userdata *userdata = valueI_safe_as_userdata(value, NULL);
+        struct userdata *userdata = valueI_as_userdata_or_default(value, NULL);
 
         if (userdata != NULL && userdata->is_typed) {
             return userdata->typed->name;

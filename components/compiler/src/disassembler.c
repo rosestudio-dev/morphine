@@ -17,7 +17,7 @@ static const char *opcode2str(mtype_opcode_t opcode) {
 #define mspec_instruction_args2(n, s, a1, a2)     opcode_case(n, s)
 #define mspec_instruction_args3(n, s, a1, a2, a3) opcode_case(n, s)
 
-#include "morphine/misc/instruction/specification.h"
+#include "morphine/core/instruction/specification.h"
 
 #undef opcode_case
 #undef mspec_instruction_args0
@@ -70,6 +70,15 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
         case MTYPE_OPCODE_SET:
             printf("("SLOT")["SLOT"] = "SLOT, arg(1), arg(2), arg(3));
             return;
+        case MTYPE_OPCODE_TEST_LT:
+            printf(SLOT" = true if ("SLOT") < 0 else false", arg(2), arg(1));
+            return;
+        case MTYPE_OPCODE_TEST_LE:
+            printf(SLOT" = true if ("SLOT") <= 0 else false", arg(2), arg(1));
+            return;
+        case MTYPE_OPCODE_TEST_EQ:
+            printf(SLOT" = true if ("SLOT") == 0 else false", arg(2), arg(1));
+            return;
         case MTYPE_OPCODE_JUMP:
             printf("jump to "APR, arg(1));
             return;
@@ -106,11 +115,8 @@ static void print_description(morphine_coroutine_t U, morphine_instruction_t ins
         case MTYPE_OPCODE_MOD:
             printf(SLOT" = "SLOT" %% "SLOT, arg(3), arg(1), arg(2));
             return;
-        case MTYPE_OPCODE_EQUAL:
-            printf(SLOT" = "SLOT" == "SLOT, arg(3), arg(1), arg(2));
-            return;
-        case MTYPE_OPCODE_LESS:
-            printf(SLOT" = "SLOT" < "SLOT, arg(3), arg(1), arg(2));
+        case MTYPE_OPCODE_CMP:
+            printf(SLOT" = "SLOT" compare with "SLOT, arg(3), arg(1), arg(2));
             return;
         case MTYPE_OPCODE_AND:
             printf(SLOT" = "SLOT" and "SLOT, arg(3), arg(1), arg(2));

@@ -23,7 +23,7 @@
 #define mspec_instruction_args2(n, s, a1, a2)     instruction_function(n, instruction_argument(a1) instruction_argument(a2))
 #define mspec_instruction_args3(n, s, a1, a2, a3) instruction_function(n, instruction_argument(a1) instruction_argument(a2) instruction_argument(a3))
 
-#include "morphine/misc/instruction/specification.h"
+#include "morphine/core/instruction/specification.h"
 
 #undef sslot
 #undef dslot

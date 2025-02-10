@@ -12,8 +12,7 @@ mspec_metatable_field(SUB, sub)              // (callable | value)
 mspec_metatable_field(MUL, mul)              // (callable | value)
 mspec_metatable_field(DIV, div)              // (callable | value)
 mspec_metatable_field(MOD, mod)              // (callable | value)
-mspec_metatable_field(EQUAL, equal)          // (callable | value)
-mspec_metatable_field(LESS, less)            // (callable | value)
+mspec_metatable_field(COMPARE, cmp)          // (callable | value)
 mspec_metatable_field(OR, or)                // (callable | value)
 mspec_metatable_field(AND, and)              // (callable | value)
 mspec_metatable_field(CONCAT, concat)        // (callable | value)
@@ -23,7 +22,6 @@ mspec_metatable_field(LENGTH, length)        // (callable | value)
 
 mspec_metatable_field(TO_STRING, tostr)      // (callable | value)
 mspec_metatable_field(HASH, hash)            // (callable | value)
-mspec_metatable_field(COMPARE, compare)      // (callable | value)
 
 // control
 mspec_metatable_field(MESSAGE, message)      // (value)

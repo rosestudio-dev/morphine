@@ -14,7 +14,7 @@ MORPHINE_AUX const char *maux_opcode_name(morphine_coroutine_t U, mtype_opcode_t
 #define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_opcode(n)
 #define mspec_instruction_args3(n, s, a1, a2, a3) mspec_instruction_opcode(n)
 
-#include "morphine/misc/instruction/specification.h"
+#include "morphine/core/instruction/specification.h"
 
 #undef mspec_instruction_opcode
 #undef mspec_instruction_args0

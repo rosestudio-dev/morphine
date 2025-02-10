@@ -58,7 +58,7 @@ static inline ml_integer convertI_to_integer(morphine_instance_t I, struct value
         }
     }
 
-    struct string *str = valueI_safe_as_string(value, NULL);
+    struct string *str = valueI_as_string_or_default(value, NULL);
     if (str != NULL) {
         ml_integer integer;
         bool compatible = stringI_is_cstr(str);
@@ -68,19 +68,6 @@ static inline ml_integer convertI_to_integer(morphine_instance_t I, struct value
     }
 
     throwI_errorf(I, "cannot convert %s to integer", valueI_type(I, value, false));
-}
-
-static inline ml_integer convertI_to_basedinteger(morphine_instance_t I, struct value value, ml_size base) {
-    struct string *str = valueI_safe_as_string(value, NULL);
-    if (str != NULL) {
-        ml_integer integer;
-        bool compatible = stringI_is_cstr(str);
-        if (compatible && platformI_string2integer(str->chars, &integer, base)) {
-            return integer;
-        }
-    }
-
-    throwI_errorf(I, "cannot convert %s to based integer", valueI_type(I, value, false));
 }
 
 static inline ml_decimal convertI_to_decimal(morphine_instance_t I, struct value value) {
@@ -96,7 +83,7 @@ static inline ml_decimal convertI_to_decimal(morphine_instance_t I, struct value
         }
     }
 
-    struct string *str = valueI_safe_as_string(value, NULL);
+    struct string *str = valueI_as_string_or_default(value, NULL);
     if (str != NULL) {
         ml_decimal decimal;
         bool compatible = stringI_is_cstr(str);
@@ -107,3 +94,17 @@ static inline ml_decimal convertI_to_decimal(morphine_instance_t I, struct value
 
     throwI_errorf(I, "cannot convert %s to decimal", valueI_type(I, value, false));
 }
+
+static inline ml_integer convertI_to_basedinteger(morphine_instance_t I, struct value value, ml_size base) {
+    struct string *str = valueI_as_string_or_default(value, NULL);
+    if (str != NULL) {
+        ml_integer integer;
+        bool compatible = stringI_is_cstr(str);
+        if (compatible && platformI_string2integer(str->chars, &integer, base)) {
+            return integer;
+        }
+    }
+
+    throwI_errorf(I, "cannot convert %s to based integer", valueI_type(I, value, false));
+}
+

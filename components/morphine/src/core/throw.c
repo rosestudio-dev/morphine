@@ -327,7 +327,7 @@ const char *throwI_message(morphine_instance_t I) {
 
     switch (throw->type) {
         case THROW_TYPE_VALUE: {
-            struct string *string = valueI_safe_as_string(throw->error.value, NULL);
+            struct string *string = valueI_as_string_or_default(throw->error.value, NULL);
             throw->error.value = valueI_nil;
 
             if (string != NULL && stringI_is_cstr(string)) {

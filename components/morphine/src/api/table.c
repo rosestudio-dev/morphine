@@ -58,7 +58,7 @@ MORPHINE_API void mapi_table_set(morphine_coroutine_t U) {
 MORPHINE_API bool mapi_table_has(morphine_coroutine_t U) {
     struct table *table = valueI_as_table_or_error(U->I, stackI_peek(U, 1));
     struct value value = stackI_peek(U, 0);
-    return tableI_has(table, value);
+    return tableI_has(U->I, table, value);
 }
 
 MORPHINE_API bool mapi_table_get(morphine_coroutine_t U) {
@@ -66,7 +66,7 @@ MORPHINE_API bool mapi_table_get(morphine_coroutine_t U) {
     struct value value = stackI_peek(U, 0);
 
     bool has = false;
-    struct value result = tableI_get(valueI_as_table_or_error(U->I, table), value, &has);
+    struct value result = tableI_get(U->I, valueI_as_table_or_error(U->I, table), value, &has);
     stackI_replace(U, 0, result);
 
     return has;
@@ -122,7 +122,7 @@ MORPHINE_API bool mapi_table_next(morphine_coroutine_t U) {
     struct value key = stackI_peek(U, 0);
 
     bool has = false;
-    struct pair pair = tableI_next(table, key, &has);
+    struct pair pair = tableI_next(U->I, table, key, &has);
     push_pair(U, pair, true);
 
     return has;

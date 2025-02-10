@@ -6,7 +6,7 @@
 #include "morphine/core/metatable.h"
 #include "morphine/core/throw.h"
 #include "morphine/gc/safe.h"
-#include "morphine/misc/instruction.h"
+#include "morphine/core/instruction.h"
 #include "morphine/misc/packer.h"
 #include "morphine/object/closure.h"
 #include "morphine/object/function.h"
@@ -26,7 +26,7 @@ struct data {
 
 static void vectorize_append(struct data *D, struct value value) {
     bool has = false;
-    tableI_get(D->table, value, &has);
+    tableI_get(D->I, D->table, value, &has);
 
     if (!has) {
         struct value index = valueI_integer(tableI_size(D->table));
@@ -97,7 +97,7 @@ static void write_object_string(struct data *D, struct string *string) {
 
 static void write_value(struct data *D, struct value value) {
     bool has = false;
-    struct value key = tableI_get(D->table, value, &has);
+    struct value key = tableI_get(D->I, D->table, value, &has);
     if (!has) {
         throwI_error(D->I, "unrecognized value");
     }

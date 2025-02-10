@@ -23,7 +23,7 @@ void localstorageI_set(morphine_instance_t I, struct value key, struct value val
     gcI_safe(I, value);
 
     bool has = false;
-    struct value table = tableI_get(I->localstorage, local_key, &has);
+    struct value table = tableI_get(I, I->localstorage, local_key, &has);
 
     if (!has) {
         table = valueI_object(tableI_create(I));
@@ -41,7 +41,7 @@ struct value localstorageI_get(morphine_instance_t I, struct value key, bool *ha
     struct value local_key = localstorage_current_key(I);
 
     bool internal_has = false;
-    struct value table = tableI_get(I->localstorage, local_key, &internal_has);
+    struct value table = tableI_get(I, I->localstorage, local_key, &internal_has);
 
     if (!internal_has) {
         if (has != NULL) {
@@ -51,14 +51,14 @@ struct value localstorageI_get(morphine_instance_t I, struct value key, bool *ha
         return valueI_nil;
     }
 
-    return tableI_get(valueI_as_table_or_error(I, table), key, has);
+    return tableI_get(I, valueI_as_table_or_error(I, table), key, has);
 }
 
 struct value localstorageI_remove(morphine_instance_t I, struct value key, bool *has) {
     struct value local_key = localstorage_current_key(I);
 
     bool internal_has = false;
-    struct value table = tableI_get(I->localstorage, local_key, &internal_has);
+    struct value table = tableI_get(I, I->localstorage, local_key, &internal_has);
 
     if (!internal_has) {
         if (has != NULL) {

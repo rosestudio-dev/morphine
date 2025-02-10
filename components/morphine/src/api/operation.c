@@ -64,8 +64,7 @@ binary_op(sub);
 binary_op(mul);
 binary_op(div);
 binary_op(mod);
-binary_op(equal);
-binary_op(less);
+binary_op(compare);
 binary_op(and);
 binary_op(or);
 binary_op(concat);
@@ -76,29 +75,26 @@ unary_op(not);
 unary_op(length);
 
 unary_op(tostr);
-binary_op(compare);
 unary_op(hash);
 
 static struct op_func ops[] = {
-    (struct op_func) { .name = "get",          .function = opget          },
-    (struct op_func) { .name = "set",          .function = opset          },
-    (struct op_func) { .name = "add",          .function = opadd          },
-    (struct op_func) { .name = "sub",          .function = opsub          },
-    (struct op_func) { .name = "mul",          .function = opmul          },
-    (struct op_func) { .name = "div",          .function = opdiv          },
-    (struct op_func) { .name = "mod",          .function = opmod          },
-    (struct op_func) { .name = "equal",        .function = opequal        },
-    (struct op_func) { .name = "less",         .function = opless         },
-    (struct op_func) { .name = "and",          .function = opand          },
-    (struct op_func) { .name = "or",           .function = opor           },
-    (struct op_func) { .name = "concat",       .function = opconcat       },
-    (struct op_func) { .name = "type",         .function = optype         },
-    (struct op_func) { .name = "neg",          .function = opnegative     },
-    (struct op_func) { .name = "not",          .function = opnot          },
-    (struct op_func) { .name = "len",          .function = oplength       },
-    (struct op_func) { .name = "tostr",        .function = optostr        },
-    (struct op_func) { .name = "compare",      .function = opcompare      },
-    (struct op_func) { .name = "hash",         .function = ophash         },
+    (struct op_func) { .name = "get",    .function = opget      },
+    (struct op_func) { .name = "set",    .function = opset      },
+    (struct op_func) { .name = "add",    .function = opadd      },
+    (struct op_func) { .name = "sub",    .function = opsub      },
+    (struct op_func) { .name = "mul",    .function = opmul      },
+    (struct op_func) { .name = "div",    .function = opdiv      },
+    (struct op_func) { .name = "mod",    .function = opmod      },
+    (struct op_func) { .name = "cmp",    .function = opcompare  },
+    (struct op_func) { .name = "and",    .function = opand      },
+    (struct op_func) { .name = "or",     .function = opor       },
+    (struct op_func) { .name = "concat", .function = opconcat   },
+    (struct op_func) { .name = "type",   .function = optype     },
+    (struct op_func) { .name = "neg",    .function = opnegative },
+    (struct op_func) { .name = "not",    .function = opnot      },
+    (struct op_func) { .name = "len",    .function = oplength   },
+    (struct op_func) { .name = "tostr",  .function = optostr    },
+    (struct op_func) { .name = "hash",   .function = ophash     },
 };
 
 MORPHINE_API bool mapi_op(morphine_coroutine_t U, const char *op) {

@@ -143,6 +143,24 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 complex_fun(interpreter_fun_set, 1, container, key, value);
                 sp_end();
             }
+            sp_case(MTYPE_OPCODE_TEST_LT) {
+                get_slot(C, arg1, value);
+                bool result = valueI_as_integer_or_cme(U->I, value, "unable to test non-integer value") < 0;
+                set_slot(C, arg2, valueI_boolean(result));
+                sp_end();
+            }
+            sp_case(MTYPE_OPCODE_TEST_LE) {
+                get_slot(C, arg1, value);
+                bool result = valueI_as_integer_or_cme(U->I, value, "unable to test non-integer value") <= 0;
+                set_slot(C, arg2, valueI_boolean(result));
+                sp_end();
+            }
+            sp_case(MTYPE_OPCODE_TEST_EQ) {
+                get_slot(C, arg1, value);
+                bool result = valueI_as_integer_or_cme(U->I, value, "unable to test non-integer value") == 0;
+                set_slot(C, arg2, valueI_boolean(result));
+                sp_end();
+            }
             sp_case(MTYPE_OPCODE_JUMP) {
                 *position = arg1;
                 sp_continue();
@@ -252,22 +270,12 @@ static void step_function(morphine_coroutine_t U, struct function *F) {
                 set_slot(C, arg3, result);
                 sp_end();
             }
-            sp_case(MTYPE_OPCODE_EQUAL) {
+            sp_case(MTYPE_OPCODE_CMP) {
                 get_slot(C, arg1, a);
                 get_slot(C, arg2, b);
                 struct value result = valueI_nil;
 
-                complex_fun(interpreter_fun_equal, 1, a, b, &result);
-
-                set_slot(C, arg3, result);
-                sp_end();
-            }
-            sp_case(MTYPE_OPCODE_LESS) {
-                get_slot(C, arg1, a);
-                get_slot(C, arg2, b);
-                struct value result = valueI_nil;
-
-                complex_fun(interpreter_fun_less, 1, a, b, &result);
+                complex_fun(interpreter_fun_compare, 1, a, b, &result);
 
                 set_slot(C, arg3, result);
                 sp_end();

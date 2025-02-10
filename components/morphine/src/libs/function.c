@@ -266,7 +266,7 @@ static maux_construct_element_t elements[] = {
 #define mspec_instruction_args2(n, s, a1, a2)     mspec_instruction_opcode(n, s)
 #define mspec_instruction_args3(n, s, a1, a2, a3) mspec_instruction_opcode(n, s)
 
-#include "morphine/misc/instruction/specification.h"
+#include "morphine/core/instruction/specification.h"
 
 #undef mspec_instruction_opcode
 #undef mspec_instruction_args0

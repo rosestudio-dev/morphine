@@ -2,7 +2,7 @@
 // Created by whyiskra on 16.12.23.
 //
 
-#include "morphine/misc/instruction.h"
+#include "morphine/core/instruction.h"
 
 static const ml_size opcode_args[] = {
 #define mspec_instruction_args0(n, s)             0,
@@ -10,7 +10,7 @@ static const ml_size opcode_args[] = {
 #define mspec_instruction_args2(n, s, a1, a2)     2,
 #define mspec_instruction_args3(n, s, a1, a2, a3) 3,
 
-#include "morphine/misc/instruction/specification.h"
+#include "morphine/core/instruction/specification.h"
 
 #undef mspec_instruction_args0
 #undef mspec_instruction_args1
@@ -60,7 +60,7 @@ bool instructionI_validate(morphine_instruction_t instruction, struct function *
 #define mspec_instruction_args2(n, s, a1, a2)     case MTYPE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_undefined(3); return true;
 #define mspec_instruction_args3(n, s, a1, a2, a3) case MTYPE_OPCODE_##n: arg_##a1(1);      arg_##a2(2);      arg_##a3(3);      return true;
 
-#include "morphine/misc/instruction/specification.h"
+#include "morphine/core/instruction/specification.h"
 
 #undef mspec_instruction_args0
 #undef mspec_instruction_args1

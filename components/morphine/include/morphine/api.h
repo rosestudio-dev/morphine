@@ -5,11 +5,11 @@
 #pragma once
 
 #include "config.h"
+#include "core/instruction/constants.h"
+#include "core/instruction/type.h"
 #include "core/metatable/constants.h"
 #include "core/metatable/type.h"
 #include "core/type/constants.h"
-#include "misc/instruction/constants.h"
-#include "misc/instruction/type.h"
 #include "platform.h"
 #include <stdarg.h>
 
@@ -92,7 +92,7 @@ MORPHINE_API void mapi_to_boolean(morphine_coroutine_t);
 MORPHINE_API void mapi_to_string(morphine_coroutine_t);
 
 MORPHINE_API ml_hash mapi_hash(morphine_coroutine_t);
-MORPHINE_API int mapi_compare(morphine_coroutine_t);
+MORPHINE_API int mapi_compare(morphine_coroutine_t, bool different_types);
 
 MORPHINE_API void mapi_push_csize(morphine_coroutine_t, size_t, const char *name);
 MORPHINE_API ml_size mapi_get_size(morphine_coroutine_t, const char *name);

@@ -52,9 +52,9 @@ ml_size vectorI_size(struct vector *vector) {
     return vector->size.accessible;
 }
 
-bool vectorI_has(struct vector *vector, struct value value) {
+bool vectorI_has(morphine_instance_t I, struct vector *vector, struct value value) {
     for (ml_size i = 0; i < vector->size.accessible; i++) {
-        if (valueI_compare(vector->values[i], value) == 0) {
+        if (valueI_compare(I, vector->values[i], value, true) == 0) {
             return true;
         }
     }

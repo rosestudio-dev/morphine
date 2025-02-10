@@ -62,9 +62,9 @@ struct table *tableI_create(morphine_instance_t);
 void tableI_free(morphine_instance_t, struct table *);
 
 ml_size tableI_size(struct table *);
-bool tableI_has(struct table *, struct value key);
+bool tableI_has(morphine_instance_t, struct table *, struct value key);
 
-struct value tableI_get(struct table *, struct value key, bool *has);
+struct value tableI_get(morphine_instance_t, struct table *, struct value key, bool *has);
 void tableI_set(morphine_instance_t, struct table *, struct value key, struct value value);
 struct value tableI_remove(morphine_instance_t, struct table *, struct value key, bool *has);
 
@@ -73,7 +73,7 @@ void tableI_idx_set(morphine_instance_t, struct table *, ml_size, struct value);
 struct pair tableI_idx_remove(morphine_instance_t, struct table *, ml_size);
 
 struct pair tableI_first(struct table *, bool *has);
-struct pair tableI_next(struct table *, struct value, bool *has);
+struct pair tableI_next(morphine_instance_t, struct table *, struct value, bool *has);
 
 void tableI_clear(morphine_instance_t, struct table *);
 struct table *tableI_concat(morphine_instance_t, struct table *, struct table *);

@@ -29,41 +29,26 @@ struct mc_ast_node *rule_equal(struct parse_controller *C) {
     while (true) {
         ml_line line = parser_get_line(C);
 
+        enum mc_expression_binary_type type;
         if (parser_match(C, et_operator(EQEQ))) {
-            ml_size token_to = parser_index(C);
-            struct mc_ast_expression *expressionB =
-                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_condition));
-
-            struct mc_ast_expression_binary *binary =
-                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
-
-            binary->type = MCEXPR_BINARY_TYPE_EQUAL;
-            binary->a = expression;
-            binary->b = expressionB;
-
-            expression = mcapi_ast_binary2expression(binary);
+            type = MCEXPR_BINARY_TYPE_EQ;
         } else if (parser_match(C, et_operator(EXCLEQ))) {
-            ml_size token_to = parser_index(C);
-            struct mc_ast_expression *expressionB =
-                mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_condition));
-
-            struct mc_ast_expression_binary *binary =
-                mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
-
-            binary->type = MCEXPR_BINARY_TYPE_EQUAL;
-            binary->a = expression;
-            binary->b = expressionB;
-
-            struct mc_ast_expression_unary *unary =
-                mcapi_ast_create_expression_unary(parser_U(C), parser_A(C), token_from, token_to, line);
-
-            unary->type = MCEXPR_UNARY_TYPE_NOT;
-            unary->expression = mcapi_ast_binary2expression(binary);
-
-            expression = mcapi_ast_unary2expression(unary);
+            type = MCEXPR_BINARY_TYPE_NE;
         } else {
             break;
         }
+
+        ml_size token_to = parser_index(C);
+        struct mc_ast_expression *expressionB = mcapi_ast_node2expression(parser_U(C), parser_reduce(C, rule_condition));
+
+        struct mc_ast_expression_binary *binary =
+            mcapi_ast_create_expression_binary(parser_U(C), parser_A(C), token_from, token_to, line);
+
+        binary->type = type;
+        binary->a = expression;
+        binary->b = expressionB;
+
+        expression = mcapi_ast_binary2expression(binary);
     }
 
     return mcapi_ast_expression2node(expression);

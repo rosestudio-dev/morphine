@@ -30,6 +30,10 @@ mspec_instruction_args1(TABLE,       tbl,    dslot)                       // [de
 mspec_instruction_args3(GET,         get,    sslot, sslot, dslot)         // [container, key, dest]   get from (container) by (key) to (dest)
 mspec_instruction_args3(SET,         set,    sslot, sslot, sslot)         // [container, key, src]    set (src) to (container) by (key)
 
+mspec_instruction_args2(TEST_LT,     testlt, sslot, dslot)                // [src, dest]              set to (dest) true if (src) < 0 else false
+mspec_instruction_args2(TEST_LE,     testle, sslot, dslot)                // [src, dest]              set to (dest) true if (src) <= 0 else false
+mspec_instruction_args2(TEST_EQ,     testeq, sslot, dslot)                // [src, dest]              set to (dest) true if (src) == 0 else false
+
 mspec_instruction_args1(JUMP,        jmp,    position)                    // [position]               jump to (position)
 mspec_instruction_args3(JUMP_IF,     jmpif,  sslot, position, position)   // [condition, if, else]    if (condition) is true jump to (if) else jump to (else)
 
@@ -45,8 +49,7 @@ mspec_instruction_args3(SUB,         sub,    sslot, sslot, dslot)
 mspec_instruction_args3(MUL,         mul,    sslot, sslot, dslot)
 mspec_instruction_args3(DIV,         div,    sslot, sslot, dslot)
 mspec_instruction_args3(MOD,         mod,    sslot, sslot, dslot)
-mspec_instruction_args3(EQUAL,       eq,     sslot, sslot, dslot)
-mspec_instruction_args3(LESS,        less,   sslot, sslot, dslot)
+mspec_instruction_args3(CMP,         cmp,    sslot, sslot, dslot)
 mspec_instruction_args3(AND,         and,    sslot, sslot, dslot)
 mspec_instruction_args3(OR,          or,     sslot, sslot, dslot)
 mspec_instruction_args3(CONCAT,      concat, sslot, sslot, dslot)

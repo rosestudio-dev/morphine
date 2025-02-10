@@ -5,7 +5,7 @@
 #pragma once
 
 #include "morphine/core/value.h"
-#include "morphine/misc/instruction/type.h"
+#include "morphine/core/instruction/type.h"
 
 struct function {
     struct object header;

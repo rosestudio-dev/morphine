@@ -4,7 +4,7 @@
 
 #pragma once
 
-#include "morphine/misc/instruction/type.h"
+#include "morphine/core/instruction/type.h"
 #include "morphine/object/stream.h"
 #include "morphine/platform.h"
 

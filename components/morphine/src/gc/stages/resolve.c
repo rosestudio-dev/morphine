@@ -7,7 +7,7 @@
 #include "morphine/core/instance.h"
 
 static inline bool value_is_black(struct value value) {
-    struct object *object = valueI_safe_as_object(value, NULL);
+    struct object *object = valueI_as_object_or_default(value, NULL);
     if (object == NULL) {
         return true;
     }
